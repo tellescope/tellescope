@@ -10,7 +10,7 @@ var __assign = (this && this.__assign) || function () {
     return __assign.apply(this, arguments);
 };
 import { WEBHOOK_MODELS, } from "@tellescope/types-models";
-import { booleanValidator, dateValidator, emailValidator, fieldsValidator, journeysValidator, journeyStatesValidator, phoneValidator, nameValidator, nonNegNumberValidator, mongoIdValidator, mongoIdStringRequired as mongoIdStringValidator, listOfMongoIdStringValidator, preferenceValidator, objectAnyFieldsAnyValuesValidator, stringValidator, stringValidator100, stringValidator105, listOfStringsValidator, emailEncodingValidator, numberToDateValidator, SMSMessageValidator, chatRoomTypeValidator, idStringToDateValidator, subdomainValidator, messageTemplateTypeValidator, stringValidator210, stringValidator250, stringValidator5000, listOfDisplayNameInfo, fileTypeValidator, fileSizeValidator, meetingStatusValidator, listOfAttendeesValidator, meetingInfoValidator, listOfUserIndentitiesValidator, meetingsListValidator, urlValidator, WebhookSubscriptionValidator, attendeeValidator, meetingDisplayInfoValidator, intakePhoneValidator, formResponsesValidator, stringValidator25000, automationActionValidator, automationEventValidator, automatedActionStatusValidator, listOfStringsValidatorEmptyOk, listOfChatAttachmentsValidator, listOfCalendarEventRemindersValidator, messageTemplateModeValidator, listOfAutomationConditionsValidator, chatRoomUserInfoValidator, CUDStringValidator, listOfRelatedRecordsValidator, cancelConditionsValidator, notificationPreferencesValidator, FHIRObservationCategoryValidator, FHIRObservationStatusCodeValidator, FHIRObservationValueValidator, userIdentityValidator, formFieldTypeValidator, previousFormFieldsValidator, numberValidator, organizationThemeValidator, managedContentRecordTypeValidator, passwordValidator, flowchartUIValidator, integrationAuthenticationsValidator, listOfMongoIdStringValidatorEmptyOk, formFieldOptionsValidator, blocksValidator, sessionTypeValidator, portalSettingsValidator, emailValidatorEmptyOkay, phoneValidatorOptional, stringValidator1000, databaseFieldsValidator, databaseRecordValuesValidator, automationEventsValidator, portalBlocksValidator, enduserFormResponsesForEventValidator, enduserTasksForEventValidator, stateCredentialsValidator, stateValidator, weeklyAvailabilitiesValidator, calendarEventLimitsValidator, timezoneValidator, formTypeValidator, managedContentRecordAssignmentTypeValidator, listOfGenericAttachmentsValidator, accessPermissionsValidator, organizationLimitsValidator, organizationSettingsValidator, communicationsChannelValidator, genericUnitWithQuantityValidator, stringValidator25000EmptyOkay, slugValidator, stringValidator5000EmptyOkay, loginFlowResultValidator, sharedWithOrganizationIdsValidator, stringValidator1000Optional, tellescopeGenderValidator, appointmentTermsValidator, paymentProcessorValidator, purchaseCreditValueValidator, costValidator, integrationTitleValidator, journeyContextValidator, stringValidator100000EmptyOkay, analyticsQueryValidator, dateRangeValidator, calendarEventPortalSettingsValidator, dateOptionalOrEmptyStringValidator, baseAvailabilityBlocksValidator, availabilityEntitiesValidator, indexUpdatesValidator, dateRangeOptionalValidator, booleanValidatorOptional, automationTriggerActionValidator, automationTriggerEventValidator, automatioNTriggerStatusValidator, exactMatchValidator, exactMatchValidatorOptional, listOfMongoIdStringValidatorOptionalOrEmptyOk, listOfStringsValidatorOptionalOrEmptyOk, stringValidatorOptionalEmptyOkay, analyticsQueryResultsValidator, stringValidatorOptional, addressValidator, superbillPatientInfoValidator, superbillProviderInfoValidator, superbillLineItemsValidator, billingCodeValidatorOptional, analyticsFrameTypeValidator, videoIntegrationTypesValidator, scheduledJourneysValidator, formScoringValidator, embeddingTypeValidator, listValidator, userCallRoutingBehaviorValidator, userUIRestrictionsValidator, externalChatGPTMessagesValidator, enduserProfileViewBlocksValidator, customDashboardBlocksValidator, intakeDateOfBirthValidator, objectValidator, mongoIdStringRequired, objectAnyFieldsValidator, phoneTreeNodesValidator, phoneTreeEnduserConditionValidator, orValidator, optionalAnyObjectValidator, listValidatorOptionalOrEmptyOk, formCustomizationValidator, buildInFieldsValidator, customEnduserFieldsValidatorOptionalOrEmpty, ticketActionsValidator, formResponseValidator, numberValidatorOptional, languageValidator, relatedRecordValidator, mongoIdStringOptional, tableViewColumnsValidator, formFieldCalloutConditionsValidator, endusersReportQueriesValidator, formResponsesReportQueriesValidator, phoneCallsReportQueriesValidator, listValidatorEmptyOk, phonePlaybackValidatorOptional, ticketSnoozesValidator, listOfStringsWithQualifierValidator, listOfStringsWithQualifierValidatorOptional, stringValidator100000OptionalEmptyOkay, mmsMessagesValidator, groupMMSUserStatesValidator, sortingFieldsValidator, listOfUniqueStringsValidatorEmptyOk, ticketReminderValidator, insuranceOptionalValidator, pharmacyValidator, listOfStringsValidatorUniqueOptionalOrEmptyOkay, diagnosesValidator, stateValidatorOptional, canvasCodingValidator, vitalConfigurationRangesValidator, smartMeterLinesValidator, formFieldFeedbackValidator, phonePlaybackValidator, enduserProfileWebhooksValidator, fieldsSyncValidator, athenaSubscriptionTypeValidator, dateValidatorOptional, listQueryQualifiersValidator, stringValidator5000OptionalEmptyOkay, labeledFieldsValidator, fieldMappingsValidator, analyticsFrameGroupingCategoriesValidator, customDashboardViewValidator, bookingRestrictionsByTemplateValidator, listOfNumbersValidatorUniqueOptionalOrEmptyOkay, enduserDiagnosisValidator, canvasCodingValidatorOptional, calendarEventAttendeesValidator, developHealthDrugsValidator, developHealthDiagnosesValidator, developHealthMockResultValidator, positiveNumberValidator, listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay, recentViewersValidator, stringValidator100000OptionalEmptyOkayEscapeHTML, customPoliciesValidator, stringValidator100EscapeHTML, outOfOfficeBlocksValidator, AIDecisionSourceValidator, AIMessageInputValidator, listOfObjectAnyFieldsAnyValuesValidator, listOfEmailCCsValidator, externalIdNumberValidatorOptional, DEPRECATED_AUTOMATION_TRIGGER_EVENT_TYPES, } from "@tellescope/validation";
+import { booleanValidator, dateValidator, emailValidator, fieldsValidator, journeysValidator, journeyStatesValidator, phoneValidator, nameValidator, nonNegNumberValidator, mongoIdValidator, mongoIdStringRequired as mongoIdStringValidator, listOfMongoIdStringValidator, preferenceValidator, objectAnyFieldsAnyValuesValidator, stringValidator, stringValidator100, stringValidator105, listOfStringsValidator, emailEncodingValidator, numberToDateValidator, SMSMessageValidator, chatRoomTypeValidator, idStringToDateValidator, subdomainValidator, messageTemplateTypeValidator, stringValidator210, stringValidator250, stringValidator5000, listOfDisplayNameInfo, fileTypeValidator, fileSizeValidator, meetingStatusValidator, listOfAttendeesValidator, meetingInfoValidator, listOfUserIndentitiesValidator, meetingsListValidator, urlValidator, WebhookSubscriptionValidator, attendeeValidator, meetingDisplayInfoValidator, intakePhoneValidator, formResponsesValidator, stringValidator25000, automationActionValidator, automationEventValidator, automatedActionStatusValidator, listOfStringsValidatorEmptyOk, listOfChatAttachmentsValidator, listOfCalendarEventRemindersValidator, messageTemplateModeValidator, listOfAutomationConditionsValidator, chatRoomUserInfoValidator, CUDStringValidator, listOfRelatedRecordsValidator, cancelConditionsValidator, notificationPreferencesValidator, FHIRObservationCategoryValidator, FHIRObservationStatusCodeValidator, FHIRObservationValueValidator, userIdentityValidator, formFieldTypeValidator, previousFormFieldsValidator, numberValidator, organizationThemeValidator, managedContentRecordTypeValidator, passwordValidator, flowchartUIValidator, integrationAuthenticationsValidator, listOfMongoIdStringValidatorEmptyOk, formFieldOptionsValidator, blocksValidator, sessionTypeValidator, portalSettingsValidator, emailValidatorEmptyOkay, phoneValidatorOptional, stringValidator1000, databaseFieldsValidator, databaseRecordValuesValidator, automationEventsValidator, portalBlocksValidator, enduserFormResponsesForEventValidator, enduserTasksForEventValidator, stateCredentialsValidator, stateValidator, weeklyAvailabilitiesValidator, calendarEventLimitsValidator, timezoneValidator, formTypeValidator, managedContentRecordAssignmentTypeValidator, listOfGenericAttachmentsValidator, accessPermissionsValidator, organizationLimitsValidator, organizationSettingsValidator, communicationsChannelValidator, genericUnitWithQuantityValidator, stringValidator25000EmptyOkay, slugValidator, stringValidator5000EmptyOkay, loginFlowResultValidator, sharedWithOrganizationIdsValidator, stringValidator1000Optional, tellescopeGenderValidator, appointmentTermsValidator, paymentProcessorValidator, purchaseCreditValueValidator, costValidator, integrationTitleValidator, journeyContextValidator, stringValidator100000EmptyOkay, analyticsQueryValidator, dateRangeValidator, calendarEventPortalSettingsValidator, dateOptionalOrEmptyStringValidator, baseAvailabilityBlocksValidator, availabilityEntitiesValidator, indexUpdatesValidator, dateRangeOptionalValidator, booleanValidatorOptional, automationTriggerActionValidator, automationTriggerEventValidator, automatioNTriggerStatusValidator, exactMatchValidator, exactMatchValidatorOptional, listOfMongoIdStringValidatorOptionalOrEmptyOk, listOfStringsValidatorOptionalOrEmptyOk, stringValidatorOptionalEmptyOkay, analyticsQueryResultsValidator, stringValidatorOptional, addressValidator, superbillPatientInfoValidator, superbillProviderInfoValidator, superbillLineItemsValidator, billingCodeValidatorOptional, analyticsFrameTypeValidator, videoIntegrationTypesValidator, scheduledJourneysValidator, formScoringValidator, embeddingTypeValidator, listValidator, userCallRoutingBehaviorValidator, userUIRestrictionsValidator, externalChatGPTMessagesValidator, enduserProfileViewBlocksValidator, customDashboardBlocksValidator, intakeDateOfBirthValidator, objectValidator, mongoIdStringRequired, objectAnyFieldsValidator, phoneTreeNodesValidator, phoneTreeEnduserConditionValidator, orValidator, optionalAnyObjectValidator, listValidatorOptionalOrEmptyOk, formCustomizationValidator, buildInFieldsValidator, customEnduserFieldsValidatorOptionalOrEmpty, ticketActionsValidator, formResponseValidator, numberValidatorOptional, languageValidator, relatedRecordValidator, mongoIdStringOptional, tableViewColumnsValidator, formFieldCalloutConditionsValidator, endusersReportQueriesValidator, formResponsesReportQueriesValidator, phoneCallsReportQueriesValidator, listValidatorEmptyOk, phonePlaybackValidatorOptional, ticketSnoozesValidator, listOfStringsWithQualifierValidator, listOfStringsWithQualifierValidatorOptional, stringValidator100000OptionalEmptyOkay, mmsMessagesValidator, groupMMSUserStatesValidator, sortingFieldsValidator, listOfUniqueStringsValidatorEmptyOk, ticketReminderValidator, insuranceOptionalValidator, pharmacyValidator, listOfStringsValidatorUniqueOptionalOrEmptyOkay, diagnosesValidator, stateValidatorOptional, canvasCodingValidator, vitalConfigurationRangesValidator, smartMeterLinesValidator, formFieldFeedbackValidator, phonePlaybackValidator, enduserProfileWebhooksValidator, fieldsSyncValidator, athenaSubscriptionTypeValidator, dateValidatorOptional, listQueryQualifiersValidator, stringValidator5000OptionalEmptyOkay, labeledFieldsValidator, fieldMappingsValidator, analyticsFrameGroupingCategoriesValidator, customDashboardViewValidator, bookingRestrictionsByTemplateValidator, listOfNumbersValidatorUniqueOptionalOrEmptyOkay, enduserDiagnosisValidator, canvasCodingValidatorOptional, calendarEventAttendeesValidator, developHealthDrugsValidator, developHealthDiagnosesValidator, developHealthMockResultValidator, positiveNumberValidator, listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay, recentViewersValidator, stringValidator100000OptionalEmptyOkayEscapeHTML, customPoliciesValidator, stringValidator100EscapeHTML, outOfOfficeBlocksValidator, AIDecisionSourceValidator, AIMessageInputValidator, listOfObjectAnyFieldsAnyValuesValidator, listOfEmailCCsValidator, externalIdNumberValidatorOptional, DEPRECATED_AUTOMATION_TRIGGER_EVENT_TYPES, compoundFilterValidator, } from "@tellescope/validation";
 import { CREATOR_ONLY_ACCESS, DEFAULT_OPERATIONS, PLACEHOLDER_ID, ENDUSER_SESSION_TYPE, USER_SESSION_TYPE, CANDID_TITLE, DEVELOP_HEALTH_TITLE, } from "@tellescope/constants";
 export var get_next_reminder_timestamp_for_ticket = function (_a) {
     var dueDateInMS = _a.dueDateInMS, reminders = _a.reminders, closedAt = _a.closedAt;
@@ -2142,7 +2142,8 @@ export var schema = build_schema({
                 description: "Begins an SSO login process for a specific user",
                 parameters: {
                     provider: { validator: stringValidator, required: true },
-                    configurationId: { validator: mongoIdStringValidator }
+                    configurationId: { validator: mongoIdStringValidator },
+                    redirectUrl: { validator: stringValidator },
                 },
                 returns: {
                     url: { validator: stringValidator, required: true },
@@ -2890,7 +2891,13 @@ export var schema = build_schema({
                 },
             },
         },
-        fields: __assign(__assign({}, BuiltInFields), { showByUserTags: { validator: listOfStringsValidatorOptionalOrEmptyOk }, belugaVisitType: { validator: stringValidator }, belugaVerificationId: { validator: stringValidator }, mdiCaseOfferings: {
+        fields: __assign(__assign({}, BuiltInFields), { showByUserTags: { validator: listOfStringsValidatorOptionalOrEmptyOk }, belugaVisitType: { validator: stringValidator }, belugaVerificationId: { validator: stringValidator }, belugaPharmacyMappings: {
+                validator: listValidatorOptionalOrEmptyOk(objectValidator({
+                    pharmacyId: stringValidator100,
+                    patientPreference: stringValidator5000,
+                    conditions: compoundFilterValidator,
+                })),
+            }, mdiCaseOfferings: {
                 validator: listValidatorOptionalOrEmptyOk(objectValidator({
                     offering_id: stringValidator100,
                 }))
@@ -5342,6 +5349,9 @@ export var schema = build_schema({
                     }
                 },
             ],
+            access: [
+                { type: 'filter', field: 'visibleForUserIds' },
+            ],
         },
         defaultActions: DEFAULT_OPERATIONS,
         customActions: {
@@ -6005,7 +6015,80 @@ export var schema = build_schema({
         info: {},
         constraints: {
             unique: [],
-            relationship: [],
+            relationship: [
+                {
+                    explanation: "Historical time tracks require closedAt, lockedAt, lockedByUserId, totalDurationInMS, and timestamps",
+                    evaluate: function (v, _deps, _session, method) {
+                        if (method !== 'create')
+                            return;
+                        var tt = v;
+                        if (!tt.isHistorical)
+                            return;
+                        var missing = [];
+                        if (!tt.closedAt)
+                            missing.push('closedAt');
+                        if (!tt.lockedAt)
+                            missing.push('lockedAt');
+                        if (!tt.lockedByUserId)
+                            missing.push('lockedByUserId');
+                        if (tt.totalDurationInMS === undefined || tt.totalDurationInMS === null)
+                            missing.push('totalDurationInMS');
+                        if (!tt.timestamps || tt.timestamps.length === 0)
+                            missing.push('timestamps');
+                        if (missing.length > 0)
+                            return "Historical time tracks require: ".concat(missing.join(', '));
+                    }
+                },
+                {
+                    explanation: "Locked time tracks only allow review field updates",
+                    evaluate: function (_v, _deps, _session, method, _a) {
+                        var original = _a.original, updates = _a.updates;
+                        if (method !== 'update')
+                            return;
+                        var orig = original;
+                        if (!(orig === null || orig === void 0 ? void 0 : orig.lockedAt))
+                            return;
+                        var reviewFields = ['reviewedAt', 'reviewedByUserId', 'reviewApproved', 'reviewNote'];
+                        var nonReviewFields = Object.keys(updates || {}).filter(function (k) { return !reviewFields.includes(k); });
+                        if (nonReviewFields.length > 0)
+                            return "Time track is locked. Only review fields (".concat(reviewFields.join(', '), ") can be updated.");
+                    }
+                },
+                {
+                    explanation: "Corrections require lockedAt, lockedByUserId, originalTotalDurationInMS, and totalDurationInMS",
+                    evaluate: function (_v, _deps, _session, method, _a) {
+                        var updates = _a.updates;
+                        if (method !== 'update')
+                            return;
+                        var u = updates;
+                        if (!(u === null || u === void 0 ? void 0 : u.correctedAt))
+                            return;
+                        var missing = [];
+                        if (!u.lockedAt)
+                            missing.push('lockedAt');
+                        if (!u.lockedByUserId)
+                            missing.push('lockedByUserId');
+                        if (u.originalTotalDurationInMS === undefined || u.originalTotalDurationInMS === null)
+                            missing.push('originalTotalDurationInMS');
+                        if (u.totalDurationInMS === undefined || u.totalDurationInMS === null)
+                            missing.push('totalDurationInMS');
+                        if (missing.length > 0)
+                            return "Corrections require: ".concat(missing.join(', '));
+                    }
+                },
+                {
+                    explanation: "Users cannot review their own time tracks",
+                    evaluate: function (_v, _deps, _session, method, _a) {
+                        var original = _a.original, updates = _a.updates;
+                        if (method !== 'update')
+                            return;
+                        var u = updates;
+                        var orig = original;
+                        if ((u === null || u === void 0 ? void 0 : u.reviewedByUserId) && u.reviewedByUserId === (orig === null || orig === void 0 ? void 0 : orig.userId))
+                            return 'Users cannot review their own time tracks';
+                    }
+                },
+            ],
             access: [
                 { type: 'filter', field: 'userId' },
             ]
@@ -6043,7 +6126,7 @@ export var schema = build_schema({
                     type: stringValidator,
                     id: stringValidator,
                 }, { isOptional: true, emptyOk: true }),
-            } }),
+            }, isHistorical: { validator: booleanValidatorOptional, updatesDisabled: true }, correctedAt: { validator: dateValidatorOptional }, correctedByUserId: { validator: mongoIdStringOptional }, correctionNote: { validator: stringValidator1000Optional }, originalTotalDurationInMS: { validator: numberValidatorOptional }, reviewedAt: { validator: dateValidatorOptional }, reviewedByUserId: { validator: mongoIdStringOptional }, reviewApproved: { validator: booleanValidatorOptional }, reviewNote: { validator: stringValidator1000Optional }, lockedAt: { validator: dateValidatorOptional }, lockedByUserId: { validator: mongoIdStringOptional } }),
     },
     ticket_queues: {
         info: {},

@@ -74,7 +74,7 @@ import fs from "fs"
 import { load_inbox_data_tests } from "./api_tests/load_inbox_data.test";
 import { custom_dashboards_tests } from "./api_tests/custom_dashboards.test";
 import { message_assignment_trigger_tests } from "./api_tests/message_assignment_trigger.test";
-import { time_tracks_tests } from "./api_tests/time_tracks.test";
+import { time_tracks_tests, time_tracks_historical_tests, time_tracks_correction_tests, time_tracks_review_tests, time_tracks_lock_tests, time_tracks_edge_case_tests } from "./api_tests/time_tracks.test";
 import { monthly_availability_restrictions_tests } from "./api_tests/monthly_availability_restrictions.test";
 import { calendar_event_limits_tests } from "./api_tests/calendar_event_limits.test";
 import { custom_aggregation_tests } from "./api_tests/custom_aggregation.test";
@@ -89,6 +89,7 @@ import { form_started_trigger_tests } from "./api_tests/form_started_trigger.tes
 import { medication_added_trigger_tests } from "./api_tests/medication_added_trigger.test";
 import { elation_user_id_tests } from "./api_tests/elation_user_id.test";
 import { openloop_webhooks_tests } from "./api_tests/openloop_webhooks.test";
+import { beluga_pharmacy_mappings_tests } from "./api_tests/beluga_pharmacy_mappings.test";
 
 const UniquenessViolationMessage = 'Uniqueness Violation'
 
@@ -14100,6 +14101,13 @@ const ip_address_form_tests = async () => {
     await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests(sdk, sdkNonAdmin)
+    await time_tracks_tests({ sdk, sdkNonAdmin })
+    await time_tracks_historical_tests({ sdk, sdkNonAdmin })
+    await time_tracks_correction_tests({ sdk, sdkNonAdmin })
+    await time_tracks_review_tests({ sdk, sdkNonAdmin })
+    await time_tracks_lock_tests({ sdk, sdkNonAdmin })
+    await time_tracks_edge_case_tests({ sdk, sdkNonAdmin })
+    await calendar_event_limits_tests({ sdk, sdkNonAdmin })
     await openloop_webhooks_tests({ sdk, sdkNonAdmin })
     await automation_trigger_tests()
     await get_some_projection_tests({ sdk, sdkNonAdmin })
@@ -14117,14 +14125,13 @@ const ip_address_form_tests = async () => {
     await load_threads_autobuild_tests({ sdk, sdkNonAdmin })
     await inbox_threads_new_fields_tests()
     await auto_merge_form_submission_tests({ sdk, sdkNonAdmin })
+    await beluga_pharmacy_mappings_tests({ sdk, sdkNonAdmin })
     await threadKeyTests()
     await managed_content_enduser_access_tests({ sdk, sdkNonAdmin })
     await afteraction_day_of_month_delay_tests({ sdk, sdkNonAdmin })
     await bulk_assignment_tests({ sdk, sdkNonAdmin })
     await formsort_tests()
     await self_serve_appointment_booking_tests()
-    await time_tracks_tests({ sdk, sdkNonAdmin })
-    await calendar_event_limits_tests({ sdk, sdkNonAdmin })
     await test_ticket_automation_assignment_and_optimization()
     await monthly_availability_restrictions_tests({ sdk, sdkNonAdmin })
     await journey_error_branching_tests({ sdk, sdkNonAdmin })

@@ -87,6 +87,8 @@ import {
   AIDecisionAutomationAction,
   AutomationAction,
   TimeTrackTimestamp,
+  BelugaPharmacyMapping,
+  TimeTrack,
 } from "@tellescope/types-models"
 
 import {
@@ -354,6 +356,7 @@ import {
   listOfEmailCCsValidator,
   externalIdNumberValidatorOptional,
   DEPRECATED_AUTOMATION_TRIGGER_EVENT_TYPES,
+  compoundFilterValidator,
 } from "@tellescope/validation"
 
 import {
@@ -1301,7 +1304,7 @@ export type PublicActions = {
     verify_otp: CustomAction<{ token: string, code: string }, { authToken: string, enduser: Enduser }>,
   },
   users: {
-    begin_sso: CustomAction<{ provider: string, configurationId?: string }, { url: string }>,
+    begin_sso: CustomAction<{ provider: string, configurationId?: string, redirectUrl?: string }, { url: string }>,
     complete_sso: CustomAction<{ token: string }, { authToken: string, user: User }>,
     login: CustomAction<{ email: string, password: string, expirationInSeconds?: number }, { user: User, authToken: string }>,
     login_with_google: CustomAction<{ jwt: string }, { user: User, authToken: string }>,
@@ -3671,9 +3674,10 @@ export const schema: SchemaV1 = build_schema({
         name: 'Begin SSO',
         path: '/users/begin-sso',
         description: "Begins an SSO login process for a specific user",
-        parameters: { 
+        parameters: {
           provider: { validator: stringValidator, required: true },
-          configurationId: { validator: mongoIdStringValidator }
+          configurationId: { validator: mongoIdStringValidator },
+          redirectUrl: { validator: stringValidator },
         },
         returns: { 
           url: { validator: stringValidator, required: true },
@@ -4607,6 +4611,13 @@ export const schema: SchemaV1 = build_schema({
       showByUserTags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       belugaVisitType: { validator: stringValidator },
       belugaVerificationId: { validator: stringValidator },
+      belugaPharmacyMappings: {
+        validator: listValidatorOptionalOrEmptyOk(objectValidator<BelugaPharmacyMapping>({
+          pharmacyId: stringValidator100,
+          patientPreference: stringValidator5000,
+          conditions: compoundFilterValidator,
+        })),
+      },
       mdiCaseOfferings: {
         validator: listValidatorOptionalOrEmptyOk(objectValidator<{ offering_id: string }>({
           offering_id: stringValidator100,
@@ -7804,12 +7815,15 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           explanation: 'Title is required when parentFrame is undefined',
           evaluate: ({ title, parentFrame }, _, session) => {
             if (!(title || parentFrame)) return "Title is required"
-          } 
+          }
         },
+      ],
+      access: [
+        { type: 'filter', field: 'visibleForUserIds' },
       ],
     },
     defaultActions: DEFAULT_OPERATIONS,
-    customActions: { 
+    customActions: {
       update_indexes: {
         op: "custom", access: 'update', method: "patch",
         name: 'Update Indexes',
@@ -8669,7 +8683,57 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
     info: {},
     constraints: {
       unique: [],
-      relationship: [],
+      relationship: [
+        {
+          explanation: "Historical time tracks require closedAt, lockedAt, lockedByUserId, totalDurationInMS, and timestamps",
+          evaluate: (v, _deps, _session, method) => {
+            if (method !== 'create') return
+            const tt = v as any as TimeTrack
+            if (!tt.isHistorical) return
+            const missing: string[] = []
+            if (!tt.closedAt) missing.push('closedAt')
+            if (!tt.lockedAt) missing.push('lockedAt')
+            if (!tt.lockedByUserId) missing.push('lockedByUserId')
+            if (tt.totalDurationInMS === undefined || tt.totalDurationInMS === null) missing.push('totalDurationInMS')
+            if (!tt.timestamps || tt.timestamps.length === 0) missing.push('timestamps')
+            if (missing.length > 0) return `Historical time tracks require: ${missing.join(', ')}`
+          }
+        },
+        {
+          explanation: "Locked time tracks only allow review field updates",
+          evaluate: (_v, _deps, _session, method, { original, updates }) => {
+            if (method !== 'update') return
+            const orig = original as any as TimeTrack | undefined
+            if (!orig?.lockedAt) return
+            const reviewFields = ['reviewedAt', 'reviewedByUserId', 'reviewApproved', 'reviewNote']
+            const nonReviewFields = Object.keys(updates || {}).filter(k => !reviewFields.includes(k))
+            if (nonReviewFields.length > 0) return `Time track is locked. Only review fields (${reviewFields.join(', ')}) can be updated.`
+          }
+        },
+        {
+          explanation: "Corrections require lockedAt, lockedByUserId, originalTotalDurationInMS, and totalDurationInMS",
+          evaluate: (_v, _deps, _session, method, { updates }) => {
+            if (method !== 'update') return
+            const u = updates as any as Partial<TimeTrack> | undefined
+            if (!u?.correctedAt) return
+            const missing: string[] = []
+            if (!u.lockedAt) missing.push('lockedAt')
+            if (!u.lockedByUserId) missing.push('lockedByUserId')
+            if (u.originalTotalDurationInMS === undefined || u.originalTotalDurationInMS === null) missing.push('originalTotalDurationInMS')
+            if (u.totalDurationInMS === undefined || u.totalDurationInMS === null) missing.push('totalDurationInMS')
+            if (missing.length > 0) return `Corrections require: ${missing.join(', ')}`
+          }
+        },
+        {
+          explanation: "Users cannot review their own time tracks",
+          evaluate: (_v, _deps, _session, method, { original, updates }) => {
+            if (method !== 'update') return
+            const u = updates as any as Partial<TimeTrack> | undefined
+            const orig = original as any as TimeTrack | undefined
+            if (u?.reviewedByUserId && u.reviewedByUserId === orig?.userId) return 'Users cannot review their own time tracks'
+          }
+        },
+      ],
       access: [
         { type: 'filter', field: 'userId' },
       ]
@@ -8717,6 +8781,17 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           id: stringValidator,
         }, { isOptional: true, emptyOk: true }),
       },
+      isHistorical: { validator: booleanValidatorOptional, updatesDisabled: true },
+      correctedAt: { validator: dateValidatorOptional },
+      correctedByUserId: { validator: mongoIdStringOptional },
+      correctionNote: { validator: stringValidator1000Optional },
+      originalTotalDurationInMS: { validator: numberValidatorOptional },
+      reviewedAt: { validator: dateValidatorOptional },
+      reviewedByUserId: { validator: mongoIdStringOptional },
+      reviewApproved: { validator: booleanValidatorOptional },
+      reviewNote: { validator: stringValidator1000Optional },
+      lockedAt: { validator: dateValidatorOptional },
+      lockedByUserId: { validator: mongoIdStringOptional },
     },
   },
   ticket_queues: {

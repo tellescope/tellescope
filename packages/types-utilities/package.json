@@ -1,6 +1,6 @@
 {
   "name": "@tellescope/types-utilities",
-  "version": "1.245.1",
+  "version": "1.246.1",
   "description": "Utility types for use across Tellescope packages",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",
@@ -31,5 +31,5 @@
   "publishConfig": {
     "access": "public"
   },
-  "gitHead": "998fa6c7a42a2cec4f0e64c4197d122533b4eaf3"
+  "gitHead": "7606871137cb5b6a173d03f0fc066bf3aa037d17"
 }

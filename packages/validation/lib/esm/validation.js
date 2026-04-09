@@ -3012,6 +3012,11 @@ export var formFieldOptionsValidator = objectValidator({
     elationAppendToNote: booleanValidatorOptional,
     elationAppendToNotePrefix: stringValidatorOptionalEmptyOkay,
     allowAddToDatabase: booleanValidatorOptional,
+    historicalDataSources: listValidatorOptionalOrEmptyOk(objectValidator({
+        type: exactMatchValidator(['Observations', 'Medications']),
+        limit: numberValidatorOptional,
+        filter: objectAnyFieldsAnyValuesValidator,
+    })),
 });
 export var blockStyleValidator = objectValidator({
     width: numberValidatorOptional,
@@ -3506,6 +3511,7 @@ export var weeklyAvailabilityValidator = objectValidator({
 export var weeklyAvailabilitiesValidator = listValidatorEmptyOk(weeklyAvailabilityValidator);
 export var calendarEventLimitValidator = objectValidator({
     templateId: mongoIdStringRequired,
+    otherTemplateIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
     period: nonNegNumberValidator,
     limit: nonNegNumberValidator,
 });
@@ -3819,6 +3825,7 @@ var _AUTOMATION_TRIGGER_EVENT_TYPES = {
     "Refund Issued": true,
     "Subscription Ended": true,
     "Subscription Payment Failed": true,
+    "Stripe: Payment Intent Failed": true,
     "Appointment No-Showed": true,
     "Appointment Created": true,
     "Appointment Cancelled": true,
@@ -3945,6 +3952,11 @@ export var automationTriggerEventValidator = orValidator({
     }),
     "Subscription Payment Failed": objectValidator({
         type: exactMatchValidator(['Subscription Payment Failed']),
+        info: optionalEmptyObjectValidator,
+        conditions: optionalEmptyObjectValidator,
+    }),
+    "Stripe: Payment Intent Failed": objectValidator({
+        type: exactMatchValidator(['Stripe: Payment Intent Failed']),
         info: optionalEmptyObjectValidator,
         conditions: optionalEmptyObjectValidator,
     }),

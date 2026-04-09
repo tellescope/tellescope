@@ -676,6 +676,7 @@ export type MonthlyRestriction = {
 
 export type CalendarEventLimit = {
   templateId: string, // calendareventtemplate.id
+  otherTemplateIds?: string[], // additional template IDs that share this limit (OR logic)
   period: number, // number of days (e.g. 1 for daily, 7 for weekly)
   limit: number, // maximum number of occurrences of this template in the period
 }
@@ -1565,7 +1566,7 @@ export interface File_readonly extends ClientRecord {
 }
 export interface File_required {
   name: string;
-  type: string;
+  type?: string; // optional to account for integrations that may not sync this field
   size: number;
 }
 export interface File_updatesDisabled {}
@@ -1835,6 +1836,14 @@ export type FormFieldOptionDetails = {
   showCondition?: CompoundFilter<string>,
 }
 export interface CanvasConsentCategory extends CanvasCoding {}
+
+export type HistoricalDataSourceType = 'Observations' | 'Medications'
+export type HistoricalDataSource = {
+  type: HistoricalDataSourceType,
+  limit?: number,
+  filter?: Record<string, any>,
+}
+
 export type FormFieldOptions = FormFieldValidation & {
   default?: string,
   tableChoices?: TableInputChoice[],
@@ -1920,6 +1929,7 @@ export type FormFieldOptions = FormFieldValidation & {
   elationIsAllergy?: boolean,
   elationAppendToNote?: boolean,
   elationAppendToNotePrefix?: string,
+  historicalDataSources?: HistoricalDataSource[],
 }
 export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other' | 'optionDetails' | 'radioChoices'>
 
@@ -2070,6 +2080,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
   dontSyncToCanvasOnSubmission?: boolean,
   belugaVisitType?: string,
   belugaVerificationId?: string,
+  belugaPharmacyMappings?: BelugaPharmacyMapping[],
   showByUserTags?: string[],
   version?: 'v1' | 'v2',
   mdiCaseOfferings?: { offering_id: string }[],
@@ -2289,6 +2300,12 @@ export type BelugaPatientPreferenceResponse = {
   sig: string,
   dispenseUnit: string,
   medId: string,
+}
+
+export type BelugaPharmacyMapping = {
+  pharmacyId: string,
+  patientPreference: string, // stringified JSON — resilient to field changes
+  conditions: CompoundFilter<string>,
 }
 
 export type FormResponseAnswerTable = FormResponseValueAnswerBuilder<'Table Input', TableInputCell[][]>
@@ -4606,6 +4623,7 @@ export type AutomationTriggerEvents = {
   'Refund Issued': AutomationTriggerEventBuilder<"Refund Issued", { }, {}>,
   'Subscription Ended': AutomationTriggerEventBuilder<"Subscription Ended", { productIds?: string[] }, {}>,
   'Subscription Payment Failed': AutomationTriggerEventBuilder<"Subscription Payment Failed", { }, {}>,
+  'Stripe: Payment Intent Failed': AutomationTriggerEventBuilder<"Stripe: Payment Intent Failed", { }, {}>,
   'Appointment No-Showed': AutomationTriggerEventBuilder<"Appointment No-Showed", { titles?: string[], templateIds?: string[] }, { }>,
   'Field Equals': AutomationTriggerEventBuilder<"Field Equals", { field: string, value: string }, { }>,
   'Fields Changed': AutomationTriggerEventBuilder<"Fields Changed", { fields: string[] }, { }>,
@@ -4966,7 +4984,9 @@ export type TimeTrackTimestamp = {
 }
 
 export interface TimeTrack_readonly extends ClientRecord {}
-export interface TimeTrack_updatesDisabled {}
+export interface TimeTrack_updatesDisabled {
+  isHistorical?: boolean,
+}
 export interface TimeTrack_required {
   title: string,
   userId: string,
@@ -4981,6 +5001,16 @@ export interface TimeTrack extends TimeTrack_readonly, TimeTrack_required, TimeT
     type: string,
     id: string,
   },
+  correctedAt?: Date | '',
+  correctedByUserId?: string,
+  correctionNote?: string,
+  originalTotalDurationInMS?: number,
+  reviewedAt?: Date | '',
+  reviewedByUserId?: string,
+  reviewApproved?: boolean,
+  reviewNote?: string,
+  lockedAt?: Date | '',
+  lockedByUserId?: string,
 }
 
 export interface TicketQueue_readonly extends ClientRecord {

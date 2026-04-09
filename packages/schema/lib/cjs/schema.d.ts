@@ -1801,6 +1801,7 @@ export type PublicActions = {
         begin_sso: CustomAction<{
             provider: string;
             configurationId?: string;
+            redirectUrl?: string;
         }, {
             url: string;
         }>;

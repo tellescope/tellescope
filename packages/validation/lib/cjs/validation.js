@@ -3063,6 +3063,11 @@ exports.formFieldOptionsValidator = (0, exports.objectValidator)({
     elationAppendToNote: exports.booleanValidatorOptional,
     elationAppendToNotePrefix: exports.stringValidatorOptionalEmptyOkay,
     allowAddToDatabase: exports.booleanValidatorOptional,
+    historicalDataSources: (0, exports.listValidatorOptionalOrEmptyOk)((0, exports.objectValidator)({
+        type: (0, exports.exactMatchValidator)(['Observations', 'Medications']),
+        limit: exports.numberValidatorOptional,
+        filter: exports.objectAnyFieldsAnyValuesValidator,
+    })),
 });
 exports.blockStyleValidator = (0, exports.objectValidator)({
     width: exports.numberValidatorOptional,
@@ -3559,6 +3564,7 @@ exports.weeklyAvailabilityValidator = (0, exports.objectValidator)({
 exports.weeklyAvailabilitiesValidator = (0, exports.listValidatorEmptyOk)(exports.weeklyAvailabilityValidator);
 exports.calendarEventLimitValidator = (0, exports.objectValidator)({
     templateId: exports.mongoIdStringRequired,
+    otherTemplateIds: exports.listOfMongoIdStringValidatorOptionalOrEmptyOk,
     period: exports.nonNegNumberValidator,
     limit: exports.nonNegNumberValidator,
 });
@@ -3872,6 +3878,7 @@ var _AUTOMATION_TRIGGER_EVENT_TYPES = {
     "Refund Issued": true,
     "Subscription Ended": true,
     "Subscription Payment Failed": true,
+    "Stripe: Payment Intent Failed": true,
     "Appointment No-Showed": true,
     "Appointment Created": true,
     "Appointment Cancelled": true,
@@ -3998,6 +4005,11 @@ exports.automationTriggerEventValidator = (0, exports.orValidator)({
     }),
     "Subscription Payment Failed": (0, exports.objectValidator)({
         type: (0, exports.exactMatchValidator)(['Subscription Payment Failed']),
+        info: exports.optionalEmptyObjectValidator,
+        conditions: exports.optionalEmptyObjectValidator,
+    }),
+    "Stripe: Payment Intent Failed": (0, exports.objectValidator)({
+        type: (0, exports.exactMatchValidator)(['Stripe: Payment Intent Failed']),
         info: exports.optionalEmptyObjectValidator,
         conditions: exports.optionalEmptyObjectValidator,
     }),

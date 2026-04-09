@@ -1676,7 +1676,7 @@ export declare const automationTriggerEventValidator: ValidatorDefinition<import
     titlePartialMatches?: string[] | undefined;
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Refund Issued", {}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Subscription Ended", {
     productIds?: string[] | undefined;
-}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Subscription Payment Failed", {}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Message Delivery Failure", {}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Incoming Message", {
+}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Subscription Payment Failed", {}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Stripe: Payment Intent Failed", {}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Message Delivery Failure", {}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Incoming Message", {
     noCareTeam?: boolean | undefined;
     destinations?: string[] | undefined;
     channels?: string[] | undefined;

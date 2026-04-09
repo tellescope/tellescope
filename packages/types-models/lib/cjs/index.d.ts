@@ -663,6 +663,7 @@ export type MonthlyRestriction = {
 };
 export type CalendarEventLimit = {
     templateId: string;
+    otherTemplateIds?: string[];
     period: number;
     limit: number;
 };
@@ -1496,7 +1497,7 @@ export interface File_readonly extends ClientRecord {
 }
 export interface File_required {
     name: string;
-    type: string;
+    type?: string;
     size: number;
 }
 export interface File_updatesDisabled {
@@ -1797,6 +1798,12 @@ export type FormFieldOptionDetails = {
 };
 export interface CanvasConsentCategory extends CanvasCoding {
 }
+export type HistoricalDataSourceType = 'Observations' | 'Medications';
+export type HistoricalDataSource = {
+    type: HistoricalDataSourceType;
+    limit?: number;
+    filter?: Record<string, any>;
+};
 export type FormFieldOptions = FormFieldValidation & {
     default?: string;
     tableChoices?: TableInputChoice[];
@@ -1884,6 +1891,7 @@ export type FormFieldOptions = FormFieldValidation & {
     elationIsAllergy?: boolean;
     elationAppendToNote?: boolean;
     elationAppendToNotePrefix?: string;
+    historicalDataSources?: HistoricalDataSource[];
 };
 export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other' | 'optionDetails' | 'radioChoices'>;
 export type FormFieldCalloutConditionComparison = 'Equals';
@@ -2029,6 +2037,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
     dontSyncToCanvasOnSubmission?: boolean;
     belugaVisitType?: string;
     belugaVerificationId?: string;
+    belugaPharmacyMappings?: BelugaPharmacyMapping[];
     showByUserTags?: string[];
     version?: 'v1' | 'v2';
     mdiCaseOfferings?: {
@@ -2248,6 +2257,11 @@ export type BelugaPatientPreferenceResponse = {
     sig: string;
     dispenseUnit: string;
     medId: string;
+};
+export type BelugaPharmacyMapping = {
+    pharmacyId: string;
+    patientPreference: string;
+    conditions: CompoundFilter<string>;
 };
 export type FormResponseAnswerTable = FormResponseValueAnswerBuilder<'Table Input', TableInputCell[][]>;
 export type FormResponseAnswerGroup = FormResponseValueAnswerBuilder<'Question Group', FormSubField[]>;
@@ -4587,6 +4601,7 @@ export type AutomationTriggerEvents = {
         productIds?: string[];
     }, {}>;
     'Subscription Payment Failed': AutomationTriggerEventBuilder<"Subscription Payment Failed", {}, {}>;
+    'Stripe: Payment Intent Failed': AutomationTriggerEventBuilder<"Stripe: Payment Intent Failed", {}, {}>;
     'Appointment No-Showed': AutomationTriggerEventBuilder<"Appointment No-Showed", {
         titles?: string[];
         templateIds?: string[];
@@ -5058,6 +5073,7 @@ export type TimeTrackTimestamp = {
 export interface TimeTrack_readonly extends ClientRecord {
 }
 export interface TimeTrack_updatesDisabled {
+    isHistorical?: boolean;
 }
 export interface TimeTrack_required {
     title: string;
@@ -5073,6 +5089,16 @@ export interface TimeTrack extends TimeTrack_readonly, TimeTrack_required, TimeT
         type: string;
         id: string;
     };
+    correctedAt?: Date | '';
+    correctedByUserId?: string;
+    correctionNote?: string;
+    originalTotalDurationInMS?: number;
+    reviewedAt?: Date | '';
+    reviewedByUserId?: string;
+    reviewApproved?: boolean;
+    reviewNote?: string;
+    lockedAt?: Date | '';
+    lockedByUserId?: string;
 }
 export interface TicketQueue_readonly extends ClientRecord {
     count?: number;

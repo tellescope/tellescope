@@ -1,6 +1,6 @@
 {
   "name": "@tellescope/sdk",
-  "version": "1.245.1",
+  "version": "1.246.1",
   "description": "Code for interacting with the Tellescope API",
   "main": "./lib/cjs/sdk.js",
   "module": "./lib/esm/sdk.js",
@@ -32,14 +32,14 @@
   },
   "homepage": "https://github.com/tellescope-os/tellescope#readme",
   "dependencies": {
-    "@tellescope/constants": "1.245.1",
-    "@tellescope/schema": "1.245.1",
-    "@tellescope/testing": "1.245.1",
-    "@tellescope/types-client": "1.245.1",
-    "@tellescope/types-models": "1.245.1",
-    "@tellescope/types-utilities": "1.245.1",
-    "@tellescope/utilities": "1.245.1",
-    "@tellescope/validation": "1.245.1",
+    "@tellescope/constants": "1.246.1",
+    "@tellescope/schema": "1.246.1",
+    "@tellescope/testing": "1.246.1",
+    "@tellescope/types-client": "1.246.1",
+    "@tellescope/types-models": "1.246.1",
+    "@tellescope/types-utilities": "1.246.1",
+    "@tellescope/utilities": "1.246.1",
+    "@tellescope/validation": "1.246.1",
     "axios": "0.30.3",
     "dotenv": "14.3.2",
     "form-data": "4.0.4",
@@ -55,5 +55,5 @@
   "publishConfig": {
     "access": "public"
   },
-  "gitHead": "508f71797f596a31a4db6b56403dc48360ec3f18"
+  "gitHead": "7606871137cb5b6a173d03f0fc066bf3aa037d17"
 }

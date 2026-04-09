@@ -5,7 +5,7 @@ import { ChangeHandler, FormInputs } from "./types"
 import { AddToDatabaseProps, AddressInput, AllergiesInput, AppointmentBookingInput, BelugaPatientPreferenceInput, BridgeEligibilityInput, CandidEligibilityInput, ChargeebeeInput, ConditionsInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, EmotiiInput, FileInput, FilesInput, HeightInput, HiddenValueInput, InsuranceInput, LanguageSelect, MedicationsInput, MultipleChoiceInput, NumberInput, PharmacySearchInput, PhoneInput, Progress, RankingInput, RatingInput, RedirectInput, RelatedContactsInput, RichTextInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, TimezoneInput, defaultButtonStyles } from "./inputs"
 import { PRIMARY_HEX } from "@tellescope/constants"
 import { FormResponse, FormField, Form, Enduser } from "@tellescope/types-client"
-import { FormResponseAnswerFileValue, OrganizationTheme } from "@tellescope/types-models"
+import { FormResponseAnswerFileValue, OrganizationTheme, HistoricalDataSource } from "@tellescope/types-models"
 import { calculate_form_scoring, field_can_autosubmit, form_response_value_to_string, formatted_date, object_is_empty, objects_equivalent, read_local_storage, remove_script_tags, responses_satisfy_conditions, truncate_string } from "@tellescope/utilities"
 import { Divider } from "@mui/material"
 
@@ -236,7 +236,7 @@ export const QuestionForField = ({
         <div style={{ marginTop: 15 }}></div> 
       }
 
-      <Description field={field} style={{ fontSize: 16 }} />
+      <Description field={field} style={{ fontSize: 16 }} enduserId={enduserId} />
 
       {feedback.length > 0 && 
         <Flex column style={{ marginBottom: 11, marginTop: 3, }}>
@@ -1017,20 +1017,168 @@ export const UpdateResponse = ({
   )
 }
 
-export const Description = ({ field, color="primary", style } : { field: FormField, color?: string } & Styled) => {
-  if (!field.htmlDescription && field.description) {
+const HistoricalDataSection = ({ sources, enduserId } : { sources: HistoricalDataSource[], enduserId: string }) => {
+  const session = useSession({ throwIfMissingContext: false })
+  const [observations, setObservations] = useState<any[]>([])
+  const [medications, setMedications] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (!session) return
+
+    const loadData = async () => {
+      setLoading(true)
+      setError('')
+      try {
+        const promises: Promise<void>[] = []
+
+        for (const source of sources) {
+          if (source.type === 'Observations') {
+            promises.push(
+              session.api.enduser_observations.getSome({
+                filter: { enduserId, ...source.filter },
+                limit: source.limit,
+              })
+              .then((obs: any[]) => setObservations(obs))
+            )
+          } else if (source.type === 'Medications') {
+            promises.push(
+              session.api.enduser_medications.getSome({
+                filter: { enduserId, status: { _ne: 'draft' }, ...source.filter },
+                limit: source.limit,
+              })
+              .then((meds: any[]) => setMedications(meds))
+            )
+          }
+        }
+
+        await Promise.all(promises)
+      } catch (err: any) {
+        setError(err?.message || 'Failed to load historical data')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadData()
+  }, [session, enduserId, sources])
+
+  if (!session) return null
+
+  if (loading) {
     return (
+      <Flex style={{ padding: 10, justifyContent: 'center' }}>
+        <CircularProgress size={24} />
+      </Flex>
+    )
+  }
+
+  if (error) {
+    return (
+      <Typography color="error" style={{ padding: 10 }}>
+        {error}
+      </Typography>
+    )
+  }
+
+  const hasObservations = sources.some(s => s.type === 'Observations')
+  const hasMedications = sources.some(s => s.type === 'Medications')
+
+  return (
+    <div style={{ marginTop: 10 }}>
+      {hasObservations && (
+        <div style={{ marginBottom: 15 }}>
+          <Typography style={{ fontWeight: 'bold', marginBottom: 5 }}>Observations</Typography>
+          {observations.length === 0 ? (
+            <Typography style={{ fontStyle: 'italic', color: '#888' }}>No observations found</Typography>
+          ) : (
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+              <thead>
+                <tr style={{ borderBottom: '2px solid #ccc', textAlign: 'left' }}>
+                  <th style={{ padding: '6px 8px' }}>Date</th>
+                  <th style={{ padding: '6px 8px' }}>Type</th>
+                  <th style={{ padding: '6px 8px' }}>Value</th>
+                  <th style={{ padding: '6px 8px' }}>Category</th>
+                  <th style={{ padding: '6px 8px' }}>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {observations.map((obs: any) => (
+                  <tr key={obs.id} style={{ borderBottom: '1px solid #eee' }}>
+                    <td style={{ padding: '6px 8px' }}>{obs.timestamp ? formatted_date(new Date(obs.timestamp)) : '-'}</td>
+                    <td style={{ padding: '6px 8px' }}>{obs.type || obs.code || '-'}</td>
+                    <td style={{ padding: '6px 8px' }}>
+                      {obs.measurement ? `${obs.measurement.value} ${obs.measurement.unit}` : obs.qualitativeResult || '-'}
+                    </td>
+                    <td style={{ padding: '6px 8px' }}>{obs.category || '-'}</td>
+                    <td style={{ padding: '6px 8px' }}>{obs.status || '-'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+
+      {hasMedications && (
+        <div style={{ marginBottom: 15 }}>
+          <Typography style={{ fontWeight: 'bold', marginBottom: 5 }}>Medications</Typography>
+          {medications.length === 0 ? (
+            <Typography style={{ fontStyle: 'italic', color: '#888' }}>No medications found</Typography>
+          ) : (
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+              <thead>
+                <tr style={{ borderBottom: '2px solid #ccc', textAlign: 'left' }}>
+                  <th style={{ padding: '6px 8px' }}>Title</th>
+                  <th style={{ padding: '6px 8px' }}>Dosage</th>
+                  <th style={{ padding: '6px 8px' }}>Prescribed By</th>
+                  <th style={{ padding: '6px 8px' }}>Start Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {medications.map((med: any) => (
+                  <tr key={med.id} style={{ borderBottom: '1px solid #eee' }}>
+                    <td style={{ padding: '6px 8px' }}>{med.title || '-'}</td>
+                    <td style={{ padding: '6px 8px' }}>
+                      {med.dosage ? `${med.dosage.value} ${med.dosage.unit}` : '-'}
+                    </td>
+                    <td style={{ padding: '6px 8px' }}>{med.prescriberName || '-'}</td>
+                    <td style={{ padding: '6px 8px' }}>{med.startedTakingAt ? formatted_date(new Date(med.startedTakingAt)) : '-'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+export const Description = ({ field, color="primary", style, enduserId } : { field: FormField, color?: string, enduserId?: string } & Styled) => {
+  const existingContent = (
+    !field.htmlDescription && field.description ? (
       <Typography color={color as any} style={style}>
         {field.description}
       </Typography>
-    )
-  } 
-  if (!field.htmlDescription) return null
+    ) : field.htmlDescription ? (
+      <span dangerouslySetInnerHTML={{
+        __html: remove_script_tags(field.htmlDescription)
+      }} />
+    ) : null
+  )
 
   return (
-    <span dangerouslySetInnerHTML={{
-      __html: remove_script_tags(field.htmlDescription)
-    }} />
+    <>
+      {existingContent}
+      {field.type === 'description' && field.options?.historicalDataSources?.length && enduserId ? (
+        <HistoricalDataSection
+          sources={field.options.historicalDataSources}
+          enduserId={enduserId}
+        />
+      ) : null}
+    </>
   )
 }
 

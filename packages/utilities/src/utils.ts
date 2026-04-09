@@ -3401,21 +3401,27 @@ export const slot_violates_calendar_event_limits = ({
     return false
   }
 
-  // Find limits that apply to this template
-  const relevantLimits = calendarEventLimits.filter(limit => limit.templateId === templateId)
+  // Find limits that apply to this template (matches templateId OR is in otherTemplateIds)
+  const relevantLimits = calendarEventLimits.filter(limit =>
+    limit.templateId === templateId
+    || (limit.otherTemplateIds && limit.otherTemplateIds.includes(templateId))
+  )
 
   if (relevantLimits.length === 0) {
     return false
   }
 
-  // Filter events to only those for this user and template
-  const userTemplateEvents = existingEvents.filter(e =>
-    e.templateId === templateId &&
-    e.attendees.some(a => a.id === userId)
-  )
-
   // Check each limit
   for (const limit of relevantLimits) {
+    // Collect all template IDs for this limit (OR logic)
+    const allTemplateIds = [limit.templateId, ...(limit.otherTemplateIds || [])]
+
+    // Filter events to those matching ANY of this limit's template IDs for this user
+    const userTemplateEvents = existingEvents.filter(e =>
+      allTemplateIds.includes(e.templateId ?? '') &&
+      e.attendees.some(a => a.id === userId)
+    )
+
     let eventsInPeriod: typeof userTemplateEvents = []
 
     if (limit.period === 1) {

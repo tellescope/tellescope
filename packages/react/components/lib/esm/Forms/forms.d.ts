@@ -99,10 +99,11 @@ export declare const UpdateResponse: ({ selectedFiles, enduserId, responses, onS
     formId: string;
     includedFieldIds: string[];
 }) => JSX.Element;
-export declare const Description: ({ field, color, style }: {
+export declare const Description: ({ field, color, style, enduserId }: {
     field: FormField;
     color?: string | undefined;
-} & Styled) => JSX.Element | null;
+    enduserId?: string | undefined;
+} & Styled) => JSX.Element;
 export declare const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFormProps & Styled & {
     updating?: boolean;
     isInternalNote?: boolean;

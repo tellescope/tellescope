@@ -2147,7 +2147,8 @@ exports.schema = (0, exports.build_schema)({
                 description: "Begins an SSO login process for a specific user",
                 parameters: {
                     provider: { validator: validation_1.stringValidator, required: true },
-                    configurationId: { validator: validation_1.mongoIdStringRequired }
+                    configurationId: { validator: validation_1.mongoIdStringRequired },
+                    redirectUrl: { validator: validation_1.stringValidator },
                 },
                 returns: {
                     url: { validator: validation_1.stringValidator, required: true },
@@ -2895,7 +2896,13 @@ exports.schema = (0, exports.build_schema)({
                 },
             },
         },
-        fields: __assign(__assign({}, BuiltInFields), { showByUserTags: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, belugaVisitType: { validator: validation_1.stringValidator }, belugaVerificationId: { validator: validation_1.stringValidator }, mdiCaseOfferings: {
+        fields: __assign(__assign({}, BuiltInFields), { showByUserTags: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, belugaVisitType: { validator: validation_1.stringValidator }, belugaVerificationId: { validator: validation_1.stringValidator }, belugaPharmacyMappings: {
+                validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
+                    pharmacyId: validation_1.stringValidator100,
+                    patientPreference: validation_1.stringValidator5000,
+                    conditions: validation_1.compoundFilterValidator,
+                })),
+            }, mdiCaseOfferings: {
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     offering_id: validation_1.stringValidator100,
                 }))
@@ -5347,6 +5354,9 @@ exports.schema = (0, exports.build_schema)({
                     }
                 },
             ],
+            access: [
+                { type: 'filter', field: 'visibleForUserIds' },
+            ],
         },
         defaultActions: constants_1.DEFAULT_OPERATIONS,
         customActions: {
@@ -6010,7 +6020,80 @@ exports.schema = (0, exports.build_schema)({
         info: {},
         constraints: {
             unique: [],
-            relationship: [],
+            relationship: [
+                {
+                    explanation: "Historical time tracks require closedAt, lockedAt, lockedByUserId, totalDurationInMS, and timestamps",
+                    evaluate: function (v, _deps, _session, method) {
+                        if (method !== 'create')
+                            return;
+                        var tt = v;
+                        if (!tt.isHistorical)
+                            return;
+                        var missing = [];
+                        if (!tt.closedAt)
+                            missing.push('closedAt');
+                        if (!tt.lockedAt)
+                            missing.push('lockedAt');
+                        if (!tt.lockedByUserId)
+                            missing.push('lockedByUserId');
+                        if (tt.totalDurationInMS === undefined || tt.totalDurationInMS === null)
+                            missing.push('totalDurationInMS');
+                        if (!tt.timestamps || tt.timestamps.length === 0)
+                            missing.push('timestamps');
+                        if (missing.length > 0)
+                            return "Historical time tracks require: ".concat(missing.join(', '));
+                    }
+                },
+                {
+                    explanation: "Locked time tracks only allow review field updates",
+                    evaluate: function (_v, _deps, _session, method, _a) {
+                        var original = _a.original, updates = _a.updates;
+                        if (method !== 'update')
+                            return;
+                        var orig = original;
+                        if (!(orig === null || orig === void 0 ? void 0 : orig.lockedAt))
+                            return;
+                        var reviewFields = ['reviewedAt', 'reviewedByUserId', 'reviewApproved', 'reviewNote'];
+                        var nonReviewFields = Object.keys(updates || {}).filter(function (k) { return !reviewFields.includes(k); });
+                        if (nonReviewFields.length > 0)
+                            return "Time track is locked. Only review fields (".concat(reviewFields.join(', '), ") can be updated.");
+                    }
+                },
+                {
+                    explanation: "Corrections require lockedAt, lockedByUserId, originalTotalDurationInMS, and totalDurationInMS",
+                    evaluate: function (_v, _deps, _session, method, _a) {
+                        var updates = _a.updates;
+                        if (method !== 'update')
+                            return;
+                        var u = updates;
+                        if (!(u === null || u === void 0 ? void 0 : u.correctedAt))
+                            return;
+                        var missing = [];
+                        if (!u.lockedAt)
+                            missing.push('lockedAt');
+                        if (!u.lockedByUserId)
+                            missing.push('lockedByUserId');
+                        if (u.originalTotalDurationInMS === undefined || u.originalTotalDurationInMS === null)
+                            missing.push('originalTotalDurationInMS');
+                        if (u.totalDurationInMS === undefined || u.totalDurationInMS === null)
+                            missing.push('totalDurationInMS');
+                        if (missing.length > 0)
+                            return "Corrections require: ".concat(missing.join(', '));
+                    }
+                },
+                {
+                    explanation: "Users cannot review their own time tracks",
+                    evaluate: function (_v, _deps, _session, method, _a) {
+                        var original = _a.original, updates = _a.updates;
+                        if (method !== 'update')
+                            return;
+                        var u = updates;
+                        var orig = original;
+                        if ((u === null || u === void 0 ? void 0 : u.reviewedByUserId) && u.reviewedByUserId === (orig === null || orig === void 0 ? void 0 : orig.userId))
+                            return 'Users cannot review their own time tracks';
+                    }
+                },
+            ],
             access: [
                 { type: 'filter', field: 'userId' },
             ]
@@ -6048,7 +6131,7 @@ exports.schema = (0, exports.build_schema)({
                     type: validation_1.stringValidator,
                     id: validation_1.stringValidator,
                 }, { isOptional: true, emptyOk: true }),
-            } }),
+            }, isHistorical: { validator: validation_1.booleanValidatorOptional, updatesDisabled: true }, correctedAt: { validator: validation_1.dateValidatorOptional }, correctedByUserId: { validator: validation_1.mongoIdStringOptional }, correctionNote: { validator: validation_1.stringValidator1000Optional }, originalTotalDurationInMS: { validator: validation_1.numberValidatorOptional }, reviewedAt: { validator: validation_1.dateValidatorOptional }, reviewedByUserId: { validator: validation_1.mongoIdStringOptional }, reviewApproved: { validator: validation_1.booleanValidatorOptional }, reviewNote: { validator: validation_1.stringValidator1000Optional }, lockedAt: { validator: validation_1.dateValidatorOptional }, lockedByUserId: { validator: validation_1.mongoIdStringOptional } }),
     },
     ticket_queues: {
         info: {},

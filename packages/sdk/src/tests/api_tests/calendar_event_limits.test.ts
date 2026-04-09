@@ -685,6 +685,201 @@ export const calendar_event_limits_unit_tests = () => {
     }
   })
 
+  // === otherTemplateIds (OR logic) tests ===
+
+  const TEMPLATE_B = "templateB456"
+  const TEMPLATE_C = "templateC789"
+
+  // Test 21: otherTemplateIds - booking a secondary template should count toward the limit
+  tests.push({
+    name: 'otherTemplateIds - secondary template counts toward limit',
+    fn: () => {
+      const oct1 = new Date('2025-10-01T18:00:00.000Z').getTime()
+
+      const limits: CalendarEventLimit[] = [{
+        templateId: TEMPLATE_ID,
+        otherTemplateIds: [TEMPLATE_B],
+        period: 1,
+        limit: 1,
+      }]
+
+      const existingEvents = [
+        createEvent(oct1, TEMPLATE_ID), // 1 event of primary template
+      ]
+
+      // Booking template B should be blocked because the shared limit is reached
+      const result = slot_violates_calendar_event_limits({
+        slotStartTimeInMS: oct1,
+        templateId: TEMPLATE_B,
+        userId: USER_ID,
+        calendarEventLimits: limits,
+        existingEvents,
+        timezone: 'America/New_York',
+      })
+
+      assertEqual(result, true, 'Should block secondary template when shared limit reached')
+    }
+  })
+
+  // Test 22: otherTemplateIds - events of secondary template count toward primary booking
+  tests.push({
+    name: 'otherTemplateIds - secondary template events count when booking primary',
+    fn: () => {
+      const oct1 = new Date('2025-10-01T18:00:00.000Z').getTime()
+
+      const limits: CalendarEventLimit[] = [{
+        templateId: TEMPLATE_ID,
+        otherTemplateIds: [TEMPLATE_B],
+        period: 1,
+        limit: 1,
+      }]
+
+      const existingEvents = [
+        createEvent(oct1, TEMPLATE_B), // 1 event of secondary template
+      ]
+
+      // Booking primary template should be blocked because a secondary template event used the limit
+      const result = slot_violates_calendar_event_limits({
+        slotStartTimeInMS: oct1,
+        templateId: TEMPLATE_ID,
+        userId: USER_ID,
+        calendarEventLimits: limits,
+        existingEvents,
+        timezone: 'America/New_York',
+      })
+
+      assertEqual(result, true, 'Should block primary template when secondary events fill limit')
+    }
+  })
+
+  // Test 23: otherTemplateIds - mixed events from both templates count together
+  tests.push({
+    name: 'otherTemplateIds - mixed events count toward shared limit',
+    fn: () => {
+      const oct1_9am = new Date('2025-10-01T13:00:00.000Z').getTime()
+      const oct1_2pm = new Date('2025-10-01T18:00:00.000Z').getTime()
+      const oct1_5pm = new Date('2025-10-01T21:00:00.000Z').getTime()
+
+      const limits: CalendarEventLimit[] = [{
+        templateId: TEMPLATE_ID,
+        otherTemplateIds: [TEMPLATE_B],
+        period: 1,
+        limit: 2,
+      }]
+
+      const existingEvents = [
+        createEvent(oct1_9am, TEMPLATE_ID),  // 1 primary
+        createEvent(oct1_2pm, TEMPLATE_B),   // 1 secondary
+      ]
+
+      // Both count toward limit of 2, so a 3rd should be blocked
+      const result = slot_violates_calendar_event_limits({
+        slotStartTimeInMS: oct1_5pm,
+        templateId: TEMPLATE_ID,
+        userId: USER_ID,
+        calendarEventLimits: limits,
+        existingEvents,
+        timezone: 'America/New_York',
+      })
+
+      assertEqual(result, true, 'Should block when mixed events reach shared limit')
+    }
+  })
+
+  // Test 24: otherTemplateIds - unrelated template should NOT be affected
+  tests.push({
+    name: 'otherTemplateIds - unrelated template not affected by shared limit',
+    fn: () => {
+      const oct1 = new Date('2025-10-01T18:00:00.000Z').getTime()
+
+      const limits: CalendarEventLimit[] = [{
+        templateId: TEMPLATE_ID,
+        otherTemplateIds: [TEMPLATE_B],
+        period: 1,
+        limit: 1,
+      }]
+
+      const existingEvents = [
+        createEvent(oct1, TEMPLATE_ID), // Limit reached for A+B group
+      ]
+
+      // Template C is not part of the group, should be allowed
+      const result = slot_violates_calendar_event_limits({
+        slotStartTimeInMS: oct1,
+        templateId: TEMPLATE_C,
+        userId: USER_ID,
+        calendarEventLimits: limits,
+        existingEvents,
+        timezone: 'America/New_York',
+      })
+
+      assertEqual(result, false, 'Should allow unrelated template even when shared limit reached')
+    }
+  })
+
+  // Test 25: otherTemplateIds - under limit should allow
+  tests.push({
+    name: 'otherTemplateIds - under shared limit should allow',
+    fn: () => {
+      const oct1_9am = new Date('2025-10-01T13:00:00.000Z').getTime()
+      const oct1_2pm = new Date('2025-10-01T18:00:00.000Z').getTime()
+
+      const limits: CalendarEventLimit[] = [{
+        templateId: TEMPLATE_ID,
+        otherTemplateIds: [TEMPLATE_B],
+        period: 1,
+        limit: 3,
+      }]
+
+      const existingEvents = [
+        createEvent(oct1_9am, TEMPLATE_ID),  // 1 event
+        createEvent(oct1_9am, TEMPLATE_B),   // 1 event, total = 2
+      ]
+
+      // Under limit of 3, should allow
+      const result = slot_violates_calendar_event_limits({
+        slotStartTimeInMS: oct1_2pm,
+        templateId: TEMPLATE_B,
+        userId: USER_ID,
+        calendarEventLimits: limits,
+        existingEvents,
+        timezone: 'America/New_York',
+      })
+
+      assertEqual(result, false, 'Should allow when under shared limit')
+    }
+  })
+
+  // Test 26: No otherTemplateIds - backward compatibility
+  tests.push({
+    name: 'No otherTemplateIds - backward compatible single-template behavior',
+    fn: () => {
+      const oct1 = new Date('2025-10-01T18:00:00.000Z').getTime()
+
+      const limits: CalendarEventLimit[] = [{
+        templateId: TEMPLATE_ID,
+        period: 1,
+        limit: 1,
+      }]
+
+      const existingEvents = [
+        createEvent(oct1, TEMPLATE_B), // Event of different template
+      ]
+
+      // Without otherTemplateIds, template B events should NOT count toward template A's limit
+      const result = slot_violates_calendar_event_limits({
+        slotStartTimeInMS: oct1,
+        templateId: TEMPLATE_ID,
+        userId: USER_ID,
+        calendarEventLimits: limits,
+        existingEvents,
+        timezone: 'America/New_York',
+      })
+
+      assertEqual(result, false, 'Should not count other template events without otherTemplateIds')
+    }
+  })
+
   return tests
 }
 
