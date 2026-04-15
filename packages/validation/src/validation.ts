@@ -1295,6 +1295,7 @@ export const numberValidatorBuilder: ValidatorBuilder<number, { lower: number, u
 })
 
 export const nonNegNumberValidator = numberValidatorBuilder({ lower: 0, upper: 10000000000000 }) // max is 2286 in UTC MS
+export const nonNegNumberValidatorOptional = numberValidatorBuilder({ lower: 0, upper: 10000000000000, isOptional: true }) // max is 2286 in UTC MS
 export const positiveNumberValidator = numberValidatorBuilder({ lower: 1, upper: 10000000000000 }) // max is 2286 in UTC MS
 export const numberValidator = numberValidatorBuilder({ lower: -10000000000000, upper: 10000000000000 }) // max is 2286 in UTC MS
 export const numberValidatorOptional = numberValidatorBuilder({ lower: -10000000000000, upper: 10000000000000, isOptional: true, emptyStringOk: true }) // max is 2286 in UTC MS
@@ -3505,7 +3506,9 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     ...sharedAutomationActionValidators,
     type: exactMatchValidator(['createScriptSureDraft']),
     info: objectValidator<CreateScriptSureDraftAutomationAction['info']>({
-      prescriptionRouteId: mongoIdStringRequired,
+      prescriptionRouteId: mongoIdStringOptional,
+      matchMedicationTitle: stringValidatorOptional,
+      matchEnduserState: booleanValidatorOptional,
     }, { emptyOk: false }),
   }),
 
@@ -3552,6 +3555,7 @@ export const relatedRecordsValidatorOptional = listValidatorOptionalOrEmptyOk(re
 
 export const searchOptionsValidator = objectValidator<SearchOptions>({
   query: stringValidator100,
+  minSearchScore: nonNegNumberValidatorOptional,
 })
 
 export const notificationPreferenceValidator = objectValidator<NotificationPreference>({

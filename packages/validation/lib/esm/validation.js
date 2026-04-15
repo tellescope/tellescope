@@ -870,6 +870,7 @@ export var numberValidatorBuilder = function (_a) {
     });
 };
 export var nonNegNumberValidator = numberValidatorBuilder({ lower: 0, upper: 10000000000000 }); // max is 2286 in UTC MS
+export var nonNegNumberValidatorOptional = numberValidatorBuilder({ lower: 0, upper: 10000000000000, isOptional: true }); // max is 2286 in UTC MS
 export var positiveNumberValidator = numberValidatorBuilder({ lower: 1, upper: 10000000000000 }); // max is 2286 in UTC MS
 export var numberValidator = numberValidatorBuilder({ lower: -10000000000000, upper: 10000000000000 }); // max is 2286 in UTC MS
 export var numberValidatorOptional = numberValidatorBuilder({ lower: -10000000000000, upper: 10000000000000, isOptional: true, emptyStringOk: true }); // max is 2286 in UTC MS
@@ -2660,7 +2661,9 @@ export var automationActionValidator = orValidator({
         }, { emptyOk: false }) // at least tags is required
      })),
     createScriptSureDraft: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['createScriptSureDraft']), info: objectValidator({
-            prescriptionRouteId: mongoIdStringRequired,
+            prescriptionRouteId: mongoIdStringOptional,
+            matchMedicationTitle: stringValidatorOptional,
+            matchEnduserState: booleanValidatorOptional,
         }, { emptyOk: false }) })),
     "Puppeteer: Start Agent": objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(["Puppeteer: Start Agent"]), info: sendWebhookInfoValidator })),
 });
@@ -2697,6 +2700,7 @@ export var listOfRelatedRecordsValidator = listValidatorEmptyOk(relatedRecordVal
 export var relatedRecordsValidatorOptional = listValidatorOptionalOrEmptyOk(relatedRecordValidator);
 export var searchOptionsValidator = objectValidator({
     query: stringValidator100,
+    minSearchScore: nonNegNumberValidatorOptional,
 });
 export var notificationPreferenceValidator = objectValidator({
     email: booleanValidatorOptional,

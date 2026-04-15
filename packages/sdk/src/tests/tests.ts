@@ -5212,7 +5212,29 @@ const search_tests = async () => {
     `Search by email`,
     () => sdk.api.endusers.getSome({ search: { query: 'search@tellescope'} }),
     { onResult: es => es.length === 2 },
-  )  
+  )
+
+  // minSearchScore parameter tests
+  await async_test(
+    `Search with minSearchScore accepted`,
+    () => sdk.api.endusers.getSome({ search: { query: 'john', minSearchScore: 0.5 } }),
+    { onResult: es => es.length === 1 && es[0].id === e1.id },
+  )
+  await async_test(
+    `Search with minSearchScore 0 accepted`,
+    () => sdk.api.endusers.getSome({ search: { query: 'john', minSearchScore: 0 } }),
+    { onResult: es => es.length === 1 && es[0].id === e1.id },
+  )
+  await async_test(
+    `Search with negative minSearchScore rejected`,
+    () => sdk.api.endusers.getSome({ search: { query: 'john', minSearchScore: -1 } }),
+    handleAnyError,
+  )
+  await async_test(
+    `Search with string minSearchScore rejected`,
+    () => sdk.api.endusers.getSome({ search: { query: 'john', minSearchScore: 'high' as any } }),
+    handleAnyError,
+  )
 
   await Promise.all([
     sdk.api.endusers.deleteOne(e1.id),
@@ -14101,6 +14123,7 @@ const ip_address_form_tests = async () => {
     await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests(sdk, sdkNonAdmin)
+    await search_tests()
     await time_tracks_tests({ sdk, sdkNonAdmin })
     await time_tracks_historical_tests({ sdk, sdkNonAdmin })
     await time_tracks_correction_tests({ sdk, sdkNonAdmin })
@@ -14185,7 +14208,6 @@ const ip_address_form_tests = async () => {
     await role_based_access_tests()
     await enduser_session_tests()
     await nextReminderInMS_tests()
-    await search_tests()
     await wait_for_trigger_tests()
     await pdf_generation()
     await remove_from_journey_on_incoming_comms_tests().catch(console.error) // timing is unreliable, uncomment if changing logic

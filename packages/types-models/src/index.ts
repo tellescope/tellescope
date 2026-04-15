@@ -6,6 +6,7 @@ export interface EnduserPortalVisibility {
 
 export interface SearchOptions {
   query: string,
+  minSearchScore?: number,
 }
 
 export type StripeCountryCode = "US" | "GB"
@@ -1469,6 +1470,7 @@ export interface ChatRoom extends ChatRoom_readonly, ChatRoom_required, ChatRoom
   journeyId?: string,
   archivedAt?: Date | '',
   trashedAt?: Date | '',
+  groupMentions?: string[],
 }
 
 export type ChatAttachmentType = 'image' | 'video' | 'file' | string 
@@ -3442,7 +3444,9 @@ export type AssignInboxItemAutomationAction = AutomationActionBuilder<'assignInb
   limit: number,
 }>
 export type CreateScriptSureDraftAutomationAction = AutomationActionBuilder<'createScriptSureDraft', {
-  prescriptionRouteId: string,
+  prescriptionRouteId: string,            // fallback when dynamic matching is enabled
+  matchMedicationTitle?: string,          // when set, restrict to routes with this exact title
+  matchEnduserState?: boolean,            // when true, restrict to routes whose state === enduser.state
 }>
 
 export type AutomationActionForType = {

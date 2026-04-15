@@ -4,6 +4,7 @@ export interface EnduserPortalVisibility {
 }
 export interface SearchOptions {
     query: string;
+    minSearchScore?: number;
 }
 export type StripeCountryCode = "US" | "GB";
 export type StripeCheckoutInfo = {
@@ -1395,6 +1396,7 @@ export interface ChatRoom extends ChatRoom_readonly, ChatRoom_required, ChatRoom
     journeyId?: string;
     archivedAt?: Date | '';
     trashedAt?: Date | '';
+    groupMentions?: string[];
 }
 export type ChatAttachmentType = 'image' | 'video' | 'file' | string;
 export type ChatAttachment = {
@@ -3432,6 +3434,8 @@ export type AssignInboxItemAutomationAction = AutomationActionBuilder<'assignInb
 }>;
 export type CreateScriptSureDraftAutomationAction = AutomationActionBuilder<'createScriptSureDraft', {
     prescriptionRouteId: string;
+    matchMedicationTitle?: string;
+    matchEnduserState?: boolean;
 }>;
 export type AutomationActionForType = {
     'aiDecision': AIDecisionAutomationAction;

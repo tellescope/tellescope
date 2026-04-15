@@ -1024,8 +1024,15 @@ const HistoricalDataSection = ({ sources, enduserId } : { sources: HistoricalDat
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
+  const loadedKeyRef = useRef('')
+
   useEffect(() => {
     if (!session) return
+
+    // Build a stable key from enduserId + sources to avoid re-fetching on object reference changes
+    const key = enduserId + ':' + JSON.stringify(sources)
+    if (loadedKeyRef.current === key) return
+    loadedKeyRef.current = key
 
     const loadData = async () => {
       setLoading(true)
@@ -1130,21 +1137,41 @@ const HistoricalDataSection = ({ sources, enduserId } : { sources: HistoricalDat
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid #ccc', textAlign: 'left' }}>
-                  <th style={{ padding: '6px 8px' }}>Title</th>
+                  <th style={{ padding: '6px 8px' }}>Medication</th>
                   <th style={{ padding: '6px 8px' }}>Dosage</th>
-                  <th style={{ padding: '6px 8px' }}>Prescribed By</th>
-                  <th style={{ padding: '6px 8px' }}>Start Date</th>
+                  <th style={{ padding: '6px 8px' }}>Dispensing</th>
+                  <th style={{ padding: '6px 8px' }}>Pharmacy</th>
+                  <th style={{ padding: '6px 8px' }}>Prescriber</th>
+                  <th style={{ padding: '6px 8px' }}>Date</th>
                 </tr>
               </thead>
               <tbody>
                 {medications.map((med: any) => (
                   <tr key={med.id} style={{ borderBottom: '1px solid #eee' }}>
-                    <td style={{ padding: '6px 8px' }}>{med.title || '-'}</td>
                     <td style={{ padding: '6px 8px' }}>
-                      {med.dosage ? `${med.dosage.value} ${med.dosage.unit}` : '-'}
+                      {med.title || '-'}
+                      {med.allergyNote ? <div style={{ color: 'red', fontSize: 12 }}>Allergies: {med.allergyNote}</div> : null}
+                      {med.directions ? <div style={{ color: '#888', fontSize: 12 }}>Directions: {med.directions}</div> : null}
                     </td>
-                    <td style={{ padding: '6px 8px' }}>{med.prescriberName || '-'}</td>
-                    <td style={{ padding: '6px 8px' }}>{med.startedTakingAt ? formatted_date(new Date(med.startedTakingAt)) : '-'}</td>
+                    <td style={{ padding: '6px 8px' }}>
+                      {med.dosage
+                        ? med.dosage.description
+                          ? med.dosage.description
+                          : `${med.dosage.value || ''}${med.dosage.unit ? ` ${med.dosage.unit}` : ''}${med.dosage.quantity ? ` ${med.dosage.quantity} units` : ''}${med.dosage.frequency ? ` ${!isNaN(parseInt(med.dosage.frequency)) ? `${med.dosage.frequency}x ${med.dosage?.frequencyDescriptor ? `Per ${med.dosage.frequencyDescriptor}` : 'daily'}` : med.dosage.frequency}` : ''}`
+                        : '-'}
+                    </td>
+                    <td style={{ padding: '6px 8px' }}>
+                      {med.dispensing ? `${med.dispensing.quantity || ''} ${med.dispensing.unit || ''}`.trim() || '-' : '-'}
+                    </td>
+                    <td style={{ padding: '6px 8px' }}>{med.pharmacyName || med.pharmacyId || '-'}</td>
+                    <td style={{ padding: '6px 8px' }}>
+                      {med.prescriberName || '-'}
+                      {med.source ? <div style={{ fontStyle: 'italic', fontSize: 12 }}>{med.source}</div> : null}
+                      {med.notes ? <div style={{ fontSize: 12 }}>{med.notes}</div> : null}
+                    </td>
+                    <td style={{ padding: '6px 8px' }}>
+                      {formatted_date(new Date(med.startedTakingAt || med.prescribedAt || med.createdAt))}
+                    </td>
                   </tr>
                 ))}
               </tbody>

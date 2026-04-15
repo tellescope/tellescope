@@ -3093,10 +3093,10 @@ export const schema: SchemaV1 = build_schema({
   chat_rooms: {
     info: {},
     constraints: { 
-      unique: [{ array: 'userIds' }, { array: 'enduserIds' }], 
+      unique: [{ array: 'userIds' }, { array: 'enduserIds' }],
       relationship: [],
       access: [
-        { type: 'filter', field: 'userIds' }, 
+        { type: 'filter', field: 'userIds' },
         { type: 'filter', field: 'enduserIds' },
       ]
     },
@@ -3185,6 +3185,7 @@ export const schema: SchemaV1 = build_schema({
       source: { validator: stringValidator100 },
       archivedAt: { validator: dateOptionalOrEmptyStringValidator },
       trashedAt: { validator: dateOptionalOrEmptyStringValidator },
+      groupMentions: { validator: listOfUniqueStringsValidatorEmptyOk },
     },
     defaultActions: DEFAULT_OPERATIONS,
     enduserActions: { create: {}, read: {}, readMany: {}, display_info: {}, mark_read: {} },

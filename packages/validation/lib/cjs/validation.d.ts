@@ -243,6 +243,7 @@ export declare const numberValidatorBuilder: ValidatorBuilder<number, {
     upper: number;
 }>;
 export declare const nonNegNumberValidator: ValidatorDefinition<number>;
+export declare const nonNegNumberValidatorOptional: ValidatorDefinition<number>;
 export declare const positiveNumberValidator: ValidatorDefinition<number>;
 export declare const numberValidator: ValidatorDefinition<number>;
 export declare const numberValidatorOptional: ValidatorDefinition<number>;
