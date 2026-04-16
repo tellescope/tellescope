@@ -8,6 +8,7 @@ import {
   LocalTrackPublication,
 } from 'twilio-video'
 import { Box, Typography } from '@mui/material'
+import { SCREEN_SHARE_TRACK_NAME } from './TwilioVideoContext'
 
 export interface TwilioParticipantProps {
   participant: RemoteParticipant | LocalParticipant
@@ -15,6 +16,8 @@ export interface TwilioParticipantProps {
   style?: React.CSSProperties
   /** Resolve participant identity to a display label. Defaults to empty string. */
   resolveIdentity?: (identity: string) => string
+  /** When true, render the screen share track instead of the camera track */
+  showScreenShare?: boolean
 }
 
 export const TwilioParticipant: React.FC<TwilioParticipantProps> = ({
@@ -22,16 +25,22 @@ export const TwilioParticipant: React.FC<TwilioParticipantProps> = ({
   isLocal = false,
   style,
   resolveIdentity = () => '',
+  showScreenShare = false,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null)
   const audioRef = useRef<HTMLAudioElement>(null)
-  const [videoTrack, setVideoTrack] = useState<VideoTrack | null>(null)
+  const [cameraTrack, setCameraTrack] = useState<VideoTrack | null>(null)
+  const [screenTrack, setScreenTrack] = useState<VideoTrack | null>(null)
   const [audioTrack, setAudioTrack] = useState<AudioTrack | null>(null)
 
   useEffect(() => {
     const handleTrackSubscribed = (track: VideoTrack | AudioTrack) => {
       if (track.kind === 'video') {
-        setVideoTrack(track as VideoTrack)
+        if (track.name === SCREEN_SHARE_TRACK_NAME) {
+          setScreenTrack(track as VideoTrack)
+        } else {
+          setCameraTrack(track as VideoTrack)
+        }
       } else if (track.kind === 'audio') {
         setAudioTrack(track as AudioTrack)
       }
@@ -39,7 +48,11 @@ export const TwilioParticipant: React.FC<TwilioParticipantProps> = ({
 
     const handleTrackUnsubscribed = (track: VideoTrack | AudioTrack) => {
       if (track.kind === 'video') {
-        setVideoTrack(null)
+        if (track.name === SCREEN_SHARE_TRACK_NAME) {
+          setScreenTrack(null)
+        } else {
+          setCameraTrack(null)
+        }
       } else if (track.kind === 'audio') {
         setAudioTrack(null)
       }
@@ -52,39 +65,60 @@ export const TwilioParticipant: React.FC<TwilioParticipantProps> = ({
       }
     })
 
-    // For remote participants, listen for track subscriptions
-    if ('on' in participant) {
+    if (isLocal) {
+      // For local participants, listen for track publications (trackSubscribed doesn't fire for local)
+      const handleTrackPublished = (publication: LocalTrackPublication) => {
+        if (publication.track) {
+          handleTrackSubscribed(publication.track as VideoTrack | AudioTrack)
+        }
+      }
+      const handleTrackStopped = (track: VideoTrack | AudioTrack) => {
+        handleTrackUnsubscribed(track)
+      }
+      participant.on('trackPublished', handleTrackPublished)
+      participant.on('trackStopped', handleTrackStopped)
+
+      return () => {
+        participant.off('trackPublished', handleTrackPublished)
+        participant.off('trackStopped', handleTrackStopped)
+      }
+    } else {
+      // For remote participants, listen for track subscriptions
       participant.on('trackSubscribed', handleTrackSubscribed)
       participant.on('trackUnsubscribed', handleTrackUnsubscribed)
-    }
 
-    return () => {
-      if ('off' in participant) {
+      return () => {
         participant.off('trackSubscribed', handleTrackSubscribed)
         participant.off('trackUnsubscribed', handleTrackUnsubscribed)
       }
     }
-  }, [participant])
+  }, [participant, isLocal])
+
+  const activeVideoTrack = showScreenShare ? screenTrack : cameraTrack
 
   // Attach video track
   useEffect(() => {
-    if (videoTrack && videoRef.current) {
-      videoTrack.attach(videoRef.current)
+    if (activeVideoTrack && videoRef.current) {
+      const el = videoRef.current
+      activeVideoTrack.attach(el)
       return () => {
-        videoTrack.detach()
+        activeVideoTrack.detach(el)
       }
     }
-  }, [videoTrack])
+  }, [activeVideoTrack])
 
   // Attach audio track (not for local participant to avoid echo)
   useEffect(() => {
     if (audioTrack && audioRef.current && !isLocal) {
-      audioTrack.attach(audioRef.current)
+      const el = audioRef.current
+      audioTrack.attach(el)
       return () => {
-        audioTrack.detach()
+        audioTrack.detach(el)
       }
     }
   }, [audioTrack, isLocal])
+
+  const shouldMirror = isLocal && !showScreenShare
 
   return (
     <Box
@@ -106,8 +140,8 @@ export const TwilioParticipant: React.FC<TwilioParticipantProps> = ({
         style={{
           width: '100%',
           height: '100%',
-          objectFit: 'cover',
-          transform: isLocal ? 'scaleX(-1)' : 'none',
+          objectFit: showScreenShare ? 'contain' : 'cover',
+          transform: shouldMirror ? 'scaleX(-1)' : 'none',
         }}
       />
       {!isLocal && <audio ref={audioRef} autoPlay />}

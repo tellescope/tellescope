@@ -79,6 +79,7 @@ export interface LoadFunctionArguments <T> {
   ids?: string[],
   returnCount?: boolean,
   mdbFilter?: any,
+  mdbSort?: any,
   projection?: { [K in keyof T]?: 1 },
 }
 

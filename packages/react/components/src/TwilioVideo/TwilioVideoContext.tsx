@@ -9,12 +9,17 @@ import Video, {
   LocalParticipant,
 } from 'twilio-video'
 
+export const SCREEN_SHARE_TRACK_NAME = 'screen-share'
+
 export interface TwilioVideoState {
   room: Room | null
   isConnecting: boolean
   isConnected: boolean
   localVideoTrack: LocalVideoTrack | null
   localAudioTrack: LocalAudioTrack | null
+  localScreenTrack: LocalVideoTrack | null
+  isScreenSharing: boolean
+  screenSharingParticipantSid: string | null
   participants: RemoteParticipant[]
   error: Error | null
   isHost: boolean
@@ -27,6 +32,7 @@ export interface TwilioVideoActions {
   disconnect: () => void
   toggleVideo: () => Promise<void>
   toggleAudio: () => void
+  toggleScreenShare: () => Promise<void>
   setIsHost: (isHost: boolean) => void
 }
 
@@ -56,6 +62,9 @@ export const TwilioVideoProvider: React.FC<TwilioVideoProviderProps> = ({ childr
   const [isHost, setIsHost] = useState(false)
   const [isVideoEnabled, setIsVideoEnabled] = useState(true)
   const [isAudioEnabled, setIsAudioEnabled] = useState(true)
+  const [localScreenTrack, setLocalScreenTrack] = useState<LocalVideoTrack | null>(null)
+  const [isScreenSharing, setIsScreenSharing] = useState(false)
+  const [screenSharingParticipantSid, setScreenSharingParticipantSid] = useState<string | null>(null)
 
   const localTracksRef = useRef<(LocalVideoTrack | LocalAudioTrack)[]>([])
 
@@ -101,6 +110,18 @@ export const TwilioVideoProvider: React.FC<TwilioVideoProviderProps> = ({ childr
         setParticipants(prev => prev.filter(p => p.sid !== participant.sid))
       })
 
+      // Track remote screen sharing for React re-renders
+      newRoom.on('trackSubscribed', (track: RemoteTrack, publication, participant: RemoteParticipant) => {
+        if (track.kind === 'video' && track.name === SCREEN_SHARE_TRACK_NAME) {
+          setScreenSharingParticipantSid(participant.sid)
+        }
+      })
+      newRoom.on('trackUnsubscribed', (track: RemoteTrack, publication, participant: RemoteParticipant) => {
+        if (track.kind === 'video' && track.name === SCREEN_SHARE_TRACK_NAME) {
+          setScreenSharingParticipantSid(null)
+        }
+      })
+
       newRoom.on('disconnected', () => {
         // Stop all local tracks when disconnected
         localTracksRef.current.forEach(track => {
@@ -110,6 +131,9 @@ export const TwilioVideoProvider: React.FC<TwilioVideoProviderProps> = ({ childr
         setRoom(null)
         setLocalVideoTrack(null)
         setLocalAudioTrack(null)
+        setLocalScreenTrack(null)
+        setIsScreenSharing(false)
+        setScreenSharingParticipantSid(null)
         setParticipants([])
       })
 
@@ -135,6 +159,9 @@ export const TwilioVideoProvider: React.FC<TwilioVideoProviderProps> = ({ childr
     setRoom(null)
     setLocalVideoTrack(null)
     setLocalAudioTrack(null)
+    setLocalScreenTrack(null)
+    setIsScreenSharing(false)
+    setScreenSharingParticipantSid(null)
     setParticipants([])
   }, [room])
 
@@ -160,6 +187,53 @@ export const TwilioVideoProvider: React.FC<TwilioVideoProviderProps> = ({ childr
     }
   }, [localAudioTrack, isAudioEnabled])
 
+  const stopScreenShare = useCallback(() => {
+    if (localScreenTrack) {
+      if (room) {
+        room.localParticipant.unpublishTrack(localScreenTrack)
+      }
+      localScreenTrack.stop()
+      localTracksRef.current = localTracksRef.current.filter(t => t !== localScreenTrack)
+      setLocalScreenTrack(null)
+      setIsScreenSharing(false)
+    }
+  }, [localScreenTrack, room])
+
+  const toggleScreenShare = useCallback(async () => {
+    if (isScreenSharing) {
+      stopScreenShare()
+      return
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getDisplayMedia({ video: true })
+      const mediaStreamTrack = stream.getVideoTracks()[0]
+      const screenTrack = new LocalVideoTrack(mediaStreamTrack, { name: SCREEN_SHARE_TRACK_NAME })
+
+      if (room) {
+        await room.localParticipant.publishTrack(screenTrack)
+      }
+
+      localTracksRef.current.push(screenTrack)
+      setLocalScreenTrack(screenTrack)
+      setIsScreenSharing(true)
+
+      // Handle browser "Stop sharing" button
+      mediaStreamTrack.onended = () => {
+        if (room) {
+          room.localParticipant.unpublishTrack(screenTrack)
+        }
+        screenTrack.stop()
+        localTracksRef.current = localTracksRef.current.filter(t => t !== screenTrack)
+        setLocalScreenTrack(null)
+        setIsScreenSharing(false)
+      }
+    } catch (err) {
+      // User cancelled the screen share picker — not an error
+      console.log('Screen share cancelled or failed:', err)
+    }
+  }, [isScreenSharing, stopScreenShare, room])
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -178,6 +252,9 @@ export const TwilioVideoProvider: React.FC<TwilioVideoProviderProps> = ({ childr
     isConnected: !!room,
     localVideoTrack,
     localAudioTrack,
+    localScreenTrack,
+    isScreenSharing,
+    screenSharingParticipantSid,
     participants,
     error,
     isHost,
@@ -187,6 +264,7 @@ export const TwilioVideoProvider: React.FC<TwilioVideoProviderProps> = ({ childr
     disconnect,
     toggleVideo,
     toggleAudio,
+    toggleScreenShare,
     setIsHost,
   }
 

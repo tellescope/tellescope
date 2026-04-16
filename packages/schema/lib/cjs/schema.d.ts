@@ -8,6 +8,7 @@ export declare const get_next_reminder_timestamp_for_ticket: ({ dueDateInMS, rem
 export type RelationshipConstraintOptions<T> = {
     updates?: Partial<T>;
     original?: T;
+    replaceObjectFields?: boolean;
 };
 export type RelationshipConstraint<T> = {
     explanation: string;
@@ -1233,8 +1234,9 @@ export type CustomActions = {
             report: Report;
         }>;
         bulk_update: CustomAction<{
-            recurringEventId: string;
-            action: 'cancel_for_attendee' | 'remove_attendee' | 'cancel' | 'delete' | 'uncancel_for_attendee' | 'uncancel';
+            recurringEventId?: string;
+            ids?: string[];
+            action: 'cancel_for_attendee' | 'remove_attendee' | 'cancel' | 'delete' | 'uncancel_for_attendee' | 'uncancel' | 'confirm' | 'no_show' | 'un_no_show';
             scope?: 'this_and_future' | 'all';
             enduserId?: string;
             cancelReason?: string;

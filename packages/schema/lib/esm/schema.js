@@ -3122,6 +3122,7 @@ export var schema = build_schema({
                         validator: listOfStringsWithQualifierValidator,
                         required: true,
                     },
+                    syncAllFormResponses: { validator: booleanValidatorOptional },
                 },
                 returns: {},
             },
@@ -3664,10 +3665,11 @@ export var schema = build_schema({
                 op: "custom", access: 'update', method: "patch",
                 name: 'Bulk Update Recurring Events',
                 path: '/calendar-events/bulk-update',
-                description: "Performs bulk operations on a recurring event series starting from the given event",
+                description: "Performs bulk operations on a recurring event series starting from the given event, or a set of specific events",
                 parameters: {
-                    recurringEventId: { validator: mongoIdStringValidator, required: true },
-                    action: { validator: exactMatchValidator(['cancel_for_attendee', 'remove_attendee', 'cancel', 'delete', 'uncancel_for_attendee', 'uncancel']), required: true },
+                    recurringEventId: { validator: mongoIdStringValidator },
+                    ids: { validator: listOfMongoIdStringValidator },
+                    action: { validator: exactMatchValidator(['cancel_for_attendee', 'remove_attendee', 'cancel', 'delete', 'uncancel_for_attendee', 'uncancel', 'confirm', 'no_show', 'un_no_show']), required: true },
                     scope: { validator: exactMatchValidatorOptional(['this_and_future', 'all']) },
                     enduserId: { validator: mongoIdStringValidator },
                     cancelReason: { validator: stringValidator5000 },
@@ -4596,6 +4598,65 @@ export var schema = build_schema({
                             return "Not allowed";
                     }
                 },
+                {
+                    explanation: 'Nested list fields in settings must not contain duplicates',
+                    evaluate: function (updated, lookup, session, type, options) {
+                        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
+                        if (type !== 'update')
+                            return;
+                        if (!((_a = options.updates) === null || _a === void 0 ? void 0 : _a.settings))
+                            return;
+                        var updateSettings = options.updates.settings;
+                        var originalSettings = (_b = options.original) === null || _b === void 0 ? void 0 : _b.settings;
+                        if (!updateSettings)
+                            return;
+                        var isReplace = !!options.replaceObjectFields;
+                        var checkStringArray = function (newArr, oldArr, label) {
+                            if (!newArr)
+                                return;
+                            var hasDupesWithin = newArr.length !== new Set(newArr).size;
+                            if (isReplace) {
+                                // Only reject if replacement has internal dupes AND grows the array
+                                if (hasDupesWithin && newArr.length > (oldArr || []).length)
+                                    return "Duplicate value in ".concat(label);
+                            }
+                            else {
+                                // Merge: reject if new values have internal dupes or overlap with existing
+                                if (hasDupesWithin)
+                                    return "Duplicate value in ".concat(label);
+                                if (oldArr) {
+                                    var oldSet_1 = new Set(oldArr);
+                                    if (newArr.some(function (v) { return oldSet_1.has(v); }))
+                                        return "Duplicate value in ".concat(label);
+                                }
+                            }
+                        };
+                        var checkObjectArray = function (newArr, oldArr, key, label) {
+                            if (!newArr)
+                                return;
+                            var newValues = newArr.map(function (item) { return item[key]; });
+                            var hasDupesWithin = newValues.length !== new Set(newValues).size;
+                            if (isReplace) {
+                                if (hasDupesWithin && newArr.length > (oldArr || []).length)
+                                    return "Duplicate ".concat(key, " in ").concat(label);
+                            }
+                            else {
+                                if (hasDupesWithin)
+                                    return "Duplicate ".concat(key, " in ").concat(label);
+                                if (oldArr) {
+                                    var oldKeys_1 = new Set(oldArr.map(function (item) { return item[key]; }));
+                                    if (newValues.some(function (v) { return oldKeys_1.has(v); }))
+                                        return "Duplicate ".concat(key, " in ").concat(label);
+                                }
+                            }
+                        };
+                        return (checkObjectArray((_c = updateSettings.endusers) === null || _c === void 0 ? void 0 : _c.customFields, (_d = originalSettings === null || originalSettings === void 0 ? void 0 : originalSettings.endusers) === null || _d === void 0 ? void 0 : _d.customFields, 'field', 'settings.endusers.customFields')
+                            || checkObjectArray((_e = updateSettings.endusers) === null || _e === void 0 ? void 0 : _e.builtinFields, (_f = originalSettings === null || originalSettings === void 0 ? void 0 : originalSettings.endusers) === null || _f === void 0 ? void 0 : _f.builtinFields, 'field', 'settings.endusers.builtinFields')
+                            || checkStringArray((_g = updateSettings.endusers) === null || _g === void 0 ? void 0 : _g.tags, (_h = originalSettings === null || originalSettings === void 0 ? void 0 : originalSettings.endusers) === null || _h === void 0 ? void 0 : _h.tags, 'settings.endusers.tags')
+                            || checkStringArray((_j = updateSettings.endusers) === null || _j === void 0 ? void 0 : _j.dontRecordCallsToPhone, (_k = originalSettings === null || originalSettings === void 0 ? void 0 : originalSettings.endusers) === null || _k === void 0 ? void 0 : _k.dontRecordCallsToPhone, 'settings.endusers.dontRecordCallsToPhone')
+                            || checkStringArray((_l = updateSettings.calendar) === null || _l === void 0 ? void 0 : _l.cancelReasons, (_m = originalSettings === null || originalSettings === void 0 ? void 0 : originalSettings.calendar) === null || _m === void 0 ? void 0 : _m.cancelReasons, 'settings.calendar.cancelReasons'));
+                    }
+                },
             ],
         },
         defaultActions: { read: {}, readMany: {}, update: {},
@@ -5033,7 +5094,7 @@ export var schema = build_schema({
                 validator: listOfMongoIdStringValidatorEmptyOk,
                 required: true,
                 examples: [[PLACEHOLDER_ID]]
-            }, terms: { validator: appointmentTermsValidator }, endDate: { validator: dateValidator }, startDate: { validator: dateValidator }, backgroundColor: { validator: stringValidator100 }, primaryColor: { validator: stringValidator100 }, secondaryColor: { validator: stringValidator100 }, intakeTitle: { validator: stringValidator1000 }, intakeDescription: { validator: stringValidator1000 }, thankYouRedirectURL: { validator: stringValidator1000 }, thankYouTitle: { validator: stringValidator1000 }, thankYouDescription: { validator: stringValidator1000 }, thankYouHeaderImageURL: { validator: stringValidator1000 }, thankYouMainImageURL: { validator: stringValidator1000 }, ga4measurementId: { validator: stringValidator100 }, hiddenFromPortal: { validator: booleanValidator }, hoursBeforeBookingAllowed: { validator: numberValidatorOptional }, limitedToCareTeam: { validator: booleanValidator }, limitedByState: { validator: booleanValidator }, limitedByTagsPortal: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, enableUserSelection: { validator: booleanValidator }, topLogo: { validator: stringValidator }, requireLocationSelection: { validator: booleanValidator }, fontFace: { validator: stringValidator }, fontFamily: { validator: stringValidator5000EmptyOkay }, fontURL: { validator: stringValidator }, collectReason: { validator: exactMatchValidator(['Do Not Collect', 'Optional', 'Required']) }, restrictionsByTemplate: { validator: bookingRestrictionsByTemplateValidator }, publicMulti: { validator: booleanValidator }, publicUserTags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, publicUserFilterTags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, appointmentSlotsMaxHeight: { validator: numberValidatorOptional }, includeRelatedContactTypes: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, calendarTitleText: { validator: stringValidator1000 }, emailFieldBehavior: { validator: exactMatchValidator(['required', 'optional', 'hidden']) }, language: { validator: stringValidator }, publicShowLanguage: { validator: booleanValidator } })
+            }, terms: { validator: appointmentTermsValidator }, endDate: { validator: dateValidator }, startDate: { validator: dateValidator }, backgroundColor: { validator: stringValidator100 }, primaryColor: { validator: stringValidator100 }, secondaryColor: { validator: stringValidator100 }, intakeTitle: { validator: stringValidator1000 }, intakeDescription: { validator: stringValidator1000 }, portalDescription: { validator: stringValidator1000 }, thankYouRedirectURL: { validator: stringValidator1000 }, thankYouTitle: { validator: stringValidator1000 }, thankYouDescription: { validator: stringValidator1000 }, thankYouHeaderImageURL: { validator: stringValidator1000 }, thankYouMainImageURL: { validator: stringValidator1000 }, ga4measurementId: { validator: stringValidator100 }, hiddenFromPortal: { validator: booleanValidator }, hoursBeforeBookingAllowed: { validator: numberValidatorOptional }, limitedToCareTeam: { validator: booleanValidator }, limitedByState: { validator: booleanValidator }, limitedByTagsPortal: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, enableUserSelection: { validator: booleanValidator }, topLogo: { validator: stringValidator }, requireLocationSelection: { validator: booleanValidator }, fontFace: { validator: stringValidator }, fontFamily: { validator: stringValidator5000EmptyOkay }, fontURL: { validator: stringValidator }, collectReason: { validator: exactMatchValidator(['Do Not Collect', 'Optional', 'Required']) }, restrictionsByTemplate: { validator: bookingRestrictionsByTemplateValidator }, publicMulti: { validator: booleanValidator }, publicUserTags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, publicUserFilterTags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, appointmentSlotsMaxHeight: { validator: numberValidatorOptional }, includeRelatedContactTypes: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, calendarTitleText: { validator: stringValidator1000 }, emailFieldBehavior: { validator: exactMatchValidator(['required', 'optional', 'hidden']) }, language: { validator: stringValidator }, publicShowLanguage: { validator: booleanValidator } })
     },
     appointment_locations: {
         info: {},

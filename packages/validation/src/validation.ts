@@ -1369,7 +1369,7 @@ export const dateRangeOptionalValidator = objectValidator<DateRange>({
 }, { isOptional: true, emptyOk: true })
 
 
-export const exactMatchValidator = <T extends string | null>(matches: T[], options?: ValidatorOptions): ValidatorDefinition<T> => ({
+export const exactMatchValidator = <T extends string | number | null>(matches: T[], options?: ValidatorOptions): ValidatorDefinition<T> => ({
   validate: (o={}) => build_validator(
     (match: JSONType) => {
       if (matches.filter(m => m === match).length === 0) {
@@ -3321,6 +3321,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       formIds: listOfMongoIdStringValidator,
       matchCareTeamTagsForCanvasPractitionerResolution: listOfStringsWithQualifierValidator,
       noteCoding: canvasCodingValidator,
+      syncAllFormResponses: booleanValidatorOptional,
     }),
   }),
   canvasAddToGroup: objectValidator<CanvasAddToGroupAutomationAction>({
@@ -3811,6 +3812,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   hideFromPortal: booleanValidatorOptional,
   productIds: listOfStringsValidatorOptionalOrEmptyOk,
   chargeImmediately: booleanValidatorOptional,
+  saveCardOnFile: booleanValidatorOptional,
   signatureUrl: stringValidator5000Optional,
   maxLength: numberValidatorOptional,
   minLength: numberValidatorOptional,
@@ -6249,6 +6251,7 @@ export const userUIRestrictionsValidator = objectValidator<UserUIRestrictions>({
   hideBulkEnduserActions: booleanValidatorOptional,
   visibleIntegrations: listOfStringsValidatorUniqueOptionalOrEmptyOkay,
   hideViewPortalAsEnduser: booleanValidatorOptional,
+  hideEnduserNote: booleanValidatorOptional,
 }, { emptyOk: true })
 
 const externalChatGPTMessageValidator = objectValidator<ExternalChatGPTMessage>({

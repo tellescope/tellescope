@@ -10,6 +10,29 @@ var __assign = (this && this.__assign) || function () {
     };
     return __assign.apply(this, arguments);
 };
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -55,14 +78,12 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     }
     return to.concat(ar || Array.prototype.slice.call(from));
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TwilioVideoProvider = exports.useTwilioVideo = void 0;
+exports.TwilioVideoProvider = exports.useTwilioVideo = exports.SCREEN_SHARE_TRACK_NAME = void 0;
 var jsx_runtime_1 = require("react/jsx-runtime");
 var react_1 = require("react");
-var twilio_video_1 = __importDefault(require("twilio-video"));
+var twilio_video_1 = __importStar(require("twilio-video"));
+exports.SCREEN_SHARE_TRACK_NAME = 'screen-share';
 var TwilioVideoContext = (0, react_1.createContext)(null);
 var useTwilioVideo = function () {
     var context = (0, react_1.useContext)(TwilioVideoContext);
@@ -83,6 +104,9 @@ var TwilioVideoProvider = function (_a) {
     var _h = (0, react_1.useState)(false), isHost = _h[0], setIsHost = _h[1];
     var _j = (0, react_1.useState)(true), isVideoEnabled = _j[0], setIsVideoEnabled = _j[1];
     var _k = (0, react_1.useState)(true), isAudioEnabled = _k[0], setIsAudioEnabled = _k[1];
+    var _l = (0, react_1.useState)(null), localScreenTrack = _l[0], setLocalScreenTrack = _l[1];
+    var _m = (0, react_1.useState)(false), isScreenSharing = _m[0], setIsScreenSharing = _m[1];
+    var _o = (0, react_1.useState)(null), screenSharingParticipantSid = _o[0], setScreenSharingParticipantSid = _o[1];
     var localTracksRef = (0, react_1.useRef)([]);
     var connect = (0, react_1.useCallback)(function (token, roomName) { return __awaiter(void 0, void 0, void 0, function () {
         var tracks, videoTrack, audioTrack, newRoom, existingParticipants, err_1;
@@ -125,6 +149,17 @@ var TwilioVideoProvider = function (_a) {
                     newRoom.on('participantDisconnected', function (participant) {
                         setParticipants(function (prev) { return prev.filter(function (p) { return p.sid !== participant.sid; }); });
                     });
+                    // Track remote screen sharing for React re-renders
+                    newRoom.on('trackSubscribed', function (track, publication, participant) {
+                        if (track.kind === 'video' && track.name === exports.SCREEN_SHARE_TRACK_NAME) {
+                            setScreenSharingParticipantSid(participant.sid);
+                        }
+                    });
+                    newRoom.on('trackUnsubscribed', function (track, publication, participant) {
+                        if (track.kind === 'video' && track.name === exports.SCREEN_SHARE_TRACK_NAME) {
+                            setScreenSharingParticipantSid(null);
+                        }
+                    });
                     newRoom.on('disconnected', function () {
                         // Stop all local tracks when disconnected
                         localTracksRef.current.forEach(function (track) {
@@ -134,6 +169,9 @@ var TwilioVideoProvider = function (_a) {
                         setRoom(null);
                         setLocalVideoTrack(null);
                         setLocalAudioTrack(null);
+                        setLocalScreenTrack(null);
+                        setIsScreenSharing(false);
+                        setScreenSharingParticipantSid(null);
                         setParticipants([]);
                     });
                     return [3 /*break*/, 6];
@@ -161,6 +199,9 @@ var TwilioVideoProvider = function (_a) {
         setRoom(null);
         setLocalVideoTrack(null);
         setLocalAudioTrack(null);
+        setLocalScreenTrack(null);
+        setIsScreenSharing(false);
+        setScreenSharingParticipantSid(null);
         setParticipants([]);
     }, [room]);
     var toggleVideo = (0, react_1.useCallback)(function () { return __awaiter(void 0, void 0, void 0, function () {
@@ -188,6 +229,63 @@ var TwilioVideoProvider = function (_a) {
             setIsAudioEnabled(!isAudioEnabled);
         }
     }, [localAudioTrack, isAudioEnabled]);
+    var stopScreenShare = (0, react_1.useCallback)(function () {
+        if (localScreenTrack) {
+            if (room) {
+                room.localParticipant.unpublishTrack(localScreenTrack);
+            }
+            localScreenTrack.stop();
+            localTracksRef.current = localTracksRef.current.filter(function (t) { return t !== localScreenTrack; });
+            setLocalScreenTrack(null);
+            setIsScreenSharing(false);
+        }
+    }, [localScreenTrack, room]);
+    var toggleScreenShare = (0, react_1.useCallback)(function () { return __awaiter(void 0, void 0, void 0, function () {
+        var stream, mediaStreamTrack, screenTrack_1, err_2;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    if (isScreenSharing) {
+                        stopScreenShare();
+                        return [2 /*return*/];
+                    }
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 5, , 6]);
+                    return [4 /*yield*/, navigator.mediaDevices.getDisplayMedia({ video: true })];
+                case 2:
+                    stream = _a.sent();
+                    mediaStreamTrack = stream.getVideoTracks()[0];
+                    screenTrack_1 = new twilio_video_1.LocalVideoTrack(mediaStreamTrack, { name: exports.SCREEN_SHARE_TRACK_NAME });
+                    if (!room) return [3 /*break*/, 4];
+                    return [4 /*yield*/, room.localParticipant.publishTrack(screenTrack_1)];
+                case 3:
+                    _a.sent();
+                    _a.label = 4;
+                case 4:
+                    localTracksRef.current.push(screenTrack_1);
+                    setLocalScreenTrack(screenTrack_1);
+                    setIsScreenSharing(true);
+                    // Handle browser "Stop sharing" button
+                    mediaStreamTrack.onended = function () {
+                        if (room) {
+                            room.localParticipant.unpublishTrack(screenTrack_1);
+                        }
+                        screenTrack_1.stop();
+                        localTracksRef.current = localTracksRef.current.filter(function (t) { return t !== screenTrack_1; });
+                        setLocalScreenTrack(null);
+                        setIsScreenSharing(false);
+                    };
+                    return [3 /*break*/, 6];
+                case 5:
+                    err_2 = _a.sent();
+                    // User cancelled the screen share picker — not an error
+                    console.log('Screen share cancelled or failed:', err_2);
+                    return [3 /*break*/, 6];
+                case 6: return [2 /*return*/];
+            }
+        });
+    }); }, [isScreenSharing, stopScreenShare, room]);
     // Cleanup on unmount
     (0, react_1.useEffect)(function () {
         return function () {
@@ -205,6 +303,9 @@ var TwilioVideoProvider = function (_a) {
         isConnected: !!room,
         localVideoTrack: localVideoTrack,
         localAudioTrack: localAudioTrack,
+        localScreenTrack: localScreenTrack,
+        isScreenSharing: isScreenSharing,
+        screenSharingParticipantSid: screenSharingParticipantSid,
         participants: participants,
         error: error,
         isHost: isHost,
@@ -214,6 +315,7 @@ var TwilioVideoProvider = function (_a) {
         disconnect: disconnect,
         toggleVideo: toggleVideo,
         toggleAudio: toggleAudio,
+        toggleScreenShare: toggleScreenShare,
         setIsHost: setIsHost,
     };
     return ((0, jsx_runtime_1.jsx)(TwilioVideoContext.Provider, __assign({ value: value }, { children: children })));

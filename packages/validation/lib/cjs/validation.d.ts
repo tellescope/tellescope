@@ -263,7 +263,7 @@ export declare const dateOptionalOrEmptyStringValidator: ValidatorDefinition<Dat
 export declare const dateValidatorOptional: ValidatorDefinition<Date>;
 export declare const dateRangeValidator: ValidatorDefinition<DateRange>;
 export declare const dateRangeOptionalValidator: ValidatorDefinition<DateRange>;
-export declare const exactMatchValidator: <T extends string | null>(matches: T[], options?: ValidatorOptions) => ValidatorDefinition<T>;
+export declare const exactMatchValidator: <T extends string | number | null>(matches: T[], options?: ValidatorOptions) => ValidatorDefinition<T>;
 export declare const exactMatchValidatorOptional: <T extends string | null>(matches: T[]) => ValidatorDefinition<T>;
 export declare const exactMatchListValidator: <T extends string | null>(matches: T[]) => ValidatorDefinition<T[]>;
 export { VALID_STATES };

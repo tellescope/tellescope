@@ -384,6 +384,7 @@ export const get_next_reminder_timestamp_for_ticket = ({ dueDateInMS, reminders,
 export type RelationshipConstraintOptions<T> = {
   updates?: Partial<T>
   original?: T,
+  replaceObjectFields?: boolean,
 }
 export type RelationshipConstraint<T> = {
   explanation: string; // human readable, for documentation purposes
@@ -1052,11 +1053,12 @@ export type CustomActions = {
     get_enduser_report: CustomAction<{ range?: DateRange, groupBy?: string, countDuplicates?: boolean, templateIds?: string[], enduserGroupBy?: string, enduserFields: Record<string, any> }, { report: Report }>,
     // for getting statuses of events (cancelled, rescheduled, etc.)
     get_status_report: CustomAction<{ range?: DateRange, groupBy?: string }, { report: Report }>,
-    // bulk operations on recurring event series (cancel for attendee, remove attendee, cancel, delete)
+    // bulk operations on recurring event series or a set of specific events
     bulk_update: CustomAction<
       {
-        recurringEventId: string,
-        action: 'cancel_for_attendee' | 'remove_attendee' | 'cancel' | 'delete' | 'uncancel_for_attendee' | 'uncancel',
+        recurringEventId?: string,
+        ids?: string[],
+        action: 'cancel_for_attendee' | 'remove_attendee' | 'cancel' | 'delete' | 'uncancel_for_attendee' | 'uncancel' | 'confirm' | 'no_show' | 'un_no_show',
         scope?: 'this_and_future' | 'all',
         enduserId?: string,
         cancelReason?: string,
@@ -4973,14 +4975,15 @@ export const schema: SchemaV1 = build_schema({
         path: '/form-responses/create-canvasnote',
         description: "Compiles FormResponses and creates a Note in Canvas",
         warnings: ['This returns early as the sync process can take a while for many form responses'],
-        parameters: { 
+        parameters: {
           enduserId: { validator: mongoIdStringValidator, required: true },
           formIds: { validator: listOfMongoIdStringValidator, required: true },
           noteCoding: { validator: canvasCodingValidator, required: true },
-          matchCareTeamTagsForCanvasPractitionerResolution: { 
+          matchCareTeamTagsForCanvasPractitionerResolution: {
             validator: listOfStringsWithQualifierValidator,
             required: true,
           },
+          syncAllFormResponses: { validator: booleanValidatorOptional },
         },
         returns: { },
       },
@@ -5577,10 +5580,11 @@ export const schema: SchemaV1 = build_schema({
         op: "custom", access: 'update', method: "patch",
         name: 'Bulk Update Recurring Events',
         path: '/calendar-events/bulk-update',
-        description: "Performs bulk operations on a recurring event series starting from the given event",
+        description: "Performs bulk operations on a recurring event series starting from the given event, or a set of specific events",
         parameters: {
-          recurringEventId: { validator: mongoIdStringValidator, required: true },
-          action: { validator: exactMatchValidator(['cancel_for_attendee', 'remove_attendee', 'cancel', 'delete', 'uncancel_for_attendee', 'uncancel']), required: true },
+          recurringEventId: { validator: mongoIdStringValidator },
+          ids: { validator: listOfMongoIdStringValidator },
+          action: { validator: exactMatchValidator(['cancel_for_attendee', 'remove_attendee', 'cancel', 'delete', 'uncancel_for_attendee', 'uncancel', 'confirm', 'no_show', 'un_no_show']), required: true },
           scope: { validator: exactMatchValidatorOptional<"this_and_future" | "all">(['this_and_future', 'all']) },
           enduserId: { validator: mongoIdStringValidator },
           cancelReason: { validator: stringValidator5000 },
@@ -6794,6 +6798,58 @@ export const schema: SchemaV1 = build_schema({
             if (!session.isa) return "Not allowed"
           }
         },
+        {
+          explanation: 'Nested list fields in settings must not contain duplicates',
+          evaluate: (updated, lookup, session, type, options) => {
+            if (type !== 'update') return
+            if (!options.updates?.settings) return
+
+            const updateSettings = (options.updates as Partial<Organization>).settings
+            const originalSettings = (options.original as Organization | undefined)?.settings
+            if (!updateSettings) return
+
+            const isReplace = !!options.replaceObjectFields
+
+            const checkStringArray = (newArr: string[] | undefined, oldArr: string[] | undefined, label: string) => {
+              if (!newArr) return
+              const hasDupesWithin = newArr.length !== new Set(newArr).size
+              if (isReplace) {
+                // Only reject if replacement has internal dupes AND grows the array
+                if (hasDupesWithin && newArr.length > (oldArr || []).length) return `Duplicate value in ${label}`
+              } else {
+                // Merge: reject if new values have internal dupes or overlap with existing
+                if (hasDupesWithin) return `Duplicate value in ${label}`
+                if (oldArr) {
+                  const oldSet = new Set(oldArr)
+                  if (newArr.some(v => oldSet.has(v))) return `Duplicate value in ${label}`
+                }
+              }
+            }
+
+            const checkObjectArray = (newArr: { [k: string]: any }[] | undefined, oldArr: { [k: string]: any }[] | undefined, key: string, label: string) => {
+              if (!newArr) return
+              const newValues = newArr.map(item => item[key])
+              const hasDupesWithin = newValues.length !== new Set(newValues).size
+              if (isReplace) {
+                if (hasDupesWithin && newArr.length > (oldArr || []).length) return `Duplicate ${key} in ${label}`
+              } else {
+                if (hasDupesWithin) return `Duplicate ${key} in ${label}`
+                if (oldArr) {
+                  const oldKeys = new Set(oldArr.map(item => item[key]))
+                  if (newValues.some(v => oldKeys.has(v))) return `Duplicate ${key} in ${label}`
+                }
+              }
+            }
+
+            return (
+              checkObjectArray(updateSettings.endusers?.customFields, originalSettings?.endusers?.customFields, 'field', 'settings.endusers.customFields')
+              || checkObjectArray(updateSettings.endusers?.builtinFields, originalSettings?.endusers?.builtinFields, 'field', 'settings.endusers.builtinFields')
+              || checkStringArray(updateSettings.endusers?.tags, originalSettings?.endusers?.tags, 'settings.endusers.tags')
+              || checkStringArray(updateSettings.endusers?.dontRecordCallsToPhone, originalSettings?.endusers?.dontRecordCallsToPhone, 'settings.endusers.dontRecordCallsToPhone')
+              || checkStringArray(updateSettings.calendar?.cancelReasons, originalSettings?.calendar?.cancelReasons, 'settings.calendar.cancelReasons')
+            )
+          }
+        },
       ],
     },
     defaultActions: { read: { }, readMany: { }, update: { }, 
@@ -7375,8 +7431,9 @@ export const schema: SchemaV1 = build_schema({
       backgroundColor: { validator: stringValidator100 },
       primaryColor: { validator: stringValidator100 },
       secondaryColor: { validator: stringValidator100 },
-      intakeTitle: { validator: stringValidator1000 }, 
-      intakeDescription: { validator: stringValidator1000 }, 
+      intakeTitle: { validator: stringValidator1000 },
+      intakeDescription: { validator: stringValidator1000 },
+      portalDescription: { validator: stringValidator1000 },
       thankYouRedirectURL: { validator: stringValidator1000 },
       thankYouTitle: { validator: stringValidator1000 },
       thankYouDescription: { validator: stringValidator1000 }, 

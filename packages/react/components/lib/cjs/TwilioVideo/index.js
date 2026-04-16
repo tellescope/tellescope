@@ -1,9 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TwilioLocalPreview = exports.TwilioVideoRoom = exports.TwilioControlBar = exports.TwilioParticipant = exports.useTwilioMeetingForCalendarEvent = exports.useJoinTwilioVideoCall = exports.useStartTwilioVideoCall = exports.useTwilioVideo = exports.TwilioVideoProvider = void 0;
+exports.TwilioLocalPreview = exports.TwilioVideoRoom = exports.TwilioControlBar = exports.TwilioParticipant = exports.useTwilioMeetingForCalendarEvent = exports.useJoinTwilioVideoCall = exports.useStartTwilioVideoCall = exports.SCREEN_SHARE_TRACK_NAME = exports.useTwilioVideo = exports.TwilioVideoProvider = void 0;
 var TwilioVideoContext_1 = require("./TwilioVideoContext");
 Object.defineProperty(exports, "TwilioVideoProvider", { enumerable: true, get: function () { return TwilioVideoContext_1.TwilioVideoProvider; } });
 Object.defineProperty(exports, "useTwilioVideo", { enumerable: true, get: function () { return TwilioVideoContext_1.useTwilioVideo; } });
+Object.defineProperty(exports, "SCREEN_SHARE_TRACK_NAME", { enumerable: true, get: function () { return TwilioVideoContext_1.SCREEN_SHARE_TRACK_NAME; } });
 var hooks_1 = require("./hooks");
 Object.defineProperty(exports, "useStartTwilioVideoCall", { enumerable: true, get: function () { return hooks_1.useStartTwilioVideoCall; } });
 Object.defineProperty(exports, "useJoinTwilioVideoCall", { enumerable: true, get: function () { return hooks_1.useJoinTwilioVideoCall; } });

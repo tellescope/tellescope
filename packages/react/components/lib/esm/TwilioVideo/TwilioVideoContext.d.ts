@@ -1,11 +1,15 @@
 import React from 'react';
 import { Room, LocalVideoTrack, LocalAudioTrack, RemoteParticipant } from 'twilio-video';
+export declare const SCREEN_SHARE_TRACK_NAME = "screen-share";
 export interface TwilioVideoState {
     room: Room | null;
     isConnecting: boolean;
     isConnected: boolean;
     localVideoTrack: LocalVideoTrack | null;
     localAudioTrack: LocalAudioTrack | null;
+    localScreenTrack: LocalVideoTrack | null;
+    isScreenSharing: boolean;
+    screenSharingParticipantSid: string | null;
     participants: RemoteParticipant[];
     error: Error | null;
     isHost: boolean;
@@ -17,6 +21,7 @@ export interface TwilioVideoActions {
     disconnect: () => void;
     toggleVideo: () => Promise<void>;
     toggleAudio: () => void;
+    toggleScreenShare: () => Promise<void>;
     setIsHost: (isHost: boolean) => void;
 }
 export type TwilioVideoContextType = TwilioVideoState & TwilioVideoActions;

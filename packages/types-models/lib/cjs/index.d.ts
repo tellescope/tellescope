@@ -1825,6 +1825,7 @@ export type FormFieldOptions = FormFieldValidation & {
     signatureUrl?: string;
     productIds?: string[];
     chargeImmediately?: boolean;
+    saveCardOnFile?: boolean;
     databaseId?: string;
     databaseLabel?: string;
     databaseLabels?: string[];
@@ -2885,6 +2886,7 @@ export interface AppointmentBookingPage extends AppointmentBookingPage_readonly,
     topLogo?: string;
     intakeTitle?: string;
     intakeDescription?: string;
+    portalDescription?: string;
     thankYouRedirectURL?: string;
     thankYouTitle?: string;
     thankYouDescription?: string;
@@ -3332,6 +3334,7 @@ export type CanvasCreateNoteAutomationAction = AutomationActionBuilder<'canvasCr
     formIds: string[];
     matchCareTeamTagsForCanvasPractitionerResolution: ListOfStringsWithQualifier;
     noteCoding: CanvasCoding;
+    syncAllFormResponses?: boolean;
 }>;
 export type CanvasAddToGroupAutomationAction = AutomationActionBuilder<'canvasAddToGroup', {
     groupId: string;
@@ -3929,6 +3932,7 @@ export type UserUIRestrictions = {
     hideBulkEnduserActions?: boolean;
     visibleIntegrations?: string[];
     hideViewPortalAsEnduser?: boolean;
+    hideEnduserNote?: boolean;
 };
 export interface RoleBasedAccessPermission_readonly extends ClientRecord {
 }

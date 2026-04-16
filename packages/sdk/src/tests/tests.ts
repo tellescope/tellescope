@@ -37,6 +37,7 @@ import {
 import { Session, APIQuery, EnduserSession } from "../sdk"
 import { enduser_observations_acknowledge_tests } from "./api_tests/enduser_observations_acknowledge.test"
 import { get_some_projection_tests } from "./api_tests/get_some_projection.test"
+import { mdb_sort_tests } from "./api_tests/mdb_sort.test"
 import { create_user_notifications_trigger_tests } from "./api_tests/create_user_notifications_trigger.test"
 import { inbox_thread_assignment_updates_tests } from "./api_tests/inbox_thread_assignment_updates.test"
 import { inbox_thread_draft_scheduled_tests } from "./api_tests/inbox_thread_draft_scheduled.test"
@@ -88,6 +89,8 @@ import { load_team_chat_tests } from "./api_tests/load_team_chat.test";
 import { form_started_trigger_tests } from "./api_tests/form_started_trigger.test";
 import { medication_added_trigger_tests } from "./api_tests/medication_added_trigger.test";
 import { elation_user_id_tests } from "./api_tests/elation_user_id.test";
+import { organization_settings_duplicates_tests } from "./api_tests/organization_settings_duplicates.test";
+import { calendar_events_bulk_update_tests } from "./api_tests/calendar_events_bulk_update.test";
 import { openloop_webhooks_tests } from "./api_tests/openloop_webhooks.test";
 import { beluga_pharmacy_mappings_tests } from "./api_tests/beluga_pharmacy_mappings.test";
 
@@ -14123,6 +14126,8 @@ const ip_address_form_tests = async () => {
     await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests(sdk, sdkNonAdmin)
+    await mdb_sort_tests({ sdk, sdkNonAdmin })
+    await organization_settings_duplicates_tests({ sdk, sdkNonAdmin })
     await search_tests()
     await time_tracks_tests({ sdk, sdkNonAdmin })
     await time_tracks_historical_tests({ sdk, sdkNonAdmin })
@@ -14170,6 +14175,7 @@ const ip_address_form_tests = async () => {
     await rate_limit_tests()
     await ip_address_form_tests()
     await bulk_update_tests()
+    await calendar_events_bulk_update_tests({ sdk })
     await cancel_upcoming_appointments_journey_action_test()
     await multi_tenant_tests() // should come right after setup tests
     await sync_tests_with_access_tags() // should come directly after setup to avoid extra sync values

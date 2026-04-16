@@ -6,6 +6,8 @@ import {
   Videocam as VideocamIcon,
   VideocamOff as VideocamOffIcon,
   CallEnd as CallEndIcon,
+  ScreenShare as ScreenShareIcon,
+  StopScreenShare as StopScreenShareIcon,
 } from '@mui/icons-material'
 import { useTwilioVideo } from './TwilioVideoContext'
 
@@ -13,20 +15,26 @@ export interface TwilioControlBarProps {
   onLeave?: () => void
   onEndForAll?: () => void
   style?: React.CSSProperties
+  /** Whether to show the screen share button. Defaults to true. */
+  showScreenShare?: boolean
 }
 
 export const TwilioControlBar: React.FC<TwilioControlBarProps> = ({
   onLeave,
   onEndForAll,
   style,
+  showScreenShare: showScreenShareProp = true,
 }) => {
   const {
     isVideoEnabled,
     isAudioEnabled,
+    isScreenSharing,
     toggleVideo,
     toggleAudio,
+    toggleScreenShare,
     disconnect,
     isHost,
+    room,
   } = useTwilioVideo()
 
   const handleLeave = () => {
@@ -38,6 +46,10 @@ export const TwilioControlBar: React.FC<TwilioControlBarProps> = ({
     onEndForAll?.()
     disconnect()
   }
+
+  const supportsScreenShare = typeof navigator !== 'undefined'
+    && navigator.mediaDevices
+    && typeof navigator.mediaDevices.getDisplayMedia === 'function'
 
   return (
     <Box
@@ -74,6 +86,24 @@ export const TwilioControlBar: React.FC<TwilioControlBarProps> = ({
       >
         {isVideoEnabled ? <VideocamIcon /> : <VideocamOffIcon />}
       </IconButton>
+
+      {showScreenShareProp && supportsScreenShare && (
+        <IconButton
+          onClick={toggleScreenShare}
+          disabled={!room}
+          sx={{
+            color: isScreenSharing ? '#4caf50' : 'white',
+            '&:hover': {
+              backgroundColor: 'rgba(255,255,255,0.1)',
+            },
+            '&.Mui-disabled': {
+              color: 'rgba(255,255,255,0.3)',
+            },
+          }}
+        >
+          {isScreenSharing ? <StopScreenShareIcon /> : <ScreenShareIcon />}
+        </IconButton>
+      )}
 
       <IconButton
         onClick={handleLeave}

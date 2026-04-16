@@ -2622,6 +2622,7 @@ exports.automationActionValidator = (0, exports.orValidator)({
             formIds: exports.listOfMongoIdStringValidator,
             matchCareTeamTagsForCanvasPractitionerResolution: exports.listOfStringsWithQualifierValidator,
             noteCoding: exports.canvasCodingValidator,
+            syncAllFormResponses: exports.booleanValidatorOptional,
         }) })),
     canvasAddToGroup: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['canvasAddToGroup']), info: (0, exports.objectValidator)({
             groupId: exports.stringValidator100,
@@ -2981,6 +2982,7 @@ exports.formFieldOptionsValidator = (0, exports.objectValidator)({
     hideFromPortal: exports.booleanValidatorOptional,
     productIds: exports.listOfStringsValidatorOptionalOrEmptyOk,
     chargeImmediately: exports.booleanValidatorOptional,
+    saveCardOnFile: exports.booleanValidatorOptional,
     signatureUrl: exports.stringValidator5000Optional,
     maxLength: exports.numberValidatorOptional,
     minLength: exports.numberValidatorOptional,
@@ -5315,6 +5317,7 @@ exports.userUIRestrictionsValidator = (0, exports.objectValidator)({
     hideBulkEnduserActions: exports.booleanValidatorOptional,
     visibleIntegrations: exports.listOfStringsValidatorUniqueOptionalOrEmptyOkay,
     hideViewPortalAsEnduser: exports.booleanValidatorOptional,
+    hideEnduserNote: exports.booleanValidatorOptional,
 }, { emptyOk: true });
 var externalChatGPTMessageValidator = (0, exports.objectValidator)({
     role: (0, exports.exactMatchValidator)(['assistant', 'user']),
