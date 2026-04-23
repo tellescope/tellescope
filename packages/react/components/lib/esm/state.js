@@ -55,7 +55,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 import { jsx as _jsx } from "react/jsx-runtime";
-import React, { useCallback, useContext, useEffect, createContext, useRef } from 'react';
+import React, { useCallback, useContext, useEffect, createContext, useRef, useState } from 'react';
 import { createDispatchHook, createSelectorHook, Provider } from 'react-redux';
 import { createSlice, configureStore, createAction } from '@reduxjs/toolkit';
 import { LoadingStatus, UNLOADED, } from "@tellescope/types-utilities";
@@ -2125,6 +2125,47 @@ export var useIntegrations = function (options) {
         deleteOne: session.api.integrations.deleteOne,
         updateOne: session.api.integrations.updateOne,
     }, __assign({}, options));
+};
+export var useRedactedIntegrations = function () {
+    var session = useSession();
+    var _a = useState({ status: LoadingStatus.Fetching, value: [] }), loadingState = _a[0], setLoadingState = _a[1];
+    var fetchedRef = useRef(false);
+    useEffect(function () {
+        if (fetchedRef.current)
+            return;
+        fetchedRef.current = true;
+        var cancelled = false;
+        session.api.integrations.load_redacted({})
+            .then(function (result) {
+            if (!cancelled)
+                setLoadingState({ status: LoadingStatus.Loaded, value: result.integrations });
+        })
+            .catch(function (err) {
+            if (!cancelled)
+                setLoadingState({ status: LoadingStatus.Error, value: err });
+        });
+        return function () { cancelled = true; };
+    }, [session]);
+    var updateIntegration = useCallback(function (id, updates) { return __awaiter(void 0, void 0, void 0, function () {
+        var result;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, session.api.integrations.update_settings({ id: id, updates: updates })];
+                case 1:
+                    result = _a.sent();
+                    setLoadingState(function (prev) {
+                        if (prev.status !== LoadingStatus.Loaded)
+                            return prev;
+                        return __assign(__assign({}, prev), { value: prev.value.map(function (i) { return i.id === id ? __assign(__assign({}, i), result.integration) : i; }) });
+                    });
+                    return [2 /*return*/];
+            }
+        });
+    }); }, [session]);
+    return [
+        loadingState,
+        { updateIntegration: updateIntegration },
+    ];
 };
 export var usePortalCustomizations = function (options) {
     if (options === void 0) { options = {}; }

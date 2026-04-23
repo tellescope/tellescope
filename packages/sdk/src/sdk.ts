@@ -16,6 +16,7 @@ import {
   SortBy,
   AnalyticsQuery,
   UserUIRestrictions,
+  UserFieldRedactions,
   ModelName,
   CustomDashboardView,
   DataSyncRecord,
@@ -660,6 +661,12 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     disconnect_zendesk: (args: extractFields<CustomActions['integrations']['disconnect_zendesk']['parameters']>) => (
       Promise<extractFields<CustomActions['integrations']['disconnect_zendesk']['returns']>>
     ),
+    load_redacted: (args: extractFields<CustomActions['integrations']['load_redacted']['parameters']>) => (
+      Promise<extractFields<CustomActions['integrations']['load_redacted']['returns']>>
+    ),
+    update_settings: (args: extractFields<CustomActions['integrations']['update_settings']['parameters']>) => (
+      Promise<extractFields<CustomActions['integrations']['update_settings']['returns']>>
+    ),
   },
   phone_calls: {
     authenticate_calling: (args: extractFields<CustomActions['phone_calls']['authenticate_calling']['parameters']>) => (
@@ -912,6 +919,7 @@ type UserInfo = User & {
   orgName?: string,
   limits?: OrganizationLimits,
   uiRestrictions?: UserUIRestrictions,
+  fieldRedactions?: UserFieldRedactions,
   requiresMFA?: boolean,
   hasTicketQueues?: boolean,
 }
@@ -1083,6 +1091,8 @@ export class Session extends SessionManager {
     queries.integrations.disconnect_elation = a => this._POST(`/v1${schema.integrations.customActions.disconnect_elation.path}`, a)
     queries.integrations.connect_zendesk = a => this._POST(`/v1${schema.integrations.customActions.connect_zendesk.path}`, a)
     queries.integrations.disconnect_zendesk = a => this._POST(`/v1${schema.integrations.customActions.disconnect_zendesk.path}`, a)
+    queries.integrations.load_redacted = args => this._GET(`/v1${schema.integrations.customActions.load_redacted.path}`, args)
+    queries.integrations.update_settings = args => this._POST(`/v1${schema.integrations.customActions.update_settings.path}`, args)
     
     queries.emails.sync_integrations = a => this._POST(`/v1/${schema.emails.customActions.sync_integrations.path}`, a)
     queries.emails.deliver_via_outlook = a => this._POST(`/v1/${schema.emails.customActions.deliver_via_outlook.path}`, a)

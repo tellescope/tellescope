@@ -514,6 +514,8 @@ export interface Organization extends Organization_readonly, Organization_requir
   showCommunity?: boolean,
   phoneLabels?: { number: string, label: string }[];
   faxDestinations?: { label: string, number: string }[],
+  faxCoverPageEnabled?: boolean,
+  faxCoverPageId?: string,
   mfaxAccountId?: string,
   athenaFieldsSync?: AthenaFieldSync[]
   athenaSubscriptions?: AthenaSubscription[],
@@ -651,7 +653,8 @@ export interface UserSession extends Session, OrganizationLimits { // User joine
   verifiedEmail: boolean;
   wasAutomated: boolean;
   limits?: OrganizationLimits, 
-  uiRestrictions?: UserUIRestrictions
+  uiRestrictions?: UserUIRestrictions,
+  fieldRedactions?: UserFieldRedactions,
   dashboardView?: CustomDashboardView,
   hasTicketQueues?: boolean,
   eat?: boolean, // enableAccessTags
@@ -964,11 +967,12 @@ export interface Enduser_readonly extends UserActivityInfo, ClientRecord, Enduse
   mergedIds?: string[],
   _updateKey?: string,
   passwordLastChangedAt?: Date,
-} 
+}
 export interface Enduser_required {}
 export interface Enduser_updatesDisabled {
 }
 export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_updatesDisabled {
+  invalidateSessionsBefore?: Date,
   references?: RelatedRecord[],
   recentViewers?: RecentViewer[],
   healthie_dietitian_id?: string,
@@ -1068,6 +1072,7 @@ export interface EnduserCustomType_updatesDisabled {}
 export interface EnduserCustomType extends EnduserCustomType_readonly, EnduserCustomType_required, EnduserCustomType_updatesDisabled {
   builtinFields?: EnduserBuiltInField[];
   customFields?: CustomEnduserField[];
+  createEnduserForms?: string[];
 }
 
 export interface EnduserStatusUpdate_readonly extends ClientRecord {} 
@@ -2132,6 +2137,12 @@ export interface Integration_readonly extends ClientRecord {
 }
 export interface Integration_required {}
 export interface Integration_updatesDisabled {}
+/**
+ * IMPORTANT: When adding new non-sensitive, user-configurable fields to this interface,
+ * also add them to INTEGRATION_SETTINGS_ALLOWLIST in packages/private/api/api/v1/api.ts
+ * so they can be updated via the update_settings endpoint.
+ * Do NOT add sensitive fields (credentials, tokens, secrets) to the allowlist.
+ */
 export interface Integration extends Integration_readonly, Integration_required, Integration_updatesDisabled {
   title: string,
   tenantId?: string, // e.g. for athena health practice id which doesn't fit in authentication
@@ -2306,6 +2317,7 @@ export type BelugaPatientPreferenceResponse = {
 }
 
 export type BelugaPharmacyMapping = {
+  title?: string,
   pharmacyId: string,
   patientPreference: string, // stringified JSON — resilient to field changes
   conditions: CompoundFilter<string>,
@@ -2313,7 +2325,7 @@ export type BelugaPharmacyMapping = {
 
 export type FormResponseAnswerTable = FormResponseValueAnswerBuilder<'Table Input', TableInputCell[][]>
 export type FormResponseAnswerGroup = FormResponseValueAnswerBuilder<'Question Group', FormSubField[]>
-export type FormResponseAnswerDescription  = FormResponseValueAnswerBuilder<'description', ''>
+export type FormResponseAnswerDescription  = FormResponseValueAnswerBuilder<'description', string>
 export type FormResponseAnswerEmail = FormResponseValueAnswerBuilder<'email', string>
 export type FormResponseAnswerNumber = FormResponseValueAnswerBuilder<'number', number>
 export type FormResponseAnswerPhone = FormResponseValueAnswerBuilder<'phone', string>
@@ -3927,6 +3939,8 @@ export interface CarePlan extends CarePlan_readonly, CarePlan_required, CarePlan
 }
 
 export type TypedField = { type?: string, field?: string, }
+export type UserFieldRedactions = { [modelName: string]: string[] }
+
 export type UserUIRestrictions = {
   hideDashboard?: boolean,
   hideInbox?: boolean,
@@ -3946,6 +3960,10 @@ export type UserUIRestrictions = {
   visibleIntegrations?: string[],
   hideViewPortalAsEnduser?: boolean,
   hideEnduserNote?: boolean,
+  disableTimeTrackApproval?: boolean,
+  hideCalendarUserSelector?: boolean,
+  hideCalendarSavedViews?: boolean,
+  hideCalendarFilters?: boolean,
 }
 
 export interface RoleBasedAccessPermission_readonly extends ClientRecord {}
@@ -3953,6 +3971,7 @@ export interface RoleBasedAccessPermission_required {
   role: string,
   permissions: Partial<AccessPermissions>,
   uiRestrictions?: UserUIRestrictions,
+  fieldRedactions?: UserFieldRedactions,
 }
 export interface RoleBasedAccessPermission_updatesDisabled {}
 export interface RoleBasedAccessPermission extends RoleBasedAccessPermission_readonly, RoleBasedAccessPermission_required, RoleBasedAccessPermission_updatesDisabled {}
@@ -4619,12 +4638,13 @@ export type AutomationTriggerAction = AutomationTriggerActions[AutomationTrigger
 export type AutomationTriggerEventBuilder <T, I, C> = { type: T, info: I, conditions?: C }
 
 export type AutomationTriggerEvents = {
-  'Form Submitted': AutomationTriggerEventBuilder<"Form Submitted", { 
-    formId: string, 
+  'Form Submitted': AutomationTriggerEventBuilder<"Form Submitted", {
+    formId: string,
     otherFormIds?: string[],
-    submitterType?: SessionType | 'Anyone', 
+    submitterType?: SessionType | 'Anyone',
     publicIdentifier?: string,
     hasExpiredEvent?: boolean,
+    conditionsByFormId?: Record<string, any>,
   }, {}>,
   'Form Unsubmitted': AutomationTriggerEventBuilder<"Form Unsubmitted", { formId: string, intervalInMS: number }, {}>,
   'Purchase Made': AutomationTriggerEventBuilder<"Purchase Made", { titles?: string[], productIds?: string[], titlePartialMatches?: string[] }, {}>,
@@ -4667,14 +4687,15 @@ export type AutomationTriggerEvents = {
     ignoreDelayedReadings?: boolean,
   }, {}>,
   'SMS Reply': AutomationTriggerEventBuilder<"SMS Reply", { templateIds: string[], replyKeywords?: string[] }, {}>,
-  'Order Status Equals': AutomationTriggerEventBuilder<"Order Status Equals", { 
-    source: string, 
+  'Order Status Equals': AutomationTriggerEventBuilder<"Order Status Equals", {
+    source: string,
     status: string,
     fills?: string[],
     skus?: string[],
     skuPartials?: string[],
     titlePartials?: string[],
     titlePartialsAnd?: string[],
+    protocols?: string[],
   }, { }>,
   'Missed Call': AutomationTriggerEventBuilder<"Missed Call", { 
     phoneNumbers?: string[], 
@@ -5071,6 +5092,7 @@ export interface EnduserOrder extends EnduserOrder_readonly, EnduserOrder_requir
   cancellationReason?: string,
   medication?: string,
   medicationSku?: string,
+  protocol?: string,
 }
 
 export interface EnduserProblem_readonly extends ClientRecord {}

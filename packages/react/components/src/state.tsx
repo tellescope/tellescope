@@ -2637,6 +2637,43 @@ export const useIntegrations = (options={} as HookOptions<Integration>) => {
   )
 }
 
+export const useRedactedIntegrations = () => {
+  const session = useSession()
+  const [loadingState, setLoadingState] = useState<LoadedData<Integration[]>>({ status: LoadingStatus.Fetching, value: [] as any })
+  const fetchedRef = useRef(false)
+
+  useEffect(() => {
+    if (fetchedRef.current) return
+    fetchedRef.current = true
+
+    let cancelled = false
+    session.api.integrations.load_redacted({})
+      .then((result: any) => {
+        if (!cancelled) setLoadingState({ status: LoadingStatus.Loaded, value: result.integrations })
+      })
+      .catch((err: any) => {
+        if (!cancelled) setLoadingState({ status: LoadingStatus.Error, value: err })
+      })
+    return () => { cancelled = true }
+  }, [session])
+
+  const updateIntegration = useCallback(async (id: string, updates: Partial<Integration>) => {
+    const result: any = await session.api.integrations.update_settings({ id, updates })
+    setLoadingState((prev: LoadedData<Integration[]>) => {
+      if (prev.status !== LoadingStatus.Loaded) return prev
+      return {
+        ...prev,
+        value: prev.value.map((i: Integration) => i.id === id ? { ...i, ...result.integration } : i),
+      }
+    })
+  }, [session])
+
+  return [
+    loadingState,
+    { updateIntegration },
+  ] as const
+}
+
 export const usePortalCustomizations = (options={} as HookOptions<PortalCustomization>) => {
   const session = useResolvedSession()
   return useListStateHook(

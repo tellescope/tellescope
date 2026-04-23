@@ -163,7 +163,7 @@ export var QuestionForField = function (_a) {
                     } }, { children: [field.title, !(field.isOptional || field.type === 'description' || field.type === 'Question Group' || field.type === 'Insurance' || field.type === 'Bridge Eligibility' || field.type === 'Candid Eligibility') ? '*' : ''] })), !field.title && (field.type === 'Question Group' || field.type === 'signature') && !((_12 = form === null || form === void 0 ? void 0 : form.customization) === null || _12 === void 0 ? void 0 : _12.hideLogo) &&
                 // ensures PDF display doesn't push description into overlap with logo / title at top of form
                 // also ensures spacing between logo and question group
-                _jsx("div", { style: { marginTop: 15 } }), _jsx(Description, { field: field, style: { fontSize: 16 }, enduserId: enduserId }), feedback.length > 0 &&
+                _jsx("div", { style: { marginTop: 15 } }), _jsx(Description, { field: field, style: { fontSize: 16 }, enduserId: enduserId, onFieldChange: onFieldChange }), feedback.length > 0 &&
                 _jsx(Flex, __assign({ column: true, style: { marginBottom: 11, marginTop: 3, } }, { children: feedback.map(function (f, i) { return (_jsx(Typography, __assign({ color: "error", style: { fontSize: 20 } }, { children: f }), i)); }) })), 
             // If field has pre-populated value and is set to be disabled when pre-populated, show as underlined text
             field.disabledWhenPrepopulated && value.answer.value !== undefined && value.answer.value !== null && value.answer.value !== '' ? (_jsx("div", __assign({ style: {
@@ -195,7 +195,7 @@ export var QuestionForField = function (_a) {
                                                     : field.type === 'Redirect' ? (_jsx(Redirect, { enduserId: enduserId, rootResponseId: rootResponseId, formResponseId: formResponseId, responses: responses, enduser: enduser, groupId: groupId, groupInsance: groupInstance, submit: submit, field: field, value: value.answer.value, onChange: onFieldChange, form: form }))
                                                         : field.type === 'Related Contacts' ? (_jsx(RelatedContacts, { field: field, value: value.answer.value, onChange: onFieldChange, form: form }))
                                                             : field.type === 'string' ? (_jsx(String, { field: field, disabled: value.disabled, value: value.answer.value, onChange: onFieldChange, form: form }))
-                                                                : field.type === 'Appointment Booking' ? (_jsx(AppointmentBooking, { formResponseId: formResponseId, enduserId: enduserId, goToPreviousField: goToPreviousField, isPreviousDisabled: isPreviousDisabled, responses: responses, field: field, value: value.answer.value, onChange: onFieldChange, form: form }))
+                                                                : field.type === 'Appointment Booking' ? (_jsx(AppointmentBooking, { formResponseId: formResponseId, enduserId: enduserId, goToPreviousField: goToPreviousField, isPreviousDisabled: isPreviousDisabled, responses: responses, field: field, value: value.answer.value, onChange: onFieldChange, form: form }, field.id))
                                                                     : field.type === 'Stripe' ? (_jsx(Stripe, { enduserId: enduserId, field: field, value: value.answer.value, onChange: onFieldChange, setCustomerId: setCustomerId, form: form, responses: responses, enduser: enduser }))
                                                                         : field.type === 'Chargebee' ? (_jsx(Chargebee, { field: field, value: value.answer.value, onChange: onFieldChange, setCustomerId: setCustomerId, form: form, responses: responses }))
                                                                             : field.type === 'stringLong' ? (_jsx(StringLong, { field: field, disabled: value.disabled, value: value.answer.value, onChange: onFieldChange, form: form }))
@@ -596,7 +596,7 @@ export var UpdateResponse = function (_a) {
         }); }, submitText: "Update", submittingText: "Saving..." }));
 };
 var HistoricalDataSection = function (_a) {
-    var sources = _a.sources, enduserId = _a.enduserId;
+    var sources = _a.sources, enduserId = _a.enduserId, onDataLoaded = _a.onDataLoaded;
     var session = useSession({ throwIfMissingContext: false });
     var _b = useState([]), observations = _b[0], setObservations = _b[1];
     var _c = useState([]), medications = _c[0], setMedications = _c[1];
@@ -612,7 +612,7 @@ var HistoricalDataSection = function (_a) {
             return;
         loadedKeyRef.current = key;
         var loadData = function () { return __awaiter(void 0, void 0, void 0, function () {
-            var promises, _i, sources_1, source, err_4;
+            var promises, loadedObservations_1, loadedMedications_1, _i, sources_1, source, obsLabel_1, medLabel_1, MAX_SNAPSHOT_LENGTH, obsRefs, medRefs, json, err_4;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -622,6 +622,8 @@ var HistoricalDataSection = function (_a) {
                     case 1:
                         _a.trys.push([1, 3, 4, 5]);
                         promises = [];
+                        loadedObservations_1 = [];
+                        loadedMedications_1 = [];
                         for (_i = 0, sources_1 = sources; _i < sources_1.length; _i++) {
                             source = sources_1[_i];
                             if (source.type === 'Observations') {
@@ -629,19 +631,43 @@ var HistoricalDataSection = function (_a) {
                                     filter: __assign({ enduserId: enduserId }, source.filter),
                                     limit: source.limit,
                                 })
-                                    .then(function (obs) { return setObservations(obs); }));
+                                    .then(function (obs) { loadedObservations_1 = obs; setObservations(obs); }));
                             }
                             else if (source.type === 'Medications') {
                                 promises.push(session.api.enduser_medications.getSome({
                                     filter: __assign({ enduserId: enduserId, status: { _ne: 'draft' } }, source.filter),
                                     limit: source.limit,
                                 })
-                                    .then(function (meds) { return setMedications(meds); }));
+                                    .then(function (meds) { loadedMedications_1 = meds; setMedications(meds); }));
                             }
                         }
                         return [4 /*yield*/, Promise.all(promises)];
                     case 2:
                         _a.sent();
+                        obsLabel_1 = function (o) {
+                            var name = o.type || o.code || '';
+                            var val = o.measurement ? "".concat(o.measurement.value, " ").concat(o.measurement.unit) : o.qualitativeResult || '';
+                            return "".concat(name).concat(val ? ' ' + val : '').slice(0, 50);
+                        };
+                        medLabel_1 = function (m) {
+                            var _a;
+                            var dose = ((_a = m.dosage) === null || _a === void 0 ? void 0 : _a.quantity) ? " ".concat(m.dosage.quantity).concat(m.dosage.unit ? m.dosage.unit : '') : '';
+                            return "".concat(m.title || '').concat(dose).slice(0, 50);
+                        };
+                        MAX_SNAPSHOT_LENGTH = 24000;
+                        obsRefs = loadedObservations_1.map(function (o) { return ({ id: o.id, label: obsLabel_1(o) }); });
+                        medRefs = loadedMedications_1.map(function (m) { return ({ id: m.id, label: medLabel_1(m) }); });
+                        json = JSON.stringify({ observations: obsRefs, medications: medRefs, snapshotAt: new Date().toISOString() });
+                        while (json.length > MAX_SNAPSHOT_LENGTH && (obsRefs.length + medRefs.length) > 0) {
+                            if (obsRefs.length >= medRefs.length) {
+                                obsRefs.pop();
+                            }
+                            else {
+                                medRefs.pop();
+                            }
+                            json = JSON.stringify({ observations: obsRefs, medications: medRefs, snapshotAt: new Date().toISOString() });
+                        }
+                        onDataLoaded === null || onDataLoaded === void 0 ? void 0 : onDataLoaded(json);
                         return [3 /*break*/, 5];
                     case 3:
                         err_4 = _a.sent();
@@ -677,11 +703,11 @@ var HistoricalDataSection = function (_a) {
 };
 export var Description = function (_a) {
     var _b, _c;
-    var field = _a.field, _d = _a.color, color = _d === void 0 ? "primary" : _d, style = _a.style, enduserId = _a.enduserId;
+    var field = _a.field, _d = _a.color, color = _d === void 0 ? "primary" : _d, style = _a.style, enduserId = _a.enduserId, onFieldChange = _a.onFieldChange;
     var existingContent = (!field.htmlDescription && field.description ? (_jsx(Typography, __assign({ color: color, style: style }, { children: field.description }))) : field.htmlDescription ? (_jsx("span", { dangerouslySetInnerHTML: {
             __html: remove_script_tags(field.htmlDescription)
         } })) : null);
-    return (_jsxs(_Fragment, { children: [existingContent, field.type === 'description' && ((_c = (_b = field.options) === null || _b === void 0 ? void 0 : _b.historicalDataSources) === null || _c === void 0 ? void 0 : _c.length) && enduserId ? (_jsx(HistoricalDataSection, { sources: field.options.historicalDataSources, enduserId: enduserId })) : null] }));
+    return (_jsxs(_Fragment, { children: [existingContent, field.type === 'description' && ((_c = (_b = field.options) === null || _b === void 0 ? void 0 : _b.historicalDataSources) === null || _c === void 0 ? void 0 : _c.length) && enduserId ? (_jsx(HistoricalDataSection, { sources: field.options.historicalDataSources, enduserId: enduserId, onDataLoaded: onFieldChange ? function (jsonString) { return onFieldChange(jsonString, field.id); } : undefined })) : null] }));
 };
 export var TellescopeSinglePageForm = function (_a) {
     var _b, _c, _d;

@@ -31,6 +31,7 @@ export declare const ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME: {
     athenaDepartmentId: string;
     termsVersion: string;
     customTypeId: string;
+    healthie_dietitian_id: string;
 };
 export declare const ENDUSER_FIELDS_WITH_NESTED_PATHS_DISPLAY_NAME: {
     readonly 'insurance.payerName': "Insurance Primary - Payer Name";
@@ -82,6 +83,7 @@ export declare const ENDUSER_FIELDS_WITH_NESTED_PATHS_DISPLAY_NAME: {
     readonly athenaDepartmentId: string;
     readonly termsVersion: string;
     readonly customTypeId: string;
+    readonly healthie_dietitian_id: string;
 };
 export declare const READONLY_ENDUSER_FIELDS_TO_DISPLAY_NAME: {
     recentFormSubmittedAt: string;
@@ -170,6 +172,7 @@ export declare const SCRIPTSURE_TITLE = "ScriptSure";
 export declare const DOCSUMO_TITLE = "Docsumo";
 export declare const ACTIVE_CAMPAIGN_TITLE = "ActiveCampaign";
 export declare const ZENDESK_INTEGRATIONS_TITLE = "Zendesk";
+export declare const INTEGRATION_SENSITIVE_FIELDS: readonly ["authentication", "webhooksSecret", "fhirClientId", "fhirClientSecret", "fhirAccessToken"];
 export declare const ZENDESK_REDIRECT_URI_ENDING = "/zendesk-oauth2-verify";
 export declare const FULLSCRIPT_INTEGRATIONS_TITLE = "Fullscript";
 export declare const FULLSCRIPT_REDIRECT_URI_ENDING = "/fullscript-oauth2-verify";

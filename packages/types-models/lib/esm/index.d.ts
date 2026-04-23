@@ -497,6 +497,8 @@ export interface Organization extends Organization_readonly, Organization_requir
         label: string;
         number: string;
     }[];
+    faxCoverPageEnabled?: boolean;
+    faxCoverPageId?: string;
     mfaxAccountId?: string;
     athenaFieldsSync?: AthenaFieldSync[];
     athenaSubscriptions?: AthenaSubscription[];
@@ -644,6 +646,7 @@ export interface UserSession extends Session, OrganizationLimits {
     wasAutomated: boolean;
     limits?: OrganizationLimits;
     uiRestrictions?: UserUIRestrictions;
+    fieldRedactions?: UserFieldRedactions;
     dashboardView?: CustomDashboardView;
     hasTicketQueues?: boolean;
     eat?: boolean;
@@ -899,6 +902,7 @@ export interface Enduser_required {
 export interface Enduser_updatesDisabled {
 }
 export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_updatesDisabled {
+    invalidateSessionsBefore?: Date;
     references?: RelatedRecord[];
     recentViewers?: RecentViewer[];
     healthie_dietitian_id?: string;
@@ -1000,6 +1004,7 @@ export interface EnduserCustomType_updatesDisabled {
 export interface EnduserCustomType extends EnduserCustomType_readonly, EnduserCustomType_required, EnduserCustomType_updatesDisabled {
     builtinFields?: EnduserBuiltInField[];
     customFields?: CustomEnduserField[];
+    createEnduserForms?: string[];
 }
 export interface EnduserStatusUpdate_readonly extends ClientRecord {
 }
@@ -2089,6 +2094,12 @@ export interface Integration_required {
 }
 export interface Integration_updatesDisabled {
 }
+/**
+ * IMPORTANT: When adding new non-sensitive, user-configurable fields to this interface,
+ * also add them to INTEGRATION_SETTINGS_ALLOWLIST in packages/private/api/api/v1/api.ts
+ * so they can be updated via the update_settings endpoint.
+ * Do NOT add sensitive fields (credentials, tokens, secrets) to the allowlist.
+ */
 export interface Integration extends Integration_readonly, Integration_required, Integration_updatesDisabled {
     title: string;
     tenantId?: string;
@@ -2262,13 +2273,14 @@ export type BelugaPatientPreferenceResponse = {
     medId: string;
 };
 export type BelugaPharmacyMapping = {
+    title?: string;
     pharmacyId: string;
     patientPreference: string;
     conditions: CompoundFilter<string>;
 };
 export type FormResponseAnswerTable = FormResponseValueAnswerBuilder<'Table Input', TableInputCell[][]>;
 export type FormResponseAnswerGroup = FormResponseValueAnswerBuilder<'Question Group', FormSubField[]>;
-export type FormResponseAnswerDescription = FormResponseValueAnswerBuilder<'description', ''>;
+export type FormResponseAnswerDescription = FormResponseValueAnswerBuilder<'description', string>;
 export type FormResponseAnswerEmail = FormResponseValueAnswerBuilder<'email', string>;
 export type FormResponseAnswerNumber = FormResponseValueAnswerBuilder<'number', number>;
 export type FormResponseAnswerPhone = FormResponseValueAnswerBuilder<'phone', string>;
@@ -3914,6 +3926,9 @@ export type TypedField = {
     type?: string;
     field?: string;
 };
+export type UserFieldRedactions = {
+    [modelName: string]: string[];
+};
 export type UserUIRestrictions = {
     hideDashboard?: boolean;
     hideInbox?: boolean;
@@ -3933,6 +3948,10 @@ export type UserUIRestrictions = {
     visibleIntegrations?: string[];
     hideViewPortalAsEnduser?: boolean;
     hideEnduserNote?: boolean;
+    disableTimeTrackApproval?: boolean;
+    hideCalendarUserSelector?: boolean;
+    hideCalendarSavedViews?: boolean;
+    hideCalendarFilters?: boolean;
 };
 export interface RoleBasedAccessPermission_readonly extends ClientRecord {
 }
@@ -3940,6 +3959,7 @@ export interface RoleBasedAccessPermission_required {
     role: string;
     permissions: Partial<AccessPermissions>;
     uiRestrictions?: UserUIRestrictions;
+    fieldRedactions?: UserFieldRedactions;
 }
 export interface RoleBasedAccessPermission_updatesDisabled {
 }
@@ -4594,6 +4614,7 @@ export type AutomationTriggerEvents = {
         submitterType?: SessionType | 'Anyone';
         publicIdentifier?: string;
         hasExpiredEvent?: boolean;
+        conditionsByFormId?: Record<string, any>;
     }, {}>;
     'Form Unsubmitted': AutomationTriggerEventBuilder<"Form Unsubmitted", {
         formId: string;
@@ -4686,6 +4707,7 @@ export type AutomationTriggerEvents = {
         skuPartials?: string[];
         titlePartials?: string[];
         titlePartialsAnd?: string[];
+        protocols?: string[];
     }, {}>;
     'Missed Call': AutomationTriggerEventBuilder<"Missed Call", {
         phoneNumbers?: string[];
@@ -5160,6 +5182,7 @@ export interface EnduserOrder extends EnduserOrder_readonly, EnduserOrder_requir
     cancellationReason?: string;
     medication?: string;
     medicationSku?: string;
+    protocol?: string;
 }
 export interface EnduserProblem_readonly extends ClientRecord {
 }

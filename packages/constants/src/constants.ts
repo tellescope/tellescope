@@ -37,6 +37,7 @@ export const ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME = {
   athenaDepartmentId: "athenahealth Department ID",
   termsVersion: "Terms Version",
   customTypeId: "Entity Type",
+  healthie_dietitian_id: "Healthie Dietitian ID",
 } satisfies { [K in keyof Enduser]?: string }
 
 // Extended field mappings that include dotted notation for nested fields
@@ -176,6 +177,7 @@ export const SCRIPTSURE_TITLE = "ScriptSure"
 export const DOCSUMO_TITLE = "Docsumo"
 export const ACTIVE_CAMPAIGN_TITLE = "ActiveCampaign"
 export const ZENDESK_INTEGRATIONS_TITLE = "Zendesk"
+export const INTEGRATION_SENSITIVE_FIELDS = ['authentication', 'webhooksSecret', 'fhirClientId', 'fhirClientSecret', 'fhirAccessToken'] as const
 export const ZENDESK_REDIRECT_URI_ENDING = "/zendesk-oauth2-verify"
 export const FULLSCRIPT_INTEGRATIONS_TITLE = "Fullscript"
 export const FULLSCRIPT_REDIRECT_URI_ENDING = "/fullscript-oauth2-verify"
@@ -1108,6 +1110,7 @@ export const BUILT_INS_FOR_SET_FIELDS: (keyof Enduser)[] = [
   'defaultFromPhone',
   'defaultFromEmail',
   'timezone',
+  'healthie_dietitian_id',
 ]
 export const BUILT_IN_BOOLEANS_FOR_SET_FIELDS: (keyof Enduser)[] = [
   "useDefaultFromPhoneInAutomations",

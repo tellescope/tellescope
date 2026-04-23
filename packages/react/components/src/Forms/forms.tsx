@@ -236,7 +236,7 @@ export const QuestionForField = ({
         <div style={{ marginTop: 15 }}></div> 
       }
 
-      <Description field={field} style={{ fontSize: 16 }} enduserId={enduserId} />
+      <Description field={field} style={{ fontSize: 16 }} enduserId={enduserId} onFieldChange={onFieldChange} />
 
       {feedback.length > 0 && 
         <Flex column style={{ marginBottom: 11, marginTop: 3, }}>
@@ -320,7 +320,7 @@ export const QuestionForField = ({
           <String field={field} disabled={value.disabled} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'string'>} form={form} />
         )
         : field.type === 'Appointment Booking' ? (
-          <AppointmentBooking formResponseId={formResponseId} enduserId={enduserId} goToPreviousField={goToPreviousField} isPreviousDisabled={isPreviousDisabled} responses={responses} field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'Appointment Booking'>} form={form} />
+          <AppointmentBooking key={field.id} formResponseId={formResponseId} enduserId={enduserId} goToPreviousField={goToPreviousField} isPreviousDisabled={isPreviousDisabled} responses={responses} field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'Appointment Booking'>} form={form} />
         )
         : field.type === 'Stripe' ? (
           <Stripe enduserId={enduserId} field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<any>} setCustomerId={setCustomerId} form={form} responses={responses} enduser={enduser} />
@@ -1017,7 +1017,7 @@ export const UpdateResponse = ({
   )
 }
 
-const HistoricalDataSection = ({ sources, enduserId } : { sources: HistoricalDataSource[], enduserId: string }) => {
+const HistoricalDataSection = ({ sources, enduserId, onDataLoaded } : { sources: HistoricalDataSource[], enduserId: string, onDataLoaded?: (json: string) => void }) => {
   const session = useSession({ throwIfMissingContext: false })
   const [observations, setObservations] = useState<any[]>([])
   const [medications, setMedications] = useState<any[]>([])
@@ -1039,6 +1039,8 @@ const HistoricalDataSection = ({ sources, enduserId } : { sources: HistoricalDat
       setError('')
       try {
         const promises: Promise<void>[] = []
+        let loadedObservations: any[] = []
+        let loadedMedications: any[] = []
 
         for (const source of sources) {
           if (source.type === 'Observations') {
@@ -1047,7 +1049,7 @@ const HistoricalDataSection = ({ sources, enduserId } : { sources: HistoricalDat
                 filter: { enduserId, ...source.filter },
                 limit: source.limit,
               })
-              .then((obs: any[]) => setObservations(obs))
+              .then((obs: any[]) => { loadedObservations = obs; setObservations(obs) })
             )
           } else if (source.type === 'Medications') {
             promises.push(
@@ -1055,12 +1057,35 @@ const HistoricalDataSection = ({ sources, enduserId } : { sources: HistoricalDat
                 filter: { enduserId, status: { _ne: 'draft' }, ...source.filter },
                 limit: source.limit,
               })
-              .then((meds: any[]) => setMedications(meds))
+              .then((meds: any[]) => { loadedMedications = meds; setMedications(meds) })
             )
           }
         }
 
         await Promise.all(promises)
+
+        const obsLabel = (o: any) => {
+          const name = o.type || o.code || ''
+          const val = o.measurement ? `${o.measurement.value} ${o.measurement.unit}` : o.qualitativeResult || ''
+          return `${name}${val ? ' ' + val : ''}`.slice(0, 50)
+        }
+        const medLabel = (m: any) => {
+          const dose = m.dosage?.quantity ? ` ${m.dosage.quantity}${m.dosage.unit ? m.dosage.unit : ''}` : ''
+          return `${m.title || ''}${dose}`.slice(0, 50)
+        }
+
+        const MAX_SNAPSHOT_LENGTH = 24000
+        let obsRefs = loadedObservations.map((o: any) => ({ id: o.id, label: obsLabel(o) }))
+        let medRefs = loadedMedications.map((m: any) => ({ id: m.id, label: medLabel(m) }))
+
+        let json = JSON.stringify({ observations: obsRefs, medications: medRefs, snapshotAt: new Date().toISOString() })
+        while (json.length > MAX_SNAPSHOT_LENGTH && (obsRefs.length + medRefs.length) > 0) {
+          if (obsRefs.length >= medRefs.length) { obsRefs.pop() }
+          else { medRefs.pop() }
+          json = JSON.stringify({ observations: obsRefs, medications: medRefs, snapshotAt: new Date().toISOString() })
+        }
+
+        onDataLoaded?.(json)
       } catch (err: any) {
         setError(err?.message || 'Failed to load historical data')
       } finally {
@@ -1183,7 +1208,7 @@ const HistoricalDataSection = ({ sources, enduserId } : { sources: HistoricalDat
   )
 }
 
-export const Description = ({ field, color="primary", style, enduserId } : { field: FormField, color?: string, enduserId?: string } & Styled) => {
+export const Description = ({ field, color="primary", style, enduserId, onFieldChange } : { field: FormField, color?: string, enduserId?: string, onFieldChange?: (value: any, fieldId: string) => void } & Styled) => {
   const existingContent = (
     !field.htmlDescription && field.description ? (
       <Typography color={color as any} style={style}>
@@ -1203,6 +1228,7 @@ export const Description = ({ field, color="primary", style, enduserId } : { fie
         <HistoricalDataSection
           sources={field.options.historicalDataSources}
           enduserId={enduserId}
+          onDataLoaded={onFieldChange ? (jsonString) => onFieldChange(jsonString, field.id) : undefined}
         />
       ) : null}
     </>

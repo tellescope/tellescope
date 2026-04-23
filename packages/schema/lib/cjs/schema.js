@@ -151,6 +151,21 @@ exports.schema = (0, exports.build_schema)({
                             return;
                         return "Enduser organizationIds can only be updated by users";
                     }
+                }, {
+                    explanation: 'invalidateSessionsBefore can only be set forward in time, never backwards',
+                    evaluate: function (_v, _deps, _session, method, _a) {
+                        var updates = _a.updates, original = _a.original;
+                        if (method === 'create')
+                            return;
+                        if (!(updates === null || updates === void 0 ? void 0 : updates.invalidateSessionsBefore))
+                            return;
+                        var orig = original;
+                        if (!(orig === null || orig === void 0 ? void 0 : orig.invalidateSessionsBefore))
+                            return;
+                        if (new Date(updates.invalidateSessionsBefore) < new Date(orig.invalidateSessionsBefore)) {
+                            return "invalidateSessionsBefore can only be set forward in time";
+                        }
+                    }
                 }
             ],
             access: [
@@ -248,7 +263,7 @@ exports.schema = (0, exports.build_schema)({
                 validator: validation_1.booleanValidator,
             }, lastActive: {
                 validator: validation_1.dateValidator,
-            }, lastLogout: { validator: validation_1.dateValidator }, termsSigned: { validator: validation_1.dateValidator }, termsVersion: { validator: validation_1.stringValidator100 }, lastCommunication: {
+            }, lastLogout: { validator: validation_1.dateValidator }, invalidateSessionsBefore: { validator: validation_1.dateValidator }, termsSigned: { validator: validation_1.dateValidator }, termsVersion: { validator: validation_1.stringValidator100 }, lastCommunication: {
                 redactions: ['enduser'],
                 validator: validation_1.dateValidator,
             }, avatar: {
@@ -1088,6 +1103,32 @@ exports.schema = (0, exports.build_schema)({
                         required: true,
                     },
                     next_page_token: { validator: validation_1.stringValidator }
+                },
+            },
+            load_redacted: {
+                op: 'custom', access: 'read', method: 'get',
+                path: '/integrations/load-redacted',
+                name: 'Load Redacted Integrations',
+                description: "Loads all integrations for the organization with sensitive fields removed",
+                parameters: {},
+                returns: {
+                    integrations: {
+                        validator: (0, validation_1.listValidatorEmptyOk)(validation_1.optionalAnyObjectValidator),
+                        required: true,
+                    },
+                },
+            },
+            update_settings: {
+                op: 'custom', access: 'update', method: 'post',
+                path: '/integrations/update-settings',
+                name: 'Update Integration Settings',
+                description: "Updates non-sensitive integration settings",
+                parameters: {
+                    id: { validator: validation_1.mongoIdStringRequired, required: true },
+                    updates: { validator: validation_1.objectAnyFieldsAnyValuesValidator, required: true },
+                },
+                returns: {
+                    integration: { validator: validation_1.optionalAnyObjectValidator, required: true },
                 },
             },
         }
@@ -2898,6 +2939,7 @@ exports.schema = (0, exports.build_schema)({
         },
         fields: __assign(__assign({}, BuiltInFields), { showByUserTags: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, belugaVisitType: { validator: validation_1.stringValidator }, belugaVerificationId: { validator: validation_1.stringValidator }, belugaPharmacyMappings: {
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
+                    title: validation_1.stringValidatorOptionalEmptyOkay,
                     pharmacyId: validation_1.stringValidator100,
                     patientPreference: validation_1.stringValidator5000,
                     conditions: validation_1.compoundFilterValidator,
@@ -4827,7 +4869,7 @@ exports.schema = (0, exports.build_schema)({
                     label: validation_1.stringValidator100,
                     number: validation_1.stringValidator100,
                 }))
-            }, athenaFieldsSync: { validator: validation_1.fieldsSyncValidator }, athenaDepartments: {
+            }, faxCoverPageEnabled: { validator: validation_1.booleanValidator }, faxCoverPageId: { validator: validation_1.stringValidator250 }, athenaFieldsSync: { validator: validation_1.fieldsSyncValidator }, athenaDepartments: {
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     id: validation_1.stringValidator100,
                     timezone: validation_1.timezoneValidator,
@@ -5045,7 +5087,7 @@ exports.schema = (0, exports.build_schema)({
                         }
                     },
                 ]
-            }, uiRestrictions: { validator: validation_1.userUIRestrictionsValidator } })
+            }, uiRestrictions: { validator: validation_1.userUIRestrictionsValidator }, fieldRedactions: { validator: validation_1.userFieldRedactionsValidator } })
     },
     appointment_booking_pages: {
         info: {},
@@ -5958,6 +6000,8 @@ exports.schema = (0, exports.build_schema)({
                 validator: validation_1.buildInFieldsValidator,
             }, customFields: {
                 validator: validation_1.customEnduserFieldsValidatorOptionalOrEmpty,
+            }, createEnduserForms: {
+                validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk,
             } })
     },
     table_views: {
@@ -6425,7 +6469,7 @@ exports.schema = (0, exports.build_schema)({
             }, userId: { validator: validation_1.mongoIdStringRequired }, title: { validator: validation_1.stringValidator, required: true, examples: ['title'] }, status: { validator: validation_1.stringValidator, required: true, examples: ['status'] }, description: { validator: validation_1.stringValidator1000 }, frequency: { validator: validation_1.stringValidator100 }, items: { validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     title: validation_1.stringValidator,
                     tracking: validation_1.stringValidatorOptional,
-                })) }, tracking: { validator: validation_1.stringValidatorOptional }, carrier: { validator: validation_1.stringValidatorOptional }, fill: { validator: validation_1.stringValidatorOptional }, sku: { validator: validation_1.stringValidatorOptional }, bookingLink: { validator: validation_1.stringValidatorOptional }, pharmacy: { validator: validation_1.stringValidatorOptional }, pharmacyOrderId: { validator: validation_1.stringValidatorOptional }, cancelledDate: { validator: validation_1.stringValidatorOptional }, cancellationReason: { validator: validation_1.stringValidatorOptional }, medication: { validator: validation_1.stringValidatorOptional }, medicationSku: { validator: validation_1.stringValidatorOptional } })
+                })) }, tracking: { validator: validation_1.stringValidatorOptional }, carrier: { validator: validation_1.stringValidatorOptional }, fill: { validator: validation_1.stringValidatorOptional }, sku: { validator: validation_1.stringValidatorOptional }, bookingLink: { validator: validation_1.stringValidatorOptional }, pharmacy: { validator: validation_1.stringValidatorOptional }, pharmacyOrderId: { validator: validation_1.stringValidatorOptional }, cancelledDate: { validator: validation_1.stringValidatorOptional }, cancellationReason: { validator: validation_1.stringValidatorOptional }, medication: { validator: validation_1.stringValidatorOptional }, medicationSku: { validator: validation_1.stringValidatorOptional }, protocol: { validator: validation_1.stringValidator1000 } })
     },
     vital_configurations: {
         info: {},

@@ -93,6 +93,7 @@ export declare const WithOrganizationTheme: ({ businessId, organizationIds, chil
     organizationIds?: string[] | undefined;
 }) => JSX.Element;
 export declare const useOrganizationTheme: () => OrganizationTheme;
+/** @deprecated Use is_valid_mm_dd_yyyy from @tellescope/validation instead — it validates days-in-month and leap years */
 export declare const isDateString: (_s?: string) => boolean;
 export type Response = FormResponseValue & {
     touched: boolean;

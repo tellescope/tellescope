@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { Session } from "@tellescope/sdk"
 import { ChangeHandler, FormFieldNode } from "./types"
 import { DatabaseRecord, Enduser, Form, FormField, FormResponse } from "@tellescope/types-client"
-import { phoneValidator } from "@tellescope/validation"
+import { phoneValidator, is_valid_mm_dd_yyyy } from "@tellescope/validation"
 import { FileBlob, Indexable } from "@tellescope/types-utilities"
 import { CompoundFilter, EnduserRelationship, FormCustomization, FormFieldOptionDetails, FormResponseAnswerAddress, FormResponseAnswerFileValue, FormResponseValue, FormResponseValueAnswer, OrganizationTheme, PreviousFormCompoundLogic, PreviousFormFieldType, Timezone, TIMEZONES } from "@tellescope/types-models"
 import { WithTheme, contact_is_valid, useAddGTMTag, useFileUpload, useFormFields, useFormResponses, useResolvedSession, value_is_loaded } from "../index"
@@ -425,6 +425,7 @@ export const useOrganizationTheme = () => {
   return context?.theme ?? theme
 }
 
+/** @deprecated Use is_valid_mm_dd_yyyy from @tellescope/validation instead — it validates days-in-month and leap years */
 export const isDateString = (_s='') => {
   const s = _s.trim()
 
@@ -442,7 +443,7 @@ export const isDateString = (_s='') => {
   // const [mm,dd,yyyy] = s.split('-').map(v => parseInt(v)) // don't shorthand, for radix argument of parseInt gets messed up
   // const d = Date.parse(`${yyyy}-${mm}-${dd}`) // this format should be explicitly supported by all implementations
   // if (isNaN(d)) return false
-  
+
   return true
 }
 const isZIPString = (s='') =>  /^\d{5}$/.test(s) || /^\d{5}-\d{4}$/.test(s)
@@ -993,7 +994,7 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
     }
 
     if (value.answer.type === 'Insurance') {
-      if (value.answer.value?.relationshipDetails?.dateOfBirth && !isDateString(value.answer.value.relationshipDetails.dateOfBirth)) {
+      if (value.answer.value?.relationshipDetails?.dateOfBirth && !is_valid_mm_dd_yyyy(value.answer.value.relationshipDetails.dateOfBirth)) {
         return "Enter date of birth in MM-DD-YYYY format"
       }
       if (field.isOptional) return null
@@ -1240,7 +1241,7 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
         }
       } 
     } else if (value.answer.type === 'dateString') {
-      if (!isDateString(value.answer.value)) {
+      if (!is_valid_mm_dd_yyyy(value.answer.value)) {
         return "Enter a date in MM-DD-YYYY format"
       }
     } else if (value.answer.type === 'multiple_choice' || value.answer.type === 'Dropdown') {
@@ -1291,7 +1292,7 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
       for (const row of value.answer.value ?? []) {
         for (const cell of row) {
           const type = field.options?.tableChoices?.find(t => t.label === cell.label)?.type
-          if (type === 'Date' && !isDateString(cell.entry)) { 
+          if (type === 'Date' && !is_valid_mm_dd_yyyy(cell.entry)) {
             return `Enter a date in MM-DD-YYYY format for ${cell.label} in row ${(value.answer.value?.indexOf(row) ?? 0) + 1}`
           }
         }
@@ -1634,6 +1635,9 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
       touched,
       isCalledOut: shouldCallout(fields?.find(f => f?.id === fieldId), value),
       isHighlightedOnTimeline: fields?.find(f => f?.id === fieldId)?.highlightOnTimeline,
+      // description fields are never "active", so the normal updateInclusion effect won't fire for them
+      // explicitly mark as included when they receive a non-empty string value (historical data snapshot)
+      ...(field?.type === 'description' && typeof value === 'string' && value ? { includeInSubmit: true } : {}),
       answer: {
         ...r.answer,
         value: value as any,

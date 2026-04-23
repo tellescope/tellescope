@@ -1,5 +1,5 @@
 import { CustomActions, extractFields, PublicActions } from "@tellescope/schema";
-import { UserSession, ReadFilter, WebhookSubscriptionsType, Attendee, SearchOptions, AccessPermissions, OrganizationLimits, SortBy, AnalyticsQuery, UserUIRestrictions, ModelName, CustomDashboardView, DataSyncRecord } from "@tellescope/types-models";
+import { UserSession, ReadFilter, WebhookSubscriptionsType, Attendee, SearchOptions, AccessPermissions, OrganizationLimits, SortBy, AnalyticsQuery, UserUIRestrictions, UserFieldRedactions, ModelName, CustomDashboardView, DataSyncRecord } from "@tellescope/types-models";
 import { ClientModelForName, ClientModelForName_readonly, ClientModelForName_required, ClientModelForName_updatesDisabled, ChatRoom, Enduser, Meeting, CreateFields, User } from "@tellescope/types-client";
 import { CustomUpdateOptions, SortOption, UserIdentity, FileDetails, ReactNativeFile, SessionType } from "@tellescope/types-utilities";
 import { Session as SessionManager, SessionOptions } from "./session";
@@ -3972,6 +3972,8 @@ type Queries = {
         disconnect_elation: (args: extractFields<CustomActions['integrations']['disconnect_elation']['parameters']>) => (Promise<extractFields<CustomActions['integrations']['disconnect_elation']['returns']>>);
         connect_zendesk: (args: extractFields<CustomActions['integrations']['connect_zendesk']['parameters']>) => (Promise<extractFields<CustomActions['integrations']['connect_zendesk']['returns']>>);
         disconnect_zendesk: (args: extractFields<CustomActions['integrations']['disconnect_zendesk']['parameters']>) => (Promise<extractFields<CustomActions['integrations']['disconnect_zendesk']['returns']>>);
+        load_redacted: (args: extractFields<CustomActions['integrations']['load_redacted']['parameters']>) => (Promise<extractFields<CustomActions['integrations']['load_redacted']['returns']>>);
+        update_settings: (args: extractFields<CustomActions['integrations']['update_settings']['parameters']>) => (Promise<extractFields<CustomActions['integrations']['update_settings']['returns']>>);
     };
     phone_calls: {
         authenticate_calling: (args: extractFields<CustomActions['phone_calls']['authenticate_calling']['parameters']>) => (Promise<extractFields<CustomActions['phone_calls']['authenticate_calling']['returns']>>);
@@ -4090,6 +4092,7 @@ type UserInfo = User & {
     orgName?: string;
     limits?: OrganizationLimits;
     uiRestrictions?: UserUIRestrictions;
+    fieldRedactions?: UserFieldRedactions;
     requiresMFA?: boolean;
     hasTicketQueues?: boolean;
 };
@@ -4157,6 +4160,7 @@ export declare class Session extends SessionManager {
         wasAutomated: boolean;
         limits?: OrganizationLimits | undefined;
         uiRestrictions?: UserUIRestrictions | undefined;
+        fieldRedactions?: UserFieldRedactions | undefined;
         dashboardView?: CustomDashboardView | undefined;
         hasTicketQueues?: boolean | undefined;
         eat?: boolean | undefined;
@@ -4313,6 +4317,7 @@ export declare class Session extends SessionManager {
         wasAutomated: boolean;
         limits?: OrganizationLimits | undefined;
         uiRestrictions?: UserUIRestrictions | undefined;
+        fieldRedactions?: UserFieldRedactions | undefined;
         dashboardView?: CustomDashboardView | undefined;
         hasTicketQueues?: boolean | undefined;
         eat?: boolean | undefined;

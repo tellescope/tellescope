@@ -2,7 +2,7 @@ import React from 'react';
 import { ReactReduxContextValue } from 'react-redux';
 import { Action, EnhancedStore, PayloadAction, Slice } from '@reduxjs/toolkit';
 import { APIError, Indexable, LoadingStatus, LoadedData, CustomUpdateOptions, SortOption } from "@tellescope/types-utilities";
-import { UserDisplayInfo } from "@tellescope/types-client";
+import { UserDisplayInfo, Integration } from "@tellescope/types-client";
 import { LoadFunction, Session, EnduserSession } from '@tellescope/sdk';
 import { ReadFilter, SortBy } from '@tellescope/types-models';
 export declare const resetStateAction: import("@reduxjs/toolkit").ActionCreatorWithoutPayload<"cache/reset">;
@@ -3340,6 +3340,12 @@ export declare const useIntegrations: (options?: HookOptions<import("@tellescope
     sharedWithOrganizations?: string[][] | undefined;
     _overrideUnique?: boolean | undefined;
 }>;
+export declare const useRedactedIntegrations: () => readonly [LoadedData<(import("@tellescope/types-models").Integration & {
+    id: string;
+    createdAt: Date;
+})[]>, {
+    readonly updateIntegration: (id: string, updates: Partial<Integration>) => Promise<void>;
+}];
 export declare const usePortalCustomizations: (options?: HookOptions<import("@tellescope/types-models").PortalCustomization & {
     id: string;
     createdAt: Date;

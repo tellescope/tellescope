@@ -330,7 +330,7 @@ export const QuestionForField = ({
           <String field={field} disabled={value.disabled} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'string'>} form={form} error={!!validationMessage && (!['A response is required', 'A value must be checked', 'A file is required', 'Enter a valid phone number', 'Insurer is required'].includes(validationMessage) || value.touched)} />
         )
         : field.type === 'Appointment Booking' ? (
-          <AppointmentBooking formResponseId={formResponseId} enduserId={enduserId} goToPreviousField={goToPreviousField} isPreviousDisabled={isPreviousDisabled} responses={responses} field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'Appointment Booking'>} form={form} />
+          <AppointmentBooking key={field.id} formResponseId={formResponseId} enduserId={enduserId} goToPreviousField={goToPreviousField} isPreviousDisabled={isPreviousDisabled} responses={responses} field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'Appointment Booking'>} form={form} />
         )
         : field.type === 'Stripe' ? (
           <Stripe enduserId={enduserId} field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<any>} setCustomerId={setCustomerId} form={form} responses={responses} enduser={enduser} />

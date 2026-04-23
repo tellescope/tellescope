@@ -23,7 +23,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.FormResponseView = exports.ResolveOrganizationLogo = exports.OrganizationLogo = exports.ResponseAnswer = exports.AddressDisplay = void 0;
+exports.FormResponseView = exports.ResolveOrganizationLogo = exports.OrganizationLogo = exports.ResponseAnswer = exports.HistoricalDataSnapshotDisplay = exports.AddressDisplay = void 0;
 var jsx_runtime_1 = require("react/jsx-runtime");
 var material_1 = require("@mui/material");
 var utilities_1 = require("@tellescope/utilities");
@@ -39,6 +39,35 @@ var AddressDisplay = function (_a) {
     return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, direction: "column" }, { children: [(0, jsx_runtime_1.jsxs)(material_1.Typography, __assign({ sx: __assign(__assign({}, answerStyles), { mb: 1 }) }, { children: [value.addressLineOne, " ", value.addressLineTwo] })), (0, jsx_runtime_1.jsxs)(material_1.Typography, __assign({ sx: answerStyles }, { children: [value.city, " ", value.state, ", ", value.zipCode] }))] })));
 };
 exports.AddressDisplay = AddressDisplay;
+var HistoricalDataSnapshotDisplay = function (_a) {
+    var snapshot = _a.snapshot;
+    var _b = snapshot.observations, obsRefs = _b === void 0 ? [] : _b, _c = snapshot.medications, medRefs = _c === void 0 ? [] : _c, snapshotAt = snapshot.snapshotAt;
+    var _d = (0, index_1.useEnduserObservations)({ dontFetch: true }), findObservation = _d[1].findById;
+    var _e = (0, index_1.useEnduserMedications)({ dontFetch: true }), findMedication = _e[1].findById;
+    var tdStyle = { padding: '6px 8px' };
+    var deletedStyle = { padding: '6px 8px', color: '#999', fontStyle: 'italic' };
+    return ((0, jsx_runtime_1.jsxs)("div", __assign({ style: { marginTop: 10 } }, { children: [snapshotAt && ((0, jsx_runtime_1.jsxs)(material_1.Typography, __assign({ style: { fontSize: 12, color: '#888', marginBottom: 8 } }, { children: ["Snapshot taken at ", (0, utilities_1.formatted_date)(new Date(snapshotAt))] }))), obsRefs.length > 0 && ((0, jsx_runtime_1.jsxs)("div", __assign({ style: { marginBottom: 15 } }, { children: [(0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ style: { fontWeight: 'bold', marginBottom: 5 } }, { children: "Observations" })), (0, jsx_runtime_1.jsxs)("table", __assign({ style: { width: '100%', borderCollapse: 'collapse', fontSize: 14 } }, { children: [(0, jsx_runtime_1.jsx)("thead", { children: (0, jsx_runtime_1.jsxs)("tr", __assign({ style: { borderBottom: '2px solid #ccc', textAlign: 'left' } }, { children: [(0, jsx_runtime_1.jsx)("th", __assign({ style: tdStyle }, { children: "Date" })), (0, jsx_runtime_1.jsx)("th", __assign({ style: tdStyle }, { children: "Type" })), (0, jsx_runtime_1.jsx)("th", __assign({ style: tdStyle }, { children: "Value" })), (0, jsx_runtime_1.jsx)("th", __assign({ style: tdStyle }, { children: "Category" })), (0, jsx_runtime_1.jsx)("th", __assign({ style: tdStyle }, { children: "Status" }))] })) }), (0, jsx_runtime_1.jsx)("tbody", { children: obsRefs.map(function (ref, i) {
+                                    var obs = findObservation(ref.id, { batch: true });
+                                    if (obs === undefined)
+                                        return ((0, jsx_runtime_1.jsx)("tr", __assign({ style: { borderBottom: '1px solid #eee' } }, { children: (0, jsx_runtime_1.jsx)("td", __assign({ colSpan: 5, style: tdStyle }, { children: "Loading..." })) }), ref.id || i));
+                                    if (obs === null)
+                                        return ((0, jsx_runtime_1.jsx)("tr", __assign({ style: { borderBottom: '1px solid #eee' } }, { children: (0, jsx_runtime_1.jsxs)("td", __assign({ colSpan: 5, style: deletedStyle }, { children: [ref.label, " \u2014 Record no longer available"] })) }), ref.id || i));
+                                    return ((0, jsx_runtime_1.jsxs)("tr", __assign({ style: { borderBottom: '1px solid #eee' } }, { children: [(0, jsx_runtime_1.jsx)("td", __assign({ style: tdStyle }, { children: obs.timestamp ? (0, utilities_1.formatted_date)(new Date(obs.timestamp)) : '-' })), (0, jsx_runtime_1.jsx)("td", __assign({ style: tdStyle }, { children: obs.type || obs.code || '-' })), (0, jsx_runtime_1.jsx)("td", __assign({ style: tdStyle }, { children: obs.measurement ? "".concat(obs.measurement.value, " ").concat(obs.measurement.unit) : obs.qualitativeResult || '-' })), (0, jsx_runtime_1.jsx)("td", __assign({ style: tdStyle }, { children: obs.category || '-' })), (0, jsx_runtime_1.jsx)("td", __assign({ style: tdStyle }, { children: obs.status || '-' }))] }), obs.id || i));
+                                }) })] }))] }))), medRefs.length > 0 && ((0, jsx_runtime_1.jsxs)("div", __assign({ style: { marginBottom: 15 } }, { children: [(0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ style: { fontWeight: 'bold', marginBottom: 5 } }, { children: "Medications" })), (0, jsx_runtime_1.jsxs)("table", __assign({ style: { width: '100%', borderCollapse: 'collapse', fontSize: 14 } }, { children: [(0, jsx_runtime_1.jsx)("thead", { children: (0, jsx_runtime_1.jsxs)("tr", __assign({ style: { borderBottom: '2px solid #ccc', textAlign: 'left' } }, { children: [(0, jsx_runtime_1.jsx)("th", __assign({ style: tdStyle }, { children: "Medication" })), (0, jsx_runtime_1.jsx)("th", __assign({ style: tdStyle }, { children: "Dosage" })), (0, jsx_runtime_1.jsx)("th", __assign({ style: tdStyle }, { children: "Dispensing" })), (0, jsx_runtime_1.jsx)("th", __assign({ style: tdStyle }, { children: "Pharmacy" })), (0, jsx_runtime_1.jsx)("th", __assign({ style: tdStyle }, { children: "Prescriber" })), (0, jsx_runtime_1.jsx)("th", __assign({ style: tdStyle }, { children: "Date" }))] })) }), (0, jsx_runtime_1.jsx)("tbody", { children: medRefs.map(function (ref, i) {
+                                    var _a;
+                                    var med = findMedication(ref.id, { batch: true });
+                                    if (med === undefined)
+                                        return ((0, jsx_runtime_1.jsx)("tr", __assign({ style: { borderBottom: '1px solid #eee' } }, { children: (0, jsx_runtime_1.jsx)("td", __assign({ colSpan: 6, style: tdStyle }, { children: "Loading..." })) }), ref.id || i));
+                                    if (med === null)
+                                        return ((0, jsx_runtime_1.jsx)("tr", __assign({ style: { borderBottom: '1px solid #eee' } }, { children: (0, jsx_runtime_1.jsxs)("td", __assign({ colSpan: 6, style: deletedStyle }, { children: [ref.label, " \u2014 Record no longer available"] })) }), ref.id || i));
+                                    return ((0, jsx_runtime_1.jsxs)("tr", __assign({ style: { borderBottom: '1px solid #eee' } }, { children: [(0, jsx_runtime_1.jsxs)("td", __assign({ style: tdStyle }, { children: [med.title || '-', med.allergyNote ? (0, jsx_runtime_1.jsxs)("div", __assign({ style: { color: 'red', fontSize: 12 } }, { children: ["Allergies: ", med.allergyNote] })) : null, med.directions ? (0, jsx_runtime_1.jsxs)("div", __assign({ style: { color: '#888', fontSize: 12 } }, { children: ["Directions: ", med.directions] })) : null] })), (0, jsx_runtime_1.jsx)("td", __assign({ style: tdStyle }, { children: med.dosage
+                                                    ? med.dosage.description
+                                                        ? med.dosage.description
+                                                        : "".concat(med.dosage.value || '').concat(med.dosage.unit ? " ".concat(med.dosage.unit) : '').concat(med.dosage.quantity ? " ".concat(med.dosage.quantity, " units") : '').concat(med.dosage.frequency ? " ".concat(!isNaN(parseInt(med.dosage.frequency)) ? "".concat(med.dosage.frequency, "x ").concat(((_a = med.dosage) === null || _a === void 0 ? void 0 : _a.frequencyDescriptor) ? "Per ".concat(med.dosage.frequencyDescriptor) : 'daily') : med.dosage.frequency) : '')
+                                                    : '-' })), (0, jsx_runtime_1.jsx)("td", __assign({ style: tdStyle }, { children: med.dispensing ? "".concat(med.dispensing.quantity || '', " ").concat(med.dispensing.unit || '').trim() || '-' : '-' })), (0, jsx_runtime_1.jsx)("td", __assign({ style: tdStyle }, { children: med.pharmacyName || med.pharmacyId || '-' })), (0, jsx_runtime_1.jsxs)("td", __assign({ style: tdStyle }, { children: [med.prescriberName || '-', med.source ? (0, jsx_runtime_1.jsx)("div", __assign({ style: { fontStyle: 'italic', fontSize: 12 } }, { children: med.source })) : null, med.notes ? (0, jsx_runtime_1.jsx)("div", __assign({ style: { fontSize: 12 } }, { children: med.notes })) : null] })), (0, jsx_runtime_1.jsx)("td", __assign({ style: tdStyle }, { children: (0, utilities_1.formatted_date)(new Date(med.startedTakingAt || med.prescribedAt || med.createdAt)) }))] }), med.id || i));
+                                }) })] }))] }))), obsRefs.length === 0 && medRefs.length === 0 && ((0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ style: { fontStyle: 'italic', color: '#888' } }, { children: "No historical data recorded" })))] })));
+};
+exports.HistoricalDataSnapshotDisplay = HistoricalDataSnapshotDisplay;
 var ResponseAnswer = function (_a) {
     var formResponse = _a.formResponse, fieldId = _a.fieldId, isHTML = _a.isHTML, a = _a.answer, printing = _a.printing, onImageClick = _a.onImageClick;
     return (((isHTML || a.type === 'Rich Text') && typeof a.value === 'string')
@@ -94,7 +123,14 @@ var ResponseAnswer = function (_a) {
                                                         })()
                                                             : (a.type === 'Related Contacts' && a.value && a.value.length > 0) ? ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ container: true, direction: "column", spacing: 1 }, { children: a.value.map(function (v, i) { return ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsxs)(material_1.Typography, { children: [v.fname, v.lname && " ".concat(v.lname), v.dateOfBirth && " ".concat(v.dateOfBirth), v.email && ", ".concat(v.email), v.phone && ", ".concat(v.phone)] }) }), i)); }) })))
                                                                 : ((0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ style: answerStyles }, { children: (0, utilities_1.form_response_value_to_string)(a.value) }))) }))) : (a.type === 'description'
-            ? (0, jsx_runtime_1.jsx)(jsx_runtime_1.Fragment, {})
+            ? (a.value && typeof a.value === 'string' && a.value.startsWith('{'))
+                ? (function () { try {
+                    return (0, jsx_runtime_1.jsx)(exports.HistoricalDataSnapshotDisplay, { snapshot: JSON.parse(a.value) });
+                }
+                catch (_a) {
+                    return (0, jsx_runtime_1.jsx)(jsx_runtime_1.Fragment, {});
+                } })()
+                : (0, jsx_runtime_1.jsx)(jsx_runtime_1.Fragment, {})
             : (0, jsx_runtime_1.jsx)(material_1.Typography, { children: "No value provided" })));
 };
 exports.ResponseAnswer = ResponseAnswer;

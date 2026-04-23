@@ -21,7 +21,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 import { jsxs as _jsxs, jsx as _jsx, Fragment as _Fragment } from "react/jsx-runtime";
 import { Divider, Grid, Typography } from "@mui/material";
 import { form_response_value_to_string, formatted_date, getOrgnizationLogoURL, remove_script_tags, user_display_name } from "@tellescope/utilities";
-import { DownloadFileIconButton, LabeledIconButton, SecureImage, useOrganization, useResolvedSession, useUsers, value_is_loaded } from "../index";
+import { DownloadFileIconButton, LabeledIconButton, SecureImage, useEnduserMedications, useEnduserObservations, useOrganization, useResolvedSession, useUsers, value_is_loaded } from "../index";
 import CloseIcon from '@mui/icons-material/Close';
 import { Image } from "../layout";
 var answerStyles = {
@@ -31,6 +31,34 @@ var answerStyles = {
 export var AddressDisplay = function (_a) {
     var value = _a.value;
     return (_jsxs(Grid, __assign({ container: true, direction: "column" }, { children: [_jsxs(Typography, __assign({ sx: __assign(__assign({}, answerStyles), { mb: 1 }) }, { children: [value.addressLineOne, " ", value.addressLineTwo] })), _jsxs(Typography, __assign({ sx: answerStyles }, { children: [value.city, " ", value.state, ", ", value.zipCode] }))] })));
+};
+export var HistoricalDataSnapshotDisplay = function (_a) {
+    var snapshot = _a.snapshot;
+    var _b = snapshot.observations, obsRefs = _b === void 0 ? [] : _b, _c = snapshot.medications, medRefs = _c === void 0 ? [] : _c, snapshotAt = snapshot.snapshotAt;
+    var _d = useEnduserObservations({ dontFetch: true }), findObservation = _d[1].findById;
+    var _e = useEnduserMedications({ dontFetch: true }), findMedication = _e[1].findById;
+    var tdStyle = { padding: '6px 8px' };
+    var deletedStyle = { padding: '6px 8px', color: '#999', fontStyle: 'italic' };
+    return (_jsxs("div", __assign({ style: { marginTop: 10 } }, { children: [snapshotAt && (_jsxs(Typography, __assign({ style: { fontSize: 12, color: '#888', marginBottom: 8 } }, { children: ["Snapshot taken at ", formatted_date(new Date(snapshotAt))] }))), obsRefs.length > 0 && (_jsxs("div", __assign({ style: { marginBottom: 15 } }, { children: [_jsx(Typography, __assign({ style: { fontWeight: 'bold', marginBottom: 5 } }, { children: "Observations" })), _jsxs("table", __assign({ style: { width: '100%', borderCollapse: 'collapse', fontSize: 14 } }, { children: [_jsx("thead", { children: _jsxs("tr", __assign({ style: { borderBottom: '2px solid #ccc', textAlign: 'left' } }, { children: [_jsx("th", __assign({ style: tdStyle }, { children: "Date" })), _jsx("th", __assign({ style: tdStyle }, { children: "Type" })), _jsx("th", __assign({ style: tdStyle }, { children: "Value" })), _jsx("th", __assign({ style: tdStyle }, { children: "Category" })), _jsx("th", __assign({ style: tdStyle }, { children: "Status" }))] })) }), _jsx("tbody", { children: obsRefs.map(function (ref, i) {
+                                    var obs = findObservation(ref.id, { batch: true });
+                                    if (obs === undefined)
+                                        return (_jsx("tr", __assign({ style: { borderBottom: '1px solid #eee' } }, { children: _jsx("td", __assign({ colSpan: 5, style: tdStyle }, { children: "Loading..." })) }), ref.id || i));
+                                    if (obs === null)
+                                        return (_jsx("tr", __assign({ style: { borderBottom: '1px solid #eee' } }, { children: _jsxs("td", __assign({ colSpan: 5, style: deletedStyle }, { children: [ref.label, " \u2014 Record no longer available"] })) }), ref.id || i));
+                                    return (_jsxs("tr", __assign({ style: { borderBottom: '1px solid #eee' } }, { children: [_jsx("td", __assign({ style: tdStyle }, { children: obs.timestamp ? formatted_date(new Date(obs.timestamp)) : '-' })), _jsx("td", __assign({ style: tdStyle }, { children: obs.type || obs.code || '-' })), _jsx("td", __assign({ style: tdStyle }, { children: obs.measurement ? "".concat(obs.measurement.value, " ").concat(obs.measurement.unit) : obs.qualitativeResult || '-' })), _jsx("td", __assign({ style: tdStyle }, { children: obs.category || '-' })), _jsx("td", __assign({ style: tdStyle }, { children: obs.status || '-' }))] }), obs.id || i));
+                                }) })] }))] }))), medRefs.length > 0 && (_jsxs("div", __assign({ style: { marginBottom: 15 } }, { children: [_jsx(Typography, __assign({ style: { fontWeight: 'bold', marginBottom: 5 } }, { children: "Medications" })), _jsxs("table", __assign({ style: { width: '100%', borderCollapse: 'collapse', fontSize: 14 } }, { children: [_jsx("thead", { children: _jsxs("tr", __assign({ style: { borderBottom: '2px solid #ccc', textAlign: 'left' } }, { children: [_jsx("th", __assign({ style: tdStyle }, { children: "Medication" })), _jsx("th", __assign({ style: tdStyle }, { children: "Dosage" })), _jsx("th", __assign({ style: tdStyle }, { children: "Dispensing" })), _jsx("th", __assign({ style: tdStyle }, { children: "Pharmacy" })), _jsx("th", __assign({ style: tdStyle }, { children: "Prescriber" })), _jsx("th", __assign({ style: tdStyle }, { children: "Date" }))] })) }), _jsx("tbody", { children: medRefs.map(function (ref, i) {
+                                    var _a;
+                                    var med = findMedication(ref.id, { batch: true });
+                                    if (med === undefined)
+                                        return (_jsx("tr", __assign({ style: { borderBottom: '1px solid #eee' } }, { children: _jsx("td", __assign({ colSpan: 6, style: tdStyle }, { children: "Loading..." })) }), ref.id || i));
+                                    if (med === null)
+                                        return (_jsx("tr", __assign({ style: { borderBottom: '1px solid #eee' } }, { children: _jsxs("td", __assign({ colSpan: 6, style: deletedStyle }, { children: [ref.label, " \u2014 Record no longer available"] })) }), ref.id || i));
+                                    return (_jsxs("tr", __assign({ style: { borderBottom: '1px solid #eee' } }, { children: [_jsxs("td", __assign({ style: tdStyle }, { children: [med.title || '-', med.allergyNote ? _jsxs("div", __assign({ style: { color: 'red', fontSize: 12 } }, { children: ["Allergies: ", med.allergyNote] })) : null, med.directions ? _jsxs("div", __assign({ style: { color: '#888', fontSize: 12 } }, { children: ["Directions: ", med.directions] })) : null] })), _jsx("td", __assign({ style: tdStyle }, { children: med.dosage
+                                                    ? med.dosage.description
+                                                        ? med.dosage.description
+                                                        : "".concat(med.dosage.value || '').concat(med.dosage.unit ? " ".concat(med.dosage.unit) : '').concat(med.dosage.quantity ? " ".concat(med.dosage.quantity, " units") : '').concat(med.dosage.frequency ? " ".concat(!isNaN(parseInt(med.dosage.frequency)) ? "".concat(med.dosage.frequency, "x ").concat(((_a = med.dosage) === null || _a === void 0 ? void 0 : _a.frequencyDescriptor) ? "Per ".concat(med.dosage.frequencyDescriptor) : 'daily') : med.dosage.frequency) : '')
+                                                    : '-' })), _jsx("td", __assign({ style: tdStyle }, { children: med.dispensing ? "".concat(med.dispensing.quantity || '', " ").concat(med.dispensing.unit || '').trim() || '-' : '-' })), _jsx("td", __assign({ style: tdStyle }, { children: med.pharmacyName || med.pharmacyId || '-' })), _jsxs("td", __assign({ style: tdStyle }, { children: [med.prescriberName || '-', med.source ? _jsx("div", __assign({ style: { fontStyle: 'italic', fontSize: 12 } }, { children: med.source })) : null, med.notes ? _jsx("div", __assign({ style: { fontSize: 12 } }, { children: med.notes })) : null] })), _jsx("td", __assign({ style: tdStyle }, { children: formatted_date(new Date(med.startedTakingAt || med.prescribedAt || med.createdAt)) }))] }), med.id || i));
+                                }) })] }))] }))), obsRefs.length === 0 && medRefs.length === 0 && (_jsx(Typography, __assign({ style: { fontStyle: 'italic', color: '#888' } }, { children: "No historical data recorded" })))] })));
 };
 export var ResponseAnswer = function (_a) {
     var formResponse = _a.formResponse, fieldId = _a.fieldId, isHTML = _a.isHTML, a = _a.answer, printing = _a.printing, onImageClick = _a.onImageClick;
@@ -87,7 +115,14 @@ export var ResponseAnswer = function (_a) {
                                                         })()
                                                             : (a.type === 'Related Contacts' && a.value && a.value.length > 0) ? (_jsx(Grid, __assign({ container: true, direction: "column", spacing: 1 }, { children: a.value.map(function (v, i) { return (_jsx(Grid, __assign({ item: true }, { children: _jsxs(Typography, { children: [v.fname, v.lname && " ".concat(v.lname), v.dateOfBirth && " ".concat(v.dateOfBirth), v.email && ", ".concat(v.email), v.phone && ", ".concat(v.phone)] }) }), i)); }) })))
                                                                 : (_jsx(Typography, __assign({ style: answerStyles }, { children: form_response_value_to_string(a.value) }))) }))) : (a.type === 'description'
-            ? _jsx(_Fragment, {})
+            ? (a.value && typeof a.value === 'string' && a.value.startsWith('{'))
+                ? (function () { try {
+                    return _jsx(HistoricalDataSnapshotDisplay, { snapshot: JSON.parse(a.value) });
+                }
+                catch (_a) {
+                    return _jsx(_Fragment, {});
+                } })()
+                : _jsx(_Fragment, {})
             : _jsx(Typography, { children: "No value provided" })));
 };
 export var OrganizationLogo = function (_a) {

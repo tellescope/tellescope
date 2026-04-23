@@ -1654,6 +1654,7 @@ export declare const automationTriggerEventValidator: ValidatorDefinition<import
     submitterType?: SessionType | "Anyone" | undefined;
     publicIdentifier?: string | undefined;
     hasExpiredEvent?: boolean | undefined;
+    conditionsByFormId?: Record<string, any> | undefined;
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Form Unsubmitted", {
     formId: string;
     intervalInMS: number;
@@ -1729,6 +1730,7 @@ export declare const automationTriggerEventValidator: ValidatorDefinition<import
     skuPartials?: string[] | undefined;
     titlePartials?: string[] | undefined;
     titlePartialsAnd?: string[] | undefined;
+    protocols?: string[] | undefined;
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Missed Call", {
     phoneNumbers?: string[] | undefined;
     inputs?: string[] | undefined;
@@ -2401,6 +2403,7 @@ export declare const ANALYTICS_QUERY_TYPES: (keyof AnalyticsQueryForType)[];
 export declare const analyticsQueryTypeValidator: ValidatorDefinition<keyof AnalyticsQueryForType>;
 export declare const USER_CALL_ROUTING_BEHAVIORS: UserCallRoutingBehavior[];
 export declare const userCallRoutingBehaviorValidator: ValidatorDefinition<UserCallRoutingBehavior>;
+export declare const userFieldRedactionsValidator: ValidatorDefinition<Indexable<string[]>>;
 export declare const userUIRestrictionsValidator: ValidatorDefinition<UserUIRestrictions>;
 export declare const externalChatGPTMessagesValidator: ValidatorDefinition<ExternalChatGPTMessage[]>;
 export declare const sharedEnduserProfileViewBlockFields: {
@@ -2581,7 +2584,9 @@ export declare const formFieldCalloutConditionsValidator: ValidatorDefinition<Fo
 export declare const endusersReportQueriesValidator: ValidatorDefinition<Indexable<EnduserReportQuery>>;
 export declare const formResponsesReportQueriesValidator: ValidatorDefinition<Indexable<FormResponsesReportQuery>>;
 export declare const phoneCallsReportQueriesValidator: ValidatorDefinition<Indexable<import("@tellescope/types-models").ReportQuery>>;
+/** @deprecated Use is_valid_mm_dd_yyyy instead — it validates days-in-month and leap years */
 export declare const isDateString: (_s?: string) => boolean;
+export declare const is_valid_mm_dd_yyyy: (_s?: string) => boolean;
 export declare const imageAttachmentValidator: ValidatorDefinition<ImageAttachment>;
 export declare const mmsMessageValidator: ValidatorDefinition<GroupMMSMessage>;
 export declare const mmsMessagesValidator: ValidatorDefinition<GroupMMSMessage[]>;

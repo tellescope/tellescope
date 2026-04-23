@@ -39,6 +39,7 @@ export var ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME = {
     athenaDepartmentId: "athenahealth Department ID",
     termsVersion: "Terms Version",
     customTypeId: "Entity Type",
+    healthie_dietitian_id: "Healthie Dietitian ID",
 };
 // Extended field mappings that include dotted notation for nested fields
 export var ENDUSER_FIELDS_WITH_NESTED_PATHS_DISPLAY_NAME = __assign(__assign({}, ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME), { 
@@ -144,6 +145,7 @@ export var SCRIPTSURE_TITLE = "ScriptSure";
 export var DOCSUMO_TITLE = "Docsumo";
 export var ACTIVE_CAMPAIGN_TITLE = "ActiveCampaign";
 export var ZENDESK_INTEGRATIONS_TITLE = "Zendesk";
+export var INTEGRATION_SENSITIVE_FIELDS = ['authentication', 'webhooksSecret', 'fhirClientId', 'fhirClientSecret', 'fhirAccessToken'];
 export var ZENDESK_REDIRECT_URI_ENDING = "/zendesk-oauth2-verify";
 export var FULLSCRIPT_INTEGRATIONS_TITLE = "Fullscript";
 export var FULLSCRIPT_REDIRECT_URI_ENDING = "/fullscript-oauth2-verify";
@@ -1025,6 +1027,7 @@ export var BUILT_INS_FOR_SET_FIELDS = [
     'defaultFromPhone',
     'defaultFromEmail',
     'timezone',
+    'healthie_dietitian_id',
 ];
 export var BUILT_IN_BOOLEANS_FOR_SET_FIELDS = [
     "useDefaultFromPhoneInAutomations",

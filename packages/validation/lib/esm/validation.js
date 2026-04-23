@@ -1607,7 +1607,7 @@ export var formResponseAnswerValidator = orValidator({
     }),
     description: objectValidator({
         type: exactMatchValidator(['description']),
-        value: stringValidatorOptionalEmptyOkay,
+        value: stringValidator25000OptionalEmptyOkay,
     }),
     email: objectValidator({
         type: exactMatchValidator(['email']),
@@ -3882,6 +3882,7 @@ export var automationTriggerEventValidator = orValidator({
             publicIdentifier: stringValidatorOptionalEmptyOkay,
             submitterType: sessionTypeOrAnyoneValidatorOptional,
             hasExpiredEvent: booleanValidatorOptional,
+            conditionsByFormId: optionalAnyObjectValidator,
         }),
         conditions: orValidator({
             optional: optionalAnyObjectValidator,
@@ -4085,6 +4086,7 @@ export var automationTriggerEventValidator = orValidator({
             skuPartials: listOfStringsValidatorOptionalOrEmptyOk,
             titlePartials: listOfStringsValidatorOptionalOrEmptyOk,
             titlePartialsAnd: listOfStringsValidatorOptionalOrEmptyOk,
+            protocols: listOfStringsValidatorOptionalOrEmptyOk,
         }),
         conditions: optionalEmptyObjectValidator,
     }),
@@ -5240,6 +5242,7 @@ var _USER_CALL_ROUTING_BEHAVIORS = {
 };
 export var USER_CALL_ROUTING_BEHAVIORS = Object.keys(_USER_CALL_ROUTING_BEHAVIORS);
 export var userCallRoutingBehaviorValidator = exactMatchValidator(USER_CALL_ROUTING_BEHAVIORS);
+export var userFieldRedactionsValidator = objectAnyFieldsValidator(listOfStringsValidatorEmptyOk);
 export var userUIRestrictionsValidator = objectValidator({
     hideDashboard: booleanValidatorOptional,
     hideInbox: booleanValidatorOptional,
@@ -5265,6 +5268,10 @@ export var userUIRestrictionsValidator = objectValidator({
     visibleIntegrations: listOfStringsValidatorUniqueOptionalOrEmptyOkay,
     hideViewPortalAsEnduser: booleanValidatorOptional,
     hideEnduserNote: booleanValidatorOptional,
+    disableTimeTrackApproval: booleanValidatorOptional,
+    hideCalendarUserSelector: booleanValidatorOptional,
+    hideCalendarSavedViews: booleanValidatorOptional,
+    hideCalendarFilters: booleanValidatorOptional,
 }, { emptyOk: true });
 var externalChatGPTMessageValidator = objectValidator({
     role: exactMatchValidator(['assistant', 'user']),
@@ -5619,6 +5626,7 @@ export var phoneCallsReportQueriesValidator = objectAnyFieldsValidator(objectVal
     createdAtBuckets: listValidatorOptionalOrEmptyOk(dateValidator),
     mmddyyyyRangeField: stringValidatorOptional,
 }));
+/** @deprecated Use is_valid_mm_dd_yyyy instead — it validates days-in-month and leap years */
 // duped in react components, forms, hooks
 export var isDateString = function (_s) {
     if (_s === void 0) { _s = ''; }
@@ -5631,6 +5639,25 @@ export var isDateString = function (_s) {
     // const [mm,dd,yyyy] = s.split('-').map(v => parseInt(v)) // don't shorthand, for radix argument of parseInt gets messed up
     // const d = Date.parse(`${yyyy}-${mm}-${dd}`) // this format should be explicitly supported by all implementations
     // if (isNaN(d)) return false
+    return true;
+};
+export var is_valid_mm_dd_yyyy = function (_s) {
+    if (_s === void 0) { _s = ''; }
+    var s = _s.trim();
+    if (!/^\d{2}-\d{2}-\d{4}$/.test(s)) {
+        return false;
+    }
+    var _a = s.split('-').map(function (v) { return parseInt(v); }), mm = _a[0], dd = _a[1], yyyy = _a[2];
+    if (mm === 0 || mm > 12)
+        return false;
+    if (dd === 0 || dd > 31)
+        return false;
+    var daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    if (mm === 2 && (yyyy % 4 === 0 && (yyyy % 100 !== 0 || yyyy % 400 === 0))) {
+        daysInMonth[1] = 29;
+    }
+    if (dd > daysInMonth[mm - 1])
+        return false;
     return true;
 };
 export var imageAttachmentValidator = objectValidator({

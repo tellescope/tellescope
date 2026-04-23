@@ -145,6 +145,27 @@ export const openloop_webhooks_tests = async ({ sdk, sdkNonAdmin }: { sdk: Sessi
     )
 
     await async_test(
+      'V1: order_confirmation maps program_code to protocol field',
+      async () => {
+        const orderNum = `ol-conf-protocol-${uid()}`
+        const res = await postV1(makeV1Confirmation({
+          patientID: healthieId1,
+          orderNumber: orderNum,
+          program_code: 'Weight-Loss',
+        }))
+        assert(res.status === 200, `Expected 200, got ${res.status}`)
+
+        const orders = await sdk.api.enduser_orders.getSome({
+          filter: { source: 'OpenLoop', externalId: orderNum }
+        })
+        assert(orders.length === 1, `Expected 1 order, got ${orders.length}`)
+        assert(orders[0].protocol === 'Weight-Loss', `protocol mismatch: ${orders[0].protocol}`)
+        return true
+      },
+      { onResult: (r: boolean) => r === true }
+    )
+
+    await async_test(
       'V1: order_confirmation idempotency - same order not duplicated',
       async () => {
         // Post same orderNumber again
@@ -314,6 +335,28 @@ export const openloop_webhooks_tests = async ({ sdk, sdkNonAdmin }: { sdk: Sessi
       { onResult: (r: boolean) => r === true }
     )
 
+    await async_test(
+      'V1: order_shipped maps program_code to protocol field',
+      async () => {
+        const orderNum = `ol-ship-protocol-${uid()}`
+        await postV1(makeV1Confirmation({ patientID: healthieId1, orderNumber: orderNum }))
+        const res = await postV1(makeV1Shipped({
+          patientID: healthieId1,
+          orderNumber: orderNum,
+          program_code: 'Diabetes',
+        }))
+        assert(res.status === 200, `Expected 200, got ${res.status}`)
+
+        const orders = await sdk.api.enduser_orders.getSome({
+          filter: { source: 'OpenLoop', externalId: orderNum }
+        })
+        assert(orders.length === 1, `Expected 1 order, got ${orders.length}`)
+        assert(orders[0].protocol === 'Diabetes', `protocol mismatch: ${orders[0].protocol}`)
+        return true
+      },
+      { onResult: (r: boolean) => r === true }
+    )
+
     // ===== SECTION D: V1 enduserId Isolation =====
     log_header("V1 enduserId Isolation")
 
@@ -409,6 +452,27 @@ export const openloop_webhooks_tests = async ({ sdk, sdkNonAdmin }: { sdk: Sessi
         assert(order.title === 'Lisinopril 10mg', `title mismatch: ${order.title}`)
         assert(order.fill === '2', `fill mismatch: ${order.fill}`)
         assert(order.sku === 'lis-010', `sku mismatch (should be lowercased): ${order.sku}`)
+        return true
+      },
+      { onResult: (r: boolean) => r === true }
+    )
+
+    await async_test(
+      'V2: prescription-created maps program_code to protocol field',
+      async () => {
+        const orderNum = `v2-protocol-${uid()}`
+        const res = await postV2(makeV2Payload('prescription-created', {
+          id: orderNum,
+          patientId: healthieId1,
+          program_code: 'GLP-1',
+        }))
+        assert(res.status === 200, `Expected 200, got ${res.status}`)
+
+        const orders = await sdk.api.enduser_orders.getSome({
+          filter: { source: 'OpenLoop', externalId: orderNum }
+        })
+        assert(orders.length === 1, `Expected 1 order, got ${orders.length}`)
+        assert(orders[0].protocol === 'GLP-1', `protocol mismatch: ${orders[0].protocol}`)
         return true
       },
       { onResult: (r: boolean) => r === true }

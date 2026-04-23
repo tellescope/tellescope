@@ -2,7 +2,7 @@ import React, { useEffect } from "react"
 import { Divider, Grid, Typography } from "@mui/material"
 import { Enduser, FormResponse } from "@tellescope/types-client"
 import { form_response_value_to_string, formatted_date, getOrgnizationLogoURL, remove_script_tags, user_display_name } from "@tellescope/utilities"
-import { DownloadFileIconButton, ImageProps, LabeledIconButton, SecureImage, useEndusers, useOrganization, useResolvedSession, useSession, useUsers, value_is_loaded } from "../index"
+import { DownloadFileIconButton, ImageProps, LabeledIconButton, SecureImage, useEndusers, useEnduserMedications, useEnduserObservations, useOrganization, useResolvedSession, useSession, useUsers, value_is_loaded } from "../index"
 import CloseIcon from '@mui/icons-material/Close';
 import { DatabaseSelectResponse, FormResponseAnswerAddress, FormResponseValueAnswer } from "@tellescope/types-models"
 import { Image } from "../layout"
@@ -22,6 +22,135 @@ export const AddressDisplay = ({ value } : { value: Required<FormResponseAnswerA
     </Typography> 
   </Grid>
 ) 
+
+type SnapshotRef = { id: string, label: string }
+
+export const HistoricalDataSnapshotDisplay = ({ snapshot } : { snapshot: { observations?: SnapshotRef[], medications?: SnapshotRef[], snapshotAt?: string } }) => {
+  const { observations: obsRefs = [], medications: medRefs = [], snapshotAt } = snapshot
+  const [, { findById: findObservation }] = useEnduserObservations({ dontFetch: true })
+  const [, { findById: findMedication }] = useEnduserMedications({ dontFetch: true })
+
+  const tdStyle = { padding: '6px 8px' } as const
+  const deletedStyle = { padding: '6px 8px', color: '#999', fontStyle: 'italic' } as const
+
+  return (
+    <div style={{ marginTop: 10 }}>
+      {snapshotAt && (
+        <Typography style={{ fontSize: 12, color: '#888', marginBottom: 8 }}>
+          Snapshot taken at {formatted_date(new Date(snapshotAt))}
+        </Typography>
+      )}
+
+      {obsRefs.length > 0 && (
+        <div style={{ marginBottom: 15 }}>
+          <Typography style={{ fontWeight: 'bold', marginBottom: 5 }}>Observations</Typography>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+            <thead>
+              <tr style={{ borderBottom: '2px solid #ccc', textAlign: 'left' }}>
+                <th style={tdStyle}>Date</th>
+                <th style={tdStyle}>Type</th>
+                <th style={tdStyle}>Value</th>
+                <th style={tdStyle}>Category</th>
+                <th style={tdStyle}>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {obsRefs.map((ref, i) => {
+                const obs = findObservation(ref.id, { batch: true })
+                if (obs === undefined) return (
+                  <tr key={ref.id || i} style={{ borderBottom: '1px solid #eee' }}>
+                    <td colSpan={5} style={tdStyle}>Loading...</td>
+                  </tr>
+                )
+                if (obs === null) return (
+                  <tr key={ref.id || i} style={{ borderBottom: '1px solid #eee' }}>
+                    <td colSpan={5} style={deletedStyle}>{ref.label} — Record no longer available</td>
+                  </tr>
+                )
+                return (
+                  <tr key={obs.id || i} style={{ borderBottom: '1px solid #eee' }}>
+                    <td style={tdStyle}>{obs.timestamp ? formatted_date(new Date(obs.timestamp)) : '-'}</td>
+                    <td style={tdStyle}>{obs.type || obs.code || '-'}</td>
+                    <td style={tdStyle}>
+                      {obs.measurement ? `${obs.measurement.value} ${obs.measurement.unit}` : obs.qualitativeResult || '-'}
+                    </td>
+                    <td style={tdStyle}>{obs.category || '-'}</td>
+                    <td style={tdStyle}>{obs.status || '-'}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {medRefs.length > 0 && (
+        <div style={{ marginBottom: 15 }}>
+          <Typography style={{ fontWeight: 'bold', marginBottom: 5 }}>Medications</Typography>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+            <thead>
+              <tr style={{ borderBottom: '2px solid #ccc', textAlign: 'left' }}>
+                <th style={tdStyle}>Medication</th>
+                <th style={tdStyle}>Dosage</th>
+                <th style={tdStyle}>Dispensing</th>
+                <th style={tdStyle}>Pharmacy</th>
+                <th style={tdStyle}>Prescriber</th>
+                <th style={tdStyle}>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {medRefs.map((ref, i) => {
+                const med = findMedication(ref.id, { batch: true })
+                if (med === undefined) return (
+                  <tr key={ref.id || i} style={{ borderBottom: '1px solid #eee' }}>
+                    <td colSpan={6} style={tdStyle}>Loading...</td>
+                  </tr>
+                )
+                if (med === null) return (
+                  <tr key={ref.id || i} style={{ borderBottom: '1px solid #eee' }}>
+                    <td colSpan={6} style={deletedStyle}>{ref.label} — Record no longer available</td>
+                  </tr>
+                )
+                return (
+                  <tr key={med.id || i} style={{ borderBottom: '1px solid #eee' }}>
+                    <td style={tdStyle}>
+                      {med.title || '-'}
+                      {med.allergyNote ? <div style={{ color: 'red', fontSize: 12 }}>Allergies: {med.allergyNote}</div> : null}
+                      {med.directions ? <div style={{ color: '#888', fontSize: 12 }}>Directions: {med.directions}</div> : null}
+                    </td>
+                    <td style={tdStyle}>
+                      {med.dosage
+                        ? med.dosage.description
+                          ? med.dosage.description
+                          : `${med.dosage.value || ''}${med.dosage.unit ? ` ${med.dosage.unit}` : ''}${med.dosage.quantity ? ` ${med.dosage.quantity} units` : ''}${med.dosage.frequency ? ` ${!isNaN(parseInt(med.dosage.frequency)) ? `${med.dosage.frequency}x ${med.dosage?.frequencyDescriptor ? `Per ${med.dosage.frequencyDescriptor}` : 'daily'}` : med.dosage.frequency}` : ''}`
+                        : '-'}
+                    </td>
+                    <td style={tdStyle}>
+                      {med.dispensing ? `${med.dispensing.quantity || ''} ${med.dispensing.unit || ''}`.trim() || '-' : '-'}
+                    </td>
+                    <td style={tdStyle}>{med.pharmacyName || med.pharmacyId || '-'}</td>
+                    <td style={tdStyle}>
+                      {med.prescriberName || '-'}
+                      {med.source ? <div style={{ fontStyle: 'italic', fontSize: 12 }}>{med.source}</div> : null}
+                      {med.notes ? <div style={{ fontSize: 12 }}>{med.notes}</div> : null}
+                    </td>
+                    <td style={tdStyle}>
+                      {formatted_date(new Date(med.startedTakingAt || med.prescribedAt || med.createdAt))}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {obsRefs.length === 0 && medRefs.length === 0 && (
+        <Typography style={{ fontStyle: 'italic', color: '#888' }}>No historical data recorded</Typography>
+      )}
+    </div>
+  )
+}
 
 export const ResponseAnswer = ({ formResponse, fieldId, isHTML, answer: a, printing, onImageClick } : {
   answer: FormResponseValueAnswer,
@@ -177,7 +306,9 @@ export const ResponseAnswer = ({ formResponse, fieldId, isHTML, answer: a, print
     </Typography>
   ) : (
     a.type === 'description'
-      ? <></>
+      ? (a.value && typeof a.value === 'string' && a.value.startsWith('{'))
+        ? (() => { try { return <HistoricalDataSnapshotDisplay snapshot={JSON.parse(a.value)} /> } catch { return <></> } })()
+        : <></>
       : <Typography>No value provided</Typography>
   )
 )

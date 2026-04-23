@@ -36,6 +36,7 @@ import {
 
 import { Session, APIQuery, EnduserSession } from "../sdk"
 import { enduser_observations_acknowledge_tests } from "./api_tests/enduser_observations_acknowledge.test"
+import { integrations_redacted_tests } from "./api_tests/integrations_redacted.test"
 import { get_some_projection_tests } from "./api_tests/get_some_projection.test"
 import { mdb_sort_tests } from "./api_tests/mdb_sort.test"
 import { create_user_notifications_trigger_tests } from "./api_tests/create_user_notifications_trigger.test"
@@ -80,6 +81,7 @@ import { monthly_availability_restrictions_tests } from "./api_tests/monthly_ava
 import { calendar_event_limits_tests } from "./api_tests/calendar_event_limits.test";
 import { custom_aggregation_tests } from "./api_tests/custom_aggregation.test";
 import { no_access_permission_checks_tests } from "./api_tests/no_access_permission_checks.test";
+import { field_redaction_tests } from "./api_tests/field_redaction.test";
 import { bulk_assignment_tests } from "./api_tests/bulk_assignment.test";
 import { managed_content_enduser_access_tests } from "./api_tests/managed_content_enduser_access.test";
 import { auto_merge_form_submission_tests } from "./api_tests/auto_merge_form_submission.test";
@@ -87,12 +89,15 @@ import { database_cascade_delete_tests } from "./api_tests/database_cascade_dele
 import { ai_conversations_tests } from "./api_tests/ai_conversations.test";
 import { load_team_chat_tests } from "./api_tests/load_team_chat.test";
 import { form_started_trigger_tests } from "./api_tests/form_started_trigger.test";
+import { form_submitted_trigger_tests } from "./api_tests/form_submitted_trigger.test";
 import { medication_added_trigger_tests } from "./api_tests/medication_added_trigger.test";
 import { elation_user_id_tests } from "./api_tests/elation_user_id.test";
 import { organization_settings_duplicates_tests } from "./api_tests/organization_settings_duplicates.test";
 import { calendar_events_bulk_update_tests } from "./api_tests/calendar_events_bulk_update.test";
 import { openloop_webhooks_tests } from "./api_tests/openloop_webhooks.test";
 import { beluga_pharmacy_mappings_tests } from "./api_tests/beluga_pharmacy_mappings.test";
+import { date_string_validation_tests } from "./api_tests/date_string_validation.test";
+import { enduser_session_invalidation_tests } from "./api_tests/enduser_session_invalidation.test";
 
 const UniquenessViolationMessage = 'Uniqueness Violation'
 
@@ -3429,6 +3434,12 @@ const order_status_equals_tests = async () => {
     status: 'Active',
     title: "Title Partial And Condition"
   })
+  const t9 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Order Status Equals', info: { source: 'Source', status: "Update", protocols: ['Protocol-A'] } },
+    action: { type: 'Add Tags', info: { tags: ['Protocol Match'] }},
+    status: 'Active',
+    title: "Protocol Condition"
+  })
 
   const e = await sdk.api.endusers.createOne({})
 
@@ -3610,6 +3621,38 @@ const order_status_equals_tests = async () => {
     ) }
   )
 
+  await sdk.api.enduser_orders.updateOne(u.id, { status: 'Toggle', externalId: "also avoid rate limit 7" })
+  await sdk.api.enduser_orders.updateOne(u.id, { status: "Update", protocol: 'Protocol-Mismatch', externalId: 'avoid rate limiting 7' })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Protocol no match (wrong protocol)",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => !!(
+       e.tags?.length === 8
+    && !e.tags?.includes('Protocol Match')
+    ) }
+  )
+
+  await sdk.api.enduser_orders.updateOne(u.id, { status: 'Toggle', externalId: "also avoid rate limit 8" })
+  await sdk.api.enduser_orders.updateOne(u.id, { status: "Update", protocol: 'Protocol-A', externalId: 'avoid rate limiting 8' })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Protocol match tag added",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => !!(
+       e.tags?.length === 9
+    && e.tags?.includes('Source')
+    && e.tags?.includes('Fill')
+    && e.tags?.includes('Status Update')
+    && e.tags?.includes('Fill Update')
+    && e.tags?.includes('SKU Update')
+    && e.tags?.includes('SKU Partial Update')
+    && e.tags?.includes('Title Partial Update')
+    && e.tags?.includes('Title Partial And Update')
+    && e.tags?.includes('Protocol Match')
+    ) }
+  )
+
   await Promise.all([
     sdk.api.automation_triggers.deleteOne(t1.id),
     sdk.api.automation_triggers.deleteOne(t2.id),
@@ -3619,6 +3662,7 @@ const order_status_equals_tests = async () => {
     sdk.api.automation_triggers.deleteOne(t6.id),
     sdk.api.automation_triggers.deleteOne(t7.id),
     sdk.api.automation_triggers.deleteOne(t8.id),
+    sdk.api.automation_triggers.deleteOne(t9.id),
     sdk.api.endusers.deleteOne(e.id),
   ])
 }
@@ -5016,8 +5060,8 @@ const trigger_events_api_tests = async () => {
 const automation_trigger_tests = async () => {
   log_header("Automation Trigger Tests")
 
-  await medication_added_trigger_tests({ sdk, sdkNonAdmin })
   await order_status_equals_tests()
+  await medication_added_trigger_tests({ sdk, sdkNonAdmin })
   await appointment_cancelled_tests()
   await set_fields_tests()
   await purchase_made_trigger_tests({ sdk, sdkNonAdmin })
@@ -8588,7 +8632,7 @@ export const formsort_tests = async () => {
   const form = await sdk.api.forms.createOne({ title: "FormSort" })
 
   const postToFormsort = async ({ matchByName=false, createNewEnduser=false, enduserId, returnJSON=false, ...o }: {
-    answers: { key: string, value: any }[],
+    answers: { key: string, value: any, label?: string }[],
     responder_uuid: string,
     finalized: boolean,
     matchByName?: boolean,
@@ -8605,8 +8649,8 @@ export const formsort_tests = async () => {
     return await axios.post(url.toString(), o)
   }
 
-  const postToFormsortGeneric = async ({ matchByName=false, createNewEnduser=false, ...o }: { 
-    answers: { key: string, value: any }[],
+  const postToFormsortGeneric = async ({ matchByName=false, createNewEnduser=false, ...o }: {
+    answers: { key: string, value: any, label?: string }[],
     responder_uuid: string,
     finalized: boolean,
     matchByName?: boolean,
@@ -8983,6 +9027,37 @@ export const formsort_tests = async () => {
   })
   await async_test(`enduserId with finalized=true updates enduser fields`, () => sdk.api.endusers.getOne(unfinalizedEnduserTest.id), {
     onResult: r => r?.fname === 'ChangedFirst' && r?.lname === 'ChangedLast'
+  })
+
+  // Test label as fieldTitle
+  const validateFieldTitle = (fr: { responses?: { externalId?: string, fieldTitle?: string }[] }, key: string, expectedTitle: string): boolean => {
+    return fr.responses?.find(r => r.externalId === key)?.fieldTitle === expectedTitle
+  }
+
+  // Label provided: fieldTitle should use label, externalId should use key
+  await postToFormsort({
+    answers: [
+      { key: 'email', value: 'label-test@tellescope.com' },
+      { key: 'label_test_key', value: 'test_value', label: 'My Custom Label' },
+    ],
+    responder_uuid: "label-test",
+    finalized: true,
+  })
+  await async_test(`label as fieldTitle`, () => sdk.api.form_responses.getOne({ externalId: 'label-test' }), {
+    onResult: r => validateFieldTitle(r, 'label_test_key', 'My Custom Label')
+  })
+
+  // No label: fieldTitle should fall back to key
+  await postToFormsort({
+    answers: [
+      { key: 'email', value: 'no-label-test@tellescope.com' },
+      { key: 'no_label_key', value: 'test_value' },
+    ],
+    responder_uuid: "no-label-test",
+    finalized: true,
+  })
+  await async_test(`no label falls back to key as fieldTitle`, () => sdk.api.form_responses.getOne({ externalId: 'no-label-test' }), {
+    onResult: r => validateFieldTitle(r, 'no_label_key', 'no_label_key')
   })
 
   // cleanup
@@ -14126,6 +14201,12 @@ const ip_address_form_tests = async () => {
     await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests(sdk, sdkNonAdmin)
+    await field_redaction_tests({ sdk, sdkNonAdmin })
+    await form_submitted_trigger_tests({ sdk, sdkNonAdmin })
+    await date_string_validation_tests({ sdk, sdkNonAdmin })
+    await openloop_webhooks_tests({ sdk, sdkNonAdmin })
+    await automation_trigger_tests()
+    await integrations_redacted_tests({ sdk, sdkNonAdmin })
     await mdb_sort_tests({ sdk, sdkNonAdmin })
     await organization_settings_duplicates_tests({ sdk, sdkNonAdmin })
     await search_tests()
@@ -14136,8 +14217,6 @@ const ip_address_form_tests = async () => {
     await time_tracks_lock_tests({ sdk, sdkNonAdmin })
     await time_tracks_edge_case_tests({ sdk, sdkNonAdmin })
     await calendar_event_limits_tests({ sdk, sdkNonAdmin })
-    await openloop_webhooks_tests({ sdk, sdkNonAdmin })
-    await automation_trigger_tests()
     await get_some_projection_tests({ sdk, sdkNonAdmin })
     await elation_user_id_tests({ sdk, sdkNonAdmin })
     await custom_dashboards_tests({ sdk, sdkNonAdmin })
@@ -14168,6 +14247,7 @@ const ip_address_form_tests = async () => {
     await inbox_threads_loading_tests()
     await load_inbox_data_tests({ sdk, sdkNonAdmin })
     await enduser_observations_acknowledge_tests({ sdk, sdkNonAdmin })
+    await enduser_session_invalidation_tests({ sdk, sdkNonAdmin })
     await create_user_notifications_trigger_tests({ sdk })
     await group_mms_active_tests()
     await auto_reply_tests()

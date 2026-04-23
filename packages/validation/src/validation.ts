@@ -2089,7 +2089,7 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
   }),
   description: objectValidator<FormResponseAnswerDescription>({
     type: exactMatchValidator(['description']),
-    value: stringValidatorOptionalEmptyOkay,
+    value: stringValidator25000OptionalEmptyOkay,
   }),
   email: objectValidator<FormResponseAnswerEmail>({
     type: exactMatchValidator(['email']),
@@ -4809,6 +4809,7 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
       publicIdentifier: stringValidatorOptionalEmptyOkay,
       submitterType: sessionTypeOrAnyoneValidatorOptional,
       hasExpiredEvent: booleanValidatorOptional,
+      conditionsByFormId: optionalAnyObjectValidator,
     }),
     conditions: orValidator({
       optional: optionalAnyObjectValidator,
@@ -5012,6 +5013,7 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
       skuPartials: listOfStringsValidatorOptionalOrEmptyOk,
       titlePartials: listOfStringsValidatorOptionalOrEmptyOk,
       titlePartialsAnd: listOfStringsValidatorOptionalOrEmptyOk,
+      protocols: listOfStringsValidatorOptionalOrEmptyOk,
     }),
     conditions: optionalEmptyObjectValidator,
   }), 
@@ -6227,6 +6229,8 @@ const _USER_CALL_ROUTING_BEHAVIORS: { [K in UserCallRoutingBehavior]: any } = {
 export const USER_CALL_ROUTING_BEHAVIORS = Object.keys(_USER_CALL_ROUTING_BEHAVIORS) as UserCallRoutingBehavior[]
 export const userCallRoutingBehaviorValidator = exactMatchValidator<UserCallRoutingBehavior>(USER_CALL_ROUTING_BEHAVIORS)
 
+export const userFieldRedactionsValidator = objectAnyFieldsValidator(listOfStringsValidatorEmptyOk)
+
 export const userUIRestrictionsValidator = objectValidator<UserUIRestrictions>({
   hideDashboard: booleanValidatorOptional,
   hideInbox: booleanValidatorOptional,
@@ -6252,6 +6256,10 @@ export const userUIRestrictionsValidator = objectValidator<UserUIRestrictions>({
   visibleIntegrations: listOfStringsValidatorUniqueOptionalOrEmptyOkay,
   hideViewPortalAsEnduser: booleanValidatorOptional,
   hideEnduserNote: booleanValidatorOptional,
+  disableTimeTrackApproval: booleanValidatorOptional,
+  hideCalendarUserSelector: booleanValidatorOptional,
+  hideCalendarSavedViews: booleanValidatorOptional,
+  hideCalendarFilters: booleanValidatorOptional,
 }, { emptyOk: true })
 
 const externalChatGPTMessageValidator = objectValidator<ExternalChatGPTMessage>({
@@ -6674,6 +6682,7 @@ export const phoneCallsReportQueriesValidator = objectAnyFieldsValidator(objectV
   mmddyyyyRangeField: stringValidatorOptional,
 }))
 
+/** @deprecated Use is_valid_mm_dd_yyyy instead — it validates days-in-month and leap years */
 // duped in react components, forms, hooks
 export const isDateString = (_s='') => {
   const s = _s.trim()
@@ -6687,7 +6696,28 @@ export const isDateString = (_s='') => {
   // const [mm,dd,yyyy] = s.split('-').map(v => parseInt(v)) // don't shorthand, for radix argument of parseInt gets messed up
   // const d = Date.parse(`${yyyy}-${mm}-${dd}`) // this format should be explicitly supported by all implementations
   // if (isNaN(d)) return false
-  
+
+  return true
+}
+
+export const is_valid_mm_dd_yyyy = (_s='') => {
+  const s = _s.trim()
+
+  if (!/^\d{2}-\d{2}-\d{4}$/.test(s)) {
+    return false
+  }
+
+  const [mm, dd, yyyy] = s.split('-').map(v => parseInt(v))
+
+  if (mm === 0 || mm > 12) return false
+  if (dd === 0 || dd > 31) return false
+
+  const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+  if (mm === 2 && (yyyy % 4 === 0 && (yyyy % 100 !== 0 || yyyy % 400 === 0))) {
+    daysInMonth[1] = 29
+  }
+  if (dd > daysInMonth[mm - 1]) return false
+
   return true
 }
 

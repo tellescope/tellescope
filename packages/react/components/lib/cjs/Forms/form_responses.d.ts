@@ -4,6 +4,17 @@ import { FormResponseAnswerAddress, FormResponseValueAnswer } from "@tellescope/
 export declare const AddressDisplay: ({ value }: {
     value: Required<FormResponseAnswerAddress>['value'];
 }) => JSX.Element;
+type SnapshotRef = {
+    id: string;
+    label: string;
+};
+export declare const HistoricalDataSnapshotDisplay: ({ snapshot }: {
+    snapshot: {
+        observations?: SnapshotRef[] | undefined;
+        medications?: SnapshotRef[] | undefined;
+        snapshotAt?: string | undefined;
+    };
+}) => JSX.Element;
 export declare const ResponseAnswer: ({ formResponse, fieldId, isHTML, answer: a, printing, onImageClick }: {
     answer: FormResponseValueAnswer;
     formResponse: FormResponse;

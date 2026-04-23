@@ -275,6 +275,7 @@ import {
   listValidator,
   userCallRoutingBehaviorValidator,
   userUIRestrictionsValidator,
+  userFieldRedactionsValidator,
   externalChatGPTMessagesValidator,
   enduserProfileViewBlocksValidator,
   customDashboardBlocksValidator,
@@ -995,6 +996,8 @@ export type CustomActions = {
     update_zoom: CustomAction<{ clientId?: string, clientSecret?: string }, { }>,
     proxy_read: CustomAction<{ integration: string, type: string, id?: string, query?: string }, { data: any }>,
     proxy_write: CustomAction<{ integration: string, type: string, id?: string, query?: Record<string, any> }, { data: any }>,
+    load_redacted: CustomAction<{}, { integrations: Integration[] }>,
+    update_settings: CustomAction<{ id: string, updates: Partial<Integration> }, { integration: Integration }>,
   },
   emails: {
     sync_integrations: CustomAction<{ enduserEmail: string, allUsers?: boolean }, { newEmails: Email[] }>,
@@ -1443,6 +1446,17 @@ export const schema: SchemaV1 = build_schema({
 
             return "Enduser organizationIds can only be updated by users"
           }
+        }, {
+          explanation: 'invalidateSessionsBefore can only be set forward in time, never backwards',
+          evaluate: (_v, _deps, _session, method, { updates, original }) => {
+            if (method === 'create') return
+            if (!updates?.invalidateSessionsBefore) return
+            const orig = original as any
+            if (!orig?.invalidateSessionsBefore) return
+            if (new Date(updates.invalidateSessionsBefore) < new Date(orig.invalidateSessionsBefore)) {
+              return "invalidateSessionsBefore can only be set forward in time"
+            }
+          }
         }
       ],
       access: [ // for non-admins, limit access to endusers the user is assigned to, by default
@@ -1573,6 +1587,7 @@ export const schema: SchemaV1 = build_schema({
         validator: dateValidator,
       },
       lastLogout: { validator: dateValidator },
+      invalidateSessionsBefore: { validator: dateValidator },
       termsSigned: { validator: dateValidator },
       termsVersion: { validator: stringValidator100 },
       lastCommunication: { 
@@ -2506,6 +2521,32 @@ export const schema: SchemaV1 = build_schema({
             required: true,
           },
           next_page_token: { validator: stringValidator }
+        },
+      },
+      load_redacted: {
+        op: 'custom', access: 'read', method: 'get',
+        path: '/integrations/load-redacted',
+        name: 'Load Redacted Integrations',
+        description: "Loads all integrations for the organization with sensitive fields removed",
+        parameters: {},
+        returns: {
+          integrations: {
+            validator: listValidatorEmptyOk(optionalAnyObjectValidator as any),
+            required: true,
+          },
+        },
+      },
+      update_settings: {
+        op: 'custom', access: 'update', method: 'post',
+        path: '/integrations/update-settings',
+        name: 'Update Integration Settings',
+        description: "Updates non-sensitive integration settings",
+        parameters: {
+          id: { validator: mongoIdStringRequired, required: true },
+          updates: { validator: objectAnyFieldsAnyValuesValidator, required: true },
+        },
+        returns: {
+          integration: { validator: optionalAnyObjectValidator as any, required: true },
         },
       },
     }
@@ -4616,6 +4657,7 @@ export const schema: SchemaV1 = build_schema({
       belugaVerificationId: { validator: stringValidator },
       belugaPharmacyMappings: {
         validator: listValidatorOptionalOrEmptyOk(objectValidator<BelugaPharmacyMapping>({
+          title: stringValidatorOptionalEmptyOkay,
           pharmacyId: stringValidator100,
           patientPreference: stringValidator5000,
           conditions: compoundFilterValidator,
@@ -7065,6 +7107,8 @@ export const schema: SchemaV1 = build_schema({
           number: stringValidator100,
         }))
       },
+      faxCoverPageEnabled: { validator: booleanValidator },
+      faxCoverPageId: { validator: stringValidator250 },
       athenaFieldsSync: { validator: fieldsSyncValidator },
       athenaDepartments: { 
         validator: listValidatorOptionalOrEmptyOk(objectValidator<{ id: string, timezone: Timezone }>({
@@ -7363,6 +7407,7 @@ export const schema: SchemaV1 = build_schema({
         ]
       },
       uiRestrictions: { validator: userUIRestrictionsValidator },
+      fieldRedactions: { validator: userFieldRedactionsValidator },
     }
   },
   appointment_booking_pages: {
@@ -8566,6 +8611,9 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       },
       customFields: {
         validator: customEnduserFieldsValidatorOptionalOrEmpty,
+      },
+      createEnduserForms: {
+        validator: listOfMongoIdStringValidatorOptionalOrEmptyOk,
       }
     }
   },
@@ -9160,6 +9208,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       cancellationReason: { validator: stringValidatorOptional },
       medication: { validator: stringValidatorOptional },
       medicationSku: { validator: stringValidatorOptional },
+      protocol: { validator: stringValidator1000 },
     }
   },
   vital_configurations: {

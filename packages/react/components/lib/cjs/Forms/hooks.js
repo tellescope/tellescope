@@ -389,6 +389,7 @@ var useOrganizationTheme = function () {
     return (_b = context === null || context === void 0 ? void 0 : context.theme) !== null && _b !== void 0 ? _b : theme;
 };
 exports.useOrganizationTheme = useOrganizationTheme;
+/** @deprecated Use is_valid_mm_dd_yyyy from @tellescope/validation instead — it validates days-in-month and leap years */
 var isDateString = function (_s) {
     if (_s === void 0) { _s = ''; }
     var s = _s.trim();
@@ -864,7 +865,7 @@ var useTellescopeForm = function (_a) {
             return "Answer is required";
         }
         if (value.answer.type === 'Insurance') {
-            if (((_e = (_d = value.answer.value) === null || _d === void 0 ? void 0 : _d.relationshipDetails) === null || _e === void 0 ? void 0 : _e.dateOfBirth) && !(0, exports.isDateString)(value.answer.value.relationshipDetails.dateOfBirth)) {
+            if (((_e = (_d = value.answer.value) === null || _d === void 0 ? void 0 : _d.relationshipDetails) === null || _e === void 0 ? void 0 : _e.dateOfBirth) && !(0, validation_1.is_valid_mm_dd_yyyy)(value.answer.value.relationshipDetails.dateOfBirth)) {
                 return "Enter date of birth in MM-DD-YYYY format";
             }
             if (field.isOptional)
@@ -1095,7 +1096,7 @@ var useTellescopeForm = function (_a) {
             }
         }
         else if (value.answer.type === 'dateString') {
-            if (!(0, exports.isDateString)(value.answer.value)) {
+            if (!(0, validation_1.is_valid_mm_dd_yyyy)(value.answer.value)) {
                 return "Enter a date in MM-DD-YYYY format";
             }
         }
@@ -1155,7 +1156,7 @@ var useTellescopeForm = function (_a) {
                 var row = _m[_l];
                 var _loop_8 = function (cell) {
                     var type = (_g = (_e = (_d = field.options) === null || _d === void 0 ? void 0 : _d.tableChoices) === null || _e === void 0 ? void 0 : _e.find(function (t) { return t.label === cell.label; })) === null || _g === void 0 ? void 0 : _g.type;
-                    if (type === 'Date' && !(0, exports.isDateString)(cell.entry)) {
+                    if (type === 'Date' && !(0, validation_1.is_valid_mm_dd_yyyy)(cell.entry)) {
                         return { value: "Enter a date in MM-DD-YYYY format for ".concat(cell.label, " in row ").concat(((_j = (_h = value.answer.value) === null || _h === void 0 ? void 0 : _h.indexOf(row)) !== null && _j !== void 0 ? _j : 0) + 1) };
                     }
                 };
@@ -1553,7 +1554,7 @@ var useTellescopeForm = function (_a) {
         }
         setResponses(function (rs) { return rs.map(function (r) {
             var _a;
-            return r.fieldId !== fieldId ? r : (__assign(__assign({}, r), { touched: touched, isCalledOut: shouldCallout(fields === null || fields === void 0 ? void 0 : fields.find(function (f) { return (f === null || f === void 0 ? void 0 : f.id) === fieldId; }), value), isHighlightedOnTimeline: (_a = fields === null || fields === void 0 ? void 0 : fields.find(function (f) { return (f === null || f === void 0 ? void 0 : f.id) === fieldId; })) === null || _a === void 0 ? void 0 : _a.highlightOnTimeline, answer: __assign(__assign({}, r.answer), { value: value }), 
+            return r.fieldId !== fieldId ? r : (__assign(__assign(__assign(__assign({}, r), { touched: touched, isCalledOut: shouldCallout(fields === null || fields === void 0 ? void 0 : fields.find(function (f) { return (f === null || f === void 0 ? void 0 : f.id) === fieldId; }), value), isHighlightedOnTimeline: (_a = fields === null || fields === void 0 ? void 0 : fields.find(function (f) { return (f === null || f === void 0 ? void 0 : f.id) === fieldId; })) === null || _a === void 0 ? void 0 : _a.highlightOnTimeline }), ((field === null || field === void 0 ? void 0 : field.type) === 'description' && typeof value === 'string' && value ? { includeInSubmit: true } : {})), { answer: __assign(__assign({}, r.answer), { value: value }), 
                 // keep consistent with initialize existing responses
                 computedValueKey: ((field === null || field === void 0 ? void 0 : field.intakeField) === 'height'
                     ? 'Height'

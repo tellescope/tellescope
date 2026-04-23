@@ -116,7 +116,7 @@ var openloop_webhooks_tests = function (_a) {
                     enduser2 = _b.sent();
                     _b.label = 3;
                 case 3:
-                    _b.trys.push([3, , 25, 28]);
+                    _b.trys.push([3, , 28, 31]);
                     // ===== SECTION A: V1 Validation =====
                     (0, testing_1.log_header)("V1 Validation");
                     return [4 /*yield*/, (0, testing_1.async_test)('V1: missing patientID returns 400', function () { return __awaiter(void 0, void 0, void 0, function () {
@@ -189,6 +189,33 @@ var openloop_webhooks_tests = function (_a) {
                         }); }, { onResult: function (r) { return r === true; } })];
                 case 6:
                     _b.sent();
+                    return [4 /*yield*/, (0, testing_1.async_test)('V1: order_confirmation maps program_code to protocol field', function () { return __awaiter(void 0, void 0, void 0, function () {
+                            var orderNum, res, orders;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0:
+                                        orderNum = "ol-conf-protocol-".concat(uid());
+                                        return [4 /*yield*/, postV1(makeV1Confirmation({
+                                                patientID: healthieId1,
+                                                orderNumber: orderNum,
+                                                program_code: 'Weight-Loss',
+                                            }))];
+                                    case 1:
+                                        res = _a.sent();
+                                        (0, testing_1.assert)(res.status === 200, "Expected 200, got ".concat(res.status));
+                                        return [4 /*yield*/, sdk.api.enduser_orders.getSome({
+                                                filter: { source: 'OpenLoop', externalId: orderNum }
+                                            })];
+                                    case 2:
+                                        orders = _a.sent();
+                                        (0, testing_1.assert)(orders.length === 1, "Expected 1 order, got ".concat(orders.length));
+                                        (0, testing_1.assert)(orders[0].protocol === 'Weight-Loss', "protocol mismatch: ".concat(orders[0].protocol));
+                                        return [2 /*return*/, true];
+                                }
+                            });
+                        }); }, { onResult: function (r) { return r === true; } })];
+                case 7:
+                    _b.sent();
                     return [4 /*yield*/, (0, testing_1.async_test)('V1: order_confirmation idempotency - same order not duplicated', function () { return __awaiter(void 0, void 0, void 0, function () {
                             var res, orders;
                             return __generator(this, function (_a) {
@@ -215,7 +242,7 @@ var openloop_webhooks_tests = function (_a) {
                                 }
                             });
                         }); }, { onResult: function (r) { return r === true; } })];
-                case 7:
+                case 8:
                     _b.sent();
                     return [4 /*yield*/, (0, testing_1.async_test)('V1: order_confirmation without sku_med falls back to pharmacy name', function () { return __awaiter(void 0, void 0, void 0, function () {
                             var orderNum, res, orders;
@@ -245,7 +272,7 @@ var openloop_webhooks_tests = function (_a) {
                         }); }, { onResult: function (r) { return r === true; } })
                         // ===== SECTION C: V1 order_shipped =====
                     ];
-                case 8:
+                case 9:
                     _b.sent();
                     // ===== SECTION C: V1 order_shipped =====
                     (0, testing_1.log_header)("V1 order_shipped");
@@ -288,7 +315,7 @@ var openloop_webhooks_tests = function (_a) {
                                 }
                             });
                         }); }, { onResult: function (r) { return r === true; } })];
-                case 9:
+                case 10:
                     _b.sent();
                     return [4 /*yield*/, (0, testing_1.async_test)('V1: order_shipped updates title and sku when provided', function () { return __awaiter(void 0, void 0, void 0, function () {
                             var res, orders, order;
@@ -318,7 +345,7 @@ var openloop_webhooks_tests = function (_a) {
                                 }
                             });
                         }); }, { onResult: function (r) { return r === true; } })];
-                case 10:
+                case 11:
                     _b.sent();
                     return [4 /*yield*/, (0, testing_1.async_test)('V1: order_shipped creates new order if none exists', function () { return __awaiter(void 0, void 0, void 0, function () {
                             var newOrderNum, res, orders, order;
@@ -354,7 +381,7 @@ var openloop_webhooks_tests = function (_a) {
                                 }
                             });
                         }); }, { onResult: function (r) { return r === true; } })];
-                case 11:
+                case 12:
                     _b.sent();
                     return [4 /*yield*/, (0, testing_1.async_test)('V1: order_shipped can re-ship with updated tracking', function () { return __awaiter(void 0, void 0, void 0, function () {
                             var reshipOrderNum, res, orders;
@@ -397,10 +424,40 @@ var openloop_webhooks_tests = function (_a) {
                                         return [2 /*return*/, true];
                                 }
                             });
+                        }); }, { onResult: function (r) { return r === true; } })];
+                case 13:
+                    _b.sent();
+                    return [4 /*yield*/, (0, testing_1.async_test)('V1: order_shipped maps program_code to protocol field', function () { return __awaiter(void 0, void 0, void 0, function () {
+                            var orderNum, res, orders;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0:
+                                        orderNum = "ol-ship-protocol-".concat(uid());
+                                        return [4 /*yield*/, postV1(makeV1Confirmation({ patientID: healthieId1, orderNumber: orderNum }))];
+                                    case 1:
+                                        _a.sent();
+                                        return [4 /*yield*/, postV1(makeV1Shipped({
+                                                patientID: healthieId1,
+                                                orderNumber: orderNum,
+                                                program_code: 'Diabetes',
+                                            }))];
+                                    case 2:
+                                        res = _a.sent();
+                                        (0, testing_1.assert)(res.status === 200, "Expected 200, got ".concat(res.status));
+                                        return [4 /*yield*/, sdk.api.enduser_orders.getSome({
+                                                filter: { source: 'OpenLoop', externalId: orderNum }
+                                            })];
+                                    case 3:
+                                        orders = _a.sent();
+                                        (0, testing_1.assert)(orders.length === 1, "Expected 1 order, got ".concat(orders.length));
+                                        (0, testing_1.assert)(orders[0].protocol === 'Diabetes', "protocol mismatch: ".concat(orders[0].protocol));
+                                        return [2 /*return*/, true];
+                                }
+                            });
                         }); }, { onResult: function (r) { return r === true; } })
                         // ===== SECTION D: V1 enduserId Isolation =====
                     ];
-                case 12:
+                case 14:
                     _b.sent();
                     // ===== SECTION D: V1 enduserId Isolation =====
                     (0, testing_1.log_header)("V1 enduserId Isolation");
@@ -439,7 +496,7 @@ var openloop_webhooks_tests = function (_a) {
                         }); }, { onResult: function (r) { return r === true; } })
                         // ===== SECTION E: V2 Validation =====
                     ];
-                case 13:
+                case 15:
                     _b.sent();
                     // ===== SECTION E: V2 Validation =====
                     (0, testing_1.log_header)("V2 Validation");
@@ -457,7 +514,7 @@ var openloop_webhooks_tests = function (_a) {
                                 }
                             });
                         }); }, { onResult: function (s) { return s === 400; } })];
-                case 14:
+                case 16:
                     _b.sent();
                     return [4 /*yield*/, (0, testing_1.async_test)('V2: invalid eventType returns 400', function () { return __awaiter(void 0, void 0, void 0, function () {
                             var res;
@@ -470,7 +527,7 @@ var openloop_webhooks_tests = function (_a) {
                                 }
                             });
                         }); }, { onResult: function (s) { return s === 400; } })];
-                case 15:
+                case 17:
                     _b.sent();
                     return [4 /*yield*/, (0, testing_1.async_test)('V2: unknown patient returns 404', function () { return __awaiter(void 0, void 0, void 0, function () {
                             var res;
@@ -485,7 +542,7 @@ var openloop_webhooks_tests = function (_a) {
                         }); }, { onResult: function (s) { return s === 404; } })
                         // ===== SECTION F: V2 Order Lifecycle =====
                     ];
-                case 16:
+                case 18:
                     _b.sent();
                     // ===== SECTION F: V2 Order Lifecycle =====
                     (0, testing_1.log_header)("V2 Order Lifecycle");
@@ -520,7 +577,34 @@ var openloop_webhooks_tests = function (_a) {
                                 }
                             });
                         }); }, { onResult: function (r) { return r === true; } })];
-                case 17:
+                case 19:
+                    _b.sent();
+                    return [4 /*yield*/, (0, testing_1.async_test)('V2: prescription-created maps program_code to protocol field', function () { return __awaiter(void 0, void 0, void 0, function () {
+                            var orderNum, res, orders;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0:
+                                        orderNum = "v2-protocol-".concat(uid());
+                                        return [4 /*yield*/, postV2(makeV2Payload('prescription-created', {
+                                                id: orderNum,
+                                                patientId: healthieId1,
+                                                program_code: 'GLP-1',
+                                            }))];
+                                    case 1:
+                                        res = _a.sent();
+                                        (0, testing_1.assert)(res.status === 200, "Expected 200, got ".concat(res.status));
+                                        return [4 /*yield*/, sdk.api.enduser_orders.getSome({
+                                                filter: { source: 'OpenLoop', externalId: orderNum }
+                                            })];
+                                    case 2:
+                                        orders = _a.sent();
+                                        (0, testing_1.assert)(orders.length === 1, "Expected 1 order, got ".concat(orders.length));
+                                        (0, testing_1.assert)(orders[0].protocol === 'GLP-1', "protocol mismatch: ".concat(orders[0].protocol));
+                                        return [2 /*return*/, true];
+                                }
+                            });
+                        }); }, { onResult: function (r) { return r === true; } })];
+                case 20:
                     _b.sent();
                     return [4 /*yield*/, (0, testing_1.async_test)('V2: prescription-shipped updates with carrier and tracking', function () { return __awaiter(void 0, void 0, void 0, function () {
                             var res, orders, order;
@@ -553,7 +637,7 @@ var openloop_webhooks_tests = function (_a) {
                                 }
                             });
                         }); }, { onResult: function (r) { return r === true; } })];
-                case 18:
+                case 21:
                     _b.sent();
                     v2CancelId_1 = "v2-cancel-".concat(uid());
                     return [4 /*yield*/, (0, testing_1.async_test)('V2: prescription-cancelled sets cancelledDate and reason', function () { return __awaiter(void 0, void 0, void 0, function () {
@@ -594,7 +678,7 @@ var openloop_webhooks_tests = function (_a) {
                                 }
                             });
                         }); }, { onResult: function (r) { return r === true; } })];
-                case 19:
+                case 22:
                     _b.sent();
                     v2RefundId_1 = "v2-refund-".concat(uid());
                     return [4 /*yield*/, (0, testing_1.async_test)('V2: prescription-refunded sets status', function () { return __awaiter(void 0, void 0, void 0, function () {
@@ -628,7 +712,7 @@ var openloop_webhooks_tests = function (_a) {
                         }); }, { onResult: function (r) { return r === true; } })
                         // ===== SECTION G: V2 Idempotency & Isolation =====
                     ];
-                case 20:
+                case 23:
                     _b.sent();
                     // ===== SECTION G: V2 Idempotency & Isolation =====
                     (0, testing_1.log_header)("V2 Idempotency & Isolation");
@@ -660,7 +744,7 @@ var openloop_webhooks_tests = function (_a) {
                                 }
                             });
                         }); }, { onResult: function (r) { return r === true; } })];
-                case 21:
+                case 24:
                     _b.sent();
                     return [4 /*yield*/, (0, testing_1.async_test)('V2: same id for different patients creates separate orders', function () { return __awaiter(void 0, void 0, void 0, function () {
                             var sharedV2Id, res1, res2, orders, enduserIds, expected;
@@ -697,7 +781,7 @@ var openloop_webhooks_tests = function (_a) {
                         }); }, { onResult: function (r) { return r === true; } })
                         // ===== SECTION H: V2 Full Lifecycle =====
                     ];
-                case 22:
+                case 25:
                     _b.sent();
                     // ===== SECTION H: V2 Full Lifecycle =====
                     (0, testing_1.log_header)("V2 Full Lifecycle");
@@ -741,7 +825,7 @@ var openloop_webhooks_tests = function (_a) {
                         }); }, { onResult: function (r) { return r === true; } })
                         // ===== SECTION I: V2 Undefined Field Handling =====
                     ];
-                case 23:
+                case 26:
                     _b.sent();
                     // ===== SECTION I: V2 Undefined Field Handling =====
                     (0, testing_1.log_header)("V2 Undefined Field Handling");
@@ -785,18 +869,18 @@ var openloop_webhooks_tests = function (_a) {
                                 }
                             });
                         }); }, { onResult: function (r) { return r === true; } })];
-                case 24:
-                    _b.sent();
-                    console.log("All OpenLoop webhook tests passed!");
-                    return [3 /*break*/, 28];
-                case 25: return [4 /*yield*/, sdk.api.endusers.deleteOne(enduser1.id).catch(console.error)];
-                case 26:
-                    _b.sent();
-                    return [4 /*yield*/, sdk.api.endusers.deleteOne(enduser2.id).catch(console.error)];
                 case 27:
                     _b.sent();
+                    console.log("All OpenLoop webhook tests passed!");
+                    return [3 /*break*/, 31];
+                case 28: return [4 /*yield*/, sdk.api.endusers.deleteOne(enduser1.id).catch(console.error)];
+                case 29:
+                    _b.sent();
+                    return [4 /*yield*/, sdk.api.endusers.deleteOne(enduser2.id).catch(console.error)];
+                case 30:
+                    _b.sent();
                     return [7 /*endfinally*/];
-                case 28: return [2 /*return*/];
+                case 31: return [2 /*return*/];
             }
         });
     });

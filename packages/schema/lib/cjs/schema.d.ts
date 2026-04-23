@@ -1083,6 +1083,15 @@ export type CustomActions = {
         }, {
             data: any;
         }>;
+        load_redacted: CustomAction<{}, {
+            integrations: Integration[];
+        }>;
+        update_settings: CustomAction<{
+            id: string;
+            updates: Partial<Integration>;
+        }, {
+            integration: Integration;
+        }>;
     };
     emails: {
         sync_integrations: CustomAction<{

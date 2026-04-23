@@ -20,7 +20,7 @@ export const form_started_trigger_tests = async ({ sdk, sdkNonAdmin } : { sdk: S
   })
 
   const postToFormsort = async (o: {
-    answers: { key: string, value: any }[],
+    answers: { key: string, value: any, label?: string }[],
     responder_uuid: string,
     finalized: boolean,
   }) => {
