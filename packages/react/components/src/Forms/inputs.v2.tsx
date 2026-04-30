@@ -2371,56 +2371,7 @@ export const HeightInput = ({ field, value={} as any, onChange, form, ...props }
 )
 
 // Re-export from V1 to follow DRY principles
-export { RedirectInput } from './inputs'
-
-export const HiddenValueInput = ({ goToNextField, goToPreviousField, field, value, onChange, isSinglePage, groupFields }: FormInputProps<'email'>) => {
-  let lastRef = useRef(0)
-  let lastIdRef = useRef('')
-
-  // in a Question Group, only the first Hidden Value should navigate
-  // AND, it should only navigate if the group only contains hidden values
-  const firstHiddenValue = groupFields?.find(v => v.type === 'Hidden Value')
-  const dontNavigate = (
-    (firstHiddenValue && firstHiddenValue?.id !== field.id) // is in a group, but not the first hidden value
-  || !!(groupFields?.find(v => v.type !== 'Hidden Value')) // group contains at least 1 non-hidden value
-  )
-
-  const publicIdentifier = useMemo(() => {
-    try {
-      return new URL(window.location.href).searchParams.get('publicIdentifier') || ''
-    } catch(err) {
-      return ''
-    }
-  }, [])
-
-  const valueToSet = useMemo(() => (
-    (field.title === "{{PUBLIC_IDENTIFIER}}" && publicIdentifier) ? publicIdentifier
-      : field.title
-  ), [field.title, publicIdentifier])
-
-  useEffect(() => {
-    if (lastRef.current > Date.now() - 1000 && lastIdRef.current === field.id) return
-    lastRef.current = Date.now()
-    lastIdRef.current = field.id
-
-    if (value) {
-      if (isSinglePage) return
-      onChange('', field.id)
-
-      if (dontNavigate) return
-      goToPreviousField?.()
-    } else {
-      onChange(valueToSet, field.id)
-
-      if (dontNavigate) return
-
-      // pass value that is set after above onChange
-      goToNextField?.({ type: 'Hidden Value', value: valueToSet })
-    }
-  }, [value, onChange, field.id, valueToSet, goToNextField, goToPreviousField, isSinglePage, dontNavigate])
-
-  return <></>
-}
+export { RedirectInput, HiddenValueInput } from './inputs'
 
 export const EmotiiInput = ({ goToNextField, goToPreviousField, field, value, onChange, form, formResponseId, ...props }: FormInputProps<'email'>) => {
   const session = useResolvedSession()

@@ -2864,7 +2864,7 @@ var RedirectInput = function (_a) {
 };
 exports.RedirectInput = RedirectInput;
 var HiddenValueInput = function (_a) {
-    var goToNextField = _a.goToNextField, goToPreviousField = _a.goToPreviousField, field = _a.field, value = _a.value, onChange = _a.onChange, isSinglePage = _a.isSinglePage, groupFields = _a.groupFields;
+    var goToNextField = _a.goToNextField, goToPreviousField = _a.goToPreviousField, field = _a.field, value = _a.value, onChange = _a.onChange, isSinglePage = _a.isSinglePage, groupFields = _a.groupFields, lastNavigationDirectionRef = _a.lastNavigationDirectionRef;
     var lastRef = (0, react_1.useRef)(0);
     var lastIdRef = (0, react_1.useRef)('');
     // in a Question Group, only the first Hidden Value should navigate
@@ -2888,7 +2888,10 @@ var HiddenValueInput = function (_a) {
             return;
         lastRef.current = Date.now();
         lastIdRef.current = field.id;
-        if (value) {
+        // Only collapse backward through a chain of hidden fields when actually navigating backward.
+        // On forward nav (including form resume where existingResponses pre-populate the value),
+        // fall through to the else branch so we re-set and advance instead of bouncing back.
+        if (value && (lastNavigationDirectionRef === null || lastNavigationDirectionRef === void 0 ? void 0 : lastNavigationDirectionRef.current) === 'backward') {
             if (isSinglePage)
                 return;
             onChange('', field.id);
@@ -2903,7 +2906,7 @@ var HiddenValueInput = function (_a) {
             // pass value that is set after above onChange
             goToNextField === null || goToNextField === void 0 ? void 0 : goToNextField({ type: 'Hidden Value', value: valueToSet });
         }
-    }, [value, onChange, field.id, valueToSet, goToNextField, goToPreviousField, isSinglePage, dontNavigate]);
+    }, [value, onChange, field.id, valueToSet, goToNextField, goToPreviousField, isSinglePage, dontNavigate, lastNavigationDirectionRef]);
     return (0, jsx_runtime_1.jsx)(jsx_runtime_1.Fragment, {});
 };
 exports.HiddenValueInput = HiddenValueInput;

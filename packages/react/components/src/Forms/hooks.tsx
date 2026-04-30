@@ -501,6 +501,41 @@ const existing_response_if_compatible = (existingResponses: FormResponseValue[] 
   return undefined // no valid match, write off as data loss due to incompatible type of new question
 }
 
+// Filter stale multiple-choice/dropdown selections whose options are now hidden by showCondition
+const filter_stale_choices = (
+  value: string[] | undefined,
+  field: FormField,
+  responseContext: FormResponseValue[],
+  enduser?: Partial<Enduser>,
+  form?: Form,
+): string[] | undefined => {
+  if (!value || !Array.isArray(value)) return value
+  if (field.type !== 'multiple_choice' && field.type !== 'Dropdown') return value
+
+  const options = field.options as { choices?: string[], optionDetails?: FormFieldOptionDetails[] } | undefined
+  if (!options?.optionDetails?.length) return value // no option-level conditions to check
+
+  const choices = options.choices ?? []
+
+  return value.filter(v => {
+    // preserve values not in the choices array (e.g. "other" free-text)
+    if (!choices.includes(v)) return true
+
+    const optionDetail = options.optionDetails?.find(d => d.option === v)
+    if (!optionDetail?.showCondition || object_is_empty(optionDetail.showCondition)) {
+      return true // no condition means always visible
+    }
+
+    return responses_satisfy_conditions(responseContext, optionDetail.showCondition, {
+      dateOfBirth: enduser?.dateOfBirth,
+      gender: enduser?.gender,
+      state: enduser?.state,
+      form,
+      activeResponses: responseContext,
+    })
+  })
+}
+
 const shouldCallout = (field: FormField | undefined, value: FormResponseValueAnswer['value']) => {
   if (!field) return false
   if (!value) return false 
@@ -546,6 +581,7 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
   const [currentPageIndex, setCurrentPageIndex] = useState(0)
   const [uploadingFiles, setUploadingFiles] = useState<{ fieldId: string }[]>([])
   const prevFieldStackRef = useRef<typeof root[]>([])
+  const lastNavigationDirectionRef = useRef<'forward' | 'backward' | null>(null)
 
   // Auto-advance state for form continuation
   const [isAutoAdvancing, setIsAutoAdvancing] = useState(false)
@@ -654,14 +690,22 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
   // placeholders for initial fields, reset when fields prop changes, since questions are now different (e.g. different form selected) 
   const fieldInitRef = useRef('')
   const initializeFields = useCallback(() => (
-    fields.map(f => ({
+    fields.map(f => {
+      const existingValue = existing_response_if_compatible(existingResponses, f)
+      const filteredValue = (
+        existingValue != null && Array.isArray(existingValue) && (f.type === 'multiple_choice' || f.type === 'Dropdown')
+          ? filter_stale_choices(existingValue as string[], f, existingResponses ?? [], enduser, form)
+          : existingValue
+      )
+
+      return {
       fieldId: f.id,
       fieldTitle: f.title,
       fieldDescription: f.description,
       fieldHtmlDescription: f.htmlDescription,
       externalId: f.externalId,
       intakeField: f.intakeField || undefined,
-      touched: false, 
+      touched: false,
       includeInSubmit: false,
       sharedWithEnduser: f.sharedWithEnduser,
       isCalledOut: existingResponses?.find(r => r.fieldId === f.id)?.isCalledOut,
@@ -681,11 +725,11 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
       : f?.intakeField === 'Address' && existingResponses?.find(r => r.fieldId === f.id && r.answer.type === 'Address')
           ? 'State'
           : undefined
-      ) as any,  
-      answer: { 
+      ) as any,
+      answer: {
         type: f.type,
         value: (
-          existing_response_if_compatible(existingResponses, f) ?? (
+          filteredValue ?? (
             (f.type === 'Insurance' || f.type === 'Address' || f.type === 'file' || f.type === 'signature' || f.type === 'multiple_choice' || f.type === 'Dropdown' || f.type === 'Table Input' || f.type === 'Database Select' || f.type === 'Medications' || f.type === 'Pharmacy Search')
               ? undefined  
                 : f.type === 'Question Group'
@@ -711,8 +755,8 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
         ),
       } as FormResponseValueAnswer,
       field: f,
-    }))
-  ), [fields, existingResponses])
+    }})
+  ), [fields, existingResponses, enduser, form])
 
   const [responses, setResponses] = useState<(Response)[]>(initializeFields())
   useEffect(() => {
@@ -1447,12 +1491,14 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
             responses: [
               ...responsesToSubmit,
               // include existing responses in case previously saved as draft
-              ...(existingResponses ?? []).filter(r => 
+              ...(existingResponses ?? []).filter(r =>
                 !responsesToSubmit.find(_r => r.fieldId === _r.fieldId)
                 // but don't include responses which were populated from a patient field and not a prior response
                 // if these are edited, they would be included in responsesToSubmit
                 && !r.isPrepopulatedFromEnduserField
-              ),
+              )
+              // initializeFields leverages filter_stale_choices to strip answers whose options are no longer visible in multiple choice type questions
+              // existingResponses may still carry stale values for fields the user didn't interact with this session, but preserving them as-is avoids unexpected data loss
             ],
             automationStepId,
             customerId,
@@ -1549,6 +1595,7 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
     if (!currentValue) return
     if (isNextDisabled() && currentValue?.answer.type !== 'Hidden Value') return
 
+    lastNavigationDirectionRef.current = 'forward'
     console.log('going to next field')
     if (currentValue.answer.type === 'Question Group') {
       const responsesToSave = (
@@ -1613,6 +1660,7 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
   const goToPreviousField = useCallback(() => {
     if (isPreviousDisabled()) return
 
+    lastNavigationDirectionRef.current = 'backward'
     updateInclusion(false)
 
     const previous = prevFieldStackRef.current.pop()
@@ -1749,6 +1797,7 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
     uploadingFiles, setUploadingFiles,
     handleFileUpload,
     isAutoAdvancing,
+    lastNavigationDirectionRef,
   }
 }
 

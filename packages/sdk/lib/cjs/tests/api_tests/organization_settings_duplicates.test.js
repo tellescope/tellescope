@@ -45,7 +45,7 @@ var host = process.env.API_URL || 'http://localhost:8080';
 var organization_settings_duplicates_tests = function (_a) {
     var sdk = _a.sdk, sdkNonAdmin = _a.sdkNonAdmin;
     return __awaiter(void 0, void 0, void 0, function () {
-        var orgId;
+        var orgId, orgBefore;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -227,9 +227,32 @@ var organization_settings_duplicates_tests = function (_a) {
                                     cancelReasons: [],
                                 },
                             }
-                        }, { replaceObjectFields: true })];
+                        }, { replaceObjectFields: true })
+                        // === D. subdomain is readonly ===
+                    ];
                 case 22:
                     // Clean up settings to avoid affecting other tests
+                    _b.sent();
+                    return [4 /*yield*/, sdk.api.organizations.getOne(orgId)];
+                case 23:
+                    orgBefore = _b.sent();
+                    return [4 /*yield*/, (0, testing_1.async_test)("subdomain field is readonly — update does not change persisted value", function () { return __awaiter(void 0, void 0, void 0, function () {
+                            var orgAfter;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0: return [4 /*yield*/, sdk.api.organizations.updateOne(orgId, {
+                                            subdomain: "readonly-attempt-".concat(Date.now()),
+                                        }).catch(function () { return undefined; })]; // tolerate either silent-drop or unknown-field rejection
+                                    case 1:
+                                        _a.sent(); // tolerate either silent-drop or unknown-field rejection
+                                        return [4 /*yield*/, sdk.api.organizations.getOne(orgId)];
+                                    case 2:
+                                        orgAfter = _a.sent();
+                                        return [2 /*return*/, orgAfter.subdomain === orgBefore.subdomain];
+                                }
+                            });
+                        }); }, { onResult: function (unchanged) { return unchanged === true; } })];
+                case 24:
                     _b.sent();
                     return [2 /*return*/];
             }

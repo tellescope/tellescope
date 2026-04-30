@@ -97,7 +97,7 @@ export declare const AppointmentBookingInput: ({ formResponseId, field, value, o
 export declare const HeightInput: ({ field, value, onChange, form, ...props }: FormInputProps<'Height'>) => JSX.Element;
 export declare const include_current_url_parameters_if_templated: (url: string) => string;
 export declare const RedirectInput: ({ enduserId, groupId, groupInsance, rootResponseId, formResponseId, field, submit, value, onChange, responses, enduser, ...props }: FormInputProps<'Redirect'>) => JSX.Element | null;
-export declare const HiddenValueInput: ({ goToNextField, goToPreviousField, field, value, onChange, isSinglePage, groupFields }: FormInputProps<'email'>) => JSX.Element;
+export declare const HiddenValueInput: ({ goToNextField, goToPreviousField, field, value, onChange, isSinglePage, groupFields, lastNavigationDirectionRef }: FormInputProps<'email'>) => JSX.Element;
 export declare const EmotiiInput: ({ goToNextField, goToPreviousField, field, value, onChange, form, formResponseId, ...props }: FormInputProps<'email'>) => JSX.Element;
 export declare const AllergiesInput: ({ goToNextField, goToPreviousField, field, value, onChange, form, formResponseId, ...props }: FormInputProps<'Allergies'>) => JSX.Element;
 export declare const ConditionsInput: ({ goToNextField, goToPreviousField, field, value, onChange, form, formResponseId, ...props }: FormInputProps<'Conditions'>) => JSX.Element;

@@ -42,6 +42,7 @@ export interface FormInputProps<K extends keyof AnswerForType> {
     inputProps?: {
         sx: SxProps;
     };
+    lastNavigationDirectionRef?: React.MutableRefObject<'forward' | 'backward' | null>;
 }
 export type FormInputs = {
     [K in keyof AnswerForType]: JSXElementConstructor<FormInputProps<K>>;

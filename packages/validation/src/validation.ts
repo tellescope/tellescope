@@ -2006,6 +2006,15 @@ export const insuranceOptionalValidator = objectValidator<EnduserInsurance>({
   groupNumber: stringValidatorOptional,
   planName: stringValidatorOptional,
   startDate: stringValidatorOptional,
+  authorizationStartDate: stringValidatorOptional,
+  authorizationEndDate: stringValidatorOptional,
+  track: stringValidatorOptional,
+  visitsAuthorized: nonNegNumberValidatorOptional,
+  visitsUsed: nonNegNumberValidatorOptional,
+  procedureCodes: listOfStringsValidatorOptionalOrEmptyOk,
+  diagnosisCodes: listOfStringsValidatorOptionalOrEmptyOk,
+  healthieAuthorizationId: stringValidatorOptional,
+  healthiePolicyId: stringValidatorOptional,
 }, { isOptional: true, emptyOk: true })
 
 export const pharmacyValidator = objectValidator<Pharmacy>({
@@ -3484,6 +3493,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       chargeType: exactMatchValidator(['One-Time', 'Subscription']),
       itemPriceId: stringValidator,
       quantity: numberValidatorMin1Max100Optional,
+      couponIds: listOfStringsValidatorOptionalOrEmptyOk,
     }, { emptyOk: false })
   }),
   aiDecision: objectValidator<AIDecisionAutomationAction>({
@@ -6167,6 +6177,8 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
   "Chats": objectValidator<AnalyticsQueryForType['Chats']>({
     resource: exactMatchValidator<'Chats'>(['Chats']),
     filter: objectValidator<AnalyticsQueryFilterForType['Chats']>({
+      direction: stringValidatorOptional,
+      "Chat Tags": listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
     }, { isOptional: true, emptyOk: true }),
     info: orValidator<{ [K in keyof AnalyticsQueryInfoForType['Chats']]: AnalyticsQueryInfoForType['Chats'][K] }>({
       "Total": objectValidator<AnalyticsQueryInfoForType['Chats']['Total']>({
@@ -6175,6 +6187,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       }),
     }),
     grouping: objectValidator<AnalyticsQueryGroupingForType['Chats']>({
+      "Chat Tags": booleanValidatorOptional,
       Enduser: booleanValidatorOptional,
       Gender: booleanValidatorOptional,
       "Assigned To": booleanValidatorOptional,

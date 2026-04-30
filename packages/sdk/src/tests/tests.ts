@@ -74,16 +74,20 @@ import {
 
 import fs from "fs"
 import { load_inbox_data_tests } from "./api_tests/load_inbox_data.test";
+import { eom_procedure_codes_tests } from "./api_tests/eom_procedure_codes.test";
+import { cross_org_api_key_tests } from "./api_tests/cross_org_api_key.test";
 import { custom_dashboards_tests } from "./api_tests/custom_dashboards.test";
 import { message_assignment_trigger_tests } from "./api_tests/message_assignment_trigger.test";
 import { time_tracks_tests, time_tracks_historical_tests, time_tracks_correction_tests, time_tracks_review_tests, time_tracks_lock_tests, time_tracks_edge_case_tests } from "./api_tests/time_tracks.test";
 import { monthly_availability_restrictions_tests } from "./api_tests/monthly_availability_restrictions.test";
 import { calendar_event_limits_tests } from "./api_tests/calendar_event_limits.test";
 import { custom_aggregation_tests } from "./api_tests/custom_aggregation.test";
+import { chats_analytics_tests } from "./api_tests/chats_analytics.test";
 import { no_access_permission_checks_tests } from "./api_tests/no_access_permission_checks.test";
 import { field_redaction_tests } from "./api_tests/field_redaction.test";
 import { bulk_assignment_tests } from "./api_tests/bulk_assignment.test";
 import { managed_content_enduser_access_tests } from "./api_tests/managed_content_enduser_access.test";
+import { managed_content_file_access_tests } from "./api_tests/managed_content_file_access.test";
 import { auto_merge_form_submission_tests } from "./api_tests/auto_merge_form_submission.test";
 import { database_cascade_delete_tests } from "./api_tests/database_cascade_delete.test";
 import { ai_conversations_tests } from "./api_tests/ai_conversations.test";
@@ -14201,6 +14205,11 @@ const ip_address_form_tests = async () => {
     await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests(sdk, sdkNonAdmin)
+    await eom_procedure_codes_tests({ sdk, sdkNonAdmin })
+    await cross_org_api_key_tests({ sdk, sdkNonAdmin })
+    await organization_settings_duplicates_tests({ sdk, sdkNonAdmin })
+    await enduser_session_invalidation_tests({ sdk, sdkNonAdmin })
+    await chats_analytics_tests({ sdk, sdkNonAdmin })
     await field_redaction_tests({ sdk, sdkNonAdmin })
     await form_submitted_trigger_tests({ sdk, sdkNonAdmin })
     await date_string_validation_tests({ sdk, sdkNonAdmin })
@@ -14208,7 +14217,6 @@ const ip_address_form_tests = async () => {
     await automation_trigger_tests()
     await integrations_redacted_tests({ sdk, sdkNonAdmin })
     await mdb_sort_tests({ sdk, sdkNonAdmin })
-    await organization_settings_duplicates_tests({ sdk, sdkNonAdmin })
     await search_tests()
     await time_tracks_tests({ sdk, sdkNonAdmin })
     await time_tracks_historical_tests({ sdk, sdkNonAdmin })
@@ -14235,6 +14243,7 @@ const ip_address_form_tests = async () => {
     await beluga_pharmacy_mappings_tests({ sdk, sdkNonAdmin })
     await threadKeyTests()
     await managed_content_enduser_access_tests({ sdk, sdkNonAdmin })
+    await managed_content_file_access_tests({ sdk, sdkNonAdmin })
     await afteraction_day_of_month_delay_tests({ sdk, sdkNonAdmin })
     await bulk_assignment_tests({ sdk, sdkNonAdmin })
     await formsort_tests()
@@ -14247,7 +14256,6 @@ const ip_address_form_tests = async () => {
     await inbox_threads_loading_tests()
     await load_inbox_data_tests({ sdk, sdkNonAdmin })
     await enduser_observations_acknowledge_tests({ sdk, sdkNonAdmin })
-    await enduser_session_invalidation_tests({ sdk, sdkNonAdmin })
     await create_user_notifications_trigger_tests({ sdk })
     await group_mms_active_tests()
     await auto_reply_tests()

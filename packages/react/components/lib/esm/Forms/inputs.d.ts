@@ -25,7 +25,7 @@ export declare const DateInput: ({ field, value, onChange, placement, ...props }
     placement?: "left" | "right" | "bottom" | "top" | undefined;
 } & FormInputProps<"date"> & Styled) => JSX.Element;
 export declare const TableInput: ({ field, value, onChange, form, ...props }: FormInputProps<'Input Table'>) => JSX.Element;
-export declare const AutoFocusTextField: (props: (import("@mui/material").OutlinedTextFieldProps | import("@mui/material").FilledTextFieldProps | import("@mui/material").StandardTextFieldProps) & {
+export declare const AutoFocusTextField: (props: (import("@mui/material").FilledTextFieldProps | import("@mui/material").OutlinedTextFieldProps | import("@mui/material").StandardTextFieldProps) & {
     inputProps?: {
         sx: SxProps;
     } | undefined;
@@ -51,7 +51,7 @@ export declare const CandidEligibilityInput: ({ field, value, onChange, response
         sx: SxProps;
     } | undefined;
 }) => JSX.Element;
-export declare const PharmacySearchInput: ({ field, value: rawValue, onChange, responses, enduser, form, ...props }: Omit<FormInputProps<"string">, "onChange" | "value"> & {
+export declare const PharmacySearchInput: ({ field, value: rawValue, onChange, responses, enduser, form, ...props }: Omit<FormInputProps<"string">, "value" | "onChange"> & {
     value: Pharmacy | undefined;
     onChange: (v: Pharmacy | undefined, fieldId: string) => void;
 }) => JSX.Element;
@@ -97,7 +97,7 @@ export declare const AppointmentBookingInput: ({ formResponseId, field, value, o
 export declare const HeightInput: ({ field, value, onChange, form, ...props }: FormInputProps<'Height'>) => JSX.Element;
 export declare const include_current_url_parameters_if_templated: (url: string) => string;
 export declare const RedirectInput: ({ enduserId, groupId, groupInsance, rootResponseId, formResponseId, field, submit, value, onChange, responses, enduser, ...props }: FormInputProps<'Redirect'>) => JSX.Element | null;
-export declare const HiddenValueInput: ({ goToNextField, goToPreviousField, field, value, onChange, isSinglePage, groupFields }: FormInputProps<'email'>) => JSX.Element;
+export declare const HiddenValueInput: ({ goToNextField, goToPreviousField, field, value, onChange, isSinglePage, groupFields, lastNavigationDirectionRef }: FormInputProps<'email'>) => JSX.Element;
 export declare const EmotiiInput: ({ goToNextField, goToPreviousField, field, value, onChange, form, formResponseId, ...props }: FormInputProps<'email'>) => JSX.Element;
 export declare const AllergiesInput: ({ goToNextField, goToPreviousField, field, value, onChange, form, formResponseId, ...props }: FormInputProps<'Allergies'>) => JSX.Element;
 export declare const ConditionsInput: ({ goToNextField, goToPreviousField, field, value, onChange, form, formResponseId, ...props }: FormInputProps<'Conditions'>) => JSX.Element;

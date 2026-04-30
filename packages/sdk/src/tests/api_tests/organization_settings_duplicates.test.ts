@@ -176,6 +176,20 @@ export const organization_settings_duplicates_tests = async ({ sdk, sdkNonAdmin 
       },
     }
   }, { replaceObjectFields: true })
+
+  // === D. subdomain is readonly ===
+  const orgBefore = await sdk.api.organizations.getOne(orgId)
+  await async_test(
+    "subdomain field is readonly — update does not change persisted value",
+    async () => {
+      await sdk.api.organizations.updateOne(orgId, {
+        subdomain: `readonly-attempt-${Date.now()}`,
+      } as any).catch(() => undefined) // tolerate either silent-drop or unknown-field rejection
+      const orgAfter = await sdk.api.organizations.getOne(orgId)
+      return orgAfter.subdomain === orgBefore.subdomain
+    },
+    { onResult: (unchanged: boolean) => unchanged === true }
+  )
 }
 
 // Allow running this test file independently

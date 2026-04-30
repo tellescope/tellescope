@@ -336,6 +336,8 @@ export type BasicWebhook = {
 export type TimeTrackingBillingCode = {
   billingCode: string,
   timeInMinutes: number,
+  repeatable?: boolean,
+  feeCents?: number,
 }
 export type TimeTrackingProgramForm = {
   id: string,
@@ -344,6 +346,7 @@ export type TimeTrackingProgram = {
   title: string,
   billingCodes: TimeTrackingBillingCode[],
   forms?: TimeTrackingProgramForm[],
+  summaryFormId?: string,
 }
 
 export type SyncDirection = "Bidirectional" | "From Tellescope" | "To Tellescope"
@@ -470,6 +473,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   hasConnectedZus?: boolean,
   hasConnectedCanvas?: boolean,
   canvasURL?: string,
+  healthiePortalURL?: string,
   hasConnectedCandid?: boolean,
   hasConnectedGoGoMeds?: boolean,
   hasScriptSure?: boolean,
@@ -915,6 +919,17 @@ export type EnduserInsurance = {
   groupNumber?: string,
   planName?: string,
   startDate?: string,
+  // Insurance authorization fields
+  authorizationStartDate?: string,     // Healthie InsuranceAuthorization.start_on
+  authorizationEndDate?: string,        // Healthie InsuranceAuthorization.end_on
+  track?: string,                       // Healthie InsuranceAuthorization.unit_type (units/visits/hours)
+  visitsAuthorized?: number,            // Healthie InsuranceAuthorization.visits_authorized
+  visitsUsed?: number,                  // Healthie InsuranceAuthorization.visits_used
+  procedureCodes?: string[],            // Healthie Policy.cpt_codes_policies[].code
+  diagnosisCodes?: string[],            // Healthie Policy.icd_codes_policies[].code
+  // Internal Healthie sync fields
+  healthieAuthorizationId?: string,     // Healthie InsuranceAuthorization ID
+  healthiePolicyId?: string,            // Healthie Policy ID (links auth + codes to policy)
 }
 
 export type Pharmacy = {
@@ -1143,8 +1158,9 @@ export interface EnduserMedication extends EnduserMedication_readonly, EnduserMe
   },
 }
 
-export interface APIKey_readonly extends ClientRecord { 
+export interface APIKey_readonly extends ClientRecord {
   hashedKey: string, // stored as hash
+  approvedBusinessIds?: string[], // org IDs this key can target via header
 }
 export interface APIKey_required {}
 export interface APIKey_updatesDisabled {}
@@ -2093,6 +2109,8 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
   version?: 'v1' | 'v2',
   mdiCaseOfferings?: { offering_id: string }[],
   autoMergeOnSubmission?: boolean,
+  procedureCodes?: FormResponseProcedureCode[],
+  diagnosisCodes?: FormResponseDiagnosisCode[],
 }
 
 export interface FormGroup_readonly extends ClientRecord {}
@@ -2583,6 +2601,8 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
     timestamp: Date,
   }[],
   startedViaPinnedForm?: boolean,
+  procedureCodes?: FormResponseProcedureCode[],
+  diagnosisCodes?: FormResponseDiagnosisCode[],
 }
 
 export interface WebHook_readonly extends ClientRecord {}
@@ -3443,6 +3463,7 @@ export type ChargebeeChargeCardOnFileAutomationAction = AutomationActionBuilder<
   chargeType: 'One-Time' | 'Subscription',  // Branching between one-time invoice vs subscription
   itemPriceId: string,           // Chargebee item_price_id
   quantity?: number,             // Quantity (default 1)
+  couponIds?: string[],          // Chargebee coupon IDs to apply
 }>
 
 export type AIContextSource = {
@@ -4206,7 +4227,10 @@ export type AnalyticsQueryFilterForType = {
   },
   Orders: { },
   "Chat Rooms": { },
-  "Chats": { },
+  "Chats": {
+    direction?: string,
+    "Chat Tags"?: ListOfStringsWithQualifier,
+  },
 }
 
 export type EnduserGrouping = {
@@ -4258,7 +4282,9 @@ export type AnalyticsQueryGroupingForType = {
   "Meetings": { Host?: boolean },
   "Orders": {} & EnduserGrouping & { Enduser: string },
   "Chat Rooms": {} & EnduserGrouping & { Enduser: string },
-  "Chats": {} & EnduserGrouping & { Enduser: string },
+  "Chats": {
+    "Chat Tags"?: boolean,
+  } & EnduserGrouping & { Enduser: string },
 }
 
 type DefaultRangeKey = 'Created At' | 'Updated At'
@@ -4799,6 +4825,18 @@ export type SuperbillLineItem = {
   },
   discount?: number, // following Stripe convention of smallest currency unit (e.g. cents for usd)
   diagnosisCodes?: string[],
+}
+
+export type FormResponseProcedureCode = {
+  code: string,
+  units: number, // CMS1500 Box 24G — number of units billed for this code (matches Healthie's `units` field)
+  feeCents?: number, // CMS1500 Box 24F — line-item charge in cents
+  modifiers?: string[],
+}
+
+export type FormResponseDiagnosisCode = {
+  code: string,
+  description?: string,
 }
 
 export type SuperbillPatientInfo = {

@@ -270,6 +270,7 @@ export declare const useTellescopeForm: ({ dontAutoadvance, isPublicForm, form, 
     }[]>>;
     handleFileUpload: (blob: FileBlob, fieldId: string) => Promise<void>;
     isAutoAdvancing: boolean;
+    lastNavigationDirectionRef: import("react").MutableRefObject<"forward" | "backward" | null>;
 };
 /**
  * Hook for conditional visibility of multiple choice options.

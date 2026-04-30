@@ -294,6 +294,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     charge_card_on_file: (args: extractFields<CustomActions['purchases']['charge_card_on_file']['parameters']>) => (
       Promise<extractFields<CustomActions['purchases']['charge_card_on_file']['returns']>>
     ),
+    chargebee_charge_card_on_file: (args: extractFields<CustomActions['purchases']['chargebee_charge_card_on_file']['parameters']>) => (
+      Promise<extractFields<CustomActions['purchases']['chargebee_charge_card_on_file']['returns']>>
+    ),
   },
   forms: {
     get_form_statistics: (args: extractFields<CustomActions['forms']['get_form_statistics']['parameters']>) => (
@@ -1173,6 +1176,7 @@ export class Session extends SessionManager {
     queries.sms_messages.send_message_as_user_notification = a => this._POST(`/v1/${schema.sms_messages.customActions.send_message_as_user_notification.path}`, a)
 
     queries.purchases.charge_card_on_file = a => this._POST(`/v1/${schema.purchases.customActions.charge_card_on_file.path}`, a)
+    queries.purchases.chargebee_charge_card_on_file = a => this._POST(`/v1/${schema.purchases.customActions.chargebee_charge_card_on_file.path}`, a)
 
     queries.products.prepare_stripe_checkout = args => this._POST(`/v1${schema.products.customActions.prepare_stripe_checkout.path}`, args)
 

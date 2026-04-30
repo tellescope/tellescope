@@ -39,6 +39,7 @@ export interface FormInputProps<K extends keyof AnswerForType> {
   setUploadingFiles?: React.Dispatch<React.SetStateAction<{ fieldId: string }[]>>,
   groupFields?: FormField[],
   inputProps?: { sx: SxProps },
+  lastNavigationDirectionRef?: React.MutableRefObject<'forward' | 'backward' | null>,
 }
 
 export type FormInputs = { 

@@ -105,6 +105,16 @@ var BuiltInFields = {
 };
 var build_schema = function (schema) { return schema; };
 exports.build_schema = build_schema;
+var procedureCodesValidator = (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
+    code: validation_1.stringValidator100,
+    units: validation_1.nonNegNumberValidator,
+    feeCents: validation_1.nonNegNumberValidatorOptional,
+    modifiers: validation_1.listOfStringsValidatorOptionalOrEmptyOk,
+}));
+var diagnosisCodesValidator = (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
+    code: validation_1.stringValidator100,
+    description: validation_1.stringValidatorOptionalEmptyOkay,
+}));
 exports.schema = (0, exports.build_schema)({
     endusers: {
         info: {
@@ -832,6 +842,9 @@ exports.schema = (0, exports.build_schema)({
         info: {},
         fields: __assign(__assign({}, BuiltInFields), { hashedKey: {
                 validator: validation_1.stringValidator,
+                readonly: true,
+            }, approvedBusinessIds: {
+                validator: validation_1.listOfMongoIdStringValidator,
                 readonly: true,
             } }),
         constraints: { unique: [], relationship: [], access: [{ type: constants_1.CREATOR_ONLY_ACCESS }] },
@@ -2948,7 +2961,7 @@ exports.schema = (0, exports.build_schema)({
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     offering_id: validation_1.stringValidator100,
                 }))
-            }, autoMergeOnSubmission: { validator: validation_1.booleanValidator }, gtmTag: { validator: validation_1.stringValidator100EscapeHTML }, dontSyncToCanvasOnSubmission: { validator: validation_1.booleanValidator }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, title: {
+            }, autoMergeOnSubmission: { validator: validation_1.booleanValidator }, procedureCodes: { validator: procedureCodesValidator }, diagnosisCodes: { validator: diagnosisCodesValidator }, gtmTag: { validator: validation_1.stringValidator100EscapeHTML }, dontSyncToCanvasOnSubmission: { validator: validation_1.booleanValidator }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, title: {
                 validator: validation_1.stringValidator250,
                 required: true,
                 examples: ["Text"],
@@ -3095,7 +3108,7 @@ exports.schema = (0, exports.build_schema)({
                     fieldTitle: validation_1.stringValidator250,
                     timestamp: validation_1.dateValidator,
                 }))
-            }, startedViaPinnedForm: { validator: validation_1.booleanValidator } }),
+            }, startedViaPinnedForm: { validator: validation_1.booleanValidator }, procedureCodes: { validator: procedureCodesValidator }, diagnosisCodes: { validator: diagnosisCodesValidator } }),
         defaultActions: constants_1.DEFAULT_OPERATIONS,
         enduserActions: {
             prepare_form_response: {}, info_for_access_code: {}, submit_form_response: {}, stripe_details: {}, chargebee_details: {},
@@ -3125,6 +3138,8 @@ exports.schema = (0, exports.build_schema)({
                     groupInstance: { validator: validation_1.stringValidator100 },
                     groupPosition: { validator: validation_1.nonNegNumberValidator },
                     startedViaPinnedForm: { validator: validation_1.booleanValidator },
+                    procedureCodes: { validator: procedureCodesValidator },
+                    diagnosisCodes: { validator: diagnosisCodesValidator },
                 },
                 returns: {
                     accessCode: { validator: validation_1.stringValidator250, required: true },
@@ -4845,6 +4860,7 @@ exports.schema = (0, exports.build_schema)({
             }, subdomain: {
                 validator: validation_1.slugValidator,
                 required: true,
+                readonly: true,
                 examples: ["subdomain"],
             }, limits: {
                 validator: validation_1.organizationLimitsValidator,
@@ -4894,16 +4910,19 @@ exports.schema = (0, exports.build_schema)({
                     id: validation_1.stringValidator100,
                     name: validation_1.stringValidator,
                 }))
-            }, groups: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, canvasURL: { validator: validation_1.stringValidator }, observationInvalidationReasons: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customNotificationTypes: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOFields: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOIdField: { validator: validation_1.stringValidator }, hasConnectedPaubox: { validator: validation_1.booleanValidator }, hasConnectedBridge: { validator: validation_1.booleanValidator }, hasConnectedMDIntegrations: { validator: validation_1.booleanValidator }, createEnduserForms: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, skipActivePatientBilling: { validator: validation_1.booleanValidator }, portalV2SchemaURL: { validator: validation_1.stringValidator }, timeTrackingPrograms: {
+            }, groups: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, canvasURL: { validator: validation_1.stringValidator }, healthiePortalURL: { validator: validation_1.stringValidator }, observationInvalidationReasons: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customNotificationTypes: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOFields: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOIdField: { validator: validation_1.stringValidator }, hasConnectedPaubox: { validator: validation_1.booleanValidator }, hasConnectedBridge: { validator: validation_1.booleanValidator }, hasConnectedMDIntegrations: { validator: validation_1.booleanValidator }, createEnduserForms: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, skipActivePatientBilling: { validator: validation_1.booleanValidator }, portalV2SchemaURL: { validator: validation_1.stringValidator }, timeTrackingPrograms: {
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     title: validation_1.stringValidator100,
                     billingCodes: (0, validation_1.listValidatorEmptyOk)((0, validation_1.objectValidator)({
                         billingCode: validation_1.stringValidator100,
                         timeInMinutes: validation_1.nonNegNumberValidator,
+                        repeatable: validation_1.booleanValidatorOptional,
+                        feeCents: validation_1.nonNegNumberValidatorOptional,
                     })),
                     forms: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                         id: validation_1.mongoIdStringRequired,
                     })),
+                    summaryFormId: validation_1.mongoIdStringOptional,
                 }))
             } }),
     },
@@ -5233,6 +5252,23 @@ exports.schema = (0, exports.build_schema)({
                     stripeKey: { validator: validation_1.stringValidator },
                     description: { validator: validation_1.stringValidator },
                     subscriptionPriceId: { validator: validation_1.stringValidatorOptional },
+                },
+                returns: {},
+            },
+            chargebee_charge_card_on_file: {
+                op: "custom", access: 'create', method: "post",
+                name: 'Charge Chargebee Card on File',
+                path: '/purchases/chargebee-charge-card',
+                description: "Charges a Chargebee customer's card on file",
+                parameters: {
+                    enduserId: { validator: validation_1.mongoIdStringRequired, required: true },
+                    chargebeeEnvironment: { validator: validation_1.stringValidator, required: true },
+                    chargeType: { validator: validation_1.stringValidator, required: true },
+                    itemPriceId: { validator: validation_1.stringValidator100 },
+                    quantity: { validator: validation_1.numberValidator },
+                    couponIds: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk },
+                    cost: { validator: validation_1.costValidator },
+                    description: { validator: validation_1.stringValidator },
                 },
                 returns: {},
             },

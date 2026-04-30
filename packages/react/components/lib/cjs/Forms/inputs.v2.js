@@ -1275,50 +1275,7 @@ exports.HeightInput = HeightInput;
 // Re-export from V1 to follow DRY principles
 var inputs_4 = require("./inputs");
 Object.defineProperty(exports, "RedirectInput", { enumerable: true, get: function () { return inputs_4.RedirectInput; } });
-var HiddenValueInput = function (_a) {
-    var goToNextField = _a.goToNextField, goToPreviousField = _a.goToPreviousField, field = _a.field, value = _a.value, onChange = _a.onChange, isSinglePage = _a.isSinglePage, groupFields = _a.groupFields;
-    var lastRef = (0, react_1.useRef)(0);
-    var lastIdRef = (0, react_1.useRef)('');
-    // in a Question Group, only the first Hidden Value should navigate
-    // AND, it should only navigate if the group only contains hidden values
-    var firstHiddenValue = groupFields === null || groupFields === void 0 ? void 0 : groupFields.find(function (v) { return v.type === 'Hidden Value'; });
-    var dontNavigate = ((firstHiddenValue && (firstHiddenValue === null || firstHiddenValue === void 0 ? void 0 : firstHiddenValue.id) !== field.id) // is in a group, but not the first hidden value
-        || !!(groupFields === null || groupFields === void 0 ? void 0 : groupFields.find(function (v) { return v.type !== 'Hidden Value'; })) // group contains at least 1 non-hidden value
-    );
-    var publicIdentifier = (0, react_1.useMemo)(function () {
-        try {
-            return new URL(window.location.href).searchParams.get('publicIdentifier') || '';
-        }
-        catch (err) {
-            return '';
-        }
-    }, []);
-    var valueToSet = (0, react_1.useMemo)(function () { return ((field.title === "{{PUBLIC_IDENTIFIER}}" && publicIdentifier) ? publicIdentifier
-        : field.title); }, [field.title, publicIdentifier]);
-    (0, react_1.useEffect)(function () {
-        if (lastRef.current > Date.now() - 1000 && lastIdRef.current === field.id)
-            return;
-        lastRef.current = Date.now();
-        lastIdRef.current = field.id;
-        if (value) {
-            if (isSinglePage)
-                return;
-            onChange('', field.id);
-            if (dontNavigate)
-                return;
-            goToPreviousField === null || goToPreviousField === void 0 ? void 0 : goToPreviousField();
-        }
-        else {
-            onChange(valueToSet, field.id);
-            if (dontNavigate)
-                return;
-            // pass value that is set after above onChange
-            goToNextField === null || goToNextField === void 0 ? void 0 : goToNextField({ type: 'Hidden Value', value: valueToSet });
-        }
-    }, [value, onChange, field.id, valueToSet, goToNextField, goToPreviousField, isSinglePage, dontNavigate]);
-    return (0, jsx_runtime_1.jsx)(jsx_runtime_1.Fragment, {});
-};
-exports.HiddenValueInput = HiddenValueInput;
+Object.defineProperty(exports, "HiddenValueInput", { enumerable: true, get: function () { return inputs_4.HiddenValueInput; } });
 var EmotiiInput = function (_a) {
     var goToNextField = _a.goToNextField, goToPreviousField = _a.goToPreviousField, field = _a.field, value = _a.value, onChange = _a.onChange, form = _a.form, formResponseId = _a.formResponseId, props = __rest(_a, ["goToNextField", "goToPreviousField", "field", "value", "onChange", "form", "formResponseId"]);
     var session = (0, __1.useResolvedSession)();

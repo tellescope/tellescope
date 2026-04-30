@@ -145,6 +145,7 @@ export const QuestionForField = ({
   uploadingFiles, setUploadingFiles, handleFileUpload,
   groupFields,
   AddToDatabase,
+  lastNavigationDirectionRef,
 } : {
   spacing?: number,
   form?: Form,
@@ -163,19 +164,19 @@ export const QuestionForField = ({
   setUploadingFiles: React.Dispatch<React.SetStateAction<{ fieldId: string }[]>>,
   groupFields?: FormField[],
   AddToDatabase?: React.JSXElementConstructor<AddToDatabaseProps>,
-} & Pick<TellescopeFormProps, "rootResponseId" | "goToNextField" | "groupId" | "groupInstance" | "submit" | "formResponseId" | 'enduserId' | 'isPreviousDisabled' | 'goToPreviousField' | 'enduser' | 'handleDatabaseSelect' | 'onAddFile' | 'onFieldChange' | 'fields' | 'customInputs' | 'responses' | 'selectedFiles' | 'validateField'>) => {
+} & Pick<TellescopeFormProps, "rootResponseId" | "goToNextField" | "groupId" | "groupInstance" | "submit" | "formResponseId" | 'enduserId' | 'isPreviousDisabled' | 'goToPreviousField' | 'enduser' | 'handleDatabaseSelect' | 'onAddFile' | 'onFieldChange' | 'fields' | 'customInputs' | 'responses' | 'selectedFiles' | 'validateField' | 'lastNavigationDirectionRef'>) => {
   const String = customInputs?.['string'] ?? StringInput
   const StringLong = customInputs?.['stringLong'] ?? StringLongInput
   const Email = customInputs?.['email'] ?? EmailInput
   const Number = customInputs?.['number'] ?? NumberInput
-  const Phone = customInputs?.['phone'] ?? PhoneInput 
-  const ResolvedDateInput = customInputs?.['date'] ?? DateInput 
-  const Signature = customInputs?.['signature'] ?? SignatureInput 
-  const MultipleChoice = customInputs?.['multiple_choice'] ?? MultipleChoiceInput 
-  const Stripe = customInputs?.['Stripe'] ?? StripeInput 
-  const Chargebee = customInputs?.['Chargebee'] ?? ChargeebeeInput 
-  const File = customInputs?.['file'] ?? FileInput 
-  const Files = customInputs?.['files'] ?? FilesInput 
+  const Phone = customInputs?.['phone'] ?? PhoneInput
+  const ResolvedDateInput = customInputs?.['date'] ?? DateInput
+  const Signature = customInputs?.['signature'] ?? SignatureInput
+  const MultipleChoice = customInputs?.['multiple_choice'] ?? MultipleChoiceInput
+  const Stripe = customInputs?.['Stripe'] ?? StripeInput
+  const Chargebee = customInputs?.['Chargebee'] ?? ChargeebeeInput
+  const File = customInputs?.['file'] ?? FileInput
+  const Files = customInputs?.['files'] ?? FilesInput
   const Ranking = customInputs?.['ranking'] ?? RankingInput
   const Rating = customInputs?.['rating'] ?? RatingInput
   const Address = customInputs?.['Address'] ?? AddressInput
@@ -293,7 +294,7 @@ export const QuestionForField = ({
           <DateStringInput field={field} disabled={value.disabled} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'string'>} form={form} />
         )
         : field.type === 'Hidden Value' ? (
-          <HiddenValue groupFields={groupFields} isSinglePage={isSinglePage} goToNextField={goToNextField} goToPreviousField={goToPreviousField} field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<any>} form={form} />
+          <HiddenValue groupFields={groupFields} isSinglePage={isSinglePage} goToNextField={goToNextField} goToPreviousField={goToPreviousField} field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<any>} form={form} lastNavigationDirectionRef={lastNavigationDirectionRef} />
         )
         : field.type === 'Address' ? (
           <Address field={field} disabled={value.disabled} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
@@ -428,13 +429,13 @@ export const QuestionForField = ({
                   enduser={enduser} goToPreviousField={goToPreviousField} isPreviousDisabled={isPreviousDisabled} goToNextField={goToNextField}
                   form={form} formResponseId={formResponseId} rootResponseId={rootResponseId} submit={submit}
                   repeats={repeats} onRepeatsChange={onRepeatsChange} setCustomerId={setCustomerId}
-                  value={value} file={file} 
+                  value={value} file={file}
                   onAddFile={onAddFile} onFieldChange={onFieldChange}
                   responses={responses} selectedFiles={selectedFiles}
                   validateField={validateField} enduserId={enduserId}
                   spacing={field.options?.groupPadding}
                   logicOptions={logicOptions}
-                  isInQuestionGroup 
+                  isInQuestionGroup
                   groupFields={
                     fields.filter(f => field.options?.subFields?.find(s => s.id === f.id))
                   }
@@ -442,6 +443,7 @@ export const QuestionForField = ({
                   uploadingFiles={uploadingFiles} setUploadingFiles={setUploadingFiles}
                   handleFileUpload={handleFileUpload}
                   AddToDatabase={AddToDatabase}
+                  lastNavigationDirectionRef={lastNavigationDirectionRef}
                 />
               </Flex>
             )
@@ -529,6 +531,7 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
   groupInstance,
   logicOptions,
   uploadingFiles, setUploadingFiles, handleFileUpload,
+  lastNavigationDirectionRef,
 }) => {
   const beforeunloadHandler = React.useCallback((e: BeforeUnloadEvent) => {
     try {
@@ -652,6 +655,7 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
                 logicOptions={logicOptions}
                 uploadingFiles={uploadingFiles} setUploadingFiles={setUploadingFiles}
                 handleFileUpload={handleFileUpload}
+                lastNavigationDirectionRef={lastNavigationDirectionRef}
               />
             </Flex>
         </Flex>
@@ -1295,7 +1299,8 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
   groupInstance,
   uploadingFiles, setUploadingFiles, handleFileUpload,
   AddToDatabase,
-  ...props 
+  lastNavigationDirectionRef,
+  ...props
 }) => {
   const list = useListForFormFields(fields, responses, { form: props.form, gender: enduser?.gender })
 
@@ -1424,7 +1429,7 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
                   enduserId={props.enduserId} formResponseId={props.formResponseId} rootResponseId={rootResponseId} submit={submit}
                   enduser={enduser} goToPreviousField={goToPreviousField} isPreviousDisabled={isPreviousDisabled} goToNextField={goToNextField}
                   repeats={repeats} onRepeatsChange={setRepeats} setCustomerId={setCustomerId}
-                  value={value} file={file} 
+                  value={value} file={file}
                   customInputs={customInputs}
                   onAddFile={onAddFile} onFieldChange={onFieldChange}
                   responses={responses} selectedFiles={selectedFiles}
@@ -1433,6 +1438,7 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
                   uploadingFiles={uploadingFiles} setUploadingFiles={setUploadingFiles}
                   handleFileUpload={handleFileUpload}
                   AddToDatabase={AddToDatabase}
+                  lastNavigationDirectionRef={lastNavigationDirectionRef}
                 />
               </Flex>
             </Flex>

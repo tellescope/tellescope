@@ -2793,7 +2793,7 @@ export var RedirectInput = function (_a) {
     return null;
 };
 export var HiddenValueInput = function (_a) {
-    var goToNextField = _a.goToNextField, goToPreviousField = _a.goToPreviousField, field = _a.field, value = _a.value, onChange = _a.onChange, isSinglePage = _a.isSinglePage, groupFields = _a.groupFields;
+    var goToNextField = _a.goToNextField, goToPreviousField = _a.goToPreviousField, field = _a.field, value = _a.value, onChange = _a.onChange, isSinglePage = _a.isSinglePage, groupFields = _a.groupFields, lastNavigationDirectionRef = _a.lastNavigationDirectionRef;
     var lastRef = useRef(0);
     var lastIdRef = useRef('');
     // in a Question Group, only the first Hidden Value should navigate
@@ -2817,7 +2817,10 @@ export var HiddenValueInput = function (_a) {
             return;
         lastRef.current = Date.now();
         lastIdRef.current = field.id;
-        if (value) {
+        // Only collapse backward through a chain of hidden fields when actually navigating backward.
+        // On forward nav (including form resume where existingResponses pre-populate the value),
+        // fall through to the else branch so we re-set and advance instead of bouncing back.
+        if (value && (lastNavigationDirectionRef === null || lastNavigationDirectionRef === void 0 ? void 0 : lastNavigationDirectionRef.current) === 'backward') {
             if (isSinglePage)
                 return;
             onChange('', field.id);
@@ -2832,7 +2835,7 @@ export var HiddenValueInput = function (_a) {
             // pass value that is set after above onChange
             goToNextField === null || goToNextField === void 0 ? void 0 : goToNextField({ type: 'Hidden Value', value: valueToSet });
         }
-    }, [value, onChange, field.id, valueToSet, goToNextField, goToPreviousField, isSinglePage, dontNavigate]);
+    }, [value, onChange, field.id, valueToSet, goToNextField, goToPreviousField, isSinglePage, dontNavigate, lastNavigationDirectionRef]);
     return _jsx(_Fragment, {});
 };
 export var EmotiiInput = function (_a) {

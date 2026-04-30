@@ -626,6 +626,7 @@ var Session = /** @class */ (function (_super) {
         queries.sms_messages.send_with_template = function (a) { return _this._POST("/v1/".concat(schema_1.schema.sms_messages.customActions.send_with_template.path), a); };
         queries.sms_messages.send_message_as_user_notification = function (a) { return _this._POST("/v1/".concat(schema_1.schema.sms_messages.customActions.send_message_as_user_notification.path), a); };
         queries.purchases.charge_card_on_file = function (a) { return _this._POST("/v1/".concat(schema_1.schema.purchases.customActions.charge_card_on_file.path), a); };
+        queries.purchases.chargebee_charge_card_on_file = function (a) { return _this._POST("/v1/".concat(schema_1.schema.purchases.customActions.chargebee_charge_card_on_file.path), a); };
         queries.products.prepare_stripe_checkout = function (args) { return _this._POST("/v1".concat(schema_1.schema.products.customActions.prepare_stripe_checkout.path), args); };
         queries.group_mms_conversations.start_conversation = function (args) { return _this._POST("/v1".concat(schema_1.schema.group_mms_conversations.customActions.start_conversation.path), args); };
         queries.group_mms_conversations.send_message = function (args) { return _this._POST("/v1".concat(schema_1.schema.group_mms_conversations.customActions.send_message.path), args); };

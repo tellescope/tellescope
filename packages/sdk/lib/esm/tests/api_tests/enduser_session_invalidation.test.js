@@ -44,7 +44,7 @@ var businessId = '60398b1131a295e64f084ff6';
 export var enduser_session_invalidation_tests = function (_a) {
     var sdk = _a.sdk, sdkNonAdmin = _a.sdkNonAdmin;
     return __awaiter(void 0, void 0, void 0, function () {
-        var testEnduser, authToken, enduserSDK_1, error_1;
+        var testEnduser, authToken, enduserSDK_1, error_1, resetOTPSettings;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -203,7 +203,431 @@ export var enduser_session_invalidation_tests = function (_a) {
                     console.error('Cleanup error:', error_1);
                     return [3 /*break*/, 13];
                 case 13: return [7 /*endfinally*/];
-                case 14: return [2 /*return*/];
+                case 14:
+                    // --- OTP enablement invalidation tests ---
+                    log_header("OTP Enablement Session Invalidation Tests");
+                    resetOTPSettings = function (s) { return __awaiter(void 0, void 0, void 0, function () {
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0: return [4 /*yield*/, s.api.organizations.updateOne(s.userInfo.businessId, {
+                                        portalSettings: { authentication: { requireOTP: false, requireOTPAfterPassword: false } },
+                                    }, { replaceObjectFields: true })];
+                                case 1:
+                                    _a.sent();
+                                    return [2 /*return*/];
+                            }
+                        });
+                    }); };
+                    // Ensure OTP is off and db is clean before starting
+                    return [4 /*yield*/, sdk.reset_db()];
+                case 15:
+                    // Ensure OTP is off and db is clean before starting
+                    _b.sent();
+                    return [4 /*yield*/, wait(undefined, 500)];
+                case 16:
+                    _b.sent();
+                    return [4 /*yield*/, resetOTPSettings(sdk)];
+                case 17:
+                    _b.sent();
+                    _b.label = 18;
+                case 18:
+                    _b.trys.push([18, , 25, 27]);
+                    // Test 6: Enabling requireOTP invalidates multiple enduser sessions at once
+                    return [4 /*yield*/, async_test('enabling requireOTP invalidates multiple enduser sessions', function () { return __awaiter(void 0, void 0, void 0, function () {
+                            var endusers, tokens, sessions, _i, sessions_1, s, _a, sessions_2, s, e_3, _b, endusers_1, e, newToken, newSession, _c, endusers_2, e;
+                            return __generator(this, function (_d) {
+                                switch (_d.label) {
+                                    case 0: return [4 /*yield*/, Promise.all([
+                                            sdk.api.endusers.createOne({ email: "otp-bulk-1-".concat(Date.now(), "@tellescope.com") }),
+                                            sdk.api.endusers.createOne({ email: "otp-bulk-2-".concat(Date.now(), "@tellescope.com") }),
+                                            sdk.api.endusers.createOne({ email: "otp-bulk-3-".concat(Date.now(), "@tellescope.com") }),
+                                        ])];
+                                    case 1:
+                                        endusers = _d.sent();
+                                        _d.label = 2;
+                                    case 2:
+                                        _d.trys.push([2, , 23, 29]);
+                                        return [4 /*yield*/, Promise.all(endusers.map(function (e) { return sdk.api.endusers.generate_auth_token({ id: e.id, overrideOTP: true }); }))];
+                                    case 3:
+                                        tokens = _d.sent();
+                                        sessions = tokens.map(function (t) { return new EnduserSession({ host: host, authToken: t.authToken, businessId: sdk.userInfo.businessId }); });
+                                        _i = 0, sessions_1 = sessions;
+                                        _d.label = 4;
+                                    case 4:
+                                        if (!(_i < sessions_1.length)) return [3 /*break*/, 7];
+                                        s = sessions_1[_i];
+                                        return [4 /*yield*/, s.test_authenticated()];
+                                    case 5:
+                                        _d.sent();
+                                        _d.label = 6;
+                                    case 6:
+                                        _i++;
+                                        return [3 /*break*/, 4];
+                                    case 7: return [4 /*yield*/, wait(undefined, 2000)
+                                        // Enable OTP
+                                    ];
+                                    case 8:
+                                        _d.sent();
+                                        // Enable OTP
+                                        return [4 /*yield*/, sdk.api.organizations.updateOne(sdk.userInfo.businessId, {
+                                                portalSettings: { authentication: { requireOTP: true } },
+                                            })
+                                            // Wait for side effect to process
+                                        ];
+                                    case 9:
+                                        // Enable OTP
+                                        _d.sent();
+                                        // Wait for side effect to process
+                                        return [4 /*yield*/, wait(undefined, 1000)
+                                            // All old tokens should be rejected
+                                        ];
+                                    case 10:
+                                        // Wait for side effect to process
+                                        _d.sent();
+                                        _a = 0, sessions_2 = sessions;
+                                        _d.label = 11;
+                                    case 11:
+                                        if (!(_a < sessions_2.length)) return [3 /*break*/, 16];
+                                        s = sessions_2[_a];
+                                        _d.label = 12;
+                                    case 12:
+                                        _d.trys.push([12, 14, , 15]);
+                                        return [4 /*yield*/, s.test_authenticated()];
+                                    case 13:
+                                        _d.sent();
+                                        return [2 /*return*/, 'should have thrown'];
+                                    case 14:
+                                        e_3 = _d.sent();
+                                        return [3 /*break*/, 15];
+                                    case 15:
+                                        _a++;
+                                        return [3 /*break*/, 11];
+                                    case 16: 
+                                    // New tokens should work
+                                    return [4 /*yield*/, wait(undefined, 2000)];
+                                    case 17:
+                                        // New tokens should work
+                                        _d.sent();
+                                        _b = 0, endusers_1 = endusers;
+                                        _d.label = 18;
+                                    case 18:
+                                        if (!(_b < endusers_1.length)) return [3 /*break*/, 22];
+                                        e = endusers_1[_b];
+                                        return [4 /*yield*/, sdk.api.endusers.generate_auth_token({ id: e.id, overrideOTP: true })];
+                                    case 19:
+                                        newToken = (_d.sent()).authToken;
+                                        newSession = new EnduserSession({ host: host, authToken: newToken, businessId: sdk.userInfo.businessId });
+                                        return [4 /*yield*/, newSession.test_authenticated()];
+                                    case 20:
+                                        _d.sent();
+                                        _d.label = 21;
+                                    case 21:
+                                        _b++;
+                                        return [3 /*break*/, 18];
+                                    case 22: return [2 /*return*/, 'passed'];
+                                    case 23: return [4 /*yield*/, resetOTPSettings(sdk)];
+                                    case 24:
+                                        _d.sent();
+                                        _c = 0, endusers_2 = endusers;
+                                        _d.label = 25;
+                                    case 25:
+                                        if (!(_c < endusers_2.length)) return [3 /*break*/, 28];
+                                        e = endusers_2[_c];
+                                        return [4 /*yield*/, sdk.api.endusers.deleteOne(e.id).catch(console.error)];
+                                    case 26:
+                                        _d.sent();
+                                        _d.label = 27;
+                                    case 27:
+                                        _c++;
+                                        return [3 /*break*/, 25];
+                                    case 28: return [7 /*endfinally*/];
+                                    case 29: return [2 /*return*/];
+                                }
+                            });
+                        }); }, { expectedResult: 'passed' })
+                        // Test 7: Enabling requireOTPAfterPassword invalidates multiple enduser sessions
+                    ];
+                case 19:
+                    // Test 6: Enabling requireOTP invalidates multiple enduser sessions at once
+                    _b.sent();
+                    // Test 7: Enabling requireOTPAfterPassword invalidates multiple enduser sessions
+                    return [4 /*yield*/, async_test('enabling requireOTPAfterPassword invalidates multiple enduser sessions', function () { return __awaiter(void 0, void 0, void 0, function () {
+                            var endusers, tokens, sessions, _i, sessions_3, s, _a, sessions_4, s, e_4, _b, endusers_3, e, newToken, newSession, _c, endusers_4, e;
+                            return __generator(this, function (_d) {
+                                switch (_d.label) {
+                                    case 0: return [4 /*yield*/, Promise.all([
+                                            sdk.api.endusers.createOne({ email: "otp-mfa-1-".concat(Date.now(), "@tellescope.com") }),
+                                            sdk.api.endusers.createOne({ email: "otp-mfa-2-".concat(Date.now(), "@tellescope.com") }),
+                                        ])];
+                                    case 1:
+                                        endusers = _d.sent();
+                                        _d.label = 2;
+                                    case 2:
+                                        _d.trys.push([2, , 23, 29]);
+                                        return [4 /*yield*/, Promise.all(endusers.map(function (e) { return sdk.api.endusers.generate_auth_token({ id: e.id, overrideOTP: true }); }))];
+                                    case 3:
+                                        tokens = _d.sent();
+                                        sessions = tokens.map(function (t) { return new EnduserSession({ host: host, authToken: t.authToken, businessId: sdk.userInfo.businessId }); });
+                                        _i = 0, sessions_3 = sessions;
+                                        _d.label = 4;
+                                    case 4:
+                                        if (!(_i < sessions_3.length)) return [3 /*break*/, 7];
+                                        s = sessions_3[_i];
+                                        return [4 /*yield*/, s.test_authenticated()];
+                                    case 5:
+                                        _d.sent();
+                                        _d.label = 6;
+                                    case 6:
+                                        _i++;
+                                        return [3 /*break*/, 4];
+                                    case 7: return [4 /*yield*/, wait(undefined, 2000)];
+                                    case 8:
+                                        _d.sent();
+                                        return [4 /*yield*/, sdk.api.organizations.updateOne(sdk.userInfo.businessId, {
+                                                portalSettings: { authentication: { requireOTPAfterPassword: true } },
+                                            })];
+                                    case 9:
+                                        _d.sent();
+                                        return [4 /*yield*/, wait(undefined, 1000)];
+                                    case 10:
+                                        _d.sent();
+                                        _a = 0, sessions_4 = sessions;
+                                        _d.label = 11;
+                                    case 11:
+                                        if (!(_a < sessions_4.length)) return [3 /*break*/, 16];
+                                        s = sessions_4[_a];
+                                        _d.label = 12;
+                                    case 12:
+                                        _d.trys.push([12, 14, , 15]);
+                                        return [4 /*yield*/, s.test_authenticated()];
+                                    case 13:
+                                        _d.sent();
+                                        return [2 /*return*/, 'should have thrown'];
+                                    case 14:
+                                        e_4 = _d.sent();
+                                        return [3 /*break*/, 15];
+                                    case 15:
+                                        _a++;
+                                        return [3 /*break*/, 11];
+                                    case 16: 
+                                    // New tokens work
+                                    return [4 /*yield*/, wait(undefined, 2000)];
+                                    case 17:
+                                        // New tokens work
+                                        _d.sent();
+                                        _b = 0, endusers_3 = endusers;
+                                        _d.label = 18;
+                                    case 18:
+                                        if (!(_b < endusers_3.length)) return [3 /*break*/, 22];
+                                        e = endusers_3[_b];
+                                        return [4 /*yield*/, sdk.api.endusers.generate_auth_token({ id: e.id, overrideOTP: true })];
+                                    case 19:
+                                        newToken = (_d.sent()).authToken;
+                                        newSession = new EnduserSession({ host: host, authToken: newToken, businessId: sdk.userInfo.businessId });
+                                        return [4 /*yield*/, newSession.test_authenticated()];
+                                    case 20:
+                                        _d.sent();
+                                        _d.label = 21;
+                                    case 21:
+                                        _b++;
+                                        return [3 /*break*/, 18];
+                                    case 22: return [2 /*return*/, 'passed'];
+                                    case 23: return [4 /*yield*/, resetOTPSettings(sdk)];
+                                    case 24:
+                                        _d.sent();
+                                        _c = 0, endusers_4 = endusers;
+                                        _d.label = 25;
+                                    case 25:
+                                        if (!(_c < endusers_4.length)) return [3 /*break*/, 28];
+                                        e = endusers_4[_c];
+                                        return [4 /*yield*/, sdk.api.endusers.deleteOne(e.id).catch(console.error)];
+                                    case 26:
+                                        _d.sent();
+                                        _d.label = 27;
+                                    case 27:
+                                        _c++;
+                                        return [3 /*break*/, 25];
+                                    case 28: return [7 /*endfinally*/];
+                                    case 29: return [2 /*return*/];
+                                }
+                            });
+                        }); }, { expectedResult: 'passed' })
+                        // Reset rate limiting state before continuing
+                    ];
+                case 20:
+                    // Test 7: Enabling requireOTPAfterPassword invalidates multiple enduser sessions
+                    _b.sent();
+                    // Reset rate limiting state before continuing
+                    return [4 /*yield*/, sdk.reset_db()];
+                case 21:
+                    // Reset rate limiting state before continuing
+                    _b.sent();
+                    return [4 /*yield*/, wait(undefined, 500)
+                        // Test 8: Disabling OTP does NOT invalidate sessions
+                    ];
+                case 22:
+                    _b.sent();
+                    // Test 8: Disabling OTP does NOT invalidate sessions
+                    return [4 /*yield*/, async_test('disabling OTP does not invalidate sessions', function () { return __awaiter(void 0, void 0, void 0, function () {
+                            var enduser, authToken, enduserSession;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0: 
+                                    // Enable OTP first
+                                    return [4 /*yield*/, sdk.api.organizations.updateOne(sdk.userInfo.businessId, {
+                                            portalSettings: { authentication: { requireOTP: true } },
+                                        })];
+                                    case 1:
+                                        // Enable OTP first
+                                        _a.sent();
+                                        return [4 /*yield*/, wait(undefined, 2000)
+                                            // Create enduser and token AFTER OTP is enabled (so token is valid)
+                                        ];
+                                    case 2:
+                                        _a.sent();
+                                        return [4 /*yield*/, sdk.api.endusers.createOne({ email: "otp-disable-".concat(Date.now(), "@tellescope.com") })];
+                                    case 3:
+                                        enduser = _a.sent();
+                                        _a.label = 4;
+                                    case 4:
+                                        _a.trys.push([4, , 11, 14]);
+                                        return [4 /*yield*/, sdk.api.endusers.generate_auth_token({ id: enduser.id, overrideOTP: true })];
+                                    case 5:
+                                        authToken = (_a.sent()).authToken;
+                                        enduserSession = new EnduserSession({ host: host, authToken: authToken, businessId: sdk.userInfo.businessId });
+                                        return [4 /*yield*/, enduserSession.test_authenticated()];
+                                    case 6:
+                                        _a.sent();
+                                        return [4 /*yield*/, wait(undefined, 2000)
+                                            // Disable OTP
+                                        ];
+                                    case 7:
+                                        _a.sent();
+                                        // Disable OTP
+                                        return [4 /*yield*/, sdk.api.organizations.updateOne(sdk.userInfo.businessId, {
+                                                portalSettings: { authentication: { requireOTP: false } },
+                                            }, { replaceObjectFields: true })];
+                                    case 8:
+                                        // Disable OTP
+                                        _a.sent();
+                                        return [4 /*yield*/, wait(undefined, 1000)
+                                            // Old token should still work (disabling OTP should not invalidate)
+                                        ];
+                                    case 9:
+                                        _a.sent();
+                                        return [4 /*yield*/, enduserSession.test_authenticated()];
+                                    case 10: 
+                                    // Old token should still work (disabling OTP should not invalidate)
+                                    return [2 /*return*/, _a.sent()];
+                                    case 11: return [4 /*yield*/, resetOTPSettings(sdk)];
+                                    case 12:
+                                        _a.sent();
+                                        return [4 /*yield*/, sdk.api.endusers.deleteOne(enduser.id).catch(console.error)];
+                                    case 13:
+                                        _a.sent();
+                                        return [7 /*endfinally*/];
+                                    case 14: return [2 /*return*/];
+                                }
+                            });
+                        }); }, { expectedResult: 'Authenticated!' })
+                        // Test 9: OTP invalidation is scoped to the updated organization only (multi-tenant)
+                    ];
+                case 23:
+                    // Test 8: Disabling OTP does NOT invalidate sessions
+                    _b.sent();
+                    // Test 9: OTP invalidation is scoped to the updated organization only (multi-tenant)
+                    return [4 /*yield*/, async_test('OTP invalidation is scoped to the updated organization only', function () { return __awaiter(void 0, void 0, void 0, function () {
+                            var sdkOther, otherEnduser, mainEnduser, otherToken, otherEnduserSession, mainToken, mainEnduserSession, e_5;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0:
+                                        sdkOther = new Session({ host: host, apiKey: "ba745e25162bb95a795c5fa1af70df188d93c4d3aac9c48b34a5c8c9dd7b80f7" });
+                                        return [4 /*yield*/, sdkOther.api.endusers.createOne({ email: "otp-other-tenant-".concat(Date.now(), "@tellescope.com") })];
+                                    case 1:
+                                        otherEnduser = _a.sent();
+                                        return [4 /*yield*/, sdk.api.endusers.createOne({ email: "otp-main-tenant-".concat(Date.now(), "@tellescope.com") })];
+                                    case 2:
+                                        mainEnduser = _a.sent();
+                                        _a.label = 3;
+                                    case 3:
+                                        _a.trys.push([3, , 16, 20]);
+                                        return [4 /*yield*/, sdkOther.api.endusers.generate_auth_token({ id: otherEnduser.id, overrideOTP: true })];
+                                    case 4:
+                                        otherToken = (_a.sent()).authToken;
+                                        otherEnduserSession = new EnduserSession({ host: host, authToken: otherToken, businessId: sdkOther.userInfo.businessId });
+                                        return [4 /*yield*/, sdk.api.endusers.generate_auth_token({ id: mainEnduser.id, overrideOTP: true })];
+                                    case 5:
+                                        mainToken = (_a.sent()).authToken;
+                                        mainEnduserSession = new EnduserSession({ host: host, authToken: mainToken, businessId: sdk.userInfo.businessId });
+                                        // Both tokens work
+                                        return [4 /*yield*/, otherEnduserSession.test_authenticated()];
+                                    case 6:
+                                        // Both tokens work
+                                        _a.sent();
+                                        return [4 /*yield*/, mainEnduserSession.test_authenticated()];
+                                    case 7:
+                                        _a.sent();
+                                        return [4 /*yield*/, wait(undefined, 2000)
+                                            // Enable OTP on main tenant only
+                                        ];
+                                    case 8:
+                                        _a.sent();
+                                        // Enable OTP on main tenant only
+                                        return [4 /*yield*/, sdk.api.organizations.updateOne(sdk.userInfo.businessId, {
+                                                portalSettings: { authentication: { requireOTP: true } },
+                                            })];
+                                    case 9:
+                                        // Enable OTP on main tenant only
+                                        _a.sent();
+                                        return [4 /*yield*/, wait(undefined, 1000)
+                                            // Main tenant enduser's old token should be rejected
+                                        ];
+                                    case 10:
+                                        _a.sent();
+                                        _a.label = 11;
+                                    case 11:
+                                        _a.trys.push([11, 13, , 14]);
+                                        return [4 /*yield*/, mainEnduserSession.test_authenticated()];
+                                    case 12:
+                                        _a.sent();
+                                        return [2 /*return*/, 'should have thrown'];
+                                    case 13:
+                                        e_5 = _a.sent();
+                                        return [3 /*break*/, 14];
+                                    case 14: 
+                                    // Other tenant enduser's token should still work
+                                    return [4 /*yield*/, otherEnduserSession.test_authenticated()];
+                                    case 15:
+                                        // Other tenant enduser's token should still work
+                                        _a.sent();
+                                        return [2 /*return*/, 'passed'];
+                                    case 16: return [4 /*yield*/, resetOTPSettings(sdk)];
+                                    case 17:
+                                        _a.sent();
+                                        return [4 /*yield*/, sdk.api.endusers.deleteOne(mainEnduser.id).catch(console.error)];
+                                    case 18:
+                                        _a.sent();
+                                        return [4 /*yield*/, sdkOther.api.endusers.deleteOne(otherEnduser.id).catch(console.error)];
+                                    case 19:
+                                        _a.sent();
+                                        return [7 /*endfinally*/];
+                                    case 20: return [2 /*return*/];
+                                }
+                            });
+                        }); }, { expectedResult: 'passed' })];
+                case 24:
+                    // Test 9: OTP invalidation is scoped to the updated organization only (multi-tenant)
+                    _b.sent();
+                    console.log("✅ All OTP Enablement Session Invalidation tests passed!");
+                    return [3 /*break*/, 27];
+                case 25: 
+                // Always reset OTP settings to prevent impacting other tests
+                return [4 /*yield*/, resetOTPSettings(sdk).catch(console.error)];
+                case 26:
+                    // Always reset OTP settings to prevent impacting other tests
+                    _b.sent();
+                    return [7 /*endfinally*/];
+                case 27: return [2 /*return*/];
             }
         });
     });

@@ -3784,6 +3784,7 @@ type Queries = {
     };
     purchases: {
         charge_card_on_file: (args: extractFields<CustomActions['purchases']['charge_card_on_file']['parameters']>) => (Promise<extractFields<CustomActions['purchases']['charge_card_on_file']['returns']>>);
+        chargebee_charge_card_on_file: (args: extractFields<CustomActions['purchases']['chargebee_charge_card_on_file']['parameters']>) => (Promise<extractFields<CustomActions['purchases']['chargebee_charge_card_on_file']['returns']>>);
     };
     forms: {
         get_form_statistics: (args: extractFields<CustomActions['forms']['get_form_statistics']['parameters']>) => (Promise<extractFields<CustomActions['forms']['get_form_statistics']['returns']>>);
@@ -4174,7 +4175,6 @@ export declare class Session extends SessionManager {
         exp: number;
         allowedPaths?: string[] | undefined;
         requiresMFA?: boolean | undefined;
-        users?: number | undefined;
         inbox_threads?: number | undefined;
         ai_conversations?: number | undefined;
         waitlists?: number | undefined;
@@ -4221,6 +4221,7 @@ export declare class Session extends SessionManager {
         sms_messages?: number | undefined;
         chat_rooms?: number | undefined;
         chats?: number | undefined;
+        users?: number | undefined;
         templates?: number | undefined;
         files?: number | undefined;
         tickets?: number | undefined;
@@ -4331,7 +4332,6 @@ export declare class Session extends SessionManager {
         exp: number;
         allowedPaths?: string[] | undefined;
         requiresMFA?: boolean | undefined;
-        users?: number | undefined;
         inbox_threads?: number | undefined;
         ai_conversations?: number | undefined;
         waitlists?: number | undefined;
@@ -4378,6 +4378,7 @@ export declare class Session extends SessionManager {
         sms_messages?: number | undefined;
         chat_rooms?: number | undefined;
         chats?: number | undefined;
+        users?: number | undefined;
         templates?: number | undefined;
         files?: number | undefined;
         tickets?: number | undefined;

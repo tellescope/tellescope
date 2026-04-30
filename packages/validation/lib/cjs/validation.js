@@ -1574,6 +1574,15 @@ exports.insuranceOptionalValidator = (0, exports.objectValidator)({
     groupNumber: exports.stringValidatorOptional,
     planName: exports.stringValidatorOptional,
     startDate: exports.stringValidatorOptional,
+    authorizationStartDate: exports.stringValidatorOptional,
+    authorizationEndDate: exports.stringValidatorOptional,
+    track: exports.stringValidatorOptional,
+    visitsAuthorized: exports.nonNegNumberValidatorOptional,
+    visitsUsed: exports.nonNegNumberValidatorOptional,
+    procedureCodes: exports.listOfStringsValidatorOptionalOrEmptyOk,
+    diagnosisCodes: exports.listOfStringsValidatorOptionalOrEmptyOk,
+    healthieAuthorizationId: exports.stringValidatorOptional,
+    healthiePolicyId: exports.stringValidatorOptional,
 }, { isOptional: true, emptyOk: true });
 exports.pharmacyValidator = (0, exports.objectValidator)({
     npi: exports.stringValidatorOptional,
@@ -2700,6 +2709,7 @@ exports.automationActionValidator = (0, exports.orValidator)({
             chargeType: (0, exports.exactMatchValidator)(['One-Time', 'Subscription']),
             itemPriceId: exports.stringValidator,
             quantity: exports.numberValidatorMin1Max100Optional,
+            couponIds: exports.listOfStringsValidatorOptionalOrEmptyOk,
         }, { emptyOk: false }) })),
     aiDecision: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['aiDecision']), info: (0, exports.objectValidator)({
             outcomes: exports.listOfStringsValidator,
@@ -5237,7 +5247,10 @@ exports.analyticsQueryValidator = (0, exports.orValidator)({
     }),
     "Chats": (0, exports.objectValidator)({
         resource: (0, exports.exactMatchValidator)(['Chats']),
-        filter: (0, exports.objectValidator)({}, { isOptional: true, emptyOk: true }),
+        filter: (0, exports.objectValidator)({
+            direction: exports.stringValidatorOptional,
+            "Chat Tags": exports.listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
+        }, { isOptional: true, emptyOk: true }),
         info: (0, exports.orValidator)({
             "Total": (0, exports.objectValidator)({
                 method: (0, exports.exactMatchValidator)(['Total']),
@@ -5245,6 +5258,7 @@ exports.analyticsQueryValidator = (0, exports.orValidator)({
             }),
         }),
         grouping: (0, exports.objectValidator)({
+            "Chat Tags": exports.booleanValidatorOptional,
             Enduser: exports.booleanValidatorOptional,
             Gender: exports.booleanValidatorOptional,
             "Assigned To": exports.booleanValidatorOptional,

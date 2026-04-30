@@ -313,6 +313,8 @@ export type BasicWebhook = {
 export type TimeTrackingBillingCode = {
     billingCode: string;
     timeInMinutes: number;
+    repeatable?: boolean;
+    feeCents?: number;
 };
 export type TimeTrackingProgramForm = {
     id: string;
@@ -321,6 +323,7 @@ export type TimeTrackingProgram = {
     title: string;
     billingCodes: TimeTrackingBillingCode[];
     forms?: TimeTrackingProgramForm[];
+    summaryFormId?: string;
 };
 export type SyncDirection = "Bidirectional" | "From Tellescope" | "To Tellescope";
 export type AthenaFieldSync = {
@@ -439,6 +442,7 @@ export interface Organization extends Organization_readonly, Organization_requir
     hasConnectedZus?: boolean;
     hasConnectedCanvas?: boolean;
     canvasURL?: string;
+    healthiePortalURL?: string;
     hasConnectedCandid?: boolean;
     hasConnectedGoGoMeds?: boolean;
     hasScriptSure?: boolean;
@@ -849,6 +853,15 @@ export type EnduserInsurance = {
     groupNumber?: string;
     planName?: string;
     startDate?: string;
+    authorizationStartDate?: string;
+    authorizationEndDate?: string;
+    track?: string;
+    visitsAuthorized?: number;
+    visitsUsed?: number;
+    procedureCodes?: string[];
+    diagnosisCodes?: string[];
+    healthieAuthorizationId?: string;
+    healthiePolicyId?: string;
 };
 export type Pharmacy = {
     npi?: string;
@@ -1076,6 +1089,7 @@ export interface EnduserMedication extends EnduserMedication_readonly, EnduserMe
 }
 export interface APIKey_readonly extends ClientRecord {
     hashedKey: string;
+    approvedBusinessIds?: string[];
 }
 export interface APIKey_required {
 }
@@ -2052,6 +2066,8 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
         offering_id: string;
     }[];
     autoMergeOnSubmission?: boolean;
+    procedureCodes?: FormResponseProcedureCode[];
+    diagnosisCodes?: FormResponseDiagnosisCode[];
 }
 export interface FormGroup_readonly extends ClientRecord {
 }
@@ -2495,6 +2511,8 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
         timestamp: Date;
     }[];
     startedViaPinnedForm?: boolean;
+    procedureCodes?: FormResponseProcedureCode[];
+    diagnosisCodes?: FormResponseDiagnosisCode[];
 }
 export interface WebHook_readonly extends ClientRecord {
 }
@@ -3433,6 +3451,7 @@ export type ChargebeeChargeCardOnFileAutomationAction = AutomationActionBuilder<
     chargeType: 'One-Time' | 'Subscription';
     itemPriceId: string;
     quantity?: number;
+    couponIds?: string[];
 }>;
 export type AIContextSource = {
     type: "Email" | "SMS" | "PhoneCall";
@@ -4224,7 +4243,10 @@ export type AnalyticsQueryFilterForType = {
     };
     Orders: {};
     "Chat Rooms": {};
-    "Chats": {};
+    "Chats": {
+        direction?: string;
+        "Chat Tags"?: ListOfStringsWithQualifier;
+    };
 };
 export type EnduserGrouping = {
     Field?: string;
@@ -4302,7 +4324,9 @@ export type AnalyticsQueryGroupingForType = {
     "Chat Rooms": {} & EnduserGrouping & {
         Enduser: string;
     };
-    "Chats": {} & EnduserGrouping & {
+    "Chats": {
+        "Chat Tags"?: boolean;
+    } & EnduserGrouping & {
         Enduser: string;
     };
 };
@@ -4838,6 +4862,16 @@ export type SuperbillLineItem = {
     };
     discount?: number;
     diagnosisCodes?: string[];
+};
+export type FormResponseProcedureCode = {
+    code: string;
+    units: number;
+    feeCents?: number;
+    modifiers?: string[];
+};
+export type FormResponseDiagnosisCode = {
+    code: string;
+    description?: string;
 };
 export type SuperbillPatientInfo = {
     name: string;

@@ -4895,7 +4895,7 @@ export const RedirectInput = ({ enduserId, groupId, groupInsance, rootResponseId
   return null
 }
 
-export const HiddenValueInput = ({ goToNextField, goToPreviousField, field, value, onChange, isSinglePage, groupFields }: FormInputProps<'email'>) => {
+export const HiddenValueInput = ({ goToNextField, goToPreviousField, field, value, onChange, isSinglePage, groupFields, lastNavigationDirectionRef }: FormInputProps<'email'>) => {
   let lastRef = useRef(0)
   let lastIdRef = useRef('')
 
@@ -4925,7 +4925,10 @@ export const HiddenValueInput = ({ goToNextField, goToPreviousField, field, valu
     lastRef.current = Date.now()
     lastIdRef.current = field.id
 
-    if (value) {
+    // Only collapse backward through a chain of hidden fields when actually navigating backward.
+    // On forward nav (including form resume where existingResponses pre-populate the value),
+    // fall through to the else branch so we re-set and advance instead of bouncing back.
+    if (value && lastNavigationDirectionRef?.current === 'backward') {
       if (isSinglePage) return
       onChange('', field.id)
 
@@ -4939,7 +4942,7 @@ export const HiddenValueInput = ({ goToNextField, goToPreviousField, field, valu
       // pass value that is set after above onChange
       goToNextField?.({ type: 'Hidden Value', value: valueToSet })
     }
-  }, [value, onChange, field.id, valueToSet, goToNextField, goToPreviousField, isSinglePage, dontNavigate])
+  }, [value, onChange, field.id, valueToSet, goToNextField, goToPreviousField, isSinglePage, dontNavigate, lastNavigationDirectionRef])
 
   return <></>
 }

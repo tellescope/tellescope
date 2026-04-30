@@ -74,6 +74,8 @@ import {
   Addendum,
   GroupCancellation,
   FormResponseFollowup,
+  FormResponseProcedureCode,
+  FormResponseDiagnosisCode,
   DevelopHealthRunBenefitVerificationBaseArguments,
   WeeklyAvailability,
   CanvasCreateNoteAutomationAction,
@@ -140,6 +142,7 @@ import {
   phoneValidator,
   nameValidator,
   nonNegNumberValidator,
+  nonNegNumberValidatorOptional,
   mongoIdValidator,
   mongoIdStringRequired as mongoIdStringValidator,
   listOfMongoIdStringValidator,
@@ -729,6 +732,8 @@ export type CustomActions = {
         groupInstance?: string,
         groupPosition?: number,
         startedViaPinnedForm?: boolean,
+        procedureCodes?: FormResponseProcedureCode[],
+        diagnosisCodes?: FormResponseDiagnosisCode[],
       },
       { accessCode: string, url: string, response: FormResponse, fullURL: string }>
     ,
@@ -1187,7 +1192,11 @@ export type CustomActions = {
   },
   purchases: {
     charge_card_on_file: CustomAction<
-      { enduserId: string, productIds?: string[], priceIds?: string[], cost?: Purchase['cost'], stripeKey?: string, description?: string, subscriptionPriceId?: string }, 
+      { enduserId: string, productIds?: string[], priceIds?: string[], cost?: Purchase['cost'], stripeKey?: string, description?: string, subscriptionPriceId?: string },
+      { }
+    >,
+    chargebee_charge_card_on_file: CustomAction<
+      { enduserId: string, chargebeeEnvironment: string, chargeType: string, itemPriceId?: string, quantity?: number, couponIds?: string[], cost?: Purchase['cost'], description?: string },
       { }
     >,
   },
@@ -1404,6 +1413,18 @@ export type SchemaV1 = Schema & {
 }
 
 export const build_schema = <T extends Schema>(schema: T) => schema
+
+const procedureCodesValidator = listValidatorOptionalOrEmptyOk(objectValidator<FormResponseProcedureCode>({
+  code: stringValidator100,
+  units: nonNegNumberValidator,
+  feeCents: nonNegNumberValidatorOptional,
+  modifiers: listOfStringsValidatorOptionalOrEmptyOk,
+}))
+
+const diagnosisCodesValidator = listValidatorOptionalOrEmptyOk(objectValidator<FormResponseDiagnosisCode>({
+  code: stringValidator100,
+  description: stringValidatorOptionalEmptyOkay,
+}))
 
 export const schema: SchemaV1 = build_schema({
   endusers: {
@@ -2216,6 +2237,10 @@ export const schema: SchemaV1 = build_schema({
       ...BuiltInFields,
       hashedKey: {
         validator: stringValidator,
+        readonly: true,
+      },
+      approvedBusinessIds: {
+        validator: listOfMongoIdStringValidator,
         readonly: true,
       },
     },
@@ -4669,6 +4694,8 @@ export const schema: SchemaV1 = build_schema({
         }))
       },
       autoMergeOnSubmission: { validator: booleanValidator },
+      procedureCodes: { validator: procedureCodesValidator },
+      diagnosisCodes: { validator: diagnosisCodesValidator },
       gtmTag: { validator: stringValidator100EscapeHTML },
       dontSyncToCanvasOnSubmission: { validator: booleanValidator },
       archivedAt: { validator: dateOptionalOrEmptyStringValidator },
@@ -4951,9 +4978,11 @@ export const schema: SchemaV1 = build_schema({
         }))
       },
       startedViaPinnedForm: { validator: booleanValidator },
+      procedureCodes: { validator: procedureCodesValidator },
+      diagnosisCodes: { validator: diagnosisCodesValidator },
     },
     defaultActions: DEFAULT_OPERATIONS,
-    enduserActions: { 
+    enduserActions: {
       prepare_form_response: {}, info_for_access_code: {}, submit_form_response: {}, stripe_details: {}, chargebee_details: {},
       read: {}, readMany: {}, save_field_response: {},
       update: { } /* allows for hiding from client portal, storing partial responses while submitting form */ 
@@ -4981,6 +5010,8 @@ export const schema: SchemaV1 = build_schema({
           groupInstance: { validator: stringValidator100 },
           groupPosition: { validator: nonNegNumberValidator },
           startedViaPinnedForm: { validator: booleanValidator },
+          procedureCodes: { validator: procedureCodesValidator },
+          diagnosisCodes: { validator: diagnosisCodesValidator },
         },
         returns: {
           accessCode: { validator: stringValidator250, required: true },
@@ -7043,6 +7074,7 @@ export const schema: SchemaV1 = build_schema({
       subdomain: {
         validator: slugValidator,
         required: true,
+        readonly: true, // mutated only by Tellescope (internal); see CloudFront portal-v2 alias safety
         examples: ["subdomain"],
       },
       limits: { 
@@ -7156,6 +7188,7 @@ export const schema: SchemaV1 = build_schema({
       },
       groups: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       canvasURL: { validator: stringValidator },
+      healthiePortalURL: { validator: stringValidator },
       observationInvalidationReasons: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       customNotificationTypes: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       customerIOFields: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
@@ -7167,15 +7200,18 @@ export const schema: SchemaV1 = build_schema({
       skipActivePatientBilling: { validator: booleanValidator },
       portalV2SchemaURL: { validator: stringValidator },
       timeTrackingPrograms: {
-        validator: listValidatorOptionalOrEmptyOk(objectValidator<{ title: string, billingCodes: { billingCode: string, timeInMinutes: number }[], forms?: { id: string }[] }>({
+        validator: listValidatorOptionalOrEmptyOk(objectValidator<{ title: string, billingCodes: { billingCode: string, timeInMinutes: number, repeatable?: boolean, feeCents?: number }[], forms?: { id: string }[], summaryFormId?: string }>({
           title: stringValidator100,
-          billingCodes: listValidatorEmptyOk(objectValidator<{ billingCode: string, timeInMinutes: number }>({
+          billingCodes: listValidatorEmptyOk(objectValidator<{ billingCode: string, timeInMinutes: number, repeatable?: boolean, feeCents?: number }>({
             billingCode: stringValidator100,
             timeInMinutes: nonNegNumberValidator,
+            repeatable: booleanValidatorOptional,
+            feeCents: nonNegNumberValidatorOptional,
           })),
           forms: listValidatorOptionalOrEmptyOk(objectValidator<{ id: string }>({
             id: mongoIdStringRequired,
           })),
+          summaryFormId: mongoIdStringOptional,
         }))
       },
     },
@@ -7622,11 +7658,11 @@ export const schema: SchemaV1 = build_schema({
     defaultActions: DEFAULT_OPERATIONS,
     customActions: {
       charge_card_on_file: {
-        op: "custom", access: 'create', method: "post", 
+        op: "custom", access: 'create', method: "post",
         name: 'Charge Stripe Card on File',
         path: '/purchases/charge-card',
         description: "Charges an existing card on file (if saved), otherwise throws an error",
-        parameters: { 
+        parameters: {
           enduserId: { validator: mongoIdStringValidator, required: true },
           productIds: { validator: listOfMongoIdStringValidatorEmptyOk },
           priceIds: { validator: listOfStringsValidatorOptionalOrEmptyOk }, // stripe price IDs, not Tellescope ids
@@ -7638,7 +7674,25 @@ export const schema: SchemaV1 = build_schema({
         returns: {
 
         },
-      }, 
+      },
+      chargebee_charge_card_on_file: {
+        op: "custom", access: 'create', method: "post",
+        name: 'Charge Chargebee Card on File',
+        path: '/purchases/chargebee-charge-card',
+        description: "Charges a Chargebee customer's card on file",
+        parameters: {
+          enduserId: { validator: mongoIdStringValidator, required: true },
+          chargebeeEnvironment: { validator: stringValidator, required: true },
+          chargeType: { validator: stringValidator, required: true },
+          itemPriceId: { validator: stringValidator100 },
+          quantity: { validator: numberValidator },
+          couponIds: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+          cost: { validator: costValidator },
+          description: { validator: stringValidator },
+        },
+        returns: {
+        },
+      },
     },
     enduserActions: { read: {}, readMany: {} },
     fields: {

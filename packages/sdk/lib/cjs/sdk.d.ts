@@ -3784,6 +3784,7 @@ type Queries = {
     };
     purchases: {
         charge_card_on_file: (args: extractFields<CustomActions['purchases']['charge_card_on_file']['parameters']>) => (Promise<extractFields<CustomActions['purchases']['charge_card_on_file']['returns']>>);
+        chargebee_charge_card_on_file: (args: extractFields<CustomActions['purchases']['chargebee_charge_card_on_file']['parameters']>) => (Promise<extractFields<CustomActions['purchases']['chargebee_charge_card_on_file']['returns']>>);
     };
     forms: {
         get_form_statistics: (args: extractFields<CustomActions['forms']['get_form_statistics']['parameters']>) => (Promise<extractFields<CustomActions['forms']['get_form_statistics']['returns']>>);

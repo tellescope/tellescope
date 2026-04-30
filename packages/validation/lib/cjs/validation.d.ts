@@ -2127,8 +2127,13 @@ export declare const analyticsQueryValidator: ValidatorDefinition<{
         method: "Total";
         parameters: undefined;
     };
-    filter?: {} | undefined;
-    grouping?: (import("@tellescope/types-models").EnduserGrouping & {
+    filter?: {
+        direction?: string | undefined;
+        "Chat Tags"?: ListOfStringsWithQualifier | undefined;
+    } | undefined;
+    grouping?: ({
+        "Chat Tags"?: boolean | undefined;
+    } & import("@tellescope/types-models").EnduserGrouping & {
         Enduser: string;
     }) | undefined;
     range?: AnalyticsQueryRange<"Created At" | "Updated At"> | undefined;
@@ -2391,8 +2396,13 @@ export declare const analyticsQueriesValidatorOptional: ValidatorDefinition<({
         method: "Total";
         parameters: undefined;
     };
-    filter?: {} | undefined;
-    grouping?: (import("@tellescope/types-models").EnduserGrouping & {
+    filter?: {
+        direction?: string | undefined;
+        "Chat Tags"?: ListOfStringsWithQualifier | undefined;
+    } | undefined;
+    grouping?: ({
+        "Chat Tags"?: boolean | undefined;
+    } & import("@tellescope/types-models").EnduserGrouping & {
         Enduser: string;
     }) | undefined;
     range?: AnalyticsQueryRange<"Created At" | "Updated At"> | undefined;

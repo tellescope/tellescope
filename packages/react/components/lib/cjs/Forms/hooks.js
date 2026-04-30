@@ -452,6 +452,35 @@ var existing_response_if_compatible = function (existingResponses, field) {
     }
     return undefined; // no valid match, write off as data loss due to incompatible type of new question
 };
+// Filter stale multiple-choice/dropdown selections whose options are now hidden by showCondition
+var filter_stale_choices = function (value, field, responseContext, enduser, form) {
+    var _a, _b;
+    if (!value || !Array.isArray(value))
+        return value;
+    if (field.type !== 'multiple_choice' && field.type !== 'Dropdown')
+        return value;
+    var options = field.options;
+    if (!((_a = options === null || options === void 0 ? void 0 : options.optionDetails) === null || _a === void 0 ? void 0 : _a.length))
+        return value; // no option-level conditions to check
+    var choices = (_b = options.choices) !== null && _b !== void 0 ? _b : [];
+    return value.filter(function (v) {
+        var _a;
+        // preserve values not in the choices array (e.g. "other" free-text)
+        if (!choices.includes(v))
+            return true;
+        var optionDetail = (_a = options.optionDetails) === null || _a === void 0 ? void 0 : _a.find(function (d) { return d.option === v; });
+        if (!(optionDetail === null || optionDetail === void 0 ? void 0 : optionDetail.showCondition) || (0, utilities_1.object_is_empty)(optionDetail.showCondition)) {
+            return true; // no condition means always visible
+        }
+        return (0, utilities_1.responses_satisfy_conditions)(responseContext, optionDetail.showCondition, {
+            dateOfBirth: enduser === null || enduser === void 0 ? void 0 : enduser.dateOfBirth,
+            gender: enduser === null || enduser === void 0 ? void 0 : enduser.gender,
+            state: enduser === null || enduser === void 0 ? void 0 : enduser.state,
+            form: form,
+            activeResponses: responseContext,
+        });
+    });
+};
 var shouldCallout = function (field, value) {
     var _a;
     if (!field)
@@ -500,6 +529,7 @@ var useTellescopeForm = function (_a) {
     var _p = (0, react_1.useState)(0), currentPageIndex = _p[0], setCurrentPageIndex = _p[1];
     var _q = (0, react_1.useState)([]), uploadingFiles = _q[0], setUploadingFiles = _q[1];
     var prevFieldStackRef = (0, react_1.useRef)([]);
+    var lastNavigationDirectionRef = (0, react_1.useRef)(null);
     // Auto-advance state for form continuation
     var _t = (0, react_1.useState)(false), isAutoAdvancing = _t[0], setIsAutoAdvancing = _t[1];
     var autoAdvanceCompletedRef = (0, react_1.useRef)(false);
@@ -590,8 +620,12 @@ var useTellescopeForm = function (_a) {
     // placeholders for initial fields, reset when fields prop changes, since questions are now different (e.g. different form selected) 
     var fieldInitRef = (0, react_1.useRef)('');
     var initializeFields = (0, react_1.useCallback)(function () { return (fields.map(function (f) {
-        var _a, _b, _c, _d, _e, _g, _h, _j, _k, _l, _m, _o, _p, _q, _t, _u, _v, _w, _x, _y;
-        return ({
+        var _a, _b, _c, _d, _e, _g, _h, _j, _k, _l, _m, _o, _p, _q, _t, _u, _v, _w, _x;
+        var existingValue = existing_response_if_compatible(existingResponses, f);
+        var filteredValue = (existingValue != null && Array.isArray(existingValue) && (f.type === 'multiple_choice' || f.type === 'Dropdown')
+            ? filter_stale_choices(existingValue, f, existingResponses !== null && existingResponses !== void 0 ? existingResponses : [], enduser, form)
+            : existingValue);
+        return {
             fieldId: f.id,
             fieldTitle: f.title,
             fieldDescription: f.description,
@@ -620,31 +654,31 @@ var useTellescopeForm = function (_a) {
                                 : undefined),
             answer: {
                 type: f.type,
-                value: ((_p = existing_response_if_compatible(existingResponses, f)) !== null && _p !== void 0 ? _p : ((f.type === 'Insurance' || f.type === 'Address' || f.type === 'file' || f.type === 'signature' || f.type === 'multiple_choice' || f.type === 'Dropdown' || f.type === 'Table Input' || f.type === 'Database Select' || f.type === 'Medications' || f.type === 'Pharmacy Search')
+                value: (filteredValue !== null && filteredValue !== void 0 ? filteredValue : ((f.type === 'Insurance' || f.type === 'Address' || f.type === 'file' || f.type === 'signature' || f.type === 'multiple_choice' || f.type === 'Dropdown' || f.type === 'Table Input' || f.type === 'Database Select' || f.type === 'Medications' || f.type === 'Pharmacy Search')
                     ? undefined
                     : f.type === 'Question Group'
-                        ? (_q = f.options) === null || _q === void 0 ? void 0 : _q.subFields
+                        ? (_p = f.options) === null || _p === void 0 ? void 0 : _p.subFields
                         : f.type === 'ranking'
-                            ? (_t = f.options) === null || _t === void 0 ? void 0 : _t.choices
+                            ? (_q = f.options) === null || _q === void 0 ? void 0 : _q.choices
                             : f.type === 'Time'
                                 ? "".concat("".concat(hoursAmPm < 10 ? '0' : '').concat(hoursAmPm), ":").concat(minutes, " ").concat(amPm.toUpperCase(), " ").concat((0, utilities_1.getLocalTimezone)())
                                 : f.type === 'rating'
-                                    ? ((((_u = f.options) === null || _u === void 0 ? void 0 : _u.default) && !isNaN(parseInt(f.options.default)))
+                                    ? ((((_t = f.options) === null || _t === void 0 ? void 0 : _t.default) && !isNaN(parseInt(f.options.default)))
                                         ? parseInt(f.options.default)
                                         : undefined // shows no selection on slider
                                     )
                                     : f.type === 'Related Contacts'
-                                        ? (f.isOptional ? [] : [{ relationships: ((_w = (_v = f === null || f === void 0 ? void 0 : f.options) === null || _v === void 0 ? void 0 : _v.relatedContactTypes) === null || _w === void 0 ? void 0 : _w.length) === 1 ? [{ type: f.options.relatedContactTypes[0], id: '' }] : [] }])
-                                        : (f.type === 'date' && ((_x = f.options) === null || _x === void 0 ? void 0 : _x.prefillCurrentDate))
+                                        ? (f.isOptional ? [] : [{ relationships: ((_v = (_u = f === null || f === void 0 ? void 0 : f.options) === null || _u === void 0 ? void 0 : _u.relatedContactTypes) === null || _v === void 0 ? void 0 : _v.length) === 1 ? [{ type: f.options.relatedContactTypes[0], id: '' }] : [] }])
+                                        : (f.type === 'date' && ((_w = f.options) === null || _w === void 0 ? void 0 : _w.prefillCurrentDate))
                                             ? new Date()
-                                            : (f.type === 'dateString' && ((_y = f.options) === null || _y === void 0 ? void 0 : _y.prefillCurrentDate))
+                                            : (f.type === 'dateString' && ((_x = f.options) === null || _x === void 0 ? void 0 : _x.prefillCurrentDate))
                                                 ? (0, utilities_1.mm_dd_yyyy)(new Date())
                                                 : '' // null flag that the response was not filled out
                 )),
             },
             field: f,
-        });
-    })); }, [fields, existingResponses]);
+        };
+    })); }, [fields, existingResponses, enduser, form]);
     var _v = (0, react_1.useState)(initializeFields()), responses = _v[0], setResponses = _v[1];
     (0, react_1.useEffect)(function () {
         // Be very careful about refreshing data to avoid losing progress -- only in the case the selected form has changed
@@ -1367,7 +1401,10 @@ var useTellescopeForm = function (_a) {
                                     // but don't include responses which were populated from a patient field and not a prior response
                                     // if these are edited, they would be included in responsesToSubmit
                                     && !r.isPrepopulatedFromEnduserField;
-                            }), true),
+                            })
+                            // initializeFields leverages filter_stale_choices to strip answers whose options are no longer visible in multiple choice type questions
+                            // existingResponses may still carry stale values for fields the user didn't interact with this session, but preserving them as-is avoids unexpected data loss
+                            , true),
                             _l.automationStepId = automationStepId,
                             _l.customerId = customerId,
                             _l.productIds = responsesToSubmit_3.flatMap(function (r) { var _a, _b, _c; return (_c = (_b = (_a = r.field) === null || _a === void 0 ? void 0 : _a.options) === null || _b === void 0 ? void 0 : _b.productIds) !== null && _c !== void 0 ? _c : []; }),
@@ -1474,6 +1511,7 @@ var useTellescopeForm = function (_a) {
             return;
         if (isNextDisabled() && (currentValue === null || currentValue === void 0 ? void 0 : currentValue.answer.type) !== 'Hidden Value')
             return;
+        lastNavigationDirectionRef.current = 'forward';
         console.log('going to next field');
         if (currentValue.answer.type === 'Question Group') {
             var responsesToSave = ((((_a = currentValue.field.options) === null || _a === void 0 ? void 0 : _a.subFields) || [])
@@ -1534,6 +1572,7 @@ var useTellescopeForm = function (_a) {
     var goToPreviousField = (0, react_1.useCallback)(function () {
         if (isPreviousDisabled())
             return;
+        lastNavigationDirectionRef.current = 'backward';
         updateInclusion(false);
         var previous = prevFieldStackRef.current.pop();
         if (previous) {
@@ -1653,6 +1692,7 @@ var useTellescopeForm = function (_a) {
         setUploadingFiles: setUploadingFiles,
         handleFileUpload: handleFileUpload,
         isAutoAdvancing: isAutoAdvancing,
+        lastNavigationDirectionRef: lastNavigationDirectionRef,
     };
 };
 exports.useTellescopeForm = useTellescopeForm;

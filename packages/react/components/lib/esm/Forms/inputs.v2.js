@@ -1206,50 +1206,7 @@ export var HeightInput = function (_a) {
     return (_jsxs(Grid, __assign({ container: true, alignItems: 'center', wrap: "nowrap", spacing: 1, style: { marginTop: 5 } }, { children: [_jsx(Grid, __assign({ item: true, sx: { width: '100%' } }, { children: _jsx(TextField, { fullWidth: true, size: "small", label: form_display_text_for_language(form, "Feet"), type: "number", value: (value === null || value === void 0 ? void 0 : value.feet) || '', onChange: function (e) { return onChange(__assign(__assign({}, value), { feet: parseInt(e.target.value) }), field.id); } }) })), _jsx(Grid, __assign({ item: true, sx: { width: '100%' } }, { children: _jsx(TextField, { fullWidth: true, size: "small", label: form_display_text_for_language(form, "Inches"), type: "number", value: (_b = value === null || value === void 0 ? void 0 : value.inches) !== null && _b !== void 0 ? _b : '', onChange: function (e) { return onChange(__assign(__assign({}, value), { inches: parseInt(e.target.value) }), field.id); } }) }))] })));
 };
 // Re-export from V1 to follow DRY principles
-export { RedirectInput } from './inputs';
-export var HiddenValueInput = function (_a) {
-    var goToNextField = _a.goToNextField, goToPreviousField = _a.goToPreviousField, field = _a.field, value = _a.value, onChange = _a.onChange, isSinglePage = _a.isSinglePage, groupFields = _a.groupFields;
-    var lastRef = useRef(0);
-    var lastIdRef = useRef('');
-    // in a Question Group, only the first Hidden Value should navigate
-    // AND, it should only navigate if the group only contains hidden values
-    var firstHiddenValue = groupFields === null || groupFields === void 0 ? void 0 : groupFields.find(function (v) { return v.type === 'Hidden Value'; });
-    var dontNavigate = ((firstHiddenValue && (firstHiddenValue === null || firstHiddenValue === void 0 ? void 0 : firstHiddenValue.id) !== field.id) // is in a group, but not the first hidden value
-        || !!(groupFields === null || groupFields === void 0 ? void 0 : groupFields.find(function (v) { return v.type !== 'Hidden Value'; })) // group contains at least 1 non-hidden value
-    );
-    var publicIdentifier = useMemo(function () {
-        try {
-            return new URL(window.location.href).searchParams.get('publicIdentifier') || '';
-        }
-        catch (err) {
-            return '';
-        }
-    }, []);
-    var valueToSet = useMemo(function () { return ((field.title === "{{PUBLIC_IDENTIFIER}}" && publicIdentifier) ? publicIdentifier
-        : field.title); }, [field.title, publicIdentifier]);
-    useEffect(function () {
-        if (lastRef.current > Date.now() - 1000 && lastIdRef.current === field.id)
-            return;
-        lastRef.current = Date.now();
-        lastIdRef.current = field.id;
-        if (value) {
-            if (isSinglePage)
-                return;
-            onChange('', field.id);
-            if (dontNavigate)
-                return;
-            goToPreviousField === null || goToPreviousField === void 0 ? void 0 : goToPreviousField();
-        }
-        else {
-            onChange(valueToSet, field.id);
-            if (dontNavigate)
-                return;
-            // pass value that is set after above onChange
-            goToNextField === null || goToNextField === void 0 ? void 0 : goToNextField({ type: 'Hidden Value', value: valueToSet });
-        }
-    }, [value, onChange, field.id, valueToSet, goToNextField, goToPreviousField, isSinglePage, dontNavigate]);
-    return _jsx(_Fragment, {});
-};
+export { RedirectInput, HiddenValueInput } from './inputs';
 export var EmotiiInput = function (_a) {
     var goToNextField = _a.goToNextField, goToPreviousField = _a.goToPreviousField, field = _a.field, value = _a.value, onChange = _a.onChange, form = _a.form, formResponseId = _a.formResponseId, props = __rest(_a, ["goToNextField", "goToPreviousField", "field", "value", "onChange", "form", "formResponseId"]);
     var session = useResolvedSession();

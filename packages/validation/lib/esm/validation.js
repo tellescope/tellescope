@@ -1527,6 +1527,15 @@ export var insuranceOptionalValidator = objectValidator({
     groupNumber: stringValidatorOptional,
     planName: stringValidatorOptional,
     startDate: stringValidatorOptional,
+    authorizationStartDate: stringValidatorOptional,
+    authorizationEndDate: stringValidatorOptional,
+    track: stringValidatorOptional,
+    visitsAuthorized: nonNegNumberValidatorOptional,
+    visitsUsed: nonNegNumberValidatorOptional,
+    procedureCodes: listOfStringsValidatorOptionalOrEmptyOk,
+    diagnosisCodes: listOfStringsValidatorOptionalOrEmptyOk,
+    healthieAuthorizationId: stringValidatorOptional,
+    healthiePolicyId: stringValidatorOptional,
 }, { isOptional: true, emptyOk: true });
 export var pharmacyValidator = objectValidator({
     npi: stringValidatorOptional,
@@ -2649,6 +2658,7 @@ export var automationActionValidator = orValidator({
             chargeType: exactMatchValidator(['One-Time', 'Subscription']),
             itemPriceId: stringValidator,
             quantity: numberValidatorMin1Max100Optional,
+            couponIds: listOfStringsValidatorOptionalOrEmptyOk,
         }, { emptyOk: false }) })),
     aiDecision: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['aiDecision']), info: objectValidator({
             outcomes: listOfStringsValidator,
@@ -5184,7 +5194,10 @@ export var analyticsQueryValidator = orValidator({
     }),
     "Chats": objectValidator({
         resource: exactMatchValidator(['Chats']),
-        filter: objectValidator({}, { isOptional: true, emptyOk: true }),
+        filter: objectValidator({
+            direction: stringValidatorOptional,
+            "Chat Tags": listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
+        }, { isOptional: true, emptyOk: true }),
         info: orValidator({
             "Total": objectValidator({
                 method: exactMatchValidator(['Total']),
@@ -5192,6 +5205,7 @@ export var analyticsQueryValidator = orValidator({
             }),
         }),
         grouping: objectValidator({
+            "Chat Tags": booleanValidatorOptional,
             Enduser: booleanValidatorOptional,
             Gender: booleanValidatorOptional,
             "Assigned To": booleanValidatorOptional,
