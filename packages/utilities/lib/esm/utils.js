@@ -2614,7 +2614,7 @@ export var replace_form_field_template_values = function (s, options) {
         return s;
     if (typeof s !== 'string')
         return s;
-    var enduser = options.enduser, _k = options.responses, responses = _k === void 0 ? [] : _k;
+    var enduser = options.enduser, _k = options.responses, responses = _k === void 0 ? [] : _k, escapeNewlinesAsHTMLBreaks = options.escapeNewlinesAsHTMLBreaks;
     var i = 0;
     var start = 0;
     var templates = [];
@@ -2696,6 +2696,9 @@ export var replace_form_field_template_values = function (s, options) {
                     || '');
                 replacement = value;
             }
+        }
+        if (escapeNewlinesAsHTMLBreaks) {
+            replacement = replacement.replace(/\r\n|\r|\n|\\n/g, '<br />');
         }
         templates.push({
             match: match,

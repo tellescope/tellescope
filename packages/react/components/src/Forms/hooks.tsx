@@ -778,12 +778,12 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
         ...response,
         fieldTitle: replace_form_field_template_values(originalField.title || '', { enduser, responses }),
         fieldDescription: replace_form_field_template_values(originalField.description || '', { enduser, responses }),
-        fieldHtmlDescription: replace_form_field_template_values(originalField.htmlDescription || '', { enduser, responses }),
+        fieldHtmlDescription: replace_form_field_template_values(originalField.htmlDescription || '', { enduser, responses, escapeNewlinesAsHTMLBreaks: true }),
         field: {
           ...response.field,
           title: replace_form_field_template_values(originalField.title || '', { enduser, responses }),
           description: replace_form_field_template_values(originalField.description || '', { enduser, responses }),
-          htmlDescription: replace_form_field_template_values(originalField.htmlDescription || '', { enduser, responses }),
+          htmlDescription: replace_form_field_template_values(originalField.htmlDescription || '', { enduser, responses, escapeNewlinesAsHTMLBreaks: true }),
         }
       }
     })

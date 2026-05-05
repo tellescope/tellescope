@@ -2772,12 +2772,13 @@ export const replace_form_field_template_values = (
   options: {
     enduser?: Partial<Enduser>,
     responses?: FormResponseValue[],
+    escapeNewlinesAsHTMLBreaks?: boolean,
   }
 ) => {
   if (!s) return s
   if (typeof s !== 'string') return s
 
-  const { enduser, responses = [] } = options
+  const { enduser, responses = [], escapeNewlinesAsHTMLBreaks } = options
 
   let i = 0
   let start = 0
@@ -2869,6 +2870,10 @@ export const replace_form_field_template_values = (
         )
         replacement = value
       }
+    }
+
+    if (escapeNewlinesAsHTMLBreaks) {
+      replacement = replacement.replace(/\r\n|\r|\n|\\n/g, '<br />')
     }
 
     templates.push({

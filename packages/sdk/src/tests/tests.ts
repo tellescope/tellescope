@@ -50,7 +50,7 @@ import { appointment_rescheduled_trigger_tests } from "./api_tests/appointment_r
 import { journey_error_branching_tests } from "./api_tests/journey_error_branching.test"
 import { afteraction_day_of_month_delay_tests } from "./api_tests/afteraction_day_of_month_delay.test"
 import { setup_tests } from "./setup"
-import { evaluate_conditional_logic_for_enduser_fields, FORM_LOGIC_CALCULATED_FIELDS, get_care_team_primary, get_flattened_fields, get_next_reminder_timestamp, object_is_empty, replace_enduser_template_values, responses_satisfy_conditions, truncate_string, weighted_round_robin, YYYY_MM_DD_to_MM_DD_YYYY } from "@tellescope/utilities"
+import { evaluate_conditional_logic_for_enduser_fields, FORM_LOGIC_CALCULATED_FIELDS, get_care_team_primary, get_flattened_fields, get_next_reminder_timestamp, object_is_empty, replace_enduser_template_values, replace_form_field_template_values, responses_satisfy_conditions, truncate_string, weighted_round_robin, YYYY_MM_DD_to_MM_DD_YYYY } from "@tellescope/utilities"
 import { DEFAULT_OPERATIONS, PLACEHOLDER_ID, ZENDESK_INTEGRATIONS_TITLE, ZOOM_TITLE } from "@tellescope/constants"
 import { 
   schema, 
@@ -12907,6 +12907,87 @@ const replace_enduser_template_values_tests = async () => {
   await sdk.api.endusers.deleteOne(enduser.id)
 }
 
+const replace_form_field_template_values_tests = async () => {
+  log_header("Replace Form Field Template Values Tests")
+
+  const enduserWithMultilineField = {
+    fname: "Multi",
+    lname: "Line",
+    fields: { Locations: 'NYC\nSF\nLA' },
+  } as Partial<Enduser>
+
+  // With escapeNewlinesAsHTMLBreaks: true — newlines in substituted value become <br />
+  assert(
+    replace_form_field_template_values(
+      '<p>Locations: {{enduser.Locations}}</p>',
+      { enduser: enduserWithMultilineField, escapeNewlinesAsHTMLBreaks: true }
+    ) === '<p>Locations: NYC<br />SF<br />LA</p>',
+    'fail escapeNewlinesAsHTMLBreaks true', 'escapeNewlinesAsHTMLBreaks true'
+  )
+
+  // Default (option absent) — newlines preserved as \n
+  assert(
+    replace_form_field_template_values(
+      '<p>Locations: {{enduser.Locations}}</p>',
+      { enduser: enduserWithMultilineField }
+    ) === '<p>Locations: NYC\nSF\nLA</p>',
+    'fail default newline preserved', 'default newline preserved'
+  )
+
+  // Explicit false — same as default
+  assert(
+    replace_form_field_template_values(
+      '<p>Locations: {{enduser.Locations}}</p>',
+      { enduser: enduserWithMultilineField, escapeNewlinesAsHTMLBreaks: false }
+    ) === '<p>Locations: NYC\nSF\nLA</p>',
+    'fail escapeNewlinesAsHTMLBreaks false', 'escapeNewlinesAsHTMLBreaks false'
+  )
+
+  // \n in original template (not in substituted value) is left alone
+  assert(
+    replace_form_field_template_values(
+      '<p>Header</p>\n<p>{{enduser.fname}}</p>',
+      { enduser: enduserWithMultilineField, escapeNewlinesAsHTMLBreaks: true }
+    ) === '<p>Header</p>\n<p>Multi</p>',
+    'fail template newline untouched', 'template newline untouched'
+  )
+
+  // Single-line value unaffected when option is enabled
+  assert(
+    replace_form_field_template_values(
+      '<p>Hello {{enduser.fname}}</p>',
+      { enduser: enduserWithMultilineField, escapeNewlinesAsHTMLBreaks: true }
+    ) === '<p>Hello Multi</p>',
+    'fail single-line value', 'single-line value'
+  )
+
+  // Substituted value containing literal two-char \n escape sequence is also converted
+  const enduserWithLiteralEscapeField = {
+    fname: "Multi",
+    fields: { Locations: 'NYC\\nSF\\nLA' },
+  } as Partial<Enduser>
+  assert(
+    replace_form_field_template_values(
+      '<p>Locations: {{enduser.Locations}}</p>',
+      { enduser: enduserWithLiteralEscapeField, escapeNewlinesAsHTMLBreaks: true }
+    ) === '<p>Locations: NYC<br />SF<br />LA</p>',
+    'fail literal \\n escape in substituted value', 'literal \\n escape in substituted value'
+  )
+
+  // Substituted value with \r\n is also converted (single break per CRLF, not two)
+  const enduserWithCRLFField = {
+    fname: "Multi",
+    fields: { Locations: 'NYC\r\nSF\r\nLA' },
+  } as Partial<Enduser>
+  assert(
+    replace_form_field_template_values(
+      '<p>Locations: {{enduser.Locations}}</p>',
+      { enduser: enduserWithCRLFField, escapeNewlinesAsHTMLBreaks: true }
+    ) === '<p>Locations: NYC<br />SF<br />LA</p>',
+    'fail CRLF in substituted value', 'CRLF in substituted value'
+  )
+}
+
 const inbox_threads_building_tests = async () => {
   log_header("Inbox Thread Building Tests")
 
@@ -14203,6 +14284,7 @@ const ip_address_form_tests = async () => {
 
     await enduser_conditional_logic_tests()
     await replace_enduser_template_values_tests()
+    await replace_form_field_template_values_tests()
     await mfa_tests()
     await setup_tests(sdk, sdkNonAdmin)
     await eom_procedure_codes_tests({ sdk, sdkNonAdmin })

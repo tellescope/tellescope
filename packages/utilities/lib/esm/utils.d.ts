@@ -327,6 +327,7 @@ export declare const replace_medication_template_values: (s: string, medication?
 export declare const replace_form_field_template_values: (s: string, options: {
     enduser?: Partial<Enduser> | undefined;
     responses?: FormResponseValue[] | undefined;
+    escapeNewlinesAsHTMLBreaks?: boolean | undefined;
 }) => string;
 export declare const replace_sms_template_values: (s: string, sms?: Omit<SMSMessage, 'id'> | null) => string;
 export declare const get_secret_names: (s: string) => string[];
