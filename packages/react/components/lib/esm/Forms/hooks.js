@@ -490,7 +490,7 @@ var shouldCallout = function (field, value) {
 };
 export var useTellescopeForm = function (_a) {
     var _b, _c, _d, _e;
-    var dontAutoadvance = _a.dontAutoadvance, isPublicForm = _a.isPublicForm, form = _a.form, urlLogicValue = _a.urlLogicValue, customization = _a.customization, carePlanId = _a.carePlanId, calendarEventId = _a.calendarEventId, context = _a.context, ga4measurementId = _a.ga4measurementId, rootResponseId = _a.rootResponseId, parentResponseId = _a.parentResponseId, accessCode = _a.accessCode, existingResponses = _a.existingResponses, automationStepId = _a.automationStepId, enduserId = _a.enduserId, formResponseId = _a.formResponseId, fields = _a.fields, isInternalNote = _a.isInternalNote, formTitle = _a.formTitle, submitRedirectURL = _a.submitRedirectURL, enduser = _a.enduser, groupId = _a.groupId, groupInstance = _a.groupInstance, groupPosition = _a.groupPosition, startingFieldId = _a.startingFieldId;
+    var dontAutoadvance = _a.dontAutoadvance, isPublicForm = _a.isPublicForm, form = _a.form, urlLogicValue = _a.urlLogicValue, customization = _a.customization, carePlanId = _a.carePlanId, calendarEventId = _a.calendarEventId, context = _a.context, ga4measurementId = _a.ga4measurementId, rootResponseId = _a.rootResponseId, parentResponseId = _a.parentResponseId, accessCode = _a.accessCode, existingResponses = _a.existingResponses, automationStepId = _a.automationStepId, enduserId = _a.enduserId, formResponseId = _a.formResponseId, fields = _a.fields, isInternalNote = _a.isInternalNote, formTitle = _a.formTitle, submitRedirectURL = _a.submitRedirectURL, enduser = _a.enduser, groupId = _a.groupId, groupInstance = _a.groupInstance, groupPosition = _a.groupPosition, startingFieldId = _a.startingFieldId, getEnduserAISummary = _a.getEnduserAISummary;
     var _g = get_time_values(new Date()), amPm = _g.amPm, hoursAmPm = _g.hoursAmPm, minutes = _g.minutes;
     var root = useTreeForFormFields(fields);
     if (!root) {
@@ -1375,8 +1375,7 @@ export var useTellescopeForm = function (_a) {
                 case 12:
                     _k = (_6.sent()).accessCode;
                     _6.label = 13;
-                case 13: return [4 /*yield*/, _j.apply(_h, [(_l.accessCode = (_k),
-                            _l.responses = __spreadArray(__spreadArray([], responsesToSubmit_3, true), (existingResponses !== null && existingResponses !== void 0 ? existingResponses : []).filter(function (r) {
+                case 13: return [4 /*yield*/, _j.apply(_h, [__assign.apply(void 0, [(_l.accessCode = (_k), _l.responses = __spreadArray(__spreadArray([], responsesToSubmit_3, true), (existingResponses !== null && existingResponses !== void 0 ? existingResponses : []).filter(function (r) {
                                 return !responsesToSubmit_3.find(function (_r) { return r.fieldId === _r.fieldId; })
                                     // but don't include responses which were populated from a patient field and not a prior response
                                     // if these are edited, they would be included in responsesToSubmit
@@ -1384,12 +1383,7 @@ export var useTellescopeForm = function (_a) {
                             })
                             // initializeFields leverages filter_stale_choices to strip answers whose options are no longer visible in multiple choice type questions
                             // existingResponses may still carry stale values for fields the user didn't interact with this session, but preserving them as-is avoids unexpected data loss
-                            , true),
-                            _l.automationStepId = automationStepId,
-                            _l.customerId = customerId,
-                            _l.productIds = responsesToSubmit_3.flatMap(function (r) { var _a, _b, _c; return (_c = (_b = (_a = r.field) === null || _a === void 0 ? void 0 : _a.options) === null || _b === void 0 ? void 0 : _b.productIds) !== null && _c !== void 0 ? _c : []; }),
-                            _l.utm = get_utm_params(),
-                            _l)])
+                            , true), _l.automationStepId = automationStepId, _l.customerId = customerId, _l.productIds = responsesToSubmit_3.flatMap(function (r) { var _a, _b, _c; return (_c = (_b = (_a = r.field) === null || _a === void 0 ? void 0 : _a.options) === null || _b === void 0 ? void 0 : _b.productIds) !== null && _c !== void 0 ? _c : []; }), _l.utm = get_utm_params(), _l), (getEnduserAISummary ? { enduserAISummary: getEnduserAISummary() } : {})])])
                     // do actual redirect later to prevent popup
                 ];
                 case 14:
@@ -1571,22 +1565,51 @@ export var useTellescopeForm = function (_a) {
         if (((_a = field === null || field === void 0 ? void 0 : field.options) === null || _a === void 0 ? void 0 : _a.autoAdvance) && field_can_autoadvance(field)) {
             autoAdvanceRef.current = true;
         }
-        setResponses(function (rs) { return rs.map(function (r) {
-            var _a;
-            return r.fieldId !== fieldId ? r : (__assign(__assign(__assign(__assign({}, r), { touched: touched, isCalledOut: shouldCallout(fields === null || fields === void 0 ? void 0 : fields.find(function (f) { return (f === null || f === void 0 ? void 0 : f.id) === fieldId; }), value), isHighlightedOnTimeline: (_a = fields === null || fields === void 0 ? void 0 : fields.find(function (f) { return (f === null || f === void 0 ? void 0 : f.id) === fieldId; })) === null || _a === void 0 ? void 0 : _a.highlightOnTimeline }), ((field === null || field === void 0 ? void 0 : field.type) === 'description' && typeof value === 'string' && value ? { includeInSubmit: true } : {})), { answer: __assign(__assign({}, r.answer), { value: value }), 
-                // keep consistent with initialize existing responses
-                computedValueKey: ((field === null || field === void 0 ? void 0 : field.intakeField) === 'height'
-                    ? 'Height'
-                    : (field === null || field === void 0 ? void 0 : field.intakeField) === 'weight' && typeof value === 'number'
-                        ? 'Weight'
-                        : (field === null || field === void 0 ? void 0 : field.intakeField) === 'dateOfBirth' && r.answer.type === 'dateString'
-                            ? 'Date of Birth'
-                            : (field === null || field === void 0 ? void 0 : field.intakeField) === 'gender' && (r.answer.type === 'Dropdown' || r.answer.type === 'multiple_choice')
-                                ? 'Gender'
-                                : (field === null || field === void 0 ? void 0 : field.intakeField) === 'Address' && r.answer.type === 'Address'
-                                    ? 'State'
-                                    : undefined) }));
-        }); });
+        setResponses(function (rs) {
+            var updated = rs.map(function (r) {
+                var _a;
+                return r.fieldId !== fieldId ? r : (__assign(__assign(__assign(__assign({}, r), { touched: touched, isCalledOut: shouldCallout(fields === null || fields === void 0 ? void 0 : fields.find(function (f) { return (f === null || f === void 0 ? void 0 : f.id) === fieldId; }), value), isHighlightedOnTimeline: (_a = fields === null || fields === void 0 ? void 0 : fields.find(function (f) { return (f === null || f === void 0 ? void 0 : f.id) === fieldId; })) === null || _a === void 0 ? void 0 : _a.highlightOnTimeline }), ((field === null || field === void 0 ? void 0 : field.type) === 'description' && typeof value === 'string' && value ? { includeInSubmit: true } : {})), { answer: __assign(__assign({}, r.answer), { value: value }), 
+                    // keep consistent with initialize existing responses
+                    computedValueKey: ((field === null || field === void 0 ? void 0 : field.intakeField) === 'height'
+                        ? 'Height'
+                        : (field === null || field === void 0 ? void 0 : field.intakeField) === 'weight' && typeof value === 'number'
+                            ? 'Weight'
+                            : (field === null || field === void 0 ? void 0 : field.intakeField) === 'dateOfBirth' && r.answer.type === 'dateString'
+                                ? 'Date of Birth'
+                                : (field === null || field === void 0 ? void 0 : field.intakeField) === 'gender' && (r.answer.type === 'Dropdown' || r.answer.type === 'multiple_choice')
+                                    ? 'Gender'
+                                    : (field === null || field === void 0 ? void 0 : field.intakeField) === 'Address' && r.answer.type === 'Address'
+                                        ? 'State'
+                                        : undefined) }));
+            });
+            // Re-apply filter_stale_choices to every other multiple_choice/Dropdown response now that an upstream
+            // answer may have changed which option-level showCondition results have flipped. Without this cascade,
+            // selections made earlier in the session for options that are no longer visible would silently persist
+            // and pass validation since the stored array remains non-empty.
+            return updated.map(function (r) {
+                if (r.fieldId === fieldId)
+                    return r;
+                if (r.answer.type !== 'multiple_choice' && r.answer.type !== 'Dropdown')
+                    return r;
+                var otherField = fields.find(function (f) { return f.id === r.fieldId; });
+                if (!otherField)
+                    return r;
+                if (otherField.type !== 'multiple_choice' && otherField.type !== 'Dropdown')
+                    return r;
+                var prior = r.answer.value;
+                if (!Array.isArray(prior))
+                    return r;
+                var filtered = filter_stale_choices(prior, otherField, updated, enduser, form);
+                if (!Array.isArray(filtered))
+                    return r;
+                // shallow array comparison — preserve reference if unchanged so memoized derivations don't churn
+                if (filtered.length === prior.length && filtered.every(function (v, i) { return v === prior[i]; })) {
+                    return r;
+                }
+                var isEmpty = filtered.length === 0;
+                return __assign(__assign(__assign({}, r), (isEmpty ? { touched: false, includeInSubmit: false } : {})), { answer: __assign(__assign({}, r.answer), { value: filtered }) });
+            });
+        });
         // ensure stripe payment is stored as saved immediately
         var saveField = fields.find(function (f) { return f.id === fieldId && (f.type === 'Stripe' || f.type === 'Appointment Booking'); });
         if (saveField && typeof value === 'string' && (formResponseId || accessCode)) {
@@ -1626,7 +1649,7 @@ export var useTellescopeForm = function (_a) {
             })
                 .catch(console.error);
         }
-    }, [fields]);
+    }, [fields, enduser, form]);
     var onAddFile = useCallback(function (blobs, fieldId) {
         if (fieldId === void 0) { fieldId = activeField.value.id; }
         setSelectedFiles(function (fs) { return fs.map(function (f) { return f.fieldId !== fieldId ? f : (__assign(__assign({}, f), { blobs: (blobs === undefined

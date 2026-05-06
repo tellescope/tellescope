@@ -1,7 +1,7 @@
 import { Session, SessionOptions } from "./session";
-import { APIQuery } from "./sdk";
+import { APIQuery, BulkLoadOptions } from "./sdk";
 import { FileDetails, ReactNativeFile, S3PresignedPost, SessionType, UserIdentity } from "@tellescope/types-utilities";
-import { Attendee } from "@tellescope/types-models";
+import { Attendee, ModelName } from "@tellescope/types-models";
 import { ClientModelForName_required, Enduser, File, Meeting, UserDisplayInfo } from "@tellescope/types-client";
 import { CustomActions, extractFields, PublicActions } from '@tellescope/schema';
 export interface EnduserSessionOptions extends SessionOptions {
@@ -1963,6 +1963,16 @@ export declare class EnduserSession extends Session {
     businessId: string;
     type: SessionType;
     constructor(o: EnduserSessionOptions);
+    bulk_load: (args: {
+        load: {
+            model: ModelName;
+            options?: BulkLoadOptions;
+        }[];
+    }) => Promise<{
+        results: (null | {
+            records: any[];
+        })[];
+    }>;
     _POST: <A, R = void>(endpoint: string, args?: A | undefined, authenticated?: boolean) => Promise<R>;
     _GET: <A, R = void>(endpoint: string, params?: A | undefined, authenticated?: boolean, options?: {
         responseType?: 'arraybuffer';

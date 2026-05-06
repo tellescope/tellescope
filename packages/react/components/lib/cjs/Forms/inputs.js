@@ -97,9 +97,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ChargeebeeInput = exports.RichTextInput = exports.ConditionsInput = exports.AllergiesInput = exports.EmotiiInput = exports.HiddenValueInput = exports.RedirectInput = exports.include_current_url_parameters_if_templated = exports.HeightInput = exports.AppointmentBookingInput = exports.RelatedContactsInput = exports.contact_is_valid = exports.BelugaPatientPreferenceInput = exports.MedicationsInput = exports.CanvasMedicationsInput = exports.DatabaseSelectInput = exports.DropdownInput = exports.Progress = exports.StripeInput = exports.MultipleChoiceInput = exports.FilesInput = exports.safe_create_url = exports.FileInput = exports.convertHEIC = exports.SignatureInput = exports.ESignatureTerms = exports.AddressInput = exports.TimezoneInput = exports.TimeInput = exports.PharmacySearchInput = exports.CandidEligibilityInput = exports.BridgeEligibilityInput = exports.InsuranceInput = exports.NumberInput = exports.EmailInput = exports.PhoneInput = exports.StringLongInput = exports.StringInput = exports.DateStringInput = exports.AutoFocusTextField = exports.TableInput = exports.DateInput = exports.RankingInput = exports.RatingInput = exports.PdfViewer = exports.defaultButtonStyles = exports.defaultInputProps = exports.LanguageSelect = exports.setBridgeEligibilityUserIds = exports.getBridgeEligibilityUserIds = void 0;
+exports.RichTextInput = exports.ConditionsInput = exports.AllergiesInput = exports.EmotiiInput = exports.HiddenValueInput = exports.RedirectInput = exports.include_current_url_parameters_if_templated = exports.HeightInput = exports.AppointmentBookingInput = exports.RelatedContactsInput = exports.contact_is_valid = exports.BelugaPatientPreferenceInput = exports.MedicationsInput = exports.CanvasMedicationsInput = exports.DatabaseSelectInput = exports.DropdownInput = exports.Progress = exports.StripeInput = exports.MultipleChoiceInput = exports.FilesInput = exports.safe_create_url = exports.FileInput = exports.ExistingFilePicker = exports.convertHEIC = exports.SignatureInput = exports.ESignatureTerms = exports.AddressInput = exports.TimezoneInput = exports.TimeInput = exports.PharmacySearchInput = exports.CandidEligibilityInput = exports.BridgeEligibilityInput = exports.InsuranceInput = exports.NumberInput = exports.EmailInput = exports.PhoneInput = exports.StringLongInput = exports.StringInput = exports.DateStringInput = exports.AutoFocusTextField = exports.TableInput = exports.DateInput = exports.RankingInput = exports.RatingInput = exports.PdfViewer = exports.defaultButtonStyles = exports.defaultInputProps = exports.LanguageSelect = exports.setBridgeEligibilityUserIds = exports.getBridgeEligibilityUserIds = void 0;
+exports.ChargeebeeInput = void 0;
+var react_1 = require("react");
 var jsx_runtime_1 = require("react/jsx-runtime");
-var react_1 = __importStar(require("react"));
+var react_2 = __importStar(require("react"));
 var axios_1 = __importDefault(require("axios"));
 var material_1 = require("@mui/material");
 var react_dropzone_1 = require("react-dropzone");
@@ -135,8 +137,8 @@ var setBridgeEligibilityUserIds = function (userIds) {
 exports.setBridgeEligibilityUserIds = setBridgeEligibilityUserIds;
 // Debounce hook for search functionality
 var useDebounce = function (value, delay) {
-    var _a = (0, react_1.useState)(value), debouncedValue = _a[0], setDebouncedValue = _a[1];
-    (0, react_1.useEffect)(function () {
+    var _a = (0, react_2.useState)(value), debouncedValue = _a[0], setDebouncedValue = _a[1];
+    (0, react_2.useEffect)(function () {
         var handler = setTimeout(function () { return setDebouncedValue(value); }, delay);
         return function () { return clearTimeout(handler); };
     }, [value, delay]);
@@ -228,11 +230,11 @@ var RankingInput = function (_a) {
                 } }, { children: (0, jsx_runtime_1.jsx)(react_beautiful_dnd_1.Droppable, __assign({ droppableId: "droppable" }, { children: function (provided, snapshot) { return ((0, jsx_runtime_1.jsxs)(material_1.Box, __assign({}, provided.droppableProps, { ref: provided.innerRef, sx: getListStyle(snapshot.isDraggingOver) }, { children: [(value !== null && value !== void 0 ? value : []).map(function (item, index) { return ((0, jsx_runtime_1.jsx)(react_beautiful_dnd_1.Draggable, __assign({ draggableId: item, index: index }, { children: function (provided, snapshot) { return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, alignItems: "center", justifyContent: "space-between", ref: provided.innerRef }, provided.draggableProps, provided.dragHandleProps, { sx: getItemStyle(snapshot.isDragging, provided.draggableProps.style) }, { children: [item, (0, jsx_runtime_1.jsx)(DragIndicator_1.default, { color: "primary" })] }))); } }), item)); }), provided.placeholder] }))); } })) })), (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ color: "primary", style: { marginTop: 3 } }, { children: (0, __1.form_display_text_for_language)(form, "Drag and drop to re-order the above options") }))] })));
 };
 exports.RankingInput = RankingInput;
-var CustomDateInput = (0, react_1.forwardRef)(function (props, ref) { return ((0, jsx_runtime_1.jsx)(material_1.TextField, __assign({ InputProps: exports.defaultInputProps, fullWidth: true, inputRef: ref }, props))); });
+var CustomDateInput = (0, react_2.forwardRef)(function (props, ref) { return ((0, jsx_runtime_1.jsx)(material_1.TextField, __assign({ InputProps: exports.defaultInputProps, fullWidth: true, inputRef: ref }, props))); });
 var DateInput = function (_a) {
     var _b, _d;
     var field = _a.field, value = _a.value, onChange = _a.onChange, _e = _a.placement, placement = _e === void 0 ? 'top' : _e, props = __rest(_a, ["field", "value", "onChange", "placement"]);
-    var inputRef = (0, react_1.useRef)(null);
+    var inputRef = (0, react_2.useRef)(null);
     var minDate = ((_b = field.options) === null || _b === void 0 ? void 0 : _b.minDateOffsetMs) !== undefined ? (0, hooks_1.dateFromOffsetMs)(field.options.minDateOffsetMs) : undefined;
     var maxDate = ((_d = field.options) === null || _d === void 0 ? void 0 : _d.maxDateOffsetMs) !== undefined ? (0, hooks_1.dateFromOffsetMs)(field.options.maxDateOffsetMs) : undefined;
     return ((0, jsx_runtime_1.jsx)(react_datepicker_1.default // wrap in item to prevent movement on focused
@@ -245,7 +247,7 @@ var TableInput = function (_a) {
     var _b;
     var field = _a.field, _d = _a.value, value = _d === void 0 ? [] : _d, onChange = _a.onChange, form = _a.form, props = __rest(_a, ["field", "value", "onChange", "form"]);
     var choices = (_b = field.options) === null || _b === void 0 ? void 0 : _b.tableChoices;
-    var handleNewRow = (0, react_1.useCallback)(function () {
+    var handleNewRow = (0, react_2.useCallback)(function () {
         if (!(choices === null || choices === void 0 ? void 0 : choices.length))
             return;
         onChange(__spreadArray(__spreadArray([], value, true), [choices.map(function (c) { return ({
@@ -253,17 +255,17 @@ var TableInput = function (_a) {
                 entry: '',
             }); })], false), field.id, true);
     }, [value, field.id]);
-    var handleChange = (0, react_1.useCallback)(function (r, c, u) {
+    var handleChange = (0, react_2.useCallback)(function (r, c, u) {
         onChange(value.map(function (v, _i) {
             return _i !== r
                 ? v
                 : v.map(function (e, _c) { return _c === c ? u : e; });
         }), field.id, true);
     }, [value, onChange, field.id]);
-    var handleRemove = (0, react_1.useCallback)(function (i) {
+    var handleRemove = (0, react_2.useCallback)(function (i) {
         onChange(value.filter(function (_, _i) { return i !== _i; }), field.id, true);
     }, [value, onChange, field.id]);
-    (0, react_1.useEffect)(function () {
+    (0, react_2.useEffect)(function () {
         if (field.isOptional)
             return;
         if (value.length)
@@ -299,14 +301,14 @@ var AutoFocusTextField = function (props) {
     return (0, jsx_runtime_1.jsx)(material_1.TextField, __assign({ InputProps: inputProps || exports.defaultInputProps }, textFieldProps));
 };
 exports.AutoFocusTextField = AutoFocusTextField;
-var CustomDateStringInput = (0, react_1.forwardRef)(function (props, ref) {
+var CustomDateStringInput = (0, react_2.forwardRef)(function (props, ref) {
     var inputProps = props.inputProps, textFieldProps = __rest(props, ["inputProps"]);
     return ((0, jsx_runtime_1.jsx)(material_1.TextField, __assign({ InputProps: inputProps || exports.defaultInputProps, fullWidth: true, inputRef: ref }, textFieldProps)));
 });
 var DateStringInput = function (_a) {
     var _b, _d, _e;
     var field = _a.field, value = _a.value, onChange = _a.onChange, form = _a.form, props = __rest(_a, ["field", "value", "onChange", "form"]);
-    var inputRef = (0, react_1.useRef)(null);
+    var inputRef = (0, react_2.useRef)(null);
     var minDate = ((_b = field.options) === null || _b === void 0 ? void 0 : _b.minDateOffsetMs) !== undefined ? (0, hooks_1.dateFromOffsetMs)(field.options.minDateOffsetMs) : undefined;
     var maxDate = ((_d = field.options) === null || _d === void 0 ? void 0 : _d.maxDateOffsetMs) !== undefined ? (0, hooks_1.dateFromOffsetMs)(field.options.maxDateOffsetMs) : undefined;
     // if (value && isDateString(value)) {
@@ -358,8 +360,8 @@ exports.EmailInput = EmailInput;
 var NumberInput = function (_a) {
     var field = _a.field, value = _a.value, onChange = _a.onChange, form = _a.form, props = __rest(_a, ["field", "value", "onChange", "form"]);
     // Prevent the default scroll behavior when focused on this input
-    var inputRef = (0, react_1.useRef)(null);
-    (0, react_1.useEffect)(function () {
+    var inputRef = (0, react_2.useRef)(null);
+    (0, react_2.useEffect)(function () {
         var _a;
         var handleWheel = function (e) {
             var _a;
@@ -394,9 +396,9 @@ var InsuranceInput = function (_a) {
     var _b, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s;
     var field = _a.field, onDatabaseSelect = _a.onDatabaseSelect, value = _a.value, onChange = _a.onChange, form = _a.form, responses = _a.responses, enduser = _a.enduser, inputProps = _a.inputProps, props = __rest(_a, ["field", "onDatabaseSelect", "value", "onChange", "form", "responses", "enduser", "inputProps"]);
     var session = (0, __1.useResolvedSession)();
-    var _t = (0, react_1.useState)([]), payers = _t[0], setPayers = _t[1];
-    var _u = (0, react_1.useState)(''), query = _u[0], setQuery = _u[1];
-    var addressQuestion = (0, react_1.useMemo)(function () { return responses === null || responses === void 0 ? void 0 : responses.find(function (r) {
+    var _t = (0, react_2.useState)([]), payers = _t[0], setPayers = _t[1];
+    var _u = (0, react_2.useState)(''), query = _u[0], setQuery = _u[1];
+    var addressQuestion = (0, react_2.useMemo)(function () { return responses === null || responses === void 0 ? void 0 : responses.find(function (r) {
         var _a;
         if (r.answer.type !== 'Address')
             return false;
@@ -407,13 +409,13 @@ var InsuranceInput = function (_a) {
             return false;
         return true;
     }); }, [responses]);
-    var state = (0, react_1.useMemo)(function () {
+    var state = (0, react_2.useMemo)(function () {
         var _a, _b, _d;
         return ((((_a = addressQuestion === null || addressQuestion === void 0 ? void 0 : addressQuestion.answer) === null || _a === void 0 ? void 0 : _a.type) === 'Address' ? (_d = (_b = addressQuestion === null || addressQuestion === void 0 ? void 0 : addressQuestion.answer) === null || _b === void 0 ? void 0 : _b.value) === null || _d === void 0 ? void 0 : _d.state : undefined) || (enduser === null || enduser === void 0 ? void 0 : enduser.state));
     }, [enduser === null || enduser === void 0 ? void 0 : enduser.state, addressQuestion]);
     // load from database
-    var loadRef = (0, react_1.useRef)(false); // so session changes don't cause
-    (0, react_1.useEffect)(function () {
+    var loadRef = (0, react_2.useRef)(false); // so session changes don't cause
+    (0, react_2.useEffect)(function () {
         var _a, _b;
         if (((_a = field === null || field === void 0 ? void 0 : field.options) === null || _a === void 0 ? void 0 : _a.dataSource) === constants_1.CANVAS_TITLE)
             return; // instead, look-up while typing against Canvas Search API
@@ -442,8 +444,8 @@ var InsuranceInput = function (_a) {
             .catch(console.error);
     }, [session, state, (_b = field === null || field === void 0 ? void 0 : field.options) === null || _b === void 0 ? void 0 : _b.dataSource]);
     // load from 3rd-party on search only
-    var searchRef = (0, react_1.useRef)(query);
-    (0, react_1.useEffect)(function () {
+    var searchRef = (0, react_2.useRef)(query);
+    (0, react_2.useEffect)(function () {
         var _a, _b, _d, _e;
         if (((_a = field === null || field === void 0 ? void 0 : field.options) === null || _a === void 0 ? void 0 : _a.dataSource) !== constants_1.CANVAS_TITLE && ((_b = field === null || field === void 0 ? void 0 : field.options) === null || _b === void 0 ? void 0 : _b.dataSource) !== constants_1.BRIDGE_TITLE) {
             return;
@@ -479,8 +481,11 @@ var InsuranceInput = function (_a) {
         return function () { clearTimeout(t); };
     }, [session, (_d = field === null || field === void 0 ? void 0 : field.options) === null || _d === void 0 ? void 0 : _d.dataSource, query]);
     return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, spacing: 2, sx: { mt: '0' } }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, xs: 12, sm: 6 }, { children: (0, jsx_runtime_1.jsx)(material_1.Autocomplete, { freeSolo: !((_e = field.options) === null || _e === void 0 ? void 0 : _e.requirePredefinedInsurer), options: payers.map(function (p) { return p.name; }), value: (value === null || value === void 0 ? void 0 : value.payerName) || '', onChange: function (e, v) {
-                        var _a, _b;
-                        return onChange(__assign(__assign({}, value), { payerName: v || '', payerId: ((_a = payers.find(function (p) { return p.name === v; })) === null || _a === void 0 ? void 0 : _a.id) || '', payerType: ((_b = payers.find(function (p) { return p.name === v; })) === null || _b === void 0 ? void 0 : _b.type) || '' }), field.id);
+                        var matched = payers.find(function (p) { return p.name === v; });
+                        if (matched === null || matched === void 0 ? void 0 : matched.databaseRecord) {
+                            onDatabaseSelect === null || onDatabaseSelect === void 0 ? void 0 : onDatabaseSelect([matched.databaseRecord]);
+                        }
+                        onChange(__assign(__assign({}, value), { payerName: v || '', payerId: (matched === null || matched === void 0 ? void 0 : matched.id) || '', payerType: (matched === null || matched === void 0 ? void 0 : matched.type) || '' }), field.id);
                     }, onInputChange: ((_f = field.options) === null || _f === void 0 ? void 0 : _f.requirePredefinedInsurer)
                         ? function (e, v) { if (v) {
                             setQuery(v);
@@ -530,14 +535,14 @@ var BridgeEligibilityInput = function (_a) {
     var _b, _d, _e, _f, _g, _h, _j;
     var field = _a.field, value = _a.value, onChange = _a.onChange, responses = _a.responses, enduser = _a.enduser, inputProps = _a.inputProps, enduserId = _a.enduserId, form = _a.form, props = __rest(_a, ["field", "value", "onChange", "responses", "enduser", "inputProps", "enduserId", "form"]);
     var session = (0, __1.useResolvedSession)();
-    var _k = (0, react_1.useState)(false), loading = _k[0], setLoading = _k[1];
-    var _l = (0, react_1.useState)(false), polling = _l[0], setPolling = _l[1];
-    var _m = (0, react_1.useState)(), error = _m[0], setError = _m[1];
+    var _k = (0, react_2.useState)(false), loading = _k[0], setLoading = _k[1];
+    var _l = (0, react_2.useState)(false), polling = _l[0], setPolling = _l[1];
+    var _m = (0, react_2.useState)(), error = _m[0], setError = _m[1];
     // single-page form must require button-click to check, but 1-page-at-a-time enduser sessions should auto-check
     var isEnduserSession = session.type === 'enduser';
     var eligibilityType = ((_b = field.options) === null || _b === void 0 ? void 0 : _b.bridgeEligibilityType) || 'Soft';
     // Extract payerId from Insurance question response
-    var _o = (0, react_1.useMemo)(function () {
+    var _o = (0, react_2.useMemo)(function () {
         var _a, _b, _d, _e;
         var insuranceResponse = responses === null || responses === void 0 ? void 0 : responses.find(function (r) { var _a, _b, _d; return ((_a = r.answer) === null || _a === void 0 ? void 0 : _a.type) === 'Insurance' && ((_d = (_b = r.answer) === null || _b === void 0 ? void 0 : _b.value) === null || _d === void 0 ? void 0 : _d.payerId); });
         if (((_a = insuranceResponse === null || insuranceResponse === void 0 ? void 0 : insuranceResponse.answer) === null || _a === void 0 ? void 0 : _a.type) === 'Insurance') {
@@ -551,7 +556,7 @@ var BridgeEligibilityInput = function (_a) {
         return [];
     }, [responses]), payerId = _o[0], memberId = _o[1], payerName = _o[2];
     // Extract state from Address question or enduser
-    var state = (0, react_1.useMemo)(function () {
+    var state = (0, react_2.useMemo)(function () {
         var _a, _b;
         // Find Address field with state value
         var addressResponse = responses === null || responses === void 0 ? void 0 : responses.find(function (r) { var _a, _b, _d; return ((_a = r.answer) === null || _a === void 0 ? void 0 : _a.type) === 'Address' && ((_d = (_b = r.answer) === null || _b === void 0 ? void 0 : _b.value) === null || _d === void 0 ? void 0 : _d.state); });
@@ -561,7 +566,7 @@ var BridgeEligibilityInput = function (_a) {
         // enduser state is automatically resolved on the backend as default
     }, [responses]);
     // Soft eligibility check function - supports multiple service type IDs
-    var checkProviderEligibility = (0, react_1.useCallback)(function () { return __awaiter(void 0, void 0, void 0, function () {
+    var checkProviderEligibility = (0, react_2.useCallback)(function () { return __awaiter(void 0, void 0, void 0, function () {
         var serviceTypeIds, results, allUserIds, uniqueUserIds, aggregatedStatus, err_1;
         var _a, _b;
         return __generator(this, function (_d) {
@@ -645,7 +650,7 @@ var BridgeEligibilityInput = function (_a) {
         });
     }); }, [session, field, payerId, state, onChange, enduserId]);
     // Hard eligibility check function with polling - supports multiple service type IDs
-    var checkServiceEligibility = (0, react_1.useCallback)(function () { return __awaiter(void 0, void 0, void 0, function () {
+    var checkServiceEligibility = (0, react_2.useCallback)(function () { return __awaiter(void 0, void 0, void 0, function () {
         var serviceTypeIds, initiatedChecks_1, pollForAllResults, err_3;
         var _a;
         return __generator(this, function (_b) {
@@ -832,8 +837,8 @@ var BridgeEligibilityInput = function (_a) {
         });
     }); }, [session, field, payerId, memberId, state, onChange, enduserId]);
     // Auto-check eligibility for enduser sessions
-    var autoCheckRef = (0, react_1.useRef)(false);
-    (0, react_1.useEffect)(function () {
+    var autoCheckRef = (0, react_2.useRef)(false);
+    (0, react_2.useEffect)(function () {
         if (!isEnduserSession)
             return;
         // If we already have a result and the payer hasn't changed, use the cached result
@@ -850,13 +855,13 @@ var BridgeEligibilityInput = function (_a) {
             checkProviderEligibility();
         }
     }, [isEnduserSession, eligibilityType, checkProviderEligibility, checkServiceEligibility, value, payerId]);
-    var errorComponent = (0, react_1.useMemo)(function () { return ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ container: true, spacing: 2, direction: "column", alignItems: "center", style: { padding: '20px 0' } }, { children: (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Paper, __assign({ style: {
+    var errorComponent = (0, react_2.useMemo)(function () { return ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ container: true, spacing: 2, direction: "column", alignItems: "center", style: { padding: '20px 0' } }, { children: (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Paper, __assign({ style: {
                     padding: 16,
                     backgroundColor: '#ffebee',
                     border: '2px solid #f44336'
                 } }, { children: (0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, spacing: 2, direction: "column", alignItems: "center" }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "h2", style: { color: '#f44336' } }, { children: "\u26A0\uFE0F" })) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "h6", align: "center", color: "error" }, { children: "Unable to Check Eligibility" })) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "body2", align: "center", style: { color: '#d32f2f' } }, { children: error })) }))] })) })) })) }))); }, [error]);
-    var checkingEligibilityComponent = (0, react_1.useMemo)(function () { return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, spacing: 2, direction: "column", alignItems: "center", style: { padding: '20px 0' } }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.CircularProgress, { size: 40 }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "body1" }, { children: polling ? 'Verifying eligibility with insurance...' : 'Checking eligibility...' })) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: polling ? 'This usually takes 15-30 seconds' : 'This may take a few moments' })) }))] }))); }, [polling]);
-    var resultsComponent = (0, react_1.useMemo)(function () {
+    var checkingEligibilityComponent = (0, react_2.useMemo)(function () { return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, spacing: 2, direction: "column", alignItems: "center", style: { padding: '20px 0' } }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.CircularProgress, { size: 40 }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "body1" }, { children: polling ? 'Verifying eligibility with insurance...' : 'Checking eligibility...' })) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: polling ? 'This usually takes 15-30 seconds' : 'This may take a few moments' })) }))] }))); }, [polling]);
+    var resultsComponent = (0, react_2.useMemo)(function () {
         var isEligible = (value === null || value === void 0 ? void 0 : value.status) === 'ELIGIBLE';
         return ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ container: true, spacing: 2, direction: "column" }, { children: (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Paper, __assign({ style: {
                         padding: 16,
@@ -887,20 +892,20 @@ var CandidEligibilityInput = function (_a) {
     var _b, _d;
     var field = _a.field, value = _a.value, onChange = _a.onChange, responses = _a.responses, enduser = _a.enduser, inputProps = _a.inputProps, enduserId = _a.enduserId, form = _a.form, props = __rest(_a, ["field", "value", "onChange", "responses", "enduser", "inputProps", "enduserId", "form"]);
     var session = (0, __1.useResolvedSession)();
-    var _e = (0, react_1.useState)(false), loading = _e[0], setLoading = _e[1];
-    var _f = (0, react_1.useState)(false), polling = _f[0], setPolling = _f[1];
-    var _g = (0, react_1.useState)(), error = _g[0], setError = _g[1];
+    var _e = (0, react_2.useState)(false), loading = _e[0], setLoading = _e[1];
+    var _f = (0, react_2.useState)(false), polling = _f[0], setPolling = _f[1];
+    var _g = (0, react_2.useState)(), error = _g[0], setError = _g[1];
     var isEnduserSession = session.type === 'enduser';
-    var pollTimeoutRef = (0, react_1.useRef)();
+    var pollTimeoutRef = (0, react_2.useRef)();
     // Clean up polling timeout on unmount
-    (0, react_1.useEffect)(function () {
+    (0, react_2.useEffect)(function () {
         return function () {
             if (pollTimeoutRef.current)
                 clearTimeout(pollTimeoutRef.current);
         };
     }, []);
     // Extract payerId from Insurance question response
-    var _h = (0, react_1.useMemo)(function () {
+    var _h = (0, react_2.useMemo)(function () {
         var _a, _b, _d, _e;
         var insuranceResponse = responses === null || responses === void 0 ? void 0 : responses.find(function (r) { var _a, _b, _d; return ((_a = r.answer) === null || _a === void 0 ? void 0 : _a.type) === 'Insurance' && ((_d = (_b = r.answer) === null || _b === void 0 ? void 0 : _b.value) === null || _d === void 0 ? void 0 : _d.payerId); });
         if (((_a = insuranceResponse === null || insuranceResponse === void 0 ? void 0 : insuranceResponse.answer) === null || _a === void 0 ? void 0 : _a.type) === 'Insurance') {
@@ -912,7 +917,7 @@ var CandidEligibilityInput = function (_a) {
         }
         return [];
     }, [responses]), payerId = _h[0], memberId = _h[1], payerName = _h[2];
-    var checkEligibility = (0, react_1.useCallback)(function () { return __awaiter(void 0, void 0, void 0, function () {
+    var checkEligibility = (0, react_2.useCallback)(function () { return __awaiter(void 0, void 0, void 0, function () {
         var data, coverageId_1, checkId_1, initialStatus, maxAttempts_1, attempts_1, pollForResult_1, err_6;
         var _a, _b;
         return __generator(this, function (_d) {
@@ -1019,8 +1024,8 @@ var CandidEligibilityInput = function (_a) {
         });
     }); }, [session, field, payerId, memberId, payerName, onChange, enduserId]);
     // Auto-check eligibility for enduser sessions
-    var autoCheckRef = (0, react_1.useRef)(false);
-    (0, react_1.useEffect)(function () {
+    var autoCheckRef = (0, react_2.useRef)(false);
+    (0, react_2.useEffect)(function () {
         if (!isEnduserSession)
             return;
         // If we already have a result and the payer hasn't changed, use the cached result
@@ -1032,13 +1037,13 @@ var CandidEligibilityInput = function (_a) {
         autoCheckRef.current = true;
         checkEligibility();
     }, [isEnduserSession, checkEligibility, value, payerId]);
-    var errorComponent = (0, react_1.useMemo)(function () { return ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ container: true, spacing: 2, direction: "column", alignItems: "center", style: { padding: '20px 0' } }, { children: (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Paper, __assign({ style: {
+    var errorComponent = (0, react_2.useMemo)(function () { return ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ container: true, spacing: 2, direction: "column", alignItems: "center", style: { padding: '20px 0' } }, { children: (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Paper, __assign({ style: {
                     padding: 16,
                     backgroundColor: '#ffebee',
                     border: '2px solid #f44336'
                 } }, { children: (0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, spacing: 2, direction: "column", alignItems: "center" }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "h2", style: { color: '#f44336' } }, { children: "!" })) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "h6", align: "center", color: "error" }, { children: "Unable to Check Eligibility" })) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "body2", align: "center", style: { color: '#d32f2f' } }, { children: error })) }))] })) })) })) }))); }, [error]);
-    var checkingEligibilityComponent = (0, react_1.useMemo)(function () { return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, spacing: 2, direction: "column", alignItems: "center", style: { padding: '20px 0' } }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.CircularProgress, { size: 40 }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "body1" }, { children: polling ? 'Verifying eligibility with insurance...' : 'Checking eligibility...' })) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: polling ? 'This usually takes 15-30 seconds' : 'This may take a few moments' })) }))] }))); }, [polling]);
-    var resultsComponent = (0, react_1.useMemo)(function () {
+    var checkingEligibilityComponent = (0, react_2.useMemo)(function () { return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, spacing: 2, direction: "column", alignItems: "center", style: { padding: '20px 0' } }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.CircularProgress, { size: 40 }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "body1" }, { children: polling ? 'Verifying eligibility with insurance...' : 'Checking eligibility...' })) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: polling ? 'This usually takes 15-30 seconds' : 'This may take a few moments' })) }))] }))); }, [polling]);
+    var resultsComponent = (0, react_2.useMemo)(function () {
         var isCompleted = (value === null || value === void 0 ? void 0 : value.status) === 'COMPLETED';
         var isFailed = (value === null || value === void 0 ? void 0 : value.status) === 'FAILED';
         return ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ container: true, spacing: 2, direction: "column" }, { children: (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Paper, __assign({ style: {
@@ -1086,12 +1091,12 @@ var PharmacySearchInput = function (_a) {
         // Fall back to enduser.zipCode
         return (enduser === null || enduser === void 0 ? void 0 : enduser.zipCode) || '';
     };
-    var _b = (0, react_1.useState)(getInitialZipCode()), zipCode = _b[0], setZipCode = _b[1];
-    var _d = (0, react_1.useState)(false), loading = _d[0], setLoading = _d[1];
-    var _e = (0, react_1.useState)(), error = _e[0], setError = _e[1];
-    var _f = (0, react_1.useState)([]), pharmacies = _f[0], setPharmacies = _f[1];
-    var _g = (0, react_1.useState)(false), hasSearched = _g[0], setHasSearched = _g[1];
-    var searchPharmacies = (0, react_1.useCallback)(function () { return __awaiter(void 0, void 0, void 0, function () {
+    var _b = (0, react_2.useState)(getInitialZipCode()), zipCode = _b[0], setZipCode = _b[1];
+    var _d = (0, react_2.useState)(false), loading = _d[0], setLoading = _d[1];
+    var _e = (0, react_2.useState)(), error = _e[0], setError = _e[1];
+    var _f = (0, react_2.useState)([]), pharmacies = _f[0], setPharmacies = _f[1];
+    var _g = (0, react_2.useState)(false), hasSearched = _g[0], setHasSearched = _g[1];
+    var searchPharmacies = (0, react_2.useCallback)(function () { return __awaiter(void 0, void 0, void 0, function () {
         var data, err_8;
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -1289,12 +1294,49 @@ function convertHEIC(file) {
 exports.convertHEIC = convertHEIC;
 ;
 var value_is_image = function (f) { var _a; return (_a = f === null || f === void 0 ? void 0 : f.type) === null || _a === void 0 ? void 0 : _a.includes('image'); };
+var fileMatchesValidTypes = function (file, validFileTypes) {
+    if (!(validFileTypes === null || validFileTypes === void 0 ? void 0 : validFileTypes.length))
+        return true;
+    if (!file.type)
+        return false;
+    return !!validFileTypes.find(function (t) { return file.type.includes(t.toLowerCase()); });
+};
+var ExistingFilePicker = function (_a) {
+    var enduserId = _a.enduserId, excludedSecureNames = _a.excludedSecureNames, validFileTypes = _a.validFileTypes, onSelect = _a.onSelect, form = _a.form, label = _a.label;
+    var session = (0, __1.useResolvedSession)();
+    var isEnduserSession = session.type === 'enduser';
+    var _b = (0, __1.useFiles)({
+        loadFilter: { enduserId: enduserId },
+        dontFetch: !enduserId || isEnduserSession,
+    }), getFiltered = _b[1].filtered;
+    var filesLoading = getFiltered(function (e) { return (!!enduserId) && (e.enduserId === enduserId); });
+    var filtered = (0, react_2.useMemo)(function () {
+        if (!(0, __1.value_is_loaded)(filesLoading))
+            return [];
+        return filesLoading.value.filter(function (f) { return (!!f.confirmedAt
+            && fileMatchesValidTypes(f, validFileTypes)
+            && !(excludedSecureNames === null || excludedSecureNames === void 0 ? void 0 : excludedSecureNames.includes(f.secureName))); });
+    }, [filesLoading, validFileTypes, excludedSecureNames]);
+    // Only available in User (staff) sessions — endusers must upload.
+    if (isEnduserSession)
+        return null;
+    if (!enduserId)
+        return null;
+    if (filtered.length === 0)
+        return null;
+    return ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, sx: { mt: 1 } }, { children: (0, jsx_runtime_1.jsx)(material_1.Autocomplete, { size: "small", options: filtered, getOptionLabel: function (f) { return f.name; }, renderOption: function (props, option) { return ((0, react_1.createElement)("li", __assign({}, props, { key: option.id }),
+                (0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, direction: "column" }, { children: [(0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ sx: { fontSize: 14 } }, { children: option.name })), option.timestamp && ((0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ sx: { fontSize: 12, color: '#666' } }, { children: new Date(option.timestamp).toLocaleDateString() })))] })))); }, onChange: function (_, value) {
+                if (value)
+                    onSelect(value);
+            }, value: null, blurOnSelect: true, clearOnBlur: true, renderInput: function (params) { return ((0, jsx_runtime_1.jsx)(material_1.TextField, __assign({}, params, { label: label || (0, __1.form_display_text_for_language)(form, "Or select an existing file from this patient") }))); } }) })));
+};
+exports.ExistingFilePicker = ExistingFilePicker;
 var FileInput = function (_a) {
-    var _b;
-    var value = _a.value, onChange = _a.onChange, field = _a.field, existingFileName = _a.existingFileName, uploadingFiles = _a.uploadingFiles, handleFileUpload = _a.handleFileUpload, setUploadingFiles = _a.setUploadingFiles, form = _a.form;
-    var _d = (0, react_1.useState)(''), error = _d[0], setError = _d[1];
-    var _e = (0, react_dropzone_1.useDropzone)({
-        onDrop: (0, react_1.useCallback)(function (acceptedFiles) {
+    var _b, _d;
+    var value = _a.value, onChange = _a.onChange, field = _a.field, existingFileName = _a.existingFileName, uploadingFiles = _a.uploadingFiles, handleFileUpload = _a.handleFileUpload, setUploadingFiles = _a.setUploadingFiles, form = _a.form, enduserId = _a.enduserId, onSelectExistingFile = _a.onSelectExistingFile;
+    var _e = (0, react_2.useState)(''), error = _e[0], setError = _e[1];
+    var _f = (0, react_dropzone_1.useDropzone)({
+        onDrop: (0, react_2.useCallback)(function (acceptedFiles) {
             var _a, _b, _d, _e;
             var file = acceptedFiles.pop();
             if (!file)
@@ -1316,9 +1358,9 @@ var FileInput = function (_a) {
                     .finally(function () { return setUploadingFiles === null || setUploadingFiles === void 0 ? void 0 : setUploadingFiles(function (fs) { return fs.filter(function (f) { return f.fieldId !== field.id; }); }); });
             }
         }, [onChange, (_b = field.options) === null || _b === void 0 ? void 0 : _b.validFileTypes, handleFileUpload, setUploadingFiles]),
-    }), getRootProps = _e.getRootProps, getInputProps = _e.getInputProps, isDragActive = _e.isDragActive;
-    var _f = (0, react_1.useState)(''), preview = _f[0], setPreview = _f[1];
-    (0, react_1.useEffect)(function () {
+    }), getRootProps = _f.getRootProps, getInputProps = _f.getInputProps, isDragActive = _f.isDragActive;
+    var _g = (0, react_2.useState)(''), preview = _g[0], setPreview = _g[1];
+    (0, react_2.useEffect)(function () {
         if (!value_is_image(value))
             return;
         if ((value.type.includes('heif') || value.type.includes('heic'))) {
@@ -1352,7 +1394,10 @@ var FileInput = function (_a) {
                                 : (0, utilities_1.capture_is_supported)()
                                     ? ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, direction: "column", alignItems: "center" }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(AddPhotoAlternate_1.default, { color: "primary" }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ sx: { fontSize: 14, textAlign: 'center' } }, { children: (0, __1.form_display_text_for_language)(form, "Select file or take picture") })) }))] })))
                                     : (0, __1.form_display_text_for_language)(form, "Select a File") })] })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, alignSelf: "center", sx: { mt: 0.5 } }, { children: (!(value === null || value === void 0 ? void 0 : value.name) && existingFileName) &&
-                    (0, jsx_runtime_1.jsxs)(material_1.Typography, { children: [existingFileName, " selected!"] }) })), error &&
+                    (0, jsx_runtime_1.jsxs)(material_1.Typography, { children: [existingFileName, " selected!"] }) })), !value && onSelectExistingFile && ((0, jsx_runtime_1.jsx)(exports.ExistingFilePicker, { enduserId: enduserId, validFileTypes: (_d = field.options) === null || _d === void 0 ? void 0 : _d.validFileTypes, form: form, onSelect: function (file) {
+                    setError('');
+                    onSelectExistingFile({ secureName: file.secureName, name: file.name, type: file.type });
+                } })), error &&
                 (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, alignSelf: "center", sx: { mt: 0.5 } }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ color: "error" }, { children: error })) }))] })));
 };
 exports.FileInput = FileInput;
@@ -1367,11 +1412,13 @@ var safe_create_url = function (file) {
 };
 exports.safe_create_url = safe_create_url;
 var FilesInput = function (_a) {
-    var _b;
-    var value = _a.value, onChange = _a.onChange, field = _a.field, existingFileName = _a.existingFileName, uploadingFiles = _a.uploadingFiles, handleFileUpload = _a.handleFileUpload, setUploadingFiles = _a.setUploadingFiles, form = _a.form;
-    var _d = (0, react_1.useState)(''), error = _d[0], setError = _d[1];
-    var _e = (0, react_dropzone_1.useDropzone)({
-        onDrop: (0, react_1.useCallback)(function (acceptedFiles) { return __awaiter(void 0, void 0, void 0, function () {
+    var _b, _d;
+    var value = _a.value, onChange = _a.onChange, field = _a.field, existingFileName = _a.existingFileName, uploadingFiles = _a.uploadingFiles, handleFileUpload = _a.handleFileUpload, setUploadingFiles = _a.setUploadingFiles, form = _a.form, enduserId = _a.enduserId, existingSelections = _a.existingSelections, onSelectExistingFile = _a.onSelectExistingFile, onRemoveExistingFile = _a.onRemoveExistingFile;
+    var _e = (0, react_2.useState)(''), error = _e[0], setError = _e[1];
+    var safeExistingSelections = Array.isArray(existingSelections) ? existingSelections : undefined;
+    var excludedSecureNames = (0, react_2.useMemo)(function () { return (safeExistingSelections === null || safeExistingSelections === void 0 ? void 0 : safeExistingSelections.map(function (s) { return s.secureName; })); }, [safeExistingSelections]);
+    var _f = (0, react_dropzone_1.useDropzone)({
+        onDrop: (0, react_2.useCallback)(function (acceptedFiles) { return __awaiter(void 0, void 0, void 0, function () {
             var _loop_1, _a, acceptedFiles_1, file, state_1;
             var _b, _d, _e;
             return __generator(this, function (_f) {
@@ -1420,8 +1467,8 @@ var FilesInput = function (_a) {
                 }
             });
         }); }, [onChange, value, (_b = field.options) === null || _b === void 0 ? void 0 : _b.validFileTypes, handleFileUpload, setUploadingFiles]),
-    }), getRootProps = _e.getRootProps, getInputProps = _e.getInputProps, isDragActive = _e.isDragActive;
-    var previews = (0, react_1.useMemo)(function () { return ((value !== null && value !== void 0 ? value : []).map(function (v) {
+    }), getRootProps = _f.getRootProps, getInputProps = _f.getInputProps, isDragActive = _f.isDragActive;
+    var previews = (0, react_2.useMemo)(function () { return ((value !== null && value !== void 0 ? value : []).map(function (v) {
         return value_is_image(v) ? (0, exports.safe_create_url)(v) : null;
     })); }, [value]);
     if (uploadingFiles === null || uploadingFiles === void 0 ? void 0 : uploadingFiles.find(function (f) { return f.fieldId === field.id; })) {
@@ -1440,11 +1487,15 @@ var FilesInput = function (_a) {
                             ? (0, __1.form_display_text_for_language)(form, "Drop to select files")
                             : (0, utilities_1.capture_is_supported)()
                                 ? ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, direction: "column", alignItems: "center" }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(AddPhotoAlternate_1.default, { color: "primary" }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ sx: { fontSize: 14, textAlign: 'center' } }, { children: (0, __1.form_display_text_for_language)(form, "Select files or take pictures") })) }))] })))
-                                : (0, __1.form_display_text_for_language)(form, "Select Files") })] })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ container: true, direction: "column", sx: { overflowY: 'auto', maxHeight: '250px', mt: 1 }, wrap: "nowrap" }, { children: value === null || value === void 0 ? void 0 : value.map(function (file, i) {
-                    var _a;
-                    return ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, sx: { mt: 0.5 } }, { children: (0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, alignItems: "center", justifyContent: "space-between", wrap: "nowrap" }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, alignItems: "center" }, { children: [(0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ sx: { mr: 1 } }, { children: file.name })), ((_a = file.type) === null || _a === void 0 ? void 0 : _a.includes('image')) && previews[i] &&
-                                                (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)("img", { src: previews[i], style: { maxWidth: '45%', maxHeight: 80, height: '100%' } }) }))] })) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(__1.LabeledIconButton, { label: (0, __1.form_display_text_for_language)(form, "Remove"), Icon: icons_material_1.Delete, onClick: function () { return onChange(value.filter(function (f, _i) { return i !== _i; }), field.id); } }) }))] })) }), i));
-                }) })), error &&
+                                : (0, __1.form_display_text_for_language)(form, "Select Files") })] })), (0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, direction: "column", sx: { overflowY: 'auto', maxHeight: '250px', mt: 1 }, wrap: "nowrap" }, { children: [value === null || value === void 0 ? void 0 : value.map(function (file, i) {
+                        var _a;
+                        return ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, sx: { mt: 0.5 } }, { children: (0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, alignItems: "center", justifyContent: "space-between", wrap: "nowrap" }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, alignItems: "center" }, { children: [(0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ sx: { mr: 1 } }, { children: file.name })), ((_a = file.type) === null || _a === void 0 ? void 0 : _a.includes('image')) && previews[i] &&
+                                                    (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)("img", { src: previews[i], style: { maxWidth: '45%', maxHeight: 80, height: '100%' } }) }))] })) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(__1.LabeledIconButton, { label: (0, __1.form_display_text_for_language)(form, "Remove"), Icon: icons_material_1.Delete, onClick: function () { return onChange(value.filter(function (f, _i) { return i !== _i; }), field.id); } }) }))] })) }), i));
+                    }), safeExistingSelections === null || safeExistingSelections === void 0 ? void 0 : safeExistingSelections.map(function (selection, i) { return ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, sx: { mt: 0.5 } }, { children: (0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, alignItems: "center", justifyContent: "space-between", wrap: "nowrap" }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ sx: { mr: 1 } }, { children: selection.name })) })), onRemoveExistingFile &&
+                                    (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(__1.LabeledIconButton, { label: (0, __1.form_display_text_for_language)(form, "Remove"), Icon: icons_material_1.Delete, onClick: function () { return onRemoveExistingFile(selection.secureName); } }) }))] })) }), "existing-".concat(selection.secureName, "-").concat(i))); })] })), onSelectExistingFile && ((0, jsx_runtime_1.jsx)(exports.ExistingFilePicker, { enduserId: enduserId, excludedSecureNames: excludedSecureNames, validFileTypes: (_d = field.options) === null || _d === void 0 ? void 0 : _d.validFileTypes, form: form, onSelect: function (file) {
+                    setError('');
+                    onSelectExistingFile({ secureName: file.secureName, name: file.name, type: file.type });
+                } })), error &&
                 (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, alignSelf: "center", sx: { mt: 0.5 } }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ color: "error" }, { children: error })) }))] })));
 };
 exports.FilesInput = FilesInput;
@@ -1463,9 +1514,9 @@ var MultipleChoiceInput = function (_a) {
     var field = _a.field, form = _a.form, _value = _a.value, onChange = _a.onChange, responses = _a.responses, enduser = _a.enduser;
     var value = typeof _value === 'string' ? [_value] : _value; // if loading existingResponses, allows them to be a string
     var _d = field.options, choices = _d.choices, radio = _d.radio, other = _d.other, optionDetails = _d.optionDetails;
-    var _e = (0, react_1.useState)({}), expandedDescriptions = _e[0], setExpandedDescriptions = _e[1];
+    var _e = (0, react_2.useState)({}), expandedDescriptions = _e[0], setExpandedDescriptions = _e[1];
     // current other string
-    var enteringOtherStringRef = react_1.default.useRef(''); // if typing otherString as prefix of a checkbox value, don't auto-select
+    var enteringOtherStringRef = react_2.default.useRef(''); // if typing otherString as prefix of a checkbox value, don't auto-select
     var otherString = (_b = value === null || value === void 0 ? void 0 : value.find(function (v) { var _a; return v === enteringOtherStringRef.current || !((_a = (choices !== null && choices !== void 0 ? choices : [])) === null || _a === void 0 ? void 0 : _a.find(function (c) { return c === v; })); })) !== null && _b !== void 0 ? _b : '';
     // Conditional visibility for choices
     var _f = (0, hooks_1.useConditionalChoices)({
@@ -1478,11 +1529,11 @@ var MultipleChoiceInput = function (_a) {
         fieldId: field.id,
         otherString: otherString,
     }), visibleChoices = _f.visibleChoices, handleChange = _f.handleChange;
-    var getDescriptionForChoice = (0, react_1.useCallback)(function (choice) {
+    var getDescriptionForChoice = (0, react_2.useCallback)(function (choice) {
         var _a;
         return (_a = optionDetails === null || optionDetails === void 0 ? void 0 : optionDetails.find(function (detail) { return detail.option === choice; })) === null || _a === void 0 ? void 0 : _a.description;
     }, [optionDetails]);
-    var toggleDescription = (0, react_1.useCallback)(function (index) {
+    var toggleDescription = (0, react_2.useCallback)(function (index) {
         setExpandedDescriptions(function (prev) {
             var _a;
             return (__assign(__assign({}, prev), (_a = {}, _a[index] = !prev[index], _a)));
@@ -1557,18 +1608,18 @@ var StripeInput = function (_a) {
     var _b, _d, _e;
     var field = _a.field, value = _a.value, onChange = _a.onChange, setCustomerId = _a.setCustomerId, enduserId = _a.enduserId, form = _a.form, responses = _a.responses, enduser = _a.enduser;
     var session = (0, __1.useResolvedSession)();
-    var _f = (0, react_1.useState)(''), clientSecret = _f[0], setClientSecret = _f[1];
-    var _g = (0, react_1.useState)(''), businessName = _g[0], setBusinessName = _g[1];
-    var _h = (0, react_1.useState)(false), isCheckout = _h[0], setIsCheckout = _h[1];
-    var _j = (0, react_1.useState)(), stripePromise = _j[0], setStripePromise = _j[1];
-    var _k = (0, react_1.useState)(''), answertext = _k[0], setAnswertext = _k[1];
-    var _l = (0, react_1.useState)(''), error = _l[0], setError = _l[1];
-    var _m = (0, react_1.useState)([]), selectedProducts = _m[0], setSelectedProducts = _m[1];
-    var _o = (0, react_1.useState)(false), showProductSelection = _o[0], setShowProductSelection = _o[1];
-    var _p = (0, react_1.useState)([]), availableProducts = _p[0], setAvailableProducts = _p[1];
-    var _q = (0, react_1.useState)(false), loadingProducts = _q[0], setLoadingProducts = _q[1];
+    var _f = (0, react_2.useState)(''), clientSecret = _f[0], setClientSecret = _f[1];
+    var _g = (0, react_2.useState)(''), businessName = _g[0], setBusinessName = _g[1];
+    var _h = (0, react_2.useState)(false), isCheckout = _h[0], setIsCheckout = _h[1];
+    var _j = (0, react_2.useState)(), stripePromise = _j[0], setStripePromise = _j[1];
+    var _k = (0, react_2.useState)(''), answertext = _k[0], setAnswertext = _k[1];
+    var _l = (0, react_2.useState)(''), error = _l[0], setError = _l[1];
+    var _m = (0, react_2.useState)([]), selectedProducts = _m[0], setSelectedProducts = _m[1];
+    var _o = (0, react_2.useState)(false), showProductSelection = _o[0], setShowProductSelection = _o[1];
+    var _p = (0, react_2.useState)([]), availableProducts = _p[0], setAvailableProducts = _p[1];
+    var _q = (0, react_2.useState)(false), loadingProducts = _q[0], setLoadingProducts = _q[1];
     // Compute visible products based on conditional logic
-    var visibleProducts = (0, react_1.useMemo)(function () {
+    var visibleProducts = (0, react_2.useMemo)(function () {
         if (!showProductSelection || availableProducts.length === 0) {
             return availableProducts;
         }
@@ -1591,12 +1642,12 @@ var StripeInput = function (_a) {
         });
     }, [availableProducts, (_b = field.options) === null || _b === void 0 ? void 0 : _b.productConditions, responses, showProductSelection, enduser, form]);
     // Automatically deselect products that become hidden
-    (0, react_1.useEffect)(function () {
+    (0, react_2.useEffect)(function () {
         var visibleProductIds = visibleProducts.map(function (p) { return p._id; });
         setSelectedProducts(function (prev) { return prev.filter(function (id) { return visibleProductIds.includes(id); }); });
     }, [visibleProducts]);
-    var fetchRef = (0, react_1.useRef)(false);
-    (0, react_1.useEffect)(function () {
+    var fetchRef = (0, react_2.useRef)(false);
+    (0, react_2.useEffect)(function () {
         var _a, _b, _d;
         if (fetchRef.current)
             return;
@@ -1661,8 +1712,8 @@ var StripeInput = function (_a) {
         : 0 // Will be calculated by existing Stripe flow when not in selection mode
     );
     // Emit GTM purchase event once when success screen is displayed
-    var purchaseEmittedRef = (0, react_1.useRef)(false);
-    (0, react_1.useEffect)(function () {
+    var purchaseEmittedRef = (0, react_2.useRef)(false);
+    (0, react_2.useEffect)(function () {
         var _a;
         // Only emit for actual purchases (chargeImmediately), not for saving card details
         if (value && ((_a = field.options) === null || _a === void 0 ? void 0 : _a.chargeImmediately) && !purchaseEmittedRef.current) {
@@ -1751,8 +1802,8 @@ var StripeForm = function (_a) {
     var businessName = _a.businessName, onSuccess = _a.onSuccess, field = _a.field, cost = _a.cost, form = _a.form;
     var stripe = (0, react_stripe_js_1.useStripe)();
     var elements = (0, react_stripe_js_1.useElements)();
-    var _f = (0, react_1.useState)(false), ready = _f[0], setReady = _f[1];
-    var _g = (0, react_1.useState)(''), errorMessage = _g[0], setErrorMessage = _g[1];
+    var _f = (0, react_2.useState)(false), ready = _f[0], setReady = _f[1];
+    var _g = (0, react_2.useState)(''), errorMessage = _g[0], setErrorMessage = _g[1];
     var handleSubmit = function (event) { return __awaiter(void 0, void 0, void 0, function () {
         var error;
         var _a, _b;
@@ -1809,10 +1860,10 @@ exports.Progress = Progress;
 var DropdownInput = function (_a) {
     var _b, _d, _e, _f, _g, _h, _j;
     var field = _a.field, value = _a.value, onChange = _a.onChange;
-    var _k = (0, react_1.useState)(''), typing = _k[0], setTyping = _k[1];
+    var _k = (0, react_2.useState)(''), typing = _k[0], setTyping = _k[1];
     // this should run only once, even if the field updates but the id is unchanged, otherwise will overwrite input
-    var typingRef = (0, react_1.useRef)('');
-    (0, react_1.useEffect)(function () {
+    var typingRef = (0, react_2.useRef)('');
+    (0, react_2.useEffect)(function () {
         if (typingRef.current === field.id)
             return;
         typingRef.current = field.id;
@@ -1846,13 +1897,13 @@ var useDatabaseChoices = function (_a) {
     var _b, _d;
     var _e = _a.databaseId, databaseId = _e === void 0 ? '' : _e, field = _a.field, otherAnswers = _a.otherAnswers, _f = _a.searchQuery, searchQuery = _f === void 0 ? '' : _f;
     var session = (0, __1.useResolvedSession)();
-    var _g = (0, react_1.useState)(false), isSearching = _g[0], setIsSearching = _g[1];
-    var _h = (0, react_1.useState)([]), searchResults = _h[0], setSearchResults = _h[1];
-    var _j = (0, react_1.useState)(false), initialLoadComplete = _j[0], setInitialLoadComplete = _j[1];
+    var _g = (0, react_2.useState)(false), isSearching = _g[0], setIsSearching = _g[1];
+    var _h = (0, react_2.useState)([]), searchResults = _h[0], setSearchResults = _h[1];
+    var _j = (0, react_2.useState)(false), initialLoadComplete = _j[0], setInitialLoadComplete = _j[1];
     var debouncedSearch = useDebounce(searchQuery, SEARCH_DEBOUNCE_MS);
     // Load initial page on mount (only once, not recursively)
-    var initialLoadRef = (0, react_1.useRef)(false);
-    (0, react_1.useEffect)(function () {
+    var initialLoadRef = (0, react_2.useRef)(false);
+    (0, react_2.useEffect)(function () {
         var _a, _b, _d;
         if (initialLoadRef.current)
             return;
@@ -1885,8 +1936,8 @@ var useDatabaseChoices = function (_a) {
         });
     }, [session, field, databaseId]);
     // Handle debounced search
-    var searchRef = (0, react_1.useRef)(debouncedSearch);
-    (0, react_1.useEffect)(function () {
+    var searchRef = (0, react_2.useRef)(debouncedSearch);
+    (0, react_2.useEffect)(function () {
         var trimmed = debouncedSearch.trim();
         // If search is cleared, return to initial results
         if (!trimmed) {
@@ -1933,7 +1984,7 @@ var useDatabaseChoices = function (_a) {
             setIsSearching(false);
         });
     }, [session, field, databaseId, debouncedSearch]);
-    var addChoice = (0, react_1.useCallback)(function (record) {
+    var addChoice = (0, react_2.useCallback)(function (record) {
         if (!choicesForDatabase[databaseId]) {
             choicesForDatabase[databaseId] = {
                 done: false,
@@ -1991,16 +2042,16 @@ var get_other_answers = function (_value, typing) {
 var DatabaseSelectInput = function (_a) {
     var _b, _d, _e, _f, _g, _h, _j, _k;
     var AddToDatabase = _a.AddToDatabase, field = _a.field, _value = _a.value, onChange = _a.onChange, onDatabaseSelect = _a.onDatabaseSelect, responses = _a.responses, size = _a.size, disabled = _a.disabled, enduser = _a.enduser, inputProps = _a.inputProps;
-    var _l = (0, react_1.useState)(''), typing = _l[0], setTyping = _l[1];
-    var _m = (0, react_1.useState)(false), open = _m[0], setOpen = _m[1];
-    var selectedRecordsCache = (0, react_1.useRef)(new Map());
+    var _l = (0, react_2.useState)(''), typing = _l[0], setTyping = _l[1];
+    var _m = (0, react_2.useState)(false), open = _m[0], setOpen = _m[1];
+    var selectedRecordsCache = (0, react_2.useRef)(new Map());
     var _o = useDatabaseChoices({
         databaseId: (_b = field.options) === null || _b === void 0 ? void 0 : _b.databaseId,
         field: field,
         otherAnswers: get_other_answers(_value, ((_d = field === null || field === void 0 ? void 0 : field.options) === null || _d === void 0 ? void 0 : _d.other) ? typing : undefined),
         searchQuery: typing,
     }), addChoice = _o.addChoice, choices = _o.choices, doneLoading = _o.doneLoading, isSearching = _o.isSearching, minSearchChars = _o.minSearchChars;
-    var value = react_1.default.useMemo(function () {
+    var value = react_2.default.useMemo(function () {
         try {
             // if the value is a string (some single answer that was saved), make sure we coerce to array
             var __value = typeof _value === 'string' ? [_value] : _value;
@@ -2032,14 +2083,14 @@ var DatabaseSelectInput = function (_a) {
             return [];
         }
     }, [_value, choices, field]);
-    var filterResponse = (0, react_1.useMemo)(function () {
+    var filterResponse = (0, react_2.useMemo)(function () {
         var _a, _b, _d, _e;
         return (((_b = (_a = field.options) === null || _a === void 0 ? void 0 : _a.databaseFilter) === null || _b === void 0 ? void 0 : _b.fieldId)
             ? (_e = (_d = responses.find(function (r) { var _a, _b; return r.fieldId === ((_b = (_a = field.options) === null || _a === void 0 ? void 0 : _a.databaseFilter) === null || _b === void 0 ? void 0 : _b.fieldId); })) === null || _d === void 0 ? void 0 : _d.answer) === null || _e === void 0 ? void 0 : _e.value
             : undefined);
     }, [responses, (_e = field.options) === null || _e === void 0 ? void 0 : _e.databaseFilter]);
     // State filtering logic similar to Insurance component
-    var addressQuestion = (0, react_1.useMemo)(function () { return responses === null || responses === void 0 ? void 0 : responses.find(function (r) {
+    var addressQuestion = (0, react_2.useMemo)(function () { return responses === null || responses === void 0 ? void 0 : responses.find(function (r) {
         var _a;
         if (r.answer.type !== 'Address')
             return false;
@@ -2050,13 +2101,13 @@ var DatabaseSelectInput = function (_a) {
             return false;
         return true;
     }); }, [responses]);
-    var state = (0, react_1.useMemo)(function () {
+    var state = (0, react_2.useMemo)(function () {
         var _a, _b, _d, _e;
         return (((_a = field.options) === null || _a === void 0 ? void 0 : _a.filterByEnduserState)
             ? ((((_b = addressQuestion === null || addressQuestion === void 0 ? void 0 : addressQuestion.answer) === null || _b === void 0 ? void 0 : _b.type) === 'Address' ? (_e = (_d = addressQuestion === null || addressQuestion === void 0 ? void 0 : addressQuestion.answer) === null || _d === void 0 ? void 0 : _d.value) === null || _e === void 0 ? void 0 : _e.state : undefined) || (enduser === null || enduser === void 0 ? void 0 : enduser.state))
             : undefined);
     }, [enduser === null || enduser === void 0 ? void 0 : enduser.state, addressQuestion, (_f = field.options) === null || _f === void 0 ? void 0 : _f.filterByEnduserState]);
-    var filteredChoicesWithPotentialDuplicates = (0, react_1.useMemo)(function () {
+    var filteredChoicesWithPotentialDuplicates = (0, react_2.useMemo)(function () {
         var _a, _b;
         if (!choices)
             return [];
@@ -2095,7 +2146,7 @@ var DatabaseSelectInput = function (_a) {
         }));
     }, [choices, filterResponse, (_g = field.options) === null || _g === void 0 ? void 0 : _g.databaseFilter, value]);
     // Apply state filtering as a secondary filter (doesn't modify existing logic)
-    var stateFilteredChoices = (0, react_1.useMemo)(function () {
+    var stateFilteredChoices = (0, react_2.useMemo)(function () {
         var _a;
         if (!((_a = field.options) === null || _a === void 0 ? void 0 : _a.filterByEnduserState) || !state) {
             return filteredChoicesWithPotentialDuplicates;
@@ -2106,7 +2157,7 @@ var DatabaseSelectInput = function (_a) {
             return !recordState || recordState === state;
         });
     }, [filteredChoicesWithPotentialDuplicates, (_h = field.options) === null || _h === void 0 ? void 0 : _h.filterByEnduserState, state]);
-    var filteredChoices = (0, react_1.useMemo)(function () {
+    var filteredChoices = (0, react_2.useMemo)(function () {
         var filtered = [];
         var uniques = new Set([]);
         for (var _a = 0, stateFilteredChoices_1 = stateFilteredChoices; _a < stateFilteredChoices_1.length; _a++) {
@@ -2161,9 +2212,9 @@ var RX_NORM_CODE_FOR_DRUG = {};
 var NDC_CODES_FOR_RX_NORM_CODE = {};
 var useMedications = function (_a) {
     var dontFetch = _a.dontFetch;
-    var _b = (0, react_1.useState)(displayTermsCache), displayTerms = _b[0], setDisplayTerms = _b[1];
-    var fetchRef = (0, react_1.useRef)(displayTerms !== undefined);
-    (0, react_1.useEffect)(function () {
+    var _b = (0, react_2.useState)(displayTermsCache), displayTerms = _b[0], setDisplayTerms = _b[1];
+    var fetchRef = (0, react_2.useRef)(displayTerms !== undefined);
+    (0, react_2.useEffect)(function () {
         if (dontFetch)
             return;
         if (fetchRef.current)
@@ -2195,7 +2246,7 @@ var useMedications = function (_a) {
         })
             .catch(console.error);
     }, [dontFetch]);
-    var getDrugsForDisplayTerm = (0, react_1.useCallback)(function (s) { return __awaiter(void 0, void 0, void 0, function () {
+    var getDrugsForDisplayTerm = (0, react_2.useCallback)(function (s) { return __awaiter(void 0, void 0, void 0, function () {
         var drugs, _a;
         var _b, _d, _e, _f;
         return __generator(this, function (_g) {
@@ -2217,7 +2268,7 @@ var useMedications = function (_a) {
             }
         });
     }); }, []);
-    var getCodesForDrug = (0, react_1.useCallback)(function (s) { return __awaiter(void 0, void 0, void 0, function () {
+    var getCodesForDrug = (0, react_2.useCallback)(function (s) { return __awaiter(void 0, void 0, void 0, function () {
         var rxNormCode, _a, NDCs, _b;
         var _d, _e, _f, _g, _h, _j, _k;
         return __generator(this, function (_l) {
@@ -2282,15 +2333,15 @@ var CanvasMedicationsInput = function (_a) {
     var _b;
     var field = _a.field, _d = _a.value, value = _d === void 0 ? [] : _d, onChange = _a.onChange, form = _a.form;
     var session = (0, __1.useResolvedSession)();
-    var _e = (0, react_1.useState)(''), query = _e[0], setQuery = _e[1];
-    var _f = (0, react_1.useState)([]), results = _f[0], setResults = _f[1];
+    var _e = (0, react_2.useState)(''), query = _e[0], setQuery = _e[1];
+    var _f = (0, react_2.useState)([]), results = _f[0], setResults = _f[1];
     // if two Medications questions shown in a row, reset state
-    (0, react_1.useEffect)(function () {
+    (0, react_2.useEffect)(function () {
         setQuery('');
         setResults([]);
     }, [field.id]);
-    var fetchRef = (0, react_1.useRef)(query);
-    (0, react_1.useEffect)(function () {
+    var fetchRef = (0, react_2.useRef)(query);
+    (0, react_2.useEffect)(function () {
         if (fetchRef.current === query)
             return;
         fetchRef.current = query;
@@ -2341,7 +2392,7 @@ var MedicationsInput = function (_a) {
     var _e = useMedications({
         dontFetch: ((_b = field.options) === null || _b === void 0 ? void 0 : _b.dataSource) === constants_1.CANVAS_TITLE
     }), displayTerms = _e.displayTerms, doneLoading = _e.doneLoading, getCodesForDrug = _e.getCodesForDrug, getDrugsForDisplayTerm = _e.getDrugsForDisplayTerm;
-    var _f = (0, react_1.useState)({}), drugs = _f[0], setDrugs = _f[1];
+    var _f = (0, react_2.useState)({}), drugs = _f[0], setDrugs = _f[1];
     // uncomment to load data after initial typing
     // const [query, setQuery] = useState('')
     // useEffect(() => {
@@ -2532,8 +2583,8 @@ var RelatedContactsInput = function (_a) {
     var field = _a.field, _value = _a.value, onChange = _a.onChange, parentError = _a.error, form = _a.form, props = __rest(_a, ["field", "value", "onChange", "error", "form"]);
     // safeguard against any rogue values like empty string
     var value = Array.isArray(_value) ? _value : [];
-    var _y = (0, react_1.useState)(value.length === 1 ? 0 : -1), editing = _y[0], setEditing = _y[1];
-    var handleAddContact = (0, react_1.useCallback)(function () {
+    var _y = (0, react_2.useState)(value.length === 1 ? 0 : -1), editing = _y[0], setEditing = _y[1];
+    var handleAddContact = (0, react_2.useCallback)(function () {
         var _a, _b;
         onChange(__spreadArray(__spreadArray([], value, true), [
             { relationships: ((_b = (_a = field === null || field === void 0 ? void 0 : field.options) === null || _a === void 0 ? void 0 : _a.relatedContactTypes) === null || _b === void 0 ? void 0 : _b.length) === 1 ? [{ type: field.options.relatedContactTypes[0], id: '' }] : [] }
@@ -2578,13 +2629,13 @@ var AppointmentBookingInput = function (_a) {
     var _b, _d, _e, _f, _g, _h, _j, _k, _l, _m;
     var formResponseId = _a.formResponseId, field = _a.field, value = _a.value, onChange = _a.onChange, form = _a.form, responses = _a.responses, goToPreviousField = _a.goToPreviousField, isPreviousDisabled = _a.isPreviousDisabled, enduserId = _a.enduserId, props = __rest(_a, ["formResponseId", "field", "value", "onChange", "form", "responses", "goToPreviousField", "isPreviousDisabled", "enduserId"]);
     var session = (0, __1.useResolvedSession)();
-    var _o = (0, react_1.useState)(), loaded = _o[0], setLoaded = _o[1];
-    var _p = (0, react_1.useState)(''), error = _p[0], setError = _p[1];
-    var _q = (0, react_1.useState)(false), acknowledgedWarning = _q[0], setAcknowledgedWarning = _q[1];
-    var _r = (0, react_1.useState)(450), height = _r[0], setHeight = _r[1];
-    var _s = (0, react_1.useState)(false), confirming = _s[0], setConfirming = _s[1];
+    var _o = (0, react_2.useState)(), loaded = _o[0], setLoaded = _o[1];
+    var _p = (0, react_2.useState)(''), error = _p[0], setError = _p[1];
+    var _q = (0, react_2.useState)(false), acknowledgedWarning = _q[0], setAcknowledgedWarning = _q[1];
+    var _r = (0, react_2.useState)(450), height = _r[0], setHeight = _r[1];
+    var _s = (0, react_2.useState)(false), confirming = _s[0], setConfirming = _s[1];
     var bookingPageId = (_b = field === null || field === void 0 ? void 0 : field.options) === null || _b === void 0 ? void 0 : _b.bookingPageId;
-    var downloadICS = (0, react_1.useCallback)(function (event) { return __awaiter(void 0, void 0, void 0, function () {
+    var downloadICS = (0, react_2.useCallback)(function (event) { return __awaiter(void 0, void 0, void 0, function () {
         var _a, err_9;
         return __generator(this, function (_b) {
             switch (_b.label) {
@@ -2604,7 +2655,7 @@ var AppointmentBookingInput = function (_a) {
             }
         });
     }); }, [session]);
-    var addressQuestion = (0, react_1.useMemo)(function () { return responses === null || responses === void 0 ? void 0 : responses.find(function (r) {
+    var addressQuestion = (0, react_2.useMemo)(function () { return responses === null || responses === void 0 ? void 0 : responses.find(function (r) {
         var _a;
         if (r.answer.type !== 'Address')
             return false;
@@ -2615,11 +2666,11 @@ var AppointmentBookingInput = function (_a) {
             return false;
         return true;
     }); }, [responses]);
-    var state = (0, react_1.useMemo)(function () {
+    var state = (0, react_2.useMemo)(function () {
         var _a, _b, _d;
         return (((_a = addressQuestion === null || addressQuestion === void 0 ? void 0 : addressQuestion.answer) === null || _a === void 0 ? void 0 : _a.type) === 'Address' ? (_d = (_b = addressQuestion === null || addressQuestion === void 0 ? void 0 : addressQuestion.answer) === null || _b === void 0 ? void 0 : _b.value) === null || _d === void 0 ? void 0 : _d.state : undefined);
     }, [addressQuestion]);
-    var loadBookingInfo = (0, react_1.useCallback)(function () {
+    var loadBookingInfo = (0, react_2.useCallback)(function () {
         if (!bookingPageId)
             return;
         setError('');
@@ -2631,8 +2682,8 @@ var AppointmentBookingInput = function (_a) {
             .then(setLoaded)
             .catch(function (e) { return setError((e === null || e === void 0 ? void 0 : e.message) || (e === null || e === void 0 ? void 0 : e.toString()) || 'Error loading appointment details'); });
     }, [enduserId, bookingPageId, session, state]);
-    var fetchRef = (0, react_1.useRef)(false);
-    (0, react_1.useEffect)(function () {
+    var fetchRef = (0, react_2.useRef)(false);
+    (0, react_2.useEffect)(function () {
         if (value)
             return;
         if (!bookingPageId)
@@ -2642,7 +2693,7 @@ var AppointmentBookingInput = function (_a) {
         fetchRef.current = true;
         loadBookingInfo();
     }, [bookingPageId, loadBookingInfo, value]);
-    (0, react_1.useEffect)(function () {
+    (0, react_2.useEffect)(function () {
         var handleMessage = function (m) {
             var _a, _b, _d, _e, _f, _g, _h, _j, _k;
             // entropy to separate from other booking pages rendered on the same screen
@@ -2811,7 +2862,7 @@ var RedirectInput = function (_a) {
         || ((_g = (_f = (_e = responses === null || responses === void 0 ? void 0 : responses.find(function (r) { var _a, _b, _d; return r.intakeField === 'Address' && ((_a = r.answer) === null || _a === void 0 ? void 0 : _a.type) === 'Address' && ((_d = (_b = r.answer) === null || _b === void 0 ? void 0 : _b.value) === null || _d === void 0 ? void 0 : _d.state); })) === null || _e === void 0 ? void 0 : _e.answer) === null || _f === void 0 ? void 0 : _f.value) === null || _g === void 0 ? void 0 : _g.state)
         || (enduser === null || enduser === void 0 ? void 0 : enduser.state)
         || ((_h = session.userInfo) === null || _h === void 0 ? void 0 : _h.state));
-    (0, react_1.useEffect)(function () {
+    (0, react_2.useEffect)(function () {
         var _a, _b;
         if (session.type === 'user') {
             return;
@@ -2865,15 +2916,15 @@ var RedirectInput = function (_a) {
 exports.RedirectInput = RedirectInput;
 var HiddenValueInput = function (_a) {
     var goToNextField = _a.goToNextField, goToPreviousField = _a.goToPreviousField, field = _a.field, value = _a.value, onChange = _a.onChange, isSinglePage = _a.isSinglePage, groupFields = _a.groupFields, lastNavigationDirectionRef = _a.lastNavigationDirectionRef;
-    var lastRef = (0, react_1.useRef)(0);
-    var lastIdRef = (0, react_1.useRef)('');
+    var lastRef = (0, react_2.useRef)(0);
+    var lastIdRef = (0, react_2.useRef)('');
     // in a Question Group, only the first Hidden Value should navigate
     // AND, it should only navigate if the group only contains hidden values
     var firstHiddenValue = groupFields === null || groupFields === void 0 ? void 0 : groupFields.find(function (v) { return v.type === 'Hidden Value'; });
     var dontNavigate = ((firstHiddenValue && (firstHiddenValue === null || firstHiddenValue === void 0 ? void 0 : firstHiddenValue.id) !== field.id) // is in a group, but not the first hidden value
         || !!(groupFields === null || groupFields === void 0 ? void 0 : groupFields.find(function (v) { return v.type !== 'Hidden Value'; })) // group contains at least 1 non-hidden value
     );
-    var publicIdentifier = (0, react_1.useMemo)(function () {
+    var publicIdentifier = (0, react_2.useMemo)(function () {
         try {
             return new URL(window.location.href).searchParams.get('publicIdentifier') || '';
         }
@@ -2881,9 +2932,9 @@ var HiddenValueInput = function (_a) {
             return '';
         }
     }, []);
-    var valueToSet = (0, react_1.useMemo)(function () { return ((field.title === "{{PUBLIC_IDENTIFIER}}" && publicIdentifier) ? publicIdentifier
+    var valueToSet = (0, react_2.useMemo)(function () { return ((field.title === "{{PUBLIC_IDENTIFIER}}" && publicIdentifier) ? publicIdentifier
         : field.title); }, [field.title, publicIdentifier]);
-    (0, react_1.useEffect)(function () {
+    (0, react_2.useEffect)(function () {
         if (lastRef.current > Date.now() - 1000 && lastIdRef.current === field.id)
             return;
         lastRef.current = Date.now();
@@ -2913,11 +2964,11 @@ exports.HiddenValueInput = HiddenValueInput;
 var EmotiiInput = function (_a) {
     var goToNextField = _a.goToNextField, goToPreviousField = _a.goToPreviousField, field = _a.field, value = _a.value, onChange = _a.onChange, form = _a.form, formResponseId = _a.formResponseId, props = __rest(_a, ["goToNextField", "goToPreviousField", "field", "value", "onChange", "form", "formResponseId"]);
     var session = (0, __1.useResolvedSession)();
-    var requestIdRef = (0, react_1.useRef)(value || "".concat(field.id).concat(formResponseId || Date.now()));
-    var _b = (0, react_1.useState)(), data = _b[0], setData = _b[1];
-    var _d = (0, react_1.useState)(0), loadCount = _d[0], setLoadCount = _d[1];
-    var fetchRef = (0, react_1.useRef)(false);
-    (0, react_1.useEffect)(function () {
+    var requestIdRef = (0, react_2.useRef)(value || "".concat(field.id).concat(formResponseId || Date.now()));
+    var _b = (0, react_2.useState)(), data = _b[0], setData = _b[1];
+    var _d = (0, react_2.useState)(0), loadCount = _d[0], setLoadCount = _d[1];
+    var fetchRef = (0, react_2.useRef)(false);
+    (0, react_2.useEffect)(function () {
         if (value)
             return;
         if (fetchRef.current)
@@ -2932,8 +2983,8 @@ var EmotiiInput = function (_a) {
         })
             .then(function (r) { return setData(r.data); });
     }, [session, value, props === null || props === void 0 ? void 0 : props.enduserId]);
-    var loadAnswerRef = (0, react_1.useRef)(false);
-    (0, react_1.useEffect)(function () {
+    var loadAnswerRef = (0, react_2.useRef)(false);
+    (0, react_2.useEffect)(function () {
         if (loadCount !== 2)
             return;
         if (loadAnswerRef.current)
@@ -2953,15 +3004,15 @@ var AllergiesInput = function (_a) {
     var _b;
     var goToNextField = _a.goToNextField, goToPreviousField = _a.goToPreviousField, field = _a.field, value = _a.value, onChange = _a.onChange, form = _a.form, formResponseId = _a.formResponseId, props = __rest(_a, ["goToNextField", "goToPreviousField", "field", "value", "onChange", "form", "formResponseId"]);
     var session = (0, __1.useResolvedSession)();
-    var _d = (0, react_1.useState)(''), query = _d[0], setQuery = _d[1];
-    var _e = (0, react_1.useState)([]), results = _e[0], setResults = _e[1];
+    var _d = (0, react_2.useState)(''), query = _d[0], setQuery = _d[1];
+    var _e = (0, react_2.useState)([]), results = _e[0], setResults = _e[1];
     // if two allergy questions shown in a row, reset state
-    (0, react_1.useEffect)(function () {
+    (0, react_2.useEffect)(function () {
         setQuery('');
         setResults([]);
     }, [field.id]);
-    var fetchRef = (0, react_1.useRef)(query);
-    (0, react_1.useEffect)(function () {
+    var fetchRef = (0, react_2.useRef)(query);
+    (0, react_2.useEffect)(function () {
         if (fetchRef.current === query)
             return;
         fetchRef.current = query;
@@ -3030,10 +3081,10 @@ var display_with_code = function (v) { return "".concat(v.code, ": ").concat((0,
 var ConditionsInput = function (_a) {
     var goToNextField = _a.goToNextField, goToPreviousField = _a.goToPreviousField, field = _a.field, value = _a.value, onChange = _a.onChange, form = _a.form, formResponseId = _a.formResponseId, props = __rest(_a, ["goToNextField", "goToPreviousField", "field", "value", "onChange", "form", "formResponseId"]);
     var session = (0, __1.useResolvedSession)();
-    var _b = (0, react_1.useState)(''), query = _b[0], setQuery = _b[1];
-    var _d = (0, react_1.useState)([]), results = _d[0], setResults = _d[1];
-    var fetchRef = (0, react_1.useRef)(query);
-    (0, react_1.useEffect)(function () {
+    var _b = (0, react_2.useState)(''), query = _b[0], setQuery = _b[1];
+    var _d = (0, react_2.useState)([]), results = _d[0], setResults = _d[1];
+    var fetchRef = (0, react_2.useRef)(query);
+    (0, react_2.useEffect)(function () {
         if (fetchRef.current === query)
             return;
         fetchRef.current = query;
@@ -3078,13 +3129,13 @@ var ChargeebeeInput = function (_a) {
     var _b;
     var field = _a.field, value = _a.value, onChange = _a.onChange, setCustomerId = _a.setCustomerId, responses = _a.responses;
     var session = (0, __1.useResolvedSession)();
-    var _d = (0, react_1.useState)(''), url = _d[0], setUrl = _d[1];
-    var _e = (0, react_1.useState)(''), error = _e[0], setError = _e[1];
-    var _f = (0, react_1.useState)(false), verifying = _f[0], setVerifying = _f[1];
-    var _g = (0, react_1.useState)(0), loadCount = _g[0], setLoadCount = _g[1];
+    var _d = (0, react_2.useState)(''), url = _d[0], setUrl = _d[1];
+    var _e = (0, react_2.useState)(''), error = _e[0], setError = _e[1];
+    var _f = (0, react_2.useState)(false), verifying = _f[0], setVerifying = _f[1];
+    var _g = (0, react_2.useState)(0), loadCount = _g[0], setLoadCount = _g[1];
     var collectOnly = !!((_b = field.options) === null || _b === void 0 ? void 0 : _b.chargebeeCollectPaymentMethodOnly);
-    var fetchRef = (0, react_1.useRef)(false);
-    (0, react_1.useEffect)(function () {
+    var fetchRef = (0, react_2.useRef)(false);
+    (0, react_2.useEffect)(function () {
         var _a, _b;
         if (fetchRef.current)
             return;
@@ -3111,8 +3162,8 @@ var ChargeebeeInput = function (_a) {
             }
         });
     }, [session]);
-    var loadAnswerRef = (0, react_1.useRef)(false);
-    (0, react_1.useEffect)(function () {
+    var loadAnswerRef = (0, react_2.useRef)(false);
+    (0, react_2.useEffect)(function () {
         if (loadCount !== 2)
             return;
         if (loadAnswerRef.current)

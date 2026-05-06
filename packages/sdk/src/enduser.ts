@@ -1,10 +1,11 @@
 import { Session, SessionOptions } from "./session"
-import { APIQuery } from "./sdk"
+import { APIQuery, BulkLoadOptions } from "./sdk"
 import { url_safe_path } from "@tellescope/utilities"
 
 import { FileDetails, ReactNativeFile, S3PresignedPost, SessionType, UserIdentity } from "@tellescope/types-utilities"
-import { 
+import {
   Attendee,
+  ModelName,
 } from "@tellescope/types-models"
 import {
   ClientModelForName,
@@ -367,6 +368,11 @@ export class EnduserSession extends Session {
 
     this.api.enduser_observations.load = args => this._GET(`/v1${schema.enduser_observations.customActions.load.path}`, args)
     // if (this.authToken) this.refresh_session()
+  }
+
+  bulk_load = async (args: { load: { model: ModelName, options?: BulkLoadOptions }[] }) => {
+    await this.refresh_session_if_expiring_soon()
+    return await this.POST<typeof args, { results: (null | { records: any[] })[] }>(`/v1/bulk-actions/read`, args, true)
   }
 
   _POST = async <A,R=void>(endpoint: string, args?: A, authenticated=true) => {

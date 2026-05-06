@@ -272,22 +272,38 @@ export const QuestionForField = ({
         )
         : field.type === 'file' ? (
           <File field={field} value={file.blobs?.[0] as any} onChange={onAddFile as any} form={form}
+            enduserId={enduserId}
             existingFileName={
               value.answer.type === 'file'
                 ? value.answer.value?.name
                 : ''
-            } 
+            }
             handleFileUpload={handleFileUpload} uploadingFiles={uploadingFiles} setUploadingFiles={setUploadingFiles}
+            onSelectExistingFile={v => onFieldChange(v as any, field.id)}
           />
         )
         : field.type === 'files' ? (
           <Files field={field} value={file.blobs as any} onChange={onAddFile as any} form={form}
+            enduserId={enduserId}
             // existingFileName={
             //   value.answer.type === 'files'
             //     ? value.answer.value?.name
             //     : ''
-            // } 
+            // }
             handleFileUpload={handleFileUpload} uploadingFiles={uploadingFiles} setUploadingFiles={setUploadingFiles}
+            existingSelections={
+              value.answer.type === 'files' && Array.isArray(value.answer.value)
+                ? value.answer.value.filter(av => !file.blobs?.some(b => b.name === av.name))
+                : undefined
+            }
+            onSelectExistingFile={v => {
+              const current = value.answer.type === 'files' && Array.isArray(value.answer.value) ? value.answer.value : []
+              onFieldChange([...current, v] as any, field.id)
+            }}
+            onRemoveExistingFile={secureName => {
+              const current = value.answer.type === 'files' && Array.isArray(value.answer.value) ? value.answer.value : []
+              onFieldChange(current.filter(f => f.secureName !== secureName) as any, field.id)
+            }}
           />
         )
         : field.type === 'dateString' ? (

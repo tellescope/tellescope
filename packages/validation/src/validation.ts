@@ -353,6 +353,9 @@ import {
   OnErrorEventInfo,
   OnErrorAutomationEvent,
   AIContextSource,
+  AISummaryConfiguration,
+  AISummaryDataSource,
+  AISummaryDataSourceConfig,
 } from "@tellescope/types-models"
 import {
   AppointmentBookingPage,
@@ -6623,6 +6626,28 @@ export const formCustomizationValidator = objectValidator<Form['customization']>
   primaryColor: stringValidatorOptionalEmptyOkay, // Custom primary/accent color
   secondaryColor: stringValidatorOptionalEmptyOkay, // Custom secondary color
   showLogoOnIntakePage: booleanValidatorOptional,
+})
+
+export const AI_SUMMARY_DATA_SOURCES: AISummaryDataSource[] = [
+  'enduser_observations','form_responses','chats','phone_calls',
+  'calendar_events','tickets','sms_messages','emails',
+  'enduser_orders','enduser_medications','purchases',
+]
+
+export const aiSummaryDataSourceTypeValidator = exactMatchValidator<AISummaryDataSource>(AI_SUMMARY_DATA_SOURCES)
+
+export const aiSummaryDataSourceConfigValidator = objectValidator<AISummaryDataSourceConfig>({
+  type: aiSummaryDataSourceTypeValidator,
+  limit: nonNegNumberValidatorOptional,
+  lookbackMS: nonNegNumberValidatorOptional,
+  filter: objectAnyFieldsAnyValuesValidator,
+})
+
+export const aiSummaryConfigurationValidator = objectValidator<AISummaryConfiguration>({
+  enabled: booleanValidatorOptional,
+  prompt: stringValidator5000OptionalEmptyOkay,
+  dataSources: listValidatorOptionalOrEmptyOk(aiSummaryDataSourceConfigValidator),
+  maxOutputTokens: nonNegNumberValidatorOptional,
 })
 
 export const languageValidator = objectValidator<Language>({

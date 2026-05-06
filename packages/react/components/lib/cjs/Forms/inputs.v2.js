@@ -121,6 +121,7 @@ var Language_1 = __importDefault(require("@mui/icons-material/Language"));
 var icons_material_1 = require("@mui/icons-material");
 var wysiwyg_1 = require("./wysiwyg");
 var hooks_1 = require("./hooks");
+var inputs_1 = require("./inputs");
 var LanguageSelect = function (_a) {
     var value = _a.value, props = __rest(_a, ["value"]);
     return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, alignItems: "center", justifyContent: "center", wrap: "nowrap", spacing: 1 }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(Language_1.default, { color: "primary" }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, style: { width: 150 } }, { children: (0, jsx_runtime_1.jsx)(StringSelector, __assign({}, props, { options: ["English", "Español"], size: "small", value: value === 'Spanish' ? 'Español' : value, label: (value === 'Español' || value === 'Spanish') ? 'Idioma'
@@ -377,25 +378,25 @@ var NumberInput = function (_a) {
 };
 exports.NumberInput = NumberInput;
 // InsuranceInput, BridgeEligibilityInput, PharmacySearchInput, and AppointmentBookingInput logic is shared with inputs.tsx to avoid duplication
-var inputs_1 = require("./inputs");
+var inputs_2 = require("./inputs");
 // Wrap the shared InsuranceInput component with v2-specific props
 var InsuranceInput = function (props) {
-    return (0, jsx_runtime_1.jsx)(inputs_1.InsuranceInput, __assign({}, props, { inputProps: exports.defaultInputProps }));
+    return (0, jsx_runtime_1.jsx)(inputs_2.InsuranceInput, __assign({}, props, { inputProps: exports.defaultInputProps }));
 };
 exports.InsuranceInput = InsuranceInput;
 // Wrap the shared BridgeEligibilityInput component with v2-specific props
 var BridgeEligibilityInput = function (props) {
-    return (0, jsx_runtime_1.jsx)(inputs_1.BridgeEligibilityInput, __assign({}, props, { inputProps: exports.defaultInputProps }));
+    return (0, jsx_runtime_1.jsx)(inputs_2.BridgeEligibilityInput, __assign({}, props, { inputProps: exports.defaultInputProps }));
 };
 exports.BridgeEligibilityInput = BridgeEligibilityInput;
 // Wrap the shared CandidEligibilityInput component with v2-specific props
 var CandidEligibilityInput = function (props) {
-    return (0, jsx_runtime_1.jsx)(inputs_1.CandidEligibilityInput, __assign({}, props, { inputProps: exports.defaultInputProps }));
+    return (0, jsx_runtime_1.jsx)(inputs_2.CandidEligibilityInput, __assign({}, props, { inputProps: exports.defaultInputProps }));
 };
 exports.CandidEligibilityInput = CandidEligibilityInput;
 // Wrap the shared PharmacySearchInput component with v2-specific props
 var PharmacySearchInput = function (props) {
-    return (0, jsx_runtime_1.jsx)(inputs_1.PharmacySearchInput, __assign({}, props));
+    return (0, jsx_runtime_1.jsx)(inputs_2.PharmacySearchInput, __assign({}, props));
 };
 exports.PharmacySearchInput = PharmacySearchInput;
 var StringSelector = function (_a) {
@@ -541,10 +542,10 @@ exports.convertHEIC = convertHEIC;
 ;
 var value_is_image = function (f) { var _a; return (_a = f === null || f === void 0 ? void 0 : f.type) === null || _a === void 0 ? void 0 : _a.includes('image'); };
 var FileInput = function (_a) {
-    var _b;
-    var value = _a.value, onChange = _a.onChange, field = _a.field, existingFileName = _a.existingFileName, uploadingFiles = _a.uploadingFiles, handleFileUpload = _a.handleFileUpload, setUploadingFiles = _a.setUploadingFiles, form = _a.form;
-    var _d = (0, react_1.useState)(''), error = _d[0], setError = _d[1];
-    var _e = (0, react_dropzone_1.useDropzone)({
+    var _b, _d;
+    var value = _a.value, onChange = _a.onChange, field = _a.field, existingFileName = _a.existingFileName, uploadingFiles = _a.uploadingFiles, handleFileUpload = _a.handleFileUpload, setUploadingFiles = _a.setUploadingFiles, form = _a.form, enduserId = _a.enduserId, onSelectExistingFile = _a.onSelectExistingFile;
+    var _e = (0, react_1.useState)(''), error = _e[0], setError = _e[1];
+    var _f = (0, react_dropzone_1.useDropzone)({
         onDrop: (0, react_1.useCallback)(function (acceptedFiles) {
             var _a, _b, _d, _e;
             var file = acceptedFiles.pop();
@@ -567,8 +568,8 @@ var FileInput = function (_a) {
                     .finally(function () { return setUploadingFiles === null || setUploadingFiles === void 0 ? void 0 : setUploadingFiles(function (fs) { return fs.filter(function (f) { return f.fieldId !== field.id; }); }); });
             }
         }, [onChange, (_b = field.options) === null || _b === void 0 ? void 0 : _b.validFileTypes, handleFileUpload, setUploadingFiles]),
-    }), getRootProps = _e.getRootProps, getInputProps = _e.getInputProps, isDragActive = _e.isDragActive;
-    var _f = (0, react_1.useState)(''), preview = _f[0], setPreview = _f[1];
+    }), getRootProps = _f.getRootProps, getInputProps = _f.getInputProps, isDragActive = _f.isDragActive;
+    var _g = (0, react_1.useState)(''), preview = _g[0], setPreview = _g[1];
     (0, react_1.useEffect)(function () {
         if (!value_is_image(value))
             return;
@@ -602,7 +603,10 @@ var FileInput = function (_a) {
                             : (0, utilities_1.capture_is_supported)()
                                 ? ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, direction: "column", alignItems: "center" }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(AddPhotoAlternate_1.default, { color: "primary" }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ sx: { fontSize: 14, textAlign: 'center' } }, { children: (0, __1.form_display_text_for_language)(form, "Select file or take picture") })) }))] })))
                                 : (0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, direction: "column", alignItems: "center", rowGap: 2 }, { children: [(0, jsx_runtime_1.jsx)(icons_material_1.UploadFile, { color: "primary", sx: { fontSize: 25 } }), (0, jsx_runtime_1.jsx)(material_1.Typography, { children: isDragActive ? (0, __1.form_display_text_for_language)(form, "Drop to select file") : (0, __1.form_display_text_for_language)(form, "Click or drag and drop") })] })) })] })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, alignSelf: "center", sx: { mt: 0.5 } }, { children: (!(value === null || value === void 0 ? void 0 : value.name) && existingFileName) &&
-                    (0, jsx_runtime_1.jsxs)(material_1.Typography, { children: [existingFileName, " selected!"] }) })), error &&
+                    (0, jsx_runtime_1.jsxs)(material_1.Typography, { children: [existingFileName, " selected!"] }) })), !value && onSelectExistingFile && ((0, jsx_runtime_1.jsx)(inputs_1.ExistingFilePicker, { enduserId: enduserId, validFileTypes: (_d = field.options) === null || _d === void 0 ? void 0 : _d.validFileTypes, form: form, onSelect: function (file) {
+                    setError('');
+                    onSelectExistingFile({ secureName: file.secureName, name: file.name, type: file.type });
+                } })), error &&
                 (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, alignSelf: "center", sx: { mt: 0.5 } }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ color: "error" }, { children: error })) }))] })));
 };
 exports.FileInput = FileInput;
@@ -617,10 +621,12 @@ var safe_create_url = function (file) {
 };
 exports.safe_create_url = safe_create_url;
 var FilesInput = function (_a) {
-    var _b;
-    var value = _a.value, onChange = _a.onChange, field = _a.field, existingFileName = _a.existingFileName, uploadingFiles = _a.uploadingFiles, handleFileUpload = _a.handleFileUpload, setUploadingFiles = _a.setUploadingFiles, form = _a.form;
-    var _d = (0, react_1.useState)(''), error = _d[0], setError = _d[1];
-    var _e = (0, react_dropzone_1.useDropzone)({
+    var _b, _d;
+    var value = _a.value, onChange = _a.onChange, field = _a.field, existingFileName = _a.existingFileName, uploadingFiles = _a.uploadingFiles, handleFileUpload = _a.handleFileUpload, setUploadingFiles = _a.setUploadingFiles, form = _a.form, enduserId = _a.enduserId, existingSelections = _a.existingSelections, onSelectExistingFile = _a.onSelectExistingFile, onRemoveExistingFile = _a.onRemoveExistingFile;
+    var _e = (0, react_1.useState)(''), error = _e[0], setError = _e[1];
+    var safeExistingSelections = Array.isArray(existingSelections) ? existingSelections : undefined;
+    var excludedSecureNames = (0, react_1.useMemo)(function () { return (safeExistingSelections === null || safeExistingSelections === void 0 ? void 0 : safeExistingSelections.map(function (s) { return s.secureName; })); }, [safeExistingSelections]);
+    var _f = (0, react_dropzone_1.useDropzone)({
         onDrop: (0, react_1.useCallback)(function (acceptedFiles) { return __awaiter(void 0, void 0, void 0, function () {
             var _loop_1, _a, acceptedFiles_1, file, state_1;
             var _b, _d, _e;
@@ -670,7 +676,7 @@ var FilesInput = function (_a) {
                 }
             });
         }); }, [onChange, value, (_b = field.options) === null || _b === void 0 ? void 0 : _b.validFileTypes, handleFileUpload, setUploadingFiles]),
-    }), getRootProps = _e.getRootProps, getInputProps = _e.getInputProps, isDragActive = _e.isDragActive;
+    }), getRootProps = _f.getRootProps, getInputProps = _f.getInputProps, isDragActive = _f.isDragActive;
     var previews = (0, react_1.useMemo)(function () { return ((value !== null && value !== void 0 ? value : []).map(function (v) {
         return value_is_image(v) ? (0, exports.safe_create_url)(v) : null;
     })); }, [value]);
@@ -688,11 +694,15 @@ var FilesInput = function (_a) {
                     }
                 }, alignItems: "center", justifyContent: "center" }, { children: [(0, jsx_runtime_1.jsx)("input", __assign({}, getInputProps({ multiple: false }))), (0, jsx_runtime_1.jsx)("p", { children: (0, utilities_1.capture_is_supported)()
                             ? ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, direction: "column", alignItems: "center" }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(AddPhotoAlternate_1.default, { color: "primary" }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ sx: { fontSize: 14, textAlign: 'center' } }, { children: (0, __1.form_display_text_for_language)(form, "Select files or take pictures") })) }))] })))
-                            : (0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, direction: "column", alignItems: "center", rowGap: 2 }, { children: [(0, jsx_runtime_1.jsx)(icons_material_1.UploadFile, { color: "primary", sx: { fontSize: 25 } }), (0, jsx_runtime_1.jsx)(material_1.Typography, { children: isDragActive ? (0, __1.form_display_text_for_language)(form, "Drop to select files") : (0, __1.form_display_text_for_language)(form, "Click or drag and drop") })] })) })] })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ container: true, direction: "column", sx: { overflowY: 'auto', maxHeight: '250px', mt: 1 }, wrap: "nowrap" }, { children: value === null || value === void 0 ? void 0 : value.map(function (file, i) {
-                    var _a;
-                    return ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, sx: { mt: 0.5 } }, { children: (0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, alignItems: "center", justifyContent: "space-between", wrap: "nowrap" }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, alignItems: "center" }, { children: [(0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ sx: { mr: 1 } }, { children: file.name })), ((_a = file.type) === null || _a === void 0 ? void 0 : _a.includes('image')) && previews[i] &&
-                                                (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)("img", { src: previews[i], style: { maxWidth: '45%', maxHeight: 80, height: '100%' } }) }))] })) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(__1.LabeledIconButton, { label: (0, __1.form_display_text_for_language)(form, "Remove"), Icon: icons_material_1.Delete, onClick: function () { return onChange(value.filter(function (f, _i) { return i !== _i; }), field.id); } }) }))] })) }), i));
-                }) })), error &&
+                            : (0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, direction: "column", alignItems: "center", rowGap: 2 }, { children: [(0, jsx_runtime_1.jsx)(icons_material_1.UploadFile, { color: "primary", sx: { fontSize: 25 } }), (0, jsx_runtime_1.jsx)(material_1.Typography, { children: isDragActive ? (0, __1.form_display_text_for_language)(form, "Drop to select files") : (0, __1.form_display_text_for_language)(form, "Click or drag and drop") })] })) })] })), (0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, direction: "column", sx: { overflowY: 'auto', maxHeight: '250px', mt: 1 }, wrap: "nowrap" }, { children: [value === null || value === void 0 ? void 0 : value.map(function (file, i) {
+                        var _a;
+                        return ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, sx: { mt: 0.5 } }, { children: (0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, alignItems: "center", justifyContent: "space-between", wrap: "nowrap" }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, alignItems: "center" }, { children: [(0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ sx: { mr: 1 } }, { children: file.name })), ((_a = file.type) === null || _a === void 0 ? void 0 : _a.includes('image')) && previews[i] &&
+                                                    (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)("img", { src: previews[i], style: { maxWidth: '45%', maxHeight: 80, height: '100%' } }) }))] })) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(__1.LabeledIconButton, { label: (0, __1.form_display_text_for_language)(form, "Remove"), Icon: icons_material_1.Delete, onClick: function () { return onChange(value.filter(function (f, _i) { return i !== _i; }), field.id); } }) }))] })) }), i));
+                    }), existingSelections === null || existingSelections === void 0 ? void 0 : existingSelections.map(function (selection, i) { return ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, sx: { mt: 0.5 } }, { children: (0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, alignItems: "center", justifyContent: "space-between", wrap: "nowrap" }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ sx: { mr: 1 } }, { children: selection.name })) })), onRemoveExistingFile &&
+                                    (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(__1.LabeledIconButton, { label: (0, __1.form_display_text_for_language)(form, "Remove"), Icon: icons_material_1.Delete, onClick: function () { return onRemoveExistingFile(selection.secureName); } }) }))] })) }), "existing-".concat(selection.secureName, "-").concat(i))); })] })), onSelectExistingFile && ((0, jsx_runtime_1.jsx)(inputs_1.ExistingFilePicker, { enduserId: enduserId, excludedSecureNames: excludedSecureNames, validFileTypes: (_d = field.options) === null || _d === void 0 ? void 0 : _d.validFileTypes, form: form, onSelect: function (file) {
+                    setError('');
+                    onSelectExistingFile({ secureName: file.secureName, name: file.name, type: file.type });
+                } })), error &&
                 (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, alignSelf: "center", sx: { mt: 0.5 } }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ color: "error" }, { children: error })) }))] })));
 };
 exports.FilesInput = FilesInput;
@@ -781,8 +791,8 @@ exports.MultipleChoiceInput = MultipleChoiceInput;
 // Both versions use the same implementation from inputs.tsx to ensure consistent behavior
 // and avoid code duplication. Re-exporting here maintains the pattern where forms.v2.tsx
 // only imports from inputs.v2.tsx
-var inputs_2 = require("./inputs");
-Object.defineProperty(exports, "StripeInput", { enumerable: true, get: function () { return inputs_2.StripeInput; } });
+var inputs_3 = require("./inputs");
+Object.defineProperty(exports, "StripeInput", { enumerable: true, get: function () { return inputs_3.StripeInput; } });
 var Progress = function (_a) {
     var numerator = _a.numerator, denominator = _a.denominator, style = _a.style, color = _a.color;
     return ((0, jsx_runtime_1.jsx)(material_1.Box, __assign({ sx: __assign({ display: 'flex', alignItems: 'center' }, style) }, { children: (0, jsx_runtime_1.jsx)(material_1.Box, __assign({ sx: { width: '100%' } }, { children: (0, jsx_runtime_1.jsx)(LinearProgress_1.default, { variant: "determinate", value: (numerator / (denominator || 1)) * 100, sx: color ? {
@@ -835,11 +845,11 @@ var DropdownInput = function (_a) {
 exports.DropdownInput = DropdownInput;
 // DatabaseSelectInput logic is shared with inputs.tsx to avoid duplication
 // Import the interface and component from the shared implementation
-var inputs_3 = require("./inputs");
+var inputs_4 = require("./inputs");
 // Wrap the shared DatabaseSelectInput component with v2-specific props
 var DatabaseSelectInput = function (props) {
     // Pass all props plus v2-specific defaultInputProps to the shared component
-    return (0, jsx_runtime_1.jsx)(inputs_3.DatabaseSelectInput, __assign({}, props, { inputProps: exports.defaultInputProps }));
+    return (0, jsx_runtime_1.jsx)(inputs_4.DatabaseSelectInput, __assign({}, props, { inputProps: exports.defaultInputProps }));
 };
 exports.DatabaseSelectInput = DatabaseSelectInput;
 var displayTermsCache = undefined;
@@ -1263,7 +1273,7 @@ var RelatedContactsInput = function (_a) {
 exports.RelatedContactsInput = RelatedContactsInput;
 // AppointmentBookingInput logic is shared with inputs.tsx to avoid duplication
 var AppointmentBookingInput = function (props) {
-    return (0, jsx_runtime_1.jsx)(inputs_1.AppointmentBookingInput, __assign({}, props));
+    return (0, jsx_runtime_1.jsx)(inputs_2.AppointmentBookingInput, __assign({}, props));
 };
 exports.AppointmentBookingInput = AppointmentBookingInput;
 var HeightInput = function (_a) {
@@ -1273,9 +1283,9 @@ var HeightInput = function (_a) {
 };
 exports.HeightInput = HeightInput;
 // Re-export from V1 to follow DRY principles
-var inputs_4 = require("./inputs");
-Object.defineProperty(exports, "RedirectInput", { enumerable: true, get: function () { return inputs_4.RedirectInput; } });
-Object.defineProperty(exports, "HiddenValueInput", { enumerable: true, get: function () { return inputs_4.HiddenValueInput; } });
+var inputs_5 = require("./inputs");
+Object.defineProperty(exports, "RedirectInput", { enumerable: true, get: function () { return inputs_5.RedirectInput; } });
+Object.defineProperty(exports, "HiddenValueInput", { enumerable: true, get: function () { return inputs_5.HiddenValueInput; } });
 var EmotiiInput = function (_a) {
     var goToNextField = _a.goToNextField, goToPreviousField = _a.goToPreviousField, field = _a.field, value = _a.value, onChange = _a.onChange, form = _a.form, formResponseId = _a.formResponseId, props = __rest(_a, ["goToNextField", "goToPreviousField", "field", "value", "onChange", "form", "formResponseId"]);
     var session = (0, __1.useResolvedSession)();
@@ -1441,7 +1451,7 @@ var RichTextInput = function (_a) {
 };
 exports.RichTextInput = RichTextInput;
 // Re-export from V1 to follow DRY principles
-var inputs_5 = require("./inputs");
-Object.defineProperty(exports, "ChargeebeeInput", { enumerable: true, get: function () { return inputs_5.ChargeebeeInput; } });
+var inputs_6 = require("./inputs");
+Object.defineProperty(exports, "ChargeebeeInput", { enumerable: true, get: function () { return inputs_6.ChargeebeeInput; } });
 var templateObject_1, templateObject_2;
 //# sourceMappingURL=inputs.v2.js.map

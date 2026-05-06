@@ -1,9 +1,9 @@
 import React from "react";
 import { SxProps, TextFieldProps } from "@mui/material";
 import { FormInputProps } from "./types";
-import { Enduser, FormResponseValue, Pharmacy } from "@tellescope/types-models";
+import { Enduser, FormResponseAnswerFileValue, FormResponseValue, Pharmacy } from "@tellescope/types-models";
 import { FileBlob, Styled } from "..";
-import { DatabaseRecord, FormField } from "@tellescope/types-client";
+import { DatabaseRecord, File as TellescopeFile, Form, FormField } from "@tellescope/types-client";
 export declare const getBridgeEligibilityUserIds: () => string[];
 export declare const setBridgeEligibilityUserIds: (userIds: string[]) => void;
 export declare const LanguageSelect: ({ value, ...props }: {
@@ -61,12 +61,27 @@ export declare const AddressInput: ({ field, form, value, onChange, ...props }: 
 export declare const ESignatureTerms: () => JSX.Element;
 export declare const SignatureInput: ({ value, field, autoFocus, enduser, onChange, form }: FormInputProps<'signature'>) => JSX.Element;
 export declare function convertHEIC(file: FileBlob | string): Promise<string>;
-export declare const FileInput: ({ value, onChange, field, existingFileName, uploadingFiles, handleFileUpload, setUploadingFiles, form }: FormInputProps<"file"> & {
+export declare const ExistingFilePicker: ({ enduserId, excludedSecureNames, validFileTypes, onSelect, form, label }: {
+    enduserId?: string | undefined;
+    excludedSecureNames?: string[] | undefined;
+    validFileTypes?: string[] | undefined;
+    onSelect: (file: TellescopeFile) => void;
+    form?: (import("@tellescope/types-models").Form & {
+        id: string;
+        createdAt: Date;
+    }) | undefined;
+    label?: string | undefined;
+}) => JSX.Element | null;
+export declare const FileInput: ({ value, onChange, field, existingFileName, uploadingFiles, handleFileUpload, setUploadingFiles, form, enduserId, onSelectExistingFile }: FormInputProps<"file"> & {
     existingFileName?: string | undefined;
+    onSelectExistingFile?: ((value: FormResponseAnswerFileValue) => void) | undefined;
 }) => JSX.Element;
 export declare const safe_create_url: (file: any) => string | null;
-export declare const FilesInput: ({ value, onChange, field, existingFileName, uploadingFiles, handleFileUpload, setUploadingFiles, form }: FormInputProps<"files"> & {
+export declare const FilesInput: ({ value, onChange, field, existingFileName, uploadingFiles, handleFileUpload, setUploadingFiles, form, enduserId, existingSelections, onSelectExistingFile, onRemoveExistingFile }: FormInputProps<"files"> & {
     existingFileName?: string | undefined;
+    existingSelections?: FormResponseAnswerFileValue[] | undefined;
+    onSelectExistingFile?: ((value: FormResponseAnswerFileValue) => void) | undefined;
+    onRemoveExistingFile?: ((secureName: string) => void) | undefined;
 }) => JSX.Element;
 export declare const MultipleChoiceInput: ({ field, form, value: _value, onChange, responses, enduser }: FormInputProps<'multiple_choice'>) => JSX.Element;
 export declare const StripeInput: ({ field, value, onChange, setCustomerId, enduserId, form, responses, enduser }: FormInputProps<"Stripe"> & {

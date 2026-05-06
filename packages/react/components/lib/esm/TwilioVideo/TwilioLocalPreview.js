@@ -48,15 +48,59 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useEffect, useRef, useState } from 'react';
 import Video from 'twilio-video';
-import { Box, Typography, CircularProgress, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { Box, Typography, CircularProgress, FormControl, InputLabel, Select, MenuItem, IconButton } from '@mui/material';
+import { BlurOn as BlurOnIcon, BlurOff as BlurOffIcon } from '@mui/icons-material';
+import { loadTwilioVideoProcessorsModule, BLUR_BACKGROUND_ASSETS_PATH, BLUR_BACKGROUND_STORAGE_KEY, } from './TwilioVideoContext';
+var readBlurPreference = function () {
+    try {
+        return typeof localStorage !== 'undefined'
+            && localStorage.getItem(BLUR_BACKGROUND_STORAGE_KEY) === 'true';
+    }
+    catch (_a) {
+        return false;
+    }
+};
+var writeBlurPreference = function (enabled) {
+    try {
+        if (typeof localStorage !== 'undefined') {
+            localStorage.setItem(BLUR_BACKGROUND_STORAGE_KEY, enabled ? 'true' : 'false');
+        }
+    }
+    catch ( /* ignore */_a) { /* ignore */ }
+};
 export var TwilioLocalPreview = function (_a) {
     var style = _a.style;
     var containerRef = useRef(null);
     var trackRef = useRef(null);
+    var blurProcessorRef = useRef(null);
+    var blurAttachedTrackRef = useRef(null);
     var _b = useState(null), error = _b[0], setError = _b[1];
     var _c = useState(true), loading = _c[0], setLoading = _c[1];
     var _d = useState([]), devices = _d[0], setDevices = _d[1];
     var _e = useState(''), selectedDeviceId = _e[0], setSelectedDeviceId = _e[1];
+    var _f = useState(false), isBlurSupported = _f[0], setIsBlurSupported = _f[1];
+    var _g = useState(readBlurPreference), isBlurEnabled = _g[0], setIsBlurEnabled = _g[1];
+    var _h = useState(false), isBlurLoading = _h[0], setIsBlurLoading = _h[1];
+    var _j = useState(0), trackVersion = _j[0], setTrackVersion = _j[1];
+    // Probe video-processors support once on mount
+    useEffect(function () {
+        var mounted = true;
+        loadTwilioVideoProcessorsModule()
+            .then(function (_a) {
+            var isSupported = _a.isSupported;
+            if (mounted)
+                setIsBlurSupported(!!isSupported);
+        })
+            .catch(function () { });
+        return function () { mounted = false; };
+    }, []);
+    var toggleBlur = function () {
+        setIsBlurEnabled(function (prev) {
+            var next = !prev;
+            writeBlurPreference(next);
+            return next;
+        });
+    };
     // Enumerate video devices
     useEffect(function () {
         var getDevices = function () { return __awaiter(void 0, void 0, void 0, function () {
@@ -99,6 +143,14 @@ export var TwilioLocalPreview = function (_a) {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
+                        // Detach blur from previous track, if attached
+                        if (blurAttachedTrackRef.current && blurProcessorRef.current) {
+                            try {
+                                blurAttachedTrackRef.current.removeProcessor(blurProcessorRef.current);
+                            }
+                            catch ( /* ignore */_b) { /* ignore */ }
+                            blurAttachedTrackRef.current = null;
+                        }
                         // Stop existing track
                         if (trackRef.current) {
                             trackRef.current.stop();
@@ -129,6 +181,7 @@ export var TwilioLocalPreview = function (_a) {
                             videoElement.style.transform = 'scaleX(-1)';
                             containerRef.current.appendChild(videoElement);
                             setLoading(false);
+                            setTrackVersion(function (v) { return v + 1; });
                         }
                         else if (!mounted) {
                             track.stop();
@@ -148,6 +201,13 @@ export var TwilioLocalPreview = function (_a) {
         getVideoTrack();
         return function () {
             mounted = false;
+            if (blurAttachedTrackRef.current && blurProcessorRef.current) {
+                try {
+                    blurAttachedTrackRef.current.removeProcessor(blurProcessorRef.current);
+                }
+                catch ( /* ignore */_a) { /* ignore */ }
+                blurAttachedTrackRef.current = null;
+            }
             if (trackRef.current) {
                 trackRef.current.stop();
                 trackRef.current = null;
@@ -157,10 +217,102 @@ export var TwilioLocalPreview = function (_a) {
             }
         };
     }, [selectedDeviceId]);
-    return (_jsxs(Box, __assign({ sx: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 } }, { children: [devices.length > 0 && (_jsxs(FormControl, __assign({ size: "small", sx: { minWidth: 320 } }, { children: [_jsx(InputLabel, __assign({ id: "camera-select-label" }, { children: "Camera" })), _jsx(Select, __assign({ labelId: "camera-select-label", value: selectedDeviceId, label: "Camera", onChange: function (e) { return setSelectedDeviceId(e.target.value); } }, { children: devices.map(function (device) { return (_jsx(MenuItem, __assign({ value: device.deviceId }, { children: device.label || "Camera ".concat(devices.indexOf(device) + 1) }), device.deviceId)); }) }))] }))), _jsxs(Box, __assign({ sx: __assign({ width: 320, height: 240, backgroundColor: '#1a1a1a', borderRadius: 1, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }, style) }, { children: [loading && _jsx(CircularProgress, { size: 24, sx: { color: 'white' } }), error && (_jsx(Typography, __assign({ color: "error", variant: "body2", textAlign: "center", sx: { p: 2 } }, { children: error }))), _jsx(Box, { ref: containerRef, sx: {
+    // Sync blur processor with the current preview track + enabled state
+    useEffect(function () {
+        if (!isBlurSupported)
+            return;
+        var track = trackRef.current;
+        if (!track)
+            return;
+        var cancelled = false;
+        var apply = function () { return __awaiter(void 0, void 0, void 0, function () {
+            var previouslyAttached, GaussianBlurBackgroundProcessor, processor, err_3;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        previouslyAttached = blurAttachedTrackRef.current;
+                        if (previouslyAttached && previouslyAttached !== track && blurProcessorRef.current) {
+                            try {
+                                previouslyAttached.removeProcessor(blurProcessorRef.current);
+                            }
+                            catch ( /* ignore */_b) { /* ignore */ }
+                            blurAttachedTrackRef.current = null;
+                        }
+                        if (!isBlurEnabled) return [3 /*break*/, 7];
+                        if (!!blurProcessorRef.current) return [3 /*break*/, 6];
+                        setIsBlurLoading(true);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 4, 5, 6]);
+                        return [4 /*yield*/, loadTwilioVideoProcessorsModule()];
+                    case 2:
+                        GaussianBlurBackgroundProcessor = (_a.sent()).GaussianBlurBackgroundProcessor;
+                        if (cancelled)
+                            return [2 /*return*/];
+                        processor = new GaussianBlurBackgroundProcessor({
+                            assetsPath: BLUR_BACKGROUND_ASSETS_PATH,
+                        });
+                        return [4 /*yield*/, processor.loadModel()];
+                    case 3:
+                        _a.sent();
+                        if (cancelled)
+                            return [2 /*return*/];
+                        blurProcessorRef.current = processor;
+                        return [3 /*break*/, 6];
+                    case 4:
+                        err_3 = _a.sent();
+                        console.error('Failed to load Twilio video blur processor:', err_3);
+                        if (!cancelled)
+                            setIsBlurEnabled(false);
+                        return [2 /*return*/];
+                    case 5:
+                        if (!cancelled)
+                            setIsBlurLoading(false);
+                        return [7 /*endfinally*/];
+                    case 6:
+                        if (blurAttachedTrackRef.current !== track && blurProcessorRef.current) {
+                            try {
+                                track.addProcessor(blurProcessorRef.current, {
+                                    inputFrameBufferType: 'videoframe',
+                                    outputFrameBufferContextType: 'bitmaprenderer',
+                                });
+                                blurAttachedTrackRef.current = track;
+                            }
+                            catch (err) {
+                                console.error('Failed to attach blur processor to track:', err);
+                            }
+                        }
+                        return [3 /*break*/, 8];
+                    case 7:
+                        if (blurAttachedTrackRef.current === track && blurProcessorRef.current) {
+                            try {
+                                track.removeProcessor(blurProcessorRef.current);
+                            }
+                            catch ( /* ignore */_c) { /* ignore */ }
+                            blurAttachedTrackRef.current = null;
+                        }
+                        _a.label = 8;
+                    case 8: return [2 /*return*/];
+                }
+            });
+        }); };
+        apply();
+        return function () { cancelled = true; };
+    }, [trackVersion, isBlurEnabled, isBlurSupported]);
+    return (_jsxs(Box, __assign({ sx: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 } }, { children: [devices.length > 0 && (_jsxs(FormControl, __assign({ size: "small", sx: { minWidth: 320 } }, { children: [_jsx(InputLabel, __assign({ id: "camera-select-label" }, { children: "Camera" })), _jsx(Select, __assign({ labelId: "camera-select-label", value: selectedDeviceId, label: "Camera", onChange: function (e) { return setSelectedDeviceId(e.target.value); } }, { children: devices.map(function (device) { return (_jsx(MenuItem, __assign({ value: device.deviceId }, { children: device.label || "Camera ".concat(devices.indexOf(device) + 1) }), device.deviceId)); }) }))] }))), _jsxs(Box, __assign({ sx: __assign({ width: 320, height: 240, backgroundColor: '#1a1a1a', borderRadius: 1, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }, style) }, { children: [loading && _jsx(CircularProgress, { size: 24, sx: { color: 'white' } }), error && (_jsx(Typography, __assign({ color: "error", variant: "body2", textAlign: "center", sx: { p: 2 } }, { children: error }))), _jsx(Box, { ref: containerRef, sx: {
                             width: '100%',
                             height: '100%',
                             display: loading || error ? 'none' : 'block',
-                        } })] }))] })));
+                        } }), isBlurSupported && !error && (_jsx(IconButton, __assign({ onClick: toggleBlur, disabled: isBlurLoading || loading, size: "small", sx: {
+                            position: 'absolute',
+                            bottom: 8,
+                            right: 8,
+                            backgroundColor: 'rgba(0,0,0,0.5)',
+                            color: isBlurEnabled ? '#4caf50' : 'white',
+                            '&:hover': { backgroundColor: 'rgba(0,0,0,0.7)' },
+                            '&.Mui-disabled': { color: 'rgba(255,255,255,0.5)' },
+                        } }, { children: isBlurLoading
+                            ? _jsx(CircularProgress, { size: 16, sx: { color: 'white' } })
+                            : isBlurEnabled ? _jsx(BlurOnIcon, { fontSize: "small" }) : _jsx(BlurOffIcon, { fontSize: "small" }) })))] }))] })));
 };
 //# sourceMappingURL=TwilioLocalPreview.js.map

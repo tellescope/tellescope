@@ -8,8 +8,37 @@ import Video, {
   RemoteTrack,
   LocalParticipant,
 } from 'twilio-video'
+import type { GaussianBlurBackgroundProcessor as GaussianBlurBackgroundProcessorType } from '@twilio/video-processors'
 
 export const SCREEN_SHARE_TRACK_NAME = 'screen-share'
+
+export const BLUR_BACKGROUND_STORAGE_KEY = 'tellescope.twilio.blurBackground'
+export const BLUR_BACKGROUND_ASSETS_PATH = '/twilio-video-processors'
+
+let videoProcessorsModulePromise: Promise<typeof import('@twilio/video-processors')> | null = null
+export const loadTwilioVideoProcessorsModule = () => {
+  if (!videoProcessorsModulePromise) {
+    videoProcessorsModulePromise = import('@twilio/video-processors')
+  }
+  return videoProcessorsModulePromise
+}
+
+const readBlurPreference = (): boolean => {
+  try {
+    return typeof localStorage !== 'undefined'
+      && localStorage.getItem(BLUR_BACKGROUND_STORAGE_KEY) === 'true'
+  } catch {
+    return false
+  }
+}
+
+const writeBlurPreference = (enabled: boolean) => {
+  try {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(BLUR_BACKGROUND_STORAGE_KEY, enabled ? 'true' : 'false')
+    }
+  } catch { /* ignore */ }
+}
 
 export interface TwilioVideoState {
   room: Room | null
@@ -25,6 +54,9 @@ export interface TwilioVideoState {
   isHost: boolean
   isVideoEnabled: boolean
   isAudioEnabled: boolean
+  isBlurSupported: boolean
+  isBlurEnabled: boolean
+  isBlurLoading: boolean
 }
 
 export interface TwilioVideoActions {
@@ -33,6 +65,7 @@ export interface TwilioVideoActions {
   toggleVideo: () => Promise<void>
   toggleAudio: () => void
   toggleScreenShare: () => Promise<void>
+  toggleBlur: () => void
   setIsHost: (isHost: boolean) => void
 }
 
@@ -65,12 +98,21 @@ export const TwilioVideoProvider: React.FC<TwilioVideoProviderProps> = ({ childr
   const [localScreenTrack, setLocalScreenTrack] = useState<LocalVideoTrack | null>(null)
   const [isScreenSharing, setIsScreenSharing] = useState(false)
   const [screenSharingParticipantSid, setScreenSharingParticipantSid] = useState<string | null>(null)
+  const [isBlurSupported, setIsBlurSupported] = useState(false)
+  const [isBlurEnabled, setIsBlurEnabled] = useState<boolean>(readBlurPreference)
+  const [isBlurLoading, setIsBlurLoading] = useState(false)
 
   const localTracksRef = useRef<(LocalVideoTrack | LocalAudioTrack)[]>([])
+  const blurProcessorRef = useRef<GaussianBlurBackgroundProcessorType | null>(null)
+  const blurAttachedTrackRef = useRef<LocalVideoTrack | null>(null)
 
   const connect = useCallback(async (token: string, roomName: string) => {
     setIsConnecting(true)
     setError(null)
+
+    // Pick up any preference set by the pre-call preview, which lives outside
+    // this provider and only persists via localStorage.
+    setIsBlurEnabled(readBlurPreference())
 
     try {
       // Create local tracks
@@ -234,9 +276,89 @@ export const TwilioVideoProvider: React.FC<TwilioVideoProviderProps> = ({ childr
     }
   }, [isScreenSharing, stopScreenShare, room])
 
+  const toggleBlur = useCallback(() => {
+    setIsBlurEnabled(prev => {
+      const next = !prev
+      writeBlurPreference(next)
+      return next
+    })
+  }, [])
+
+  // Probe video-processors support once on mount
+  useEffect(() => {
+    let mounted = true
+    loadTwilioVideoProcessorsModule()
+      .then(({ isSupported }) => { if (mounted) setIsBlurSupported(!!isSupported) })
+      .catch(() => { /* leave unsupported */ })
+    return () => { mounted = false }
+  }, [])
+
+  // Sync blur processor with the current local video track + enabled state
+  useEffect(() => {
+    if (!isBlurSupported) return
+    const track = localVideoTrack
+
+    let cancelled = false
+    const apply = async () => {
+      // Detach from any previously-attached track if it differs from the current one
+      const previouslyAttached = blurAttachedTrackRef.current
+      if (previouslyAttached && previouslyAttached !== track && blurProcessorRef.current) {
+        try { previouslyAttached.removeProcessor(blurProcessorRef.current) } catch { /* ignore */ }
+        blurAttachedTrackRef.current = null
+      }
+
+      if (!track) return
+
+      if (isBlurEnabled) {
+        if (!blurProcessorRef.current) {
+          setIsBlurLoading(true)
+          try {
+            const { GaussianBlurBackgroundProcessor } = await loadTwilioVideoProcessorsModule()
+            if (cancelled) return
+            const processor = new GaussianBlurBackgroundProcessor({
+              assetsPath: BLUR_BACKGROUND_ASSETS_PATH,
+            })
+            await processor.loadModel()
+            if (cancelled) return
+            blurProcessorRef.current = processor
+          } catch (err) {
+            console.error('Failed to load Twilio video blur processor:', err)
+            if (!cancelled) setIsBlurEnabled(false)
+            return
+          } finally {
+            if (!cancelled) setIsBlurLoading(false)
+          }
+        }
+
+        if (blurAttachedTrackRef.current !== track && blurProcessorRef.current) {
+          try {
+            track.addProcessor(blurProcessorRef.current, {
+              inputFrameBufferType: 'videoframe',
+              outputFrameBufferContextType: 'bitmaprenderer',
+            })
+            blurAttachedTrackRef.current = track
+          } catch (err) {
+            console.error('Failed to attach blur processor to track:', err)
+          }
+        }
+      } else if (blurAttachedTrackRef.current === track && blurProcessorRef.current) {
+        try { track.removeProcessor(blurProcessorRef.current) } catch { /* ignore */ }
+        blurAttachedTrackRef.current = null
+      }
+    }
+
+    apply()
+
+    return () => { cancelled = true }
+  }, [localVideoTrack, isBlurEnabled, isBlurSupported])
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
+      if (blurAttachedTrackRef.current && blurProcessorRef.current) {
+        try { blurAttachedTrackRef.current.removeProcessor(blurProcessorRef.current) } catch { /* ignore */ }
+      }
+      blurAttachedTrackRef.current = null
       if (room) {
         room.disconnect()
       }
@@ -260,11 +382,15 @@ export const TwilioVideoProvider: React.FC<TwilioVideoProviderProps> = ({ childr
     isHost,
     isVideoEnabled,
     isAudioEnabled,
+    isBlurSupported,
+    isBlurEnabled,
+    isBlurLoading,
     connect,
     disconnect,
     toggleVideo,
     toggleAudio,
     toggleScreenShare,
+    toggleBlur,
     setIsHost,
   }
 

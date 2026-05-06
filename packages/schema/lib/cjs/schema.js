@@ -2957,7 +2957,7 @@ exports.schema = (0, exports.build_schema)({
                     patientPreference: validation_1.stringValidator5000,
                     conditions: validation_1.compoundFilterValidator,
                 })),
-            }, mdiCaseOfferings: {
+            }, belugaCombineMatchingPharmacyMappings: { validator: validation_1.booleanValidator }, mdiCaseOfferings: {
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     offering_id: validation_1.stringValidator100,
                 }))
@@ -2974,7 +2974,7 @@ exports.schema = (0, exports.build_schema)({
                     score: validation_1.stringValidator100,
                     externalId: validation_1.stringValidator100,
                 }))
-            }, hideAfterUnsubmittedInMS: { validator: validation_1.numberValidator }, hideFromCompose: { validator: validation_1.booleanValidator }, hideFromBulkSubmission: { validator: validation_1.booleanValidator }, enduserFieldsToAppendForSync: { validator: validation_1.listOfUniqueStringsValidatorEmptyOk }, allowPortalSubmission: { validator: validation_1.booleanValidator }, allowPortalSubmissionEnduserCondition: { validator: validation_1.optionalAnyObjectValidator }, canvasNoteCoding: { validator: validation_1.canvasCodingValidatorOptional }, syncToCanvasAsDataImport: { validator: validation_1.booleanValidator }, matchCareTeamTagsForCanvasPractitionerResolution: { validator: validation_1.listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay }, ipAddressCustomField: { validator: validation_1.stringValidatorOptionalEmptyOkay }, version: { validator: (0, validation_1.exactMatchValidatorOptional)(['v1', 'v2']) } })
+            }, hideAfterUnsubmittedInMS: { validator: validation_1.numberValidator }, hideFromCompose: { validator: validation_1.booleanValidator }, hideFromBulkSubmission: { validator: validation_1.booleanValidator }, enduserFieldsToAppendForSync: { validator: validation_1.listOfUniqueStringsValidatorEmptyOk }, allowPortalSubmission: { validator: validation_1.booleanValidator }, allowPortalSubmissionEnduserCondition: { validator: validation_1.optionalAnyObjectValidator }, canvasNoteCoding: { validator: validation_1.canvasCodingValidatorOptional }, syncToCanvasAsDataImport: { validator: validation_1.booleanValidator }, matchCareTeamTagsForCanvasPractitionerResolution: { validator: validation_1.listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay }, ipAddressCustomField: { validator: validation_1.stringValidatorOptionalEmptyOkay }, version: { validator: (0, validation_1.exactMatchValidatorOptional)(['v1', 'v2']) }, aiSummaryConfiguration: { validator: validation_1.aiSummaryConfigurationValidator } })
     },
     form_fields: {
         info: {
@@ -3108,7 +3108,7 @@ exports.schema = (0, exports.build_schema)({
                     fieldTitle: validation_1.stringValidator250,
                     timestamp: validation_1.dateValidator,
                 }))
-            }, startedViaPinnedForm: { validator: validation_1.booleanValidator }, procedureCodes: { validator: procedureCodesValidator }, diagnosisCodes: { validator: diagnosisCodesValidator } }),
+            }, startedViaPinnedForm: { validator: validation_1.booleanValidator }, enduserAISummary: { validator: validation_1.stringValidator25000 }, procedureCodes: { validator: procedureCodesValidator }, diagnosisCodes: { validator: diagnosisCodesValidator } }),
         defaultActions: constants_1.DEFAULT_OPERATIONS,
         enduserActions: {
             prepare_form_response: {}, info_for_access_code: {}, submit_form_response: {}, stripe_details: {}, chargebee_details: {},
@@ -3218,6 +3218,7 @@ exports.schema = (0, exports.build_schema)({
                     productIds: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk },
                     utm: { validator: validation_1.labeledFieldsValidator },
                     markedAsSubmitted: { validator: validation_1.booleanValidator },
+                    enduserAISummary: { validator: validation_1.stringValidator25000 },
                 },
                 returns: {
                     formResponse: 'form response',

@@ -102,6 +102,7 @@ import { openloop_webhooks_tests } from "./api_tests/openloop_webhooks.test";
 import { beluga_pharmacy_mappings_tests } from "./api_tests/beluga_pharmacy_mappings.test";
 import { date_string_validation_tests } from "./api_tests/date_string_validation.test";
 import { enduser_session_invalidation_tests } from "./api_tests/enduser_session_invalidation.test";
+import { enduser_cross_access_isolation_tests } from "./api_tests/enduser_cross_access_isolation.test";
 
 const UniquenessViolationMessage = 'Uniqueness Violation'
 
@@ -13338,15 +13339,13 @@ const inbox_threads_building_tests = async () => {
       threads.length === 16 // only the new call should result in a new thread
       && 
       threads
-      .filter(t => 
-        t.threadId === outboundCall.id 
-        || (
+      .filter(t =>
            !!t.outboundTimestamp
         && !!t.outboundPreview
-        && new Date(t.outboundTimestamp).getTime() > new Date(t.timestamp).getTime()
-        )
+        // SMS uses ObjectId second-precision for both fields; allow equal when inbound/outbound land in the same second
+        && new Date(t.outboundTimestamp).getTime() >= new Date(t.timestamp).getTime()
       )
-      .length === 4 // all channels except call 
+      .length === 4 // all channels except call
     )}
   )
 
@@ -14287,6 +14286,7 @@ const ip_address_form_tests = async () => {
     await replace_form_field_template_values_tests()
     await mfa_tests()
     await setup_tests(sdk, sdkNonAdmin)
+    await enduser_cross_access_isolation_tests({ sdk, sdkNonAdmin })
     await eom_procedure_codes_tests({ sdk, sdkNonAdmin })
     await cross_org_api_key_tests({ sdk, sdkNonAdmin })
     await organization_settings_duplicates_tests({ sdk, sdkNonAdmin })

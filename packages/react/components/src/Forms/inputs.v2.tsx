@@ -5,7 +5,7 @@ import { FormInputProps } from "./types"
 import { useDropzone } from "react-dropzone"
 import { CANVAS_TITLE, EMOTII_TITLE, INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants"
 import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, downloadFile, emit_gtm_event, first_letter_capitalized, form_response_value_to_string, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, replace_enduser_template_values, responses_satisfy_conditions, truncate_string, update_local_storage, user_display_name } from "@tellescope/utilities"
-import { Enduser, EnduserRelationship, FormResponseValue, InsuranceRelationship, MedicationResponse, MultipleChoiceOptions, TellescopeGender, TIMEZONES_USA } from "@tellescope/types-models"
+import { Enduser, EnduserRelationship, FormResponseAnswerFileValue, FormResponseValue, InsuranceRelationship, MedicationResponse, MultipleChoiceOptions, TellescopeGender, TIMEZONES_USA } from "@tellescope/types-models"
 import { VALID_STATES, emailValidator, phoneValidator } from "@tellescope/validation"
 import Slider from '@mui/material/Slider';
 import LinearProgress from '@mui/material/LinearProgress';
@@ -24,6 +24,7 @@ import LanguageIcon from '@mui/icons-material/Language';
 import { CheckCircleOutline, Delete, Edit, UploadFile } from "@mui/icons-material"
 import { WYSIWYG } from "./wysiwyg"
 import { useConditionalChoices, Response, dateFromOffsetMs } from "./hooks"
+import { ExistingFilePicker } from "./inputs"
 
 export const LanguageSelect = ({ value, ...props }: { value: string, onChange: (s: string) => void}) => (
   <Grid container alignItems="center" justifyContent={"center"} wrap="nowrap" spacing={1}>
@@ -930,7 +931,8 @@ export async function convertHEIC (file: FileBlob | string){
 };
 
 const value_is_image = (f?: { type?: string })=> f?.type?.includes('image')
-export const FileInput = ({ value, onChange, field, existingFileName, uploadingFiles, handleFileUpload, setUploadingFiles, form }: FormInputProps<'file'> & { existingFileName?: string }) => {
+
+export const FileInput = ({ value, onChange, field, existingFileName, uploadingFiles, handleFileUpload, setUploadingFiles, form, enduserId, onSelectExistingFile }: FormInputProps<'file'> & { existingFileName?: string, onSelectExistingFile?: (value: FormResponseAnswerFileValue) => void }) => {
   const [error, setError] = useState('')
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
     onDrop: useCallback(
@@ -1029,17 +1031,28 @@ export const FileInput = ({ value, onChange, field, existingFileName, uploadingF
     </Grid>
     
     <Grid item alignSelf="center" sx={{ mt: 0.5 }}>
-      {(!value?.name && existingFileName) && 
+      {(!value?.name && existingFileName) &&
         <Typography>{existingFileName} selected!</Typography>
       }
     </Grid>
-    {error && 
+    {!value && onSelectExistingFile && (
+      <ExistingFilePicker
+        enduserId={enduserId}
+        validFileTypes={field.options?.validFileTypes}
+        form={form}
+        onSelect={file => {
+          setError('')
+          onSelectExistingFile({ secureName: file.secureName, name: file.name, type: file.type })
+        }}
+      />
+    )}
+    {error &&
       <Grid item alignSelf="center" sx={{ mt: 0.5 }}>
         <Typography color="error">{error}</Typography>
       </Grid>
     }
     </Grid>
-  ) 
+  )
 }
 
 export const safe_create_url = (file: any) => {
@@ -1051,8 +1064,15 @@ export const safe_create_url = (file: any) => {
   }
 }
 
-export const FilesInput = ({ value, onChange, field, existingFileName, uploadingFiles, handleFileUpload, setUploadingFiles, form }: FormInputProps<'files'> & { existingFileName?: string }) => {
+export const FilesInput = ({ value, onChange, field, existingFileName, uploadingFiles, handleFileUpload, setUploadingFiles, form, enduserId, existingSelections, onSelectExistingFile, onRemoveExistingFile }: FormInputProps<'files'> & { existingFileName?: string, existingSelections?: FormResponseAnswerFileValue[], onSelectExistingFile?: (value: FormResponseAnswerFileValue) => void, onRemoveExistingFile?: (secureName: string) => void }) => {
   const [error, setError] = useState('')
+
+  const safeExistingSelections = Array.isArray(existingSelections) ? existingSelections : undefined
+
+  const excludedSecureNames = useMemo(() => (
+    safeExistingSelections?.map(s => s.secureName)
+  ), [safeExistingSelections])
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
     onDrop: useCallback(
       async acceptedFiles => {
@@ -1164,15 +1184,45 @@ export const FilesInput = ({ value, onChange, field, existingFileName, uploading
       </Grid>
       </Grid>
     ))}
+    {existingSelections?.map((selection, i) => (
+      <Grid item key={`existing-${selection.secureName}-${i}`} sx={{ mt: 0.5 }}>
+        <Grid container alignItems="center" justifyContent={"space-between"} wrap="nowrap">
+          <Grid item>
+            <Typography sx={{ mr: 1 }}>{selection.name}</Typography>
+          </Grid>
+          {onRemoveExistingFile &&
+            <Grid item>
+              <LabeledIconButton label={form_display_text_for_language(form, "Remove")}
+                Icon={Delete}
+                onClick={() => onRemoveExistingFile(selection.secureName)}
+              />
+            </Grid>
+          }
+        </Grid>
+      </Grid>
+    ))}
     </Grid>
 
-    {error && 
+    {onSelectExistingFile && (
+      <ExistingFilePicker
+        enduserId={enduserId}
+        excludedSecureNames={excludedSecureNames}
+        validFileTypes={field.options?.validFileTypes}
+        form={form}
+        onSelect={file => {
+          setError('')
+          onSelectExistingFile({ secureName: file.secureName, name: file.name, type: file.type })
+        }}
+      />
+    )}
+
+    {error &&
       <Grid item alignSelf="center" sx={{ mt: 0.5 }}>
         <Typography color="error">{error}</Typography>
       </Grid>
     }
     </Grid>
-  ) 
+  )
 }
 
 export const MultipleChoiceInput = ({ field, form, value: _value, onChange, responses, enduser }: FormInputProps<'multiple_choice'>) => {

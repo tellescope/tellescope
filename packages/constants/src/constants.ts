@@ -1272,3 +1272,14 @@ export const ATHENA_DOCUMENT_TYPES_TO_DISPLAY: { [key in AthenaDocumentType]: { 
 
 export const DEFAULT_CALL_SUMMARY_PROMPT = "Summarize this phone call transcription. Include the key topics discussed, any action items or follow-ups mentioned, and the overall outcome of the call. Keep the summary concise (2-4 paragraphs).";
 export const DEFAULT_CALL_SUMMARY_MAX_TOKENS = 500;
+
+export const MAX_AI_SUMMARY_INPUT_TOKENS = 150_000
+export const AI_SUMMARY_CACHE_TTL_MS = 10 * 60 * 1000
+export const DEFAULT_AI_SUMMARY_DATA_SOURCE_LIMIT = 25
+export const DEFAULT_AI_SUMMARY_MAX_OUTPUT_TOKENS = 600
+export const MAX_AI_SUMMARY_DATA_SOURCES = 25
+
+export const EXAMPLE_AI_SUMMARY_PROMPT =
+`Summarize this patient's recent activity in 4-6 bullet points.
+Focus on changes since their last visit, current medications, recent symptoms or
+complaints, and any outstanding follow-ups. Keep clinical and concise.`

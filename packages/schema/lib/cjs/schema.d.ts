@@ -420,6 +420,7 @@ export type CustomActions = {
             productIds?: string[];
             utm?: LabeledField[];
             markedAsSubmitted?: boolean;
+            enduserAISummary?: string;
         }, {
             formResponse: FormResponse;
             nextFormGroupPublicURL?: string;

@@ -293,6 +293,7 @@ import {
   optionalAnyObjectValidator,
   listValidatorOptionalOrEmptyOk,
   formCustomizationValidator,
+  aiSummaryConfigurationValidator,
   buildInFieldsValidator,
   customEnduserFieldsValidatorOptionalOrEmpty,
   ticketActionsValidator,
@@ -743,6 +744,7 @@ export type CustomActions = {
         automationStepId?: string, customerId?: string, productIds?: string[],
         utm?: LabeledField[],
         markedAsSubmitted?: boolean,
+        enduserAISummary?: string,
       },
       { formResponse: FormResponse, nextFormGroupPublicURL?: string, redirectTo?: string }
     >,
@@ -4688,6 +4690,7 @@ export const schema: SchemaV1 = build_schema({
           conditions: compoundFilterValidator,
         })),
       },
+      belugaCombineMatchingPharmacyMappings: { validator: booleanValidator },
       mdiCaseOfferings: {
         validator: listValidatorOptionalOrEmptyOk(objectValidator<{ offering_id: string }>({
           offering_id: stringValidator100,
@@ -4768,6 +4771,7 @@ export const schema: SchemaV1 = build_schema({
       matchCareTeamTagsForCanvasPractitionerResolution: { validator: listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay },
       ipAddressCustomField: { validator: stringValidatorOptionalEmptyOkay },
       version: { validator: exactMatchValidatorOptional<'v1' | 'v2'>(['v1', 'v2']) },
+      aiSummaryConfiguration: { validator: aiSummaryConfigurationValidator },
     }
   },
   form_fields: {
@@ -4978,6 +4982,7 @@ export const schema: SchemaV1 = build_schema({
         }))
       },
       startedViaPinnedForm: { validator: booleanValidator },
+      enduserAISummary: { validator: stringValidator25000 },
       procedureCodes: { validator: procedureCodesValidator },
       diagnosisCodes: { validator: diagnosisCodesValidator },
     },
@@ -5090,6 +5095,7 @@ export const schema: SchemaV1 = build_schema({
           productIds: { validator: listOfStringsValidatorOptionalOrEmptyOk },
           utm: { validator: labeledFieldsValidator },
           markedAsSubmitted: { validator: booleanValidator },
+          enduserAISummary: { validator: stringValidator25000 },
         },
         returns: {
           formResponse: 'form response' as any,

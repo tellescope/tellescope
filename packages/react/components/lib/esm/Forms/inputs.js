@@ -69,6 +69,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     }
     return to.concat(ar || Array.prototype.slice.call(from));
 };
+import { createElement as _createElement } from "react";
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import React, { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
@@ -82,7 +83,7 @@ import Slider from '@mui/material/Slider';
 import LinearProgress from '@mui/material/LinearProgress';
 import DatePicker from "react-datepicker";
 import { datepickerCSS } from "./css/react-datepicker"; // avoids build issue with RN
-import { CancelIcon, IconButton, LabeledIconButton, LoadingButton, form_display_text_for_language, isDateString, useResolvedSession } from "..";
+import { CancelIcon, IconButton, LabeledIconButton, LoadingButton, form_display_text_for_language, isDateString, useFiles, useResolvedSession, value_is_loaded } from "..";
 import { css } from '@emotion/css';
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
@@ -435,8 +436,11 @@ export var InsuranceInput = function (_a) {
         return function () { clearTimeout(t); };
     }, [session, (_d = field === null || field === void 0 ? void 0 : field.options) === null || _d === void 0 ? void 0 : _d.dataSource, query]);
     return (_jsxs(Grid, __assign({ container: true, spacing: 2, sx: { mt: '0' } }, { children: [_jsx(Grid, __assign({ item: true, xs: 12, sm: 6 }, { children: _jsx(Autocomplete, { freeSolo: !((_e = field.options) === null || _e === void 0 ? void 0 : _e.requirePredefinedInsurer), options: payers.map(function (p) { return p.name; }), value: (value === null || value === void 0 ? void 0 : value.payerName) || '', onChange: function (e, v) {
-                        var _a, _b;
-                        return onChange(__assign(__assign({}, value), { payerName: v || '', payerId: ((_a = payers.find(function (p) { return p.name === v; })) === null || _a === void 0 ? void 0 : _a.id) || '', payerType: ((_b = payers.find(function (p) { return p.name === v; })) === null || _b === void 0 ? void 0 : _b.type) || '' }), field.id);
+                        var matched = payers.find(function (p) { return p.name === v; });
+                        if (matched === null || matched === void 0 ? void 0 : matched.databaseRecord) {
+                            onDatabaseSelect === null || onDatabaseSelect === void 0 ? void 0 : onDatabaseSelect([matched.databaseRecord]);
+                        }
+                        onChange(__assign(__assign({}, value), { payerName: v || '', payerId: (matched === null || matched === void 0 ? void 0 : matched.id) || '', payerType: (matched === null || matched === void 0 ? void 0 : matched.type) || '' }), field.id);
                     }, onInputChange: ((_f = field.options) === null || _f === void 0 ? void 0 : _f.requirePredefinedInsurer)
                         ? function (e, v) { if (v) {
                             setQuery(v);
@@ -1235,11 +1239,47 @@ export function convertHEIC(file) {
 }
 ;
 var value_is_image = function (f) { var _a; return (_a = f === null || f === void 0 ? void 0 : f.type) === null || _a === void 0 ? void 0 : _a.includes('image'); };
+var fileMatchesValidTypes = function (file, validFileTypes) {
+    if (!(validFileTypes === null || validFileTypes === void 0 ? void 0 : validFileTypes.length))
+        return true;
+    if (!file.type)
+        return false;
+    return !!validFileTypes.find(function (t) { return file.type.includes(t.toLowerCase()); });
+};
+export var ExistingFilePicker = function (_a) {
+    var enduserId = _a.enduserId, excludedSecureNames = _a.excludedSecureNames, validFileTypes = _a.validFileTypes, onSelect = _a.onSelect, form = _a.form, label = _a.label;
+    var session = useResolvedSession();
+    var isEnduserSession = session.type === 'enduser';
+    var _b = useFiles({
+        loadFilter: { enduserId: enduserId },
+        dontFetch: !enduserId || isEnduserSession,
+    }), getFiltered = _b[1].filtered;
+    var filesLoading = getFiltered(function (e) { return (!!enduserId) && (e.enduserId === enduserId); });
+    var filtered = useMemo(function () {
+        if (!value_is_loaded(filesLoading))
+            return [];
+        return filesLoading.value.filter(function (f) { return (!!f.confirmedAt
+            && fileMatchesValidTypes(f, validFileTypes)
+            && !(excludedSecureNames === null || excludedSecureNames === void 0 ? void 0 : excludedSecureNames.includes(f.secureName))); });
+    }, [filesLoading, validFileTypes, excludedSecureNames]);
+    // Only available in User (staff) sessions — endusers must upload.
+    if (isEnduserSession)
+        return null;
+    if (!enduserId)
+        return null;
+    if (filtered.length === 0)
+        return null;
+    return (_jsx(Grid, __assign({ item: true, sx: { mt: 1 } }, { children: _jsx(Autocomplete, { size: "small", options: filtered, getOptionLabel: function (f) { return f.name; }, renderOption: function (props, option) { return (_createElement("li", __assign({}, props, { key: option.id }),
+                _jsxs(Grid, __assign({ container: true, direction: "column" }, { children: [_jsx(Typography, __assign({ sx: { fontSize: 14 } }, { children: option.name })), option.timestamp && (_jsx(Typography, __assign({ sx: { fontSize: 12, color: '#666' } }, { children: new Date(option.timestamp).toLocaleDateString() })))] })))); }, onChange: function (_, value) {
+                if (value)
+                    onSelect(value);
+            }, value: null, blurOnSelect: true, clearOnBlur: true, renderInput: function (params) { return (_jsx(TextField, __assign({}, params, { label: label || form_display_text_for_language(form, "Or select an existing file from this patient") }))); } }) })));
+};
 export var FileInput = function (_a) {
-    var _b;
-    var value = _a.value, onChange = _a.onChange, field = _a.field, existingFileName = _a.existingFileName, uploadingFiles = _a.uploadingFiles, handleFileUpload = _a.handleFileUpload, setUploadingFiles = _a.setUploadingFiles, form = _a.form;
-    var _d = useState(''), error = _d[0], setError = _d[1];
-    var _e = useDropzone({
+    var _b, _d;
+    var value = _a.value, onChange = _a.onChange, field = _a.field, existingFileName = _a.existingFileName, uploadingFiles = _a.uploadingFiles, handleFileUpload = _a.handleFileUpload, setUploadingFiles = _a.setUploadingFiles, form = _a.form, enduserId = _a.enduserId, onSelectExistingFile = _a.onSelectExistingFile;
+    var _e = useState(''), error = _e[0], setError = _e[1];
+    var _f = useDropzone({
         onDrop: useCallback(function (acceptedFiles) {
             var _a, _b, _d, _e;
             var file = acceptedFiles.pop();
@@ -1262,8 +1302,8 @@ export var FileInput = function (_a) {
                     .finally(function () { return setUploadingFiles === null || setUploadingFiles === void 0 ? void 0 : setUploadingFiles(function (fs) { return fs.filter(function (f) { return f.fieldId !== field.id; }); }); });
             }
         }, [onChange, (_b = field.options) === null || _b === void 0 ? void 0 : _b.validFileTypes, handleFileUpload, setUploadingFiles]),
-    }), getRootProps = _e.getRootProps, getInputProps = _e.getInputProps, isDragActive = _e.isDragActive;
-    var _f = useState(''), preview = _f[0], setPreview = _f[1];
+    }), getRootProps = _f.getRootProps, getInputProps = _f.getInputProps, isDragActive = _f.isDragActive;
+    var _g = useState(''), preview = _g[0], setPreview = _g[1];
     useEffect(function () {
         if (!value_is_image(value))
             return;
@@ -1298,7 +1338,10 @@ export var FileInput = function (_a) {
                                 : capture_is_supported()
                                     ? (_jsxs(Grid, __assign({ container: true, direction: "column", alignItems: "center" }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsx(AddPhotoAlternateIcon, { color: "primary" }) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ sx: { fontSize: 14, textAlign: 'center' } }, { children: form_display_text_for_language(form, "Select file or take picture") })) }))] })))
                                     : form_display_text_for_language(form, "Select a File") })] })), _jsx(Grid, __assign({ item: true, alignSelf: "center", sx: { mt: 0.5 } }, { children: (!(value === null || value === void 0 ? void 0 : value.name) && existingFileName) &&
-                    _jsxs(Typography, { children: [existingFileName, " selected!"] }) })), error &&
+                    _jsxs(Typography, { children: [existingFileName, " selected!"] }) })), !value && onSelectExistingFile && (_jsx(ExistingFilePicker, { enduserId: enduserId, validFileTypes: (_d = field.options) === null || _d === void 0 ? void 0 : _d.validFileTypes, form: form, onSelect: function (file) {
+                    setError('');
+                    onSelectExistingFile({ secureName: file.secureName, name: file.name, type: file.type });
+                } })), error &&
                 _jsx(Grid, __assign({ item: true, alignSelf: "center", sx: { mt: 0.5 } }, { children: _jsx(Typography, __assign({ color: "error" }, { children: error })) }))] })));
 };
 export var safe_create_url = function (file) {
@@ -1311,10 +1354,12 @@ export var safe_create_url = function (file) {
     }
 };
 export var FilesInput = function (_a) {
-    var _b;
-    var value = _a.value, onChange = _a.onChange, field = _a.field, existingFileName = _a.existingFileName, uploadingFiles = _a.uploadingFiles, handleFileUpload = _a.handleFileUpload, setUploadingFiles = _a.setUploadingFiles, form = _a.form;
-    var _d = useState(''), error = _d[0], setError = _d[1];
-    var _e = useDropzone({
+    var _b, _d;
+    var value = _a.value, onChange = _a.onChange, field = _a.field, existingFileName = _a.existingFileName, uploadingFiles = _a.uploadingFiles, handleFileUpload = _a.handleFileUpload, setUploadingFiles = _a.setUploadingFiles, form = _a.form, enduserId = _a.enduserId, existingSelections = _a.existingSelections, onSelectExistingFile = _a.onSelectExistingFile, onRemoveExistingFile = _a.onRemoveExistingFile;
+    var _e = useState(''), error = _e[0], setError = _e[1];
+    var safeExistingSelections = Array.isArray(existingSelections) ? existingSelections : undefined;
+    var excludedSecureNames = useMemo(function () { return (safeExistingSelections === null || safeExistingSelections === void 0 ? void 0 : safeExistingSelections.map(function (s) { return s.secureName; })); }, [safeExistingSelections]);
+    var _f = useDropzone({
         onDrop: useCallback(function (acceptedFiles) { return __awaiter(void 0, void 0, void 0, function () {
             var _loop_1, _a, acceptedFiles_1, file, state_1;
             var _b, _d, _e;
@@ -1364,7 +1409,7 @@ export var FilesInput = function (_a) {
                 }
             });
         }); }, [onChange, value, (_b = field.options) === null || _b === void 0 ? void 0 : _b.validFileTypes, handleFileUpload, setUploadingFiles]),
-    }), getRootProps = _e.getRootProps, getInputProps = _e.getInputProps, isDragActive = _e.isDragActive;
+    }), getRootProps = _f.getRootProps, getInputProps = _f.getInputProps, isDragActive = _f.isDragActive;
     var previews = useMemo(function () { return ((value !== null && value !== void 0 ? value : []).map(function (v) {
         return value_is_image(v) ? safe_create_url(v) : null;
     })); }, [value]);
@@ -1384,11 +1429,15 @@ export var FilesInput = function (_a) {
                             ? form_display_text_for_language(form, "Drop to select files")
                             : capture_is_supported()
                                 ? (_jsxs(Grid, __assign({ container: true, direction: "column", alignItems: "center" }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsx(AddPhotoAlternateIcon, { color: "primary" }) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ sx: { fontSize: 14, textAlign: 'center' } }, { children: form_display_text_for_language(form, "Select files or take pictures") })) }))] })))
-                                : form_display_text_for_language(form, "Select Files") })] })), _jsx(Grid, __assign({ container: true, direction: "column", sx: { overflowY: 'auto', maxHeight: '250px', mt: 1 }, wrap: "nowrap" }, { children: value === null || value === void 0 ? void 0 : value.map(function (file, i) {
-                    var _a;
-                    return (_jsx(Grid, __assign({ item: true, sx: { mt: 0.5 } }, { children: _jsxs(Grid, __assign({ container: true, alignItems: "center", justifyContent: "space-between", wrap: "nowrap" }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsxs(Grid, __assign({ container: true, alignItems: "center" }, { children: [_jsx(Typography, __assign({ sx: { mr: 1 } }, { children: file.name })), ((_a = file.type) === null || _a === void 0 ? void 0 : _a.includes('image')) && previews[i] &&
-                                                _jsx(Grid, __assign({ item: true }, { children: _jsx("img", { src: previews[i], style: { maxWidth: '45%', maxHeight: 80, height: '100%' } }) }))] })) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(LabeledIconButton, { label: form_display_text_for_language(form, "Remove"), Icon: Delete, onClick: function () { return onChange(value.filter(function (f, _i) { return i !== _i; }), field.id); } }) }))] })) }), i));
-                }) })), error &&
+                                : form_display_text_for_language(form, "Select Files") })] })), _jsxs(Grid, __assign({ container: true, direction: "column", sx: { overflowY: 'auto', maxHeight: '250px', mt: 1 }, wrap: "nowrap" }, { children: [value === null || value === void 0 ? void 0 : value.map(function (file, i) {
+                        var _a;
+                        return (_jsx(Grid, __assign({ item: true, sx: { mt: 0.5 } }, { children: _jsxs(Grid, __assign({ container: true, alignItems: "center", justifyContent: "space-between", wrap: "nowrap" }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsxs(Grid, __assign({ container: true, alignItems: "center" }, { children: [_jsx(Typography, __assign({ sx: { mr: 1 } }, { children: file.name })), ((_a = file.type) === null || _a === void 0 ? void 0 : _a.includes('image')) && previews[i] &&
+                                                    _jsx(Grid, __assign({ item: true }, { children: _jsx("img", { src: previews[i], style: { maxWidth: '45%', maxHeight: 80, height: '100%' } }) }))] })) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(LabeledIconButton, { label: form_display_text_for_language(form, "Remove"), Icon: Delete, onClick: function () { return onChange(value.filter(function (f, _i) { return i !== _i; }), field.id); } }) }))] })) }), i));
+                    }), safeExistingSelections === null || safeExistingSelections === void 0 ? void 0 : safeExistingSelections.map(function (selection, i) { return (_jsx(Grid, __assign({ item: true, sx: { mt: 0.5 } }, { children: _jsxs(Grid, __assign({ container: true, alignItems: "center", justifyContent: "space-between", wrap: "nowrap" }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ sx: { mr: 1 } }, { children: selection.name })) })), onRemoveExistingFile &&
+                                    _jsx(Grid, __assign({ item: true }, { children: _jsx(LabeledIconButton, { label: form_display_text_for_language(form, "Remove"), Icon: Delete, onClick: function () { return onRemoveExistingFile(selection.secureName); } }) }))] })) }), "existing-".concat(selection.secureName, "-").concat(i))); })] })), onSelectExistingFile && (_jsx(ExistingFilePicker, { enduserId: enduserId, excludedSecureNames: excludedSecureNames, validFileTypes: (_d = field.options) === null || _d === void 0 ? void 0 : _d.validFileTypes, form: form, onSelect: function (file) {
+                    setError('');
+                    onSelectExistingFile({ secureName: file.secureName, name: file.name, type: file.type });
+                } })), error &&
                 _jsx(Grid, __assign({ item: true, alignSelf: "center", sx: { mt: 0.5 } }, { children: _jsx(Typography, __assign({ color: "error" }, { children: error })) }))] })));
 };
 var multipleChoiceItemSx = {

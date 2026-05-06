@@ -10,12 +10,12 @@ var __assign = (this && this.__assign) || function () {
     return __assign.apply(this, arguments);
 };
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import { Box, IconButton, Button } from '@mui/material';
-import { Mic as MicIcon, MicOff as MicOffIcon, Videocam as VideocamIcon, VideocamOff as VideocamOffIcon, CallEnd as CallEndIcon, ScreenShare as ScreenShareIcon, StopScreenShare as StopScreenShareIcon, } from '@mui/icons-material';
+import { Box, IconButton, Button, CircularProgress } from '@mui/material';
+import { Mic as MicIcon, MicOff as MicOffIcon, Videocam as VideocamIcon, VideocamOff as VideocamOffIcon, CallEnd as CallEndIcon, ScreenShare as ScreenShareIcon, StopScreenShare as StopScreenShareIcon, BlurOn as BlurOnIcon, BlurOff as BlurOffIcon, } from '@mui/icons-material';
 import { useTwilioVideo } from './TwilioVideoContext';
 export var TwilioControlBar = function (_a) {
     var onLeave = _a.onLeave, onEndForAll = _a.onEndForAll, style = _a.style, _b = _a.showScreenShare, showScreenShareProp = _b === void 0 ? true : _b;
-    var _c = useTwilioVideo(), isVideoEnabled = _c.isVideoEnabled, isAudioEnabled = _c.isAudioEnabled, isScreenSharing = _c.isScreenSharing, toggleVideo = _c.toggleVideo, toggleAudio = _c.toggleAudio, toggleScreenShare = _c.toggleScreenShare, disconnect = _c.disconnect, isHost = _c.isHost, room = _c.room;
+    var _c = useTwilioVideo(), isVideoEnabled = _c.isVideoEnabled, isAudioEnabled = _c.isAudioEnabled, isScreenSharing = _c.isScreenSharing, isBlurSupported = _c.isBlurSupported, isBlurEnabled = _c.isBlurEnabled, isBlurLoading = _c.isBlurLoading, toggleVideo = _c.toggleVideo, toggleAudio = _c.toggleAudio, toggleScreenShare = _c.toggleScreenShare, toggleBlur = _c.toggleBlur, disconnect = _c.disconnect, isHost = _c.isHost, room = _c.room;
     var handleLeave = function () {
         disconnect();
         onLeave === null || onLeave === void 0 ? void 0 : onLeave();
@@ -37,7 +37,17 @@ export var TwilioControlBar = function (_a) {
                     '&:hover': {
                         backgroundColor: 'rgba(255,255,255,0.1)',
                     },
-                } }, { children: isVideoEnabled ? _jsx(VideocamIcon, {}) : _jsx(VideocamOffIcon, {}) })), showScreenShareProp && supportsScreenShare && (_jsx(IconButton, __assign({ onClick: toggleScreenShare, disabled: !room, sx: {
+                } }, { children: isVideoEnabled ? _jsx(VideocamIcon, {}) : _jsx(VideocamOffIcon, {}) })), isBlurSupported && (_jsx(IconButton, __assign({ onClick: toggleBlur, disabled: isBlurLoading, sx: {
+                    color: isBlurEnabled ? '#4caf50' : 'white',
+                    '&:hover': {
+                        backgroundColor: 'rgba(255,255,255,0.1)',
+                    },
+                    '&.Mui-disabled': {
+                        color: 'rgba(255,255,255,0.5)',
+                    },
+                } }, { children: isBlurLoading
+                    ? _jsx(CircularProgress, { size: 20, sx: { color: 'white' } })
+                    : isBlurEnabled ? _jsx(BlurOnIcon, {}) : _jsx(BlurOffIcon, {}) }))), showScreenShareProp && supportsScreenShare && (_jsx(IconButton, __assign({ onClick: toggleScreenShare, disabled: !room, sx: {
                     color: isScreenSharing ? '#4caf50' : 'white',
                     '&:hover': {
                         backgroundColor: 'rgba(255,255,255,0.1)',

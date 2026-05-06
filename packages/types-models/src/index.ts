@@ -2010,6 +2010,34 @@ export type FormScoring = {
 }
 
 export type FormType = 'note' | 'enduserFacing'
+
+export type AISummaryDataSource =
+  | 'enduser_observations'
+  | 'form_responses'
+  | 'chats'
+  | 'phone_calls'
+  | 'calendar_events'
+  | 'tickets'
+  | 'sms_messages'
+  | 'emails'
+  | 'enduser_orders'
+  | 'enduser_medications'
+  | 'purchases'
+
+export type AISummaryDataSourceConfig = {
+  type: AISummaryDataSource,
+  limit?: number,
+  lookbackMS?: number,
+  filter?: object,
+}
+
+export type AISummaryConfiguration = {
+  enabled?: boolean,
+  prompt?: string,
+  dataSources?: AISummaryDataSourceConfig[],
+  maxOutputTokens?: number,
+}
+
 export type FormCustomization = {
   publicFormHTMLDescription?: string,
   publicFormSubmitHTMLDescription?: string,
@@ -2105,10 +2133,12 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
   belugaVisitType?: string,
   belugaVerificationId?: string,
   belugaPharmacyMappings?: BelugaPharmacyMapping[],
+  belugaCombineMatchingPharmacyMappings?: boolean,
   showByUserTags?: string[],
   version?: 'v1' | 'v2',
   mdiCaseOfferings?: { offering_id: string }[],
   autoMergeOnSubmission?: boolean,
+  aiSummaryConfiguration?: AISummaryConfiguration,
   procedureCodes?: FormResponseProcedureCode[],
   diagnosisCodes?: FormResponseDiagnosisCode[],
 }
@@ -2601,6 +2631,7 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
     timestamp: Date,
   }[],
   startedViaPinnedForm?: boolean,
+  enduserAISummary?: string,
   procedureCodes?: FormResponseProcedureCode[],
   diagnosisCodes?: FormResponseDiagnosisCode[],
 }

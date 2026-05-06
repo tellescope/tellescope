@@ -374,9 +374,10 @@ interface UseTellescopeFormOptions {
   groupId?: string,
   groupInstance?: string,
   groupPosition?: number,
+  getEnduserAISummary?: () => string | undefined,
 }
 
-const OrganizationThemeContext = createContext(null as any as { 
+const OrganizationThemeContext = createContext(null as any as {
   theme: OrganizationTheme, 
   setTheme: (theme: OrganizationTheme) => void,
   businessId?: string,
@@ -558,7 +559,7 @@ const shouldCallout = (field: FormField | undefined, value: FormResponseValueAns
 
 export type Response = FormResponseValue & { touched: boolean, includeInSubmit: boolean, field: FormField }
 export type FileResponse = { fieldId: string, fieldTitle: string, blobs?: FileBlob[] }
-export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogicValue, customization, carePlanId, calendarEventId, context, ga4measurementId, rootResponseId, parentResponseId, accessCode, existingResponses, automationStepId, enduserId, formResponseId, fields, isInternalNote, formTitle, submitRedirectURL, enduser, groupId, groupInstance, groupPosition, startingFieldId }: UseTellescopeFormOptions) => {
+export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogicValue, customization, carePlanId, calendarEventId, context, ga4measurementId, rootResponseId, parentResponseId, accessCode, existingResponses, automationStepId, enduserId, formResponseId, fields, isInternalNote, formTitle, submitRedirectURL, enduser, groupId, groupInstance, groupPosition, startingFieldId, getEnduserAISummary }: UseTellescopeFormOptions) => {
   const { amPm, hoursAmPm, minutes } = get_time_values(new Date())
 
   const root = useTreeForFormFields(fields)
@@ -1504,6 +1505,7 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
             customerId,
             productIds: responsesToSubmit.flatMap(r => r.field?.options?.productIds ?? []),
             utm: get_utm_params(),
+            ...(getEnduserAISummary ? { enduserAISummary: getEnduserAISummary() } : {}),
           })
 
           // do actual redirect later to prevent popup
@@ -1678,33 +1680,68 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
       autoAdvanceRef.current = true
     }
 
-    setResponses(rs => rs.map(r => r.fieldId !== fieldId ? r : ({
-      ...r,
-      touched,
-      isCalledOut: shouldCallout(fields?.find(f => f?.id === fieldId), value),
-      isHighlightedOnTimeline: fields?.find(f => f?.id === fieldId)?.highlightOnTimeline,
-      // description fields are never "active", so the normal updateInclusion effect won't fire for them
-      // explicitly mark as included when they receive a non-empty string value (historical data snapshot)
-      ...(field?.type === 'description' && typeof value === 'string' && value ? { includeInSubmit: true } : {}),
-      answer: {
-        ...r.answer,
-        value: value as any,
-      },
-      // keep consistent with initialize existing responses
-      computedValueKey: (
-        field?.intakeField === 'height'
-          ? 'Height'
-      : field?.intakeField === 'weight' && typeof value === 'number'
-          ? 'Weight'
-      : field?.intakeField === 'dateOfBirth' && r.answer.type === 'dateString'
-          ? 'Date of Birth'
-      : field?.intakeField === 'gender' && (r.answer.type === 'Dropdown' || r.answer.type === 'multiple_choice')
-          ? 'Gender'
-      : field?.intakeField === 'Address' && r.answer.type === 'Address'
-          ? 'State'
-          : undefined
-      )
-    })))
+    setResponses(rs => {
+      const updated = rs.map(r => r.fieldId !== fieldId ? r : ({
+        ...r,
+        touched,
+        isCalledOut: shouldCallout(fields?.find(f => f?.id === fieldId), value),
+        isHighlightedOnTimeline: fields?.find(f => f?.id === fieldId)?.highlightOnTimeline,
+        // description fields are never "active", so the normal updateInclusion effect won't fire for them
+        // explicitly mark as included when they receive a non-empty string value (historical data snapshot)
+        ...(field?.type === 'description' && typeof value === 'string' && value ? { includeInSubmit: true } : {}),
+        answer: {
+          ...r.answer,
+          value: value as any,
+        },
+        // keep consistent with initialize existing responses
+        computedValueKey: (
+          field?.intakeField === 'height'
+            ? 'Height' as const
+        : field?.intakeField === 'weight' && typeof value === 'number'
+            ? 'Weight' as const
+        : field?.intakeField === 'dateOfBirth' && r.answer.type === 'dateString'
+            ? 'Date of Birth' as const
+        : field?.intakeField === 'gender' && (r.answer.type === 'Dropdown' || r.answer.type === 'multiple_choice')
+            ? 'Gender' as const
+        : field?.intakeField === 'Address' && r.answer.type === 'Address'
+            ? 'State' as const
+            : undefined
+        )
+      }))
+
+      // Re-apply filter_stale_choices to every other multiple_choice/Dropdown response now that an upstream
+      // answer may have changed which option-level showCondition results have flipped. Without this cascade,
+      // selections made earlier in the session for options that are no longer visible would silently persist
+      // and pass validation since the stored array remains non-empty.
+      return updated.map(r => {
+        if (r.fieldId === fieldId) return r
+        if (r.answer.type !== 'multiple_choice' && r.answer.type !== 'Dropdown') return r
+        const otherField = fields.find(f => f.id === r.fieldId)
+        if (!otherField) return r
+        if (otherField.type !== 'multiple_choice' && otherField.type !== 'Dropdown') return r
+
+        const prior = r.answer.value as string[] | undefined
+        if (!Array.isArray(prior)) return r
+
+        const filtered = filter_stale_choices(prior, otherField, updated, enduser, form)
+        if (!Array.isArray(filtered)) return r
+
+        // shallow array comparison — preserve reference if unchanged so memoized derivations don't churn
+        if (filtered.length === prior.length && filtered.every((v, i) => v === prior[i])) {
+          return r
+        }
+
+        const isEmpty = filtered.length === 0
+        return {
+          ...r,
+          ...(isEmpty ? { touched: false, includeInSubmit: false } : {}),
+          answer: {
+            ...r.answer,
+            value: filtered as any,
+          },
+        }
+      })
+    })
 
     // ensure stripe payment is stored as saved immediately
     const saveField = fields.find(f => f.id === fieldId && (f.type === 'Stripe' || f.type === 'Appointment Booking'))
@@ -1746,7 +1783,7 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
       })
       .catch(console.error)
     }
-  }, [fields])
+  }, [fields, enduser, form])
 
   const onAddFile = useCallback((blobs?: FileBlob | FileBlob[], fieldId=activeField.value.id) => {
     setSelectedFiles(fs => fs.map(f => f.fieldId !== fieldId ? f : ({

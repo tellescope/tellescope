@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, IconButton, Button } from '@mui/material'
+import { Box, IconButton, Button, CircularProgress } from '@mui/material'
 import {
   Mic as MicIcon,
   MicOff as MicOffIcon,
@@ -8,6 +8,8 @@ import {
   CallEnd as CallEndIcon,
   ScreenShare as ScreenShareIcon,
   StopScreenShare as StopScreenShareIcon,
+  BlurOn as BlurOnIcon,
+  BlurOff as BlurOffIcon,
 } from '@mui/icons-material'
 import { useTwilioVideo } from './TwilioVideoContext'
 
@@ -29,9 +31,13 @@ export const TwilioControlBar: React.FC<TwilioControlBarProps> = ({
     isVideoEnabled,
     isAudioEnabled,
     isScreenSharing,
+    isBlurSupported,
+    isBlurEnabled,
+    isBlurLoading,
     toggleVideo,
     toggleAudio,
     toggleScreenShare,
+    toggleBlur,
     disconnect,
     isHost,
     room,
@@ -86,6 +92,26 @@ export const TwilioControlBar: React.FC<TwilioControlBarProps> = ({
       >
         {isVideoEnabled ? <VideocamIcon /> : <VideocamOffIcon />}
       </IconButton>
+
+      {isBlurSupported && (
+        <IconButton
+          onClick={toggleBlur}
+          disabled={isBlurLoading}
+          sx={{
+            color: isBlurEnabled ? '#4caf50' : 'white',
+            '&:hover': {
+              backgroundColor: 'rgba(255,255,255,0.1)',
+            },
+            '&.Mui-disabled': {
+              color: 'rgba(255,255,255,0.5)',
+            },
+          }}
+        >
+          {isBlurLoading
+            ? <CircularProgress size={20} sx={{ color: 'white' }} />
+            : isBlurEnabled ? <BlurOnIcon /> : <BlurOffIcon />}
+        </IconButton>
+      )}
 
       {showScreenShareProp && supportsScreenShare && (
         <IconButton

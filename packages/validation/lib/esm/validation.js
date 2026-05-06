@@ -5574,6 +5574,24 @@ export var formCustomizationValidator = objectValidator({
     secondaryColor: stringValidatorOptionalEmptyOkay,
     showLogoOnIntakePage: booleanValidatorOptional,
 });
+export var AI_SUMMARY_DATA_SOURCES = [
+    'enduser_observations', 'form_responses', 'chats', 'phone_calls',
+    'calendar_events', 'tickets', 'sms_messages', 'emails',
+    'enduser_orders', 'enduser_medications', 'purchases',
+];
+export var aiSummaryDataSourceTypeValidator = exactMatchValidator(AI_SUMMARY_DATA_SOURCES);
+export var aiSummaryDataSourceConfigValidator = objectValidator({
+    type: aiSummaryDataSourceTypeValidator,
+    limit: nonNegNumberValidatorOptional,
+    lookbackMS: nonNegNumberValidatorOptional,
+    filter: objectAnyFieldsAnyValuesValidator,
+});
+export var aiSummaryConfigurationValidator = objectValidator({
+    enabled: booleanValidatorOptional,
+    prompt: stringValidator5000OptionalEmptyOkay,
+    dataSources: listValidatorOptionalOrEmptyOk(aiSummaryDataSourceConfigValidator),
+    maxOutputTokens: nonNegNumberValidatorOptional,
+});
 export var languageValidator = objectValidator({
     displayName: stringValidator100,
     iso6391: stringValidator100,

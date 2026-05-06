@@ -175,16 +175,24 @@ export var QuestionForField = function (_a) {
                         color: 'rgba(0, 0, 0, 0.87)',
                         whiteSpace: 'pre-wrap'
                     } }, { children: form_response_value_to_string(value.answer.value) })) })))
-                : field.type === 'file' ? (_jsx(File, { field: field, value: (_13 = file.blobs) === null || _13 === void 0 ? void 0 : _13[0], onChange: onAddFile, form: form, existingFileName: value.answer.type === 'file'
+                : field.type === 'file' ? (_jsx(File, { field: field, value: (_13 = file.blobs) === null || _13 === void 0 ? void 0 : _13[0], onChange: onAddFile, form: form, enduserId: enduserId, existingFileName: value.answer.type === 'file'
                         ? (_14 = value.answer.value) === null || _14 === void 0 ? void 0 : _14.name
-                        : '', handleFileUpload: handleFileUpload, uploadingFiles: uploadingFiles, setUploadingFiles: setUploadingFiles }))
-                    : field.type === 'files' ? (_jsx(Files, { field: field, value: file.blobs, onChange: onAddFile, form: form, 
+                        : '', handleFileUpload: handleFileUpload, uploadingFiles: uploadingFiles, setUploadingFiles: setUploadingFiles, onSelectExistingFile: function (v) { return onFieldChange(v, field.id); } }))
+                    : field.type === 'files' ? (_jsx(Files, { field: field, value: file.blobs, onChange: onAddFile, form: form, enduserId: enduserId, 
                         // existingFileName={
                         //   value.answer.type === 'files'
                         //     ? value.answer.value?.name
                         //     : ''
-                        // } 
-                        handleFileUpload: handleFileUpload, uploadingFiles: uploadingFiles, setUploadingFiles: setUploadingFiles }))
+                        // }
+                        handleFileUpload: handleFileUpload, uploadingFiles: uploadingFiles, setUploadingFiles: setUploadingFiles, existingSelections: value.answer.type === 'files' && Array.isArray(value.answer.value)
+                            ? value.answer.value.filter(function (av) { var _a; return !((_a = file.blobs) === null || _a === void 0 ? void 0 : _a.some(function (b) { return b.name === av.name; })); })
+                            : undefined, onSelectExistingFile: function (v) {
+                            var current = value.answer.type === 'files' && Array.isArray(value.answer.value) ? value.answer.value : [];
+                            onFieldChange(__spreadArray(__spreadArray([], current, true), [v], false), field.id);
+                        }, onRemoveExistingFile: function (secureName) {
+                            var current = value.answer.type === 'files' && Array.isArray(value.answer.value) ? value.answer.value : [];
+                            onFieldChange(current.filter(function (f) { return f.secureName !== secureName; }), field.id);
+                        } }))
                         : field.type === 'dateString' ? (_jsx(DateStringInput, { field: field, disabled: value.disabled, value: value.answer.value, onChange: onFieldChange, form: form }))
                             : field.type === 'Hidden Value' ? (_jsx(HiddenValue, { groupFields: groupFields, isSinglePage: isSinglePage, goToNextField: goToNextField, goToPreviousField: goToPreviousField, field: field, value: value.answer.value, onChange: onFieldChange, form: form, lastNavigationDirectionRef: lastNavigationDirectionRef }))
                                 : field.type === 'Address' ? (_jsx(Address, { field: field, disabled: value.disabled, value: value.answer.value, onChange: onFieldChange, form: form }))

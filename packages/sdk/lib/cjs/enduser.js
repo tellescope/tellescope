@@ -127,6 +127,17 @@ var EnduserSession = /** @class */ (function (_super) {
     function EnduserSession(o) {
         var _this = _super.call(this, __assign(__assign({}, o), { cacheKey: (o === null || o === void 0 ? void 0 : o.cacheKey) || "tellescope_enduser", type: 'enduser' })) || this;
         _this.type = 'enduser';
+        _this.bulk_load = function (args) { return __awaiter(_this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.refresh_session_if_expiring_soon()];
+                    case 1:
+                        _a.sent();
+                        return [4 /*yield*/, this.POST("/v1/bulk-actions/read", args, true)];
+                    case 2: return [2 /*return*/, _a.sent()];
+                }
+            });
+        }); };
         _this._POST = function (endpoint, args, authenticated) {
             if (authenticated === void 0) { authenticated = true; }
             return __awaiter(_this, void 0, void 0, function () {
