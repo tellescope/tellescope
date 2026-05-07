@@ -107,7 +107,7 @@ type EnduserQueries = { [K in EnduserAccessibleModels]: APIQuery<K> } & {
     display_info: () => Promise<UserDisplayInfo[]>
   },
   files: {
-    prepare_file_upload: (args: FileDetails & { externalId?: string, publicRead?: boolean, publicName?: string, }) => Promise<{ presignedUpload: S3PresignedPost, file: File }>,
+    prepare_file_upload: (args: FileDetails & { externalId?: string, publicRead?: boolean, publicName?: string, tags?: string[] }) => Promise<{ presignedUpload: S3PresignedPost, file: File }>,
     file_download_URL: (args: extractFields<CustomActions['files']['file_download_URL']['parameters']>) => 
                           Promise<extractFields<CustomActions['files']['file_download_URL']['returns']>>,
     confirm_file_upload: (args: extractFields<CustomActions['files']['confirm_file_upload']['parameters']>) => 
@@ -395,9 +395,9 @@ export class EnduserSession extends Session {
     return await this.DELETE<A,R>(endpoint, args, authenticated)
   }
 
-  prepare_and_upload_file = async (details: FileDetails & { publicRead?: boolean, publicName?: string, source?: string, externalId?: string }, file: Blob | Buffer | ReactNativeFile) => {
-    const { name, size, type, enduserId, publicName, publicRead, source, externalId } = details
-    const { presignedUpload, file: createdFile } = await this.api.files.prepare_file_upload({ externalId, name, size, type, enduserId, publicRead, publicName, source })
+  prepare_and_upload_file = async (details: FileDetails & { publicRead?: boolean, publicName?: string, source?: string, externalId?: string, tags?: string[] }, file: Blob | Buffer | ReactNativeFile) => {
+    const { name, size, type, enduserId, publicName, publicRead, source, externalId, tags } = details
+    const { presignedUpload, file: createdFile } = await this.api.files.prepare_file_upload({ externalId, name, size, type, enduserId, publicRead, publicName, source, tags })
     await this.UPLOAD(presignedUpload, file)
 
     this.api.files.confirm_file_upload({ id: createdFile.id }).catch(console.error)

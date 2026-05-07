@@ -4433,6 +4433,7 @@ export declare class Session extends SessionManager {
         isCalledOut?: boolean | undefined;
         externalId?: string | undefined;
         source?: string | undefined;
+        tags?: string[] | undefined;
     }, file: Blob | Buffer | ReactNativeFile) => Promise<import("@tellescope/types-models").File & {
         id: string;
         createdAt: Date;

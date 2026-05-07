@@ -161,6 +161,7 @@ export declare const VITAL_TITLE = "Vital";
 export declare const ELATION_TITLE = "Elation";
 export declare const ZUS_TITLE = "Zus";
 export declare const OPEN_LOOP_TITLE = "OpenLoop";
+export declare const SEASON_TITLE = "Season";
 export declare const CANVAS_TITLE = "Canvas";
 export declare const MFAX_TITLE = "mFax";
 export declare const CANDID_TITLE = "Candid";

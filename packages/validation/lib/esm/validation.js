@@ -2393,6 +2393,9 @@ export var automationActionValidator = orValidator({
             forAssigned: booleanValidatorOptional,
             roles: listOfStringsValidatorOptionalOrEmptyOk,
             tags: listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
+            dontSendEmail: booleanValidatorOptional,
+            sendSMS: booleanValidatorOptional,
+            smsTemplateId: mongoIdStringOptional,
         }, { emptyOk: false }) }, sharedAutomationActionValidators)),
     sendForm: objectValidator(__assign({ type: exactMatchValidator(['sendForm']), info: objectValidator({
             senderId: mongoIdStringRequired,
@@ -2463,6 +2466,7 @@ export var automationActionValidator = orValidator({
             contextEnduserFields: listOfStringsValidatorUniqueOptionalOrEmptyOkay,
             contextContentIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
             disableEditTitle: booleanValidatorOptional,
+            skipCareTeamAssignment: booleanValidatorOptional,
         }, { emptyOk: false }) })),
     sendWebhook: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['sendWebhook']), info: sendWebhookInfoValidator })),
     setEnduserFields: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['setEnduserFields']), info: objectValidator({
@@ -2700,6 +2704,7 @@ export var journeyContextValidator = objectValidator({
     ticketThreadId: mongoIdStringOptional,
     ticketThreadCommentId: mongoIdStringOptional,
     medicationId: mongoIdStringOptional,
+    faxLogId: mongoIdStringOptional,
 });
 export var relatedRecordValidator = objectValidator({
     type: stringValidator100,
@@ -3875,6 +3880,7 @@ var _AUTOMATION_TRIGGER_EVENT_TYPES = {
     "Database Entry Added": true,
     "Eligibility Result Received": true,
     "File Added": true,
+    "Incoming Fax": true,
 };
 export var AUTOMATION_TRIGGER_EVENT_TYPES = Object.keys(_AUTOMATION_TRIGGER_EVENT_TYPES);
 // Deprecated event types - not available for new triggers
@@ -4209,6 +4215,13 @@ export var automationTriggerEventValidator = orValidator({
         type: exactMatchValidator(['Tag Added']),
         info: objectValidator({
             tag: stringValidator100,
+        }),
+        conditions: optionalEmptyObjectValidator,
+    }),
+    "Incoming Fax": objectValidator({
+        type: exactMatchValidator(['Incoming Fax']),
+        info: objectValidator({
+            senderFaxNumbers: listOfStringsValidatorOptionalOrEmptyOk,
         }),
         conditions: optionalEmptyObjectValidator,
     }),

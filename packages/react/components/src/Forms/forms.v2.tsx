@@ -49,7 +49,7 @@ const TellescopeFormContainerWithThemeV2: typeof TellescopeFormContainerV2 = ({ 
 
   return (
     <Flex flex={1} column alignItems="center" style={{
-      backgroundColor: finalBgColor,
+      backgroundColor: hideBg ? 'transparent' : finalBgColor,
       overflow: 'auto',
       boxSizing: 'border-box',
       paddingTop: window.innerWidth < 600 ? 20 : 40,

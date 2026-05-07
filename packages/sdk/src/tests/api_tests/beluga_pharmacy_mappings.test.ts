@@ -262,6 +262,61 @@ export const beluga_pharmacy_mappings_tests = async ({ sdk, sdkNonAdmin }: { sdk
     )
 
     await async_test(
+      "$ne: value equals (negative case)",
+      async () => {
+        return evaluate_mapping_conditions(
+          { condition: { "state": { $ne: "CA" } as any } },
+          [{ externalId: "state", value: "CA" }]
+        )
+      },
+      { expectedResult: false }
+    )
+
+    await async_test(
+      "$doesNotContain: value lacks substring",
+      async () => {
+        return evaluate_mapping_conditions(
+          { condition: { "meds": { $doesNotContain: "GLP" } as any } },
+          [{ externalId: "meds", value: "Semaglutide" }]
+        )
+      },
+      { expectedResult: true }
+    )
+
+    await async_test(
+      "$doesNotContain: value contains substring (negative case)",
+      async () => {
+        return evaluate_mapping_conditions(
+          { condition: { "meds": { $doesNotContain: "GLP" } as any } },
+          [{ externalId: "meds", value: "GLP-1 agonist" }]
+        )
+      },
+      { expectedResult: false }
+    )
+
+    await async_test(
+      "$exists false (isNotSet): field absent",
+      async () => {
+        return evaluate_mapping_conditions(
+          { condition: { "pharmacyOverride": { $exists: false } as any } },
+          [{ externalId: "other_field", value: "some-value" }]
+        )
+      },
+      { expectedResult: true }
+    )
+
+    await async_test(
+      "$exists false (isNotSet): field present (negative case)",
+      async () => {
+        return evaluate_mapping_conditions(
+          { condition: { "pharmacyOverride": { $exists: false } as any } },
+          [{ externalId: "pharmacyOverride", value: "some-value" }]
+        )
+      },
+      { expectedResult: false }
+    )
+
+    await async_test(
       "Nested compound: $and with $or",
       async () => {
         return evaluate_mapping_conditions(

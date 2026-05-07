@@ -323,6 +323,7 @@ export type CustomActions = {
             externalId?: string;
             isCalledOut?: boolean;
             hiddenFromEnduser?: boolean;
+            tags?: string[];
         }, {
             presignedUpload: object;
             file: File;

@@ -1686,9 +1686,30 @@ const files_tests = async () => {
     { onResult: t => true }
   )
 
-  const { presignedUpload, file } = await sdk.api.files.prepare_file_upload({ 
-    name: 'Test Private', size: buff.byteLength, type: 'text/plain', enduserId: enduser.id, 
+  const { presignedUpload, file } = await sdk.api.files.prepare_file_upload({
+    name: 'Test Private', size: buff.byteLength, type: 'text/plain', enduserId: enduser.id,
+    tags: ['unit-test', 'prepare-upload'],
   })
+
+  assert(
+    !!file.tags && file.tags.includes('unit-test') && file.tags.includes('prepare-upload'),
+    'tags not persisted on prepare_file_upload response',
+    'prepare_file_upload returns tags',
+  )
+
+  await async_test(
+    `tags persisted on file via prepare_file_upload`,
+    () => sdk.api.files.getSome({ filter: { enduserId: enduser.id } }),
+    {
+      onResult: fs => {
+        const stored = fs.find(f => f.id === file.id)
+        return !!stored
+          && !!stored.tags
+          && stored.tags.includes('unit-test')
+          && stored.tags.includes('prepare-upload')
+      },
+    },
+  )
 
   const { presignedUpload: presignedNonEnduser, file: fileNonEnduser } = await sdk.api.files.prepare_file_upload({ 
     name: 'Test Private (no enduser)', size: buff.byteLength, type: 'text/plain', 

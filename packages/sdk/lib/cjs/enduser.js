@@ -195,12 +195,12 @@ var EnduserSession = /** @class */ (function (_super) {
             });
         };
         _this.prepare_and_upload_file = function (details, file) { return __awaiter(_this, void 0, void 0, function () {
-            var name, size, type, enduserId, publicName, publicRead, source, externalId, _a, presignedUpload, createdFile;
+            var name, size, type, enduserId, publicName, publicRead, source, externalId, tags, _a, presignedUpload, createdFile;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        name = details.name, size = details.size, type = details.type, enduserId = details.enduserId, publicName = details.publicName, publicRead = details.publicRead, source = details.source, externalId = details.externalId;
-                        return [4 /*yield*/, this.api.files.prepare_file_upload({ externalId: externalId, name: name, size: size, type: type, enduserId: enduserId, publicRead: publicRead, publicName: publicName, source: source })];
+                        name = details.name, size = details.size, type = details.type, enduserId = details.enduserId, publicName = details.publicName, publicRead = details.publicRead, source = details.source, externalId = details.externalId, tags = details.tags;
+                        return [4 /*yield*/, this.api.files.prepare_file_upload({ externalId: externalId, name: name, size: size, type: type, enduserId: enduserId, publicRead: publicRead, publicName: publicName, source: source, tags: tags })];
                     case 1:
                         _a = _b.sent(), presignedUpload = _a.presignedUpload, createdFile = _a.file;
                         return [4 /*yield*/, this.UPLOAD(presignedUpload, file)];

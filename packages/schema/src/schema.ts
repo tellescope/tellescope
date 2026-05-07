@@ -692,18 +692,19 @@ export type CustomActions = {
     embedding_search: CustomAction<{ content: string }, { templateIds: string[], message?: string }>, 
   },
   files: {
-    prepare_file_upload: CustomAction<{ 
-      name: string, 
-      size: number, 
-      type: string, 
-      enduserId?: string, 
+    prepare_file_upload: CustomAction<{
+      name: string,
+      size: number,
+      type: string,
+      enduserId?: string,
       publicRead?: boolean,
       publicName?: string,
       source?: string,
       externalId?: string,
       isCalledOut?: boolean,
       hiddenFromEnduser?: boolean,
-    }, 
+      tags?: string[],
+    },
       { presignedUpload: object, file: File }
     >,
     file_download_URL: CustomAction<{ secureName: string, preferInBrowser?: boolean, }, { downloadURL: string, name: string }>,
@@ -4161,8 +4162,9 @@ export const schema: SchemaV1 = build_schema({
           source: { validator: stringValidator100 },
           externalId: { validator: stringValidator100 },
           hiddenFromEnduser: { validator: booleanValidator },
+          tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
         },
-        returns: { 
+        returns: {
           presignedUpload: {
             validator: objectAnyFieldsAnyValuesValidator,
           },
@@ -4447,6 +4449,7 @@ export const schema: SchemaV1 = build_schema({
       isTodo: { validator: booleanValidator },
       databaseRecordId: { validator: mongoIdStringValidator },
       databaseRecordCreator: { validator: mongoIdStringValidator },
+      faxLogId: { validator: mongoIdStringValidator },
       triggerFileId: { validator: mongoIdStringValidator },
       disableEditTitle: { validator: booleanValidator },
       templateId: { validator: mongoIdStringOptional },
@@ -7202,6 +7205,7 @@ export const schema: SchemaV1 = build_schema({
       hasConnectedPaubox: { validator: booleanValidator },
       hasConnectedBridge: { validator: booleanValidator },
       hasConnectedMDIntegrations: { validator: booleanValidator },
+      hasConnectedSeason: { validator: booleanValidator },
       createEnduserForms: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
       skipActivePatientBilling: { validator: booleanValidator },
       portalV2SchemaURL: { validator: stringValidator },

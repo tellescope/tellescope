@@ -1768,6 +1768,8 @@ export declare const automationTriggerEventValidator: ValidatorDefinition<import
     source: string;
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Tag Added", {
     tag: string;
+}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Incoming Fax", {
+    senderFaxNumbers?: string[] | undefined;
 }, {}>>;
 export declare const AUTOMATION_TRIGGER_ACTION_TYPES: (keyof AutomationTriggerActions)[];
 export declare const automationTriggerActionValidator: ValidatorDefinition<import("@tellescope/types-models").AutomationTriggerActionBuilder<"Assign Care Team", {

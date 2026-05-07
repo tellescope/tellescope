@@ -58,19 +58,22 @@ export type BasicFilter<T extends string> = {
     | null
     | {
       $exists: boolean,
-    } 
+    }
     | {
       $gt: number,
     }
     | {
       $lt: number,
-    } 
+    }
     | {
       $contains: string | number
-    } 
+    }
     | {
       $doesNotContain: string | number
-    } 
+    }
+    | {
+      $ne: string | number
+    }
   )
 }
 
@@ -478,6 +481,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   hasConnectedGoGoMeds?: boolean,
   hasScriptSure?: boolean,
   hasConnectedPagerDuty?: boolean,
+  hasConnectedSeason?: boolean,
   hasConnectedSmartMeter?: boolean,
   hasConnectedAthena?: boolean,
   hasConnectedActiveCampaign?: boolean,
@@ -1707,6 +1711,7 @@ export interface Ticket extends Ticket_readonly, Ticket_required, Ticket_updates
   isTodo?: boolean,
   databaseRecordId?: string,
   databaseRecordCreator?: string,
+  faxLogId?: string,
   templateId?: string,
 }
 
@@ -3305,6 +3310,7 @@ export type CreateTicketActionInfo = {
   contextEnduserFields?: string[],
   contextContentIds?: string[],
   disableEditTitle?: boolean,
+  skipCareTeamAssignment?: boolean,
 }
 
 export type SendEmailAutomationAction = AutomationActionBuilder<'sendEmail', AutomationForMessage & { fromEmailOverride?: string, ccRelatedContactTypes?: string[], customEmailField?: string, }>
@@ -3313,6 +3319,9 @@ export type NotifyTeamAutomationAction = AutomationActionBuilder<'notifyTeam', {
   forAssigned: boolean,
   roles?: string[],
   tags?: ListOfStringsWithQualifier,
+  dontSendEmail?: boolean,
+  sendSMS?: boolean,
+  smsTemplateId?: string,
 }>
 export type SendSMSAutomationAction = AutomationActionBuilder<'sendSMS', AutomationForMessage & { phoneNumberOverride?: string }>
 export type SendFormAutomationAction = AutomationActionBuilder<'sendForm', AutomationForFormRequest>
@@ -4788,6 +4797,9 @@ export type AutomationTriggerEvents = {
     source: string,
   }, {}>,
   'File Added': AutomationTriggerEventBuilder<"File Added", { source: string }, { }>,
+  'Incoming Fax': AutomationTriggerEventBuilder<"Incoming Fax", {
+    senderFaxNumbers?: string[],
+  }, {}>,
 }
 export type AutomationTriggerEventType = keyof AutomationTriggerEvents
 export type AutomationTriggerEvent = AutomationTriggerEvents[AutomationTriggerEventType]
@@ -6078,6 +6090,7 @@ export type JourneyContext = {
   ticketThreadId?: string,
   ticketThreadCommentId?: string,
   medicationId?: string,
+  faxLogId?: string,
 }
 
 // https://gist.github.com/aviflax/a4093965be1cd008f172/ 

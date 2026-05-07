@@ -87,7 +87,7 @@ export var beluga_pharmacy_mappings_tests = function (_a) {
                     log_header("Beluga Pharmacy Mappings Tests");
                     _b.label = 1;
                 case 1:
-                    _b.trys.push([1, , 18, 21]);
+                    _b.trys.push([1, , 23, 26]);
                     return [4 /*yield*/, async_test("Create form with belugaPharmacyMappings", function () { return __awaiter(void 0, void 0, void 0, function () {
                             var mappings, form, fetched;
                             var _a, _b;
@@ -261,6 +261,41 @@ export var beluga_pharmacy_mappings_tests = function (_a) {
                         }); }, { expectedResult: false })];
                 case 14:
                     _b.sent();
+                    return [4 /*yield*/, async_test("$ne: value equals (negative case)", function () { return __awaiter(void 0, void 0, void 0, function () {
+                            return __generator(this, function (_a) {
+                                return [2 /*return*/, evaluate_mapping_conditions({ condition: { "state": { $ne: "CA" } } }, [{ externalId: "state", value: "CA" }])];
+                            });
+                        }); }, { expectedResult: false })];
+                case 15:
+                    _b.sent();
+                    return [4 /*yield*/, async_test("$doesNotContain: value lacks substring", function () { return __awaiter(void 0, void 0, void 0, function () {
+                            return __generator(this, function (_a) {
+                                return [2 /*return*/, evaluate_mapping_conditions({ condition: { "meds": { $doesNotContain: "GLP" } } }, [{ externalId: "meds", value: "Semaglutide" }])];
+                            });
+                        }); }, { expectedResult: true })];
+                case 16:
+                    _b.sent();
+                    return [4 /*yield*/, async_test("$doesNotContain: value contains substring (negative case)", function () { return __awaiter(void 0, void 0, void 0, function () {
+                            return __generator(this, function (_a) {
+                                return [2 /*return*/, evaluate_mapping_conditions({ condition: { "meds": { $doesNotContain: "GLP" } } }, [{ externalId: "meds", value: "GLP-1 agonist" }])];
+                            });
+                        }); }, { expectedResult: false })];
+                case 17:
+                    _b.sent();
+                    return [4 /*yield*/, async_test("$exists false (isNotSet): field absent", function () { return __awaiter(void 0, void 0, void 0, function () {
+                            return __generator(this, function (_a) {
+                                return [2 /*return*/, evaluate_mapping_conditions({ condition: { "pharmacyOverride": { $exists: false } } }, [{ externalId: "other_field", value: "some-value" }])];
+                            });
+                        }); }, { expectedResult: true })];
+                case 18:
+                    _b.sent();
+                    return [4 /*yield*/, async_test("$exists false (isNotSet): field present (negative case)", function () { return __awaiter(void 0, void 0, void 0, function () {
+                            return __generator(this, function (_a) {
+                                return [2 /*return*/, evaluate_mapping_conditions({ condition: { "pharmacyOverride": { $exists: false } } }, [{ externalId: "pharmacyOverride", value: "some-value" }])];
+                            });
+                        }); }, { expectedResult: false })];
+                case 19:
+                    _b.sent();
                     return [4 /*yield*/, async_test("Nested compound: $and with $or", function () { return __awaiter(void 0, void 0, void 0, function () {
                             return __generator(this, function (_a) {
                                 return [2 /*return*/, evaluate_mapping_conditions({
@@ -271,7 +306,7 @@ export var beluga_pharmacy_mappings_tests = function (_a) {
                                     }, [{ externalId: "state", value: "NY" }, { externalId: "med_type", value: "weightLoss" }])];
                             });
                         }); }, { expectedResult: true })];
-                case 15:
+                case 20:
                     _b.sent();
                     return [4 /*yield*/, async_test("First-match-wins: multiple mappings, first matching returned", function () { return __awaiter(void 0, void 0, void 0, function () {
                             var mappings, result;
@@ -292,7 +327,7 @@ export var beluga_pharmacy_mappings_tests = function (_a) {
                                 return [2 /*return*/, (result === null || result === void 0 ? void 0 : result.pharmacyId) === "pharmacy-first"];
                             });
                         }); }, { expectedResult: true })];
-                case 16:
+                case 21:
                     _b.sent();
                     return [4 /*yield*/, async_test("No match: no mappings match, returns undefined", function () { return __awaiter(void 0, void 0, void 0, function () {
                             var mappings, result;
@@ -308,17 +343,17 @@ export var beluga_pharmacy_mappings_tests = function (_a) {
                                 return [2 /*return*/, result === undefined];
                             });
                         }); }, { expectedResult: true })];
-                case 17:
+                case 22:
                     _b.sent();
-                    return [3 /*break*/, 21];
-                case 18:
-                    if (!testFormId) return [3 /*break*/, 20];
+                    return [3 /*break*/, 26];
+                case 23:
+                    if (!testFormId) return [3 /*break*/, 25];
                     return [4 /*yield*/, sdk.api.forms.deleteOne(testFormId).catch(console.error)];
-                case 19:
+                case 24:
                     _b.sent();
-                    _b.label = 20;
-                case 20: return [7 /*endfinally*/];
-                case 21: return [2 /*return*/];
+                    _b.label = 25;
+                case 25: return [7 /*endfinally*/];
+                case 26: return [2 /*return*/];
             }
         });
     });

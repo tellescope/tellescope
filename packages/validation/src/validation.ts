@@ -3012,12 +3012,15 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
   notifyTeam: objectValidator<NotifyTeamAutomationAction>({
     type: exactMatchValidator(['notifyTeam']),
     info: objectValidator<NotifyTeamAutomationAction['info']>(
-      { 
+      {
         templateId: mongoIdStringRequired,
         forAssigned: booleanValidatorOptional,
         roles: listOfStringsValidatorOptionalOrEmptyOk,
         tags: listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
-      }, 
+        dontSendEmail: booleanValidatorOptional,
+        sendSMS: booleanValidatorOptional,
+        smsTemplateId: mongoIdStringOptional,
+      },
       { emptyOk: false }
     ),
     ...sharedAutomationActionValidators,
@@ -3102,6 +3105,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       contextEnduserFields: listOfStringsValidatorUniqueOptionalOrEmptyOkay,
       contextContentIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
       disableEditTitle: booleanValidatorOptional,
+      skipCareTeamAssignment: booleanValidatorOptional,
     }, { emptyOk: false }),
   }),
   sendWebhook: objectValidator<SendWebhookAutomationAction>({
@@ -3556,6 +3560,7 @@ export const journeyContextValidator = objectValidator<JourneyContext>({
   ticketThreadId: mongoIdStringOptional,
   ticketThreadCommentId: mongoIdStringOptional,
   medicationId: mongoIdStringOptional,
+  faxLogId: mongoIdStringOptional,
 })
 
 export const relatedRecordValidator = objectValidator<RelatedRecord>({
@@ -4800,6 +4805,7 @@ const _AUTOMATION_TRIGGER_EVENT_TYPES: { [K in AutomationTriggerEventType]: any 
   "Database Entry Added": true,
   "Eligibility Result Received": true,
   "File Added": true,
+  "Incoming Fax": true,
 }
 export const AUTOMATION_TRIGGER_EVENT_TYPES = Object.keys(_AUTOMATION_TRIGGER_EVENT_TYPES) as AutomationTriggerEventType[]
 
@@ -5139,6 +5145,13 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     type: exactMatchValidator(['Tag Added']),
     info: objectValidator<AutomationTriggerEvents['Tag Added']['info']>({
       tag: stringValidator100,
+    }),
+    conditions: optionalEmptyObjectValidator,
+  }),
+  "Incoming Fax": objectValidator<AutomationTriggerEvents["Incoming Fax"]>({
+    type: exactMatchValidator(['Incoming Fax']),
+    info: objectValidator<AutomationTriggerEvents['Incoming Fax']['info']>({
+      senderFaxNumbers: listOfStringsValidatorOptionalOrEmptyOk,
     }),
     conditions: optionalEmptyObjectValidator,
   }),

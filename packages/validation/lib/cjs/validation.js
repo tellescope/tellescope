@@ -2444,6 +2444,9 @@ exports.automationActionValidator = (0, exports.orValidator)({
             forAssigned: exports.booleanValidatorOptional,
             roles: exports.listOfStringsValidatorOptionalOrEmptyOk,
             tags: exports.listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
+            dontSendEmail: exports.booleanValidatorOptional,
+            sendSMS: exports.booleanValidatorOptional,
+            smsTemplateId: exports.mongoIdStringOptional,
         }, { emptyOk: false }) }, sharedAutomationActionValidators)),
     sendForm: (0, exports.objectValidator)(__assign({ type: (0, exports.exactMatchValidator)(['sendForm']), info: (0, exports.objectValidator)({
             senderId: exports.mongoIdStringRequired,
@@ -2514,6 +2517,7 @@ exports.automationActionValidator = (0, exports.orValidator)({
             contextEnduserFields: exports.listOfStringsValidatorUniqueOptionalOrEmptyOkay,
             contextContentIds: exports.listOfMongoIdStringValidatorOptionalOrEmptyOk,
             disableEditTitle: exports.booleanValidatorOptional,
+            skipCareTeamAssignment: exports.booleanValidatorOptional,
         }, { emptyOk: false }) })),
     sendWebhook: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['sendWebhook']), info: sendWebhookInfoValidator })),
     setEnduserFields: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['setEnduserFields']), info: (0, exports.objectValidator)({
@@ -2751,6 +2755,7 @@ exports.journeyContextValidator = (0, exports.objectValidator)({
     ticketThreadId: exports.mongoIdStringOptional,
     ticketThreadCommentId: exports.mongoIdStringOptional,
     medicationId: exports.mongoIdStringOptional,
+    faxLogId: exports.mongoIdStringOptional,
 });
 exports.relatedRecordValidator = (0, exports.objectValidator)({
     type: exports.stringValidator100,
@@ -3928,6 +3933,7 @@ var _AUTOMATION_TRIGGER_EVENT_TYPES = {
     "Database Entry Added": true,
     "Eligibility Result Received": true,
     "File Added": true,
+    "Incoming Fax": true,
 };
 exports.AUTOMATION_TRIGGER_EVENT_TYPES = Object.keys(_AUTOMATION_TRIGGER_EVENT_TYPES);
 // Deprecated event types - not available for new triggers
@@ -4262,6 +4268,13 @@ exports.automationTriggerEventValidator = (0, exports.orValidator)({
         type: (0, exports.exactMatchValidator)(['Tag Added']),
         info: (0, exports.objectValidator)({
             tag: exports.stringValidator100,
+        }),
+        conditions: exports.optionalEmptyObjectValidator,
+    }),
+    "Incoming Fax": (0, exports.objectValidator)({
+        type: (0, exports.exactMatchValidator)(['Incoming Fax']),
+        info: (0, exports.objectValidator)({
+            senderFaxNumbers: exports.listOfStringsValidatorOptionalOrEmptyOk,
         }),
         conditions: exports.optionalEmptyObjectValidator,
     }),

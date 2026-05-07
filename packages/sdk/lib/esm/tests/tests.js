@@ -2088,13 +2088,26 @@ var files_tests = function () { return __awaiter(void 0, void 0, void 0, functio
                 _c.sent();
                 return [4 /*yield*/, sdk.api.files.prepare_file_upload({
                         name: 'Test Private', size: buff.byteLength, type: 'text/plain', enduserId: enduser.id,
+                        tags: ['unit-test', 'prepare-upload'],
                     })];
             case 6:
                 _a = _c.sent(), presignedUpload = _a.presignedUpload, file = _a.file;
+                assert(!!file.tags && file.tags.includes('unit-test') && file.tags.includes('prepare-upload'), 'tags not persisted on prepare_file_upload response', 'prepare_file_upload returns tags');
+                return [4 /*yield*/, async_test("tags persisted on file via prepare_file_upload", function () { return sdk.api.files.getSome({ filter: { enduserId: enduser.id } }); }, {
+                        onResult: function (fs) {
+                            var stored = fs.find(function (f) { return f.id === file.id; });
+                            return !!stored
+                                && !!stored.tags
+                                && stored.tags.includes('unit-test')
+                                && stored.tags.includes('prepare-upload');
+                        },
+                    })];
+            case 7:
+                _c.sent();
                 return [4 /*yield*/, sdk.api.files.prepare_file_upload({
                         name: 'Test Private (no enduser)', size: buff.byteLength, type: 'text/plain',
                     })];
-            case 7:
+            case 8:
                 _b = _c.sent(), presignedNonEnduser = _b.presignedUpload, fileNonEnduser = _b.file;
                 return [4 /*yield*/, sdk.api.files.prepare_file_upload({
                         name: 'Test Public', size: buff.byteLength, type: 'text/plain',
@@ -2102,62 +2115,62 @@ var files_tests = function () { return __awaiter(void 0, void 0, void 0, functio
                         publicRead: true,
                         publicName: 'public',
                     })];
-            case 8:
+            case 9:
                 presigned2 = (_c.sent()).presignedUpload;
                 return [4 /*yield*/, sdk.UPLOAD(
                     // @ts-ignore
                     presignedUpload, buff)];
-            case 9:
-                _c.sent();
-                return [4 /*yield*/, sdk.UPLOAD(
-                    // @ts-ignore
-                    presignedNonEnduser, buff)];
             case 10:
                 _c.sent();
                 return [4 /*yield*/, sdk.UPLOAD(
                     // @ts-ignore
-                    presigned2, buff)];
+                    presignedNonEnduser, buff)];
             case 11:
                 _c.sent();
-                return [4 /*yield*/, async_test("Files associated with enduser on prepare_file_upload", function () { return sdk.api.files.getSome({ filter: { enduserId: enduser.id } }); }, { onResult: function (fs) { return fs.length === 2; } })];
+                return [4 /*yield*/, sdk.UPLOAD(
+                    // @ts-ignore
+                    presigned2, buff)];
             case 12:
                 _c.sent();
-                return [4 /*yield*/, sdk.api.files.file_download_URL({ secureName: file.secureName })];
+                return [4 /*yield*/, async_test("Files associated with enduser on prepare_file_upload", function () { return sdk.api.files.getSome({ filter: { enduserId: enduser.id } }); }, { onResult: function (fs) { return fs.length === 2; } })];
             case 13:
+                _c.sent();
+                return [4 /*yield*/, sdk.api.files.file_download_URL({ secureName: file.secureName })];
+            case 14:
                 downloadURL = (_c.sent()).downloadURL;
                 return [4 /*yield*/, sdk.DOWNLOAD(downloadURL)];
-            case 14:
+            case 15:
                 downloaded = _c.sent();
                 assert(downloaded === buff.toString(), 'downloaded file does not match uploaded file', 'upload, download comparison');
                 return [4 /*yield*/, sdk.api.files.file_download_URL({ secureName: file.secureName })];
-            case 15:
+            case 16:
                 cachedURL = (_c.sent()).downloadURL;
                 assert(downloadURL === cachedURL, 'cache download url failed', 'download url cache');
                 return [4 /*yield*/, enduserSDK.api.files.file_download_URL({ secureName: file.secureName })];
-            case 16:
+            case 17:
                 urlForEnduser = (_c.sent()).downloadURL;
                 assert(downloadURL === urlForEnduser, 'failed to get download url for enduser', 'download url for enduser');
                 return [4 /*yield*/, Promise.all([
                         sdk.api.endusers.deleteOne(enduser.id),
                     ])];
-            case 17:
+            case 18:
                 _c.sent();
                 return [4 /*yield*/, wait(undefined, 2000)]; // wait for files to be deleted as side effect
-            case 18:
+            case 19:
                 _c.sent(); // wait for files to be deleted as side effect
                 return [4 /*yield*/, async_test("Files cleaned up as side effect of deleting enduser", function () { return sdk.api.files.getSome({ filter: { enduserId: enduser.id } }); }, { onResult: function (fs) { return fs.length === 0; } })];
-            case 19:
+            case 20:
                 _c.sent();
                 return [4 /*yield*/, async_test("Non-enduser file is left", function () { return sdk.api.files.getSome(); }, { onResult: function (fs) { return fs.length > 0; } })
                     // cleanup other file
                 ];
-            case 20:
+            case 21:
                 _c.sent();
                 // cleanup other file
                 return [4 /*yield*/, Promise.all([
                         sdk.api.files.deleteOne(fileNonEnduser.id),
                     ])];
-            case 21:
+            case 22:
                 // cleanup other file
                 _c.sent();
                 return [2 /*return*/];

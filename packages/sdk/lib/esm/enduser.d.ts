@@ -1879,6 +1879,7 @@ type EnduserQueries = {
             externalId?: string;
             publicRead?: boolean;
             publicName?: string;
+            tags?: string[];
         }) => Promise<{
             presignedUpload: S3PresignedPost;
             file: File;
@@ -1984,6 +1985,7 @@ export declare class EnduserSession extends Session {
         publicName?: string | undefined;
         source?: string | undefined;
         externalId?: string | undefined;
+        tags?: string[] | undefined;
     }, file: Blob | Buffer | ReactNativeFile) => Promise<import("@tellescope/types-models").File & {
         id: string;
         createdAt: Date;
