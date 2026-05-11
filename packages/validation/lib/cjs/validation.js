@@ -3805,6 +3805,7 @@ exports.organizationSettingsValidator = (0, exports.objectValidator)({
         excludeCareTeamFromSearch: exports.booleanValidatorOptional,
         showVideoCallsOnTimeline: exports.booleanValidatorOptional,
         allowOverrideEmailUniqueness: exports.booleanValidatorOptional,
+        endPhoneCallWhenVideoJoined: exports.booleanValidatorOptional,
     }, { isOptional: true }),
     tickets: (0, exports.objectValidator)({
         defaultJourneyDueDateOffsetInMS: exports.numberValidatorOptional,

@@ -882,7 +882,7 @@ var useTellescopeForm = function (_a) {
         updateInclusion(true);
     }, [updateInclusion, currentValue]);
     var validateBasicField = (0, react_1.useCallback)(function (field) {
-        var _a, _b, _c, _d, _e, _g, _h, _j, _k, _l, _m, _o, _p, _q, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, _21, _22, _23, _24, _25, _26, _27, _28, _29, _30, _31, _32, _33, _34, _35, _36, _37, _38, _39, _40, _41, _42, _43, _44, _45, _46, _47;
+        var _a, _b, _c, _d, _e, _g, _h, _j, _k, _l, _m, _o, _p, _q, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, _21, _22, _23, _24, _25, _26, _27, _28, _29, _30, _31, _32, _33, _34, _35, _36, _37, _38, _39, _40, _41, _42, _43, _44, _45, _46, _47, _48, _49;
         var value = responses.find(function (r) { return r.fieldId === field.id; });
         var file = selectedFiles.find(function (r) { return r.fieldId === field.id; });
         if (!value)
@@ -1051,8 +1051,8 @@ var useTellescopeForm = function (_a) {
             if (!((_31 = (_30 = value.answer) === null || _30 === void 0 ? void 0 : _30.value) === null || _31 === void 0 ? void 0 : _31.length)) {
                 return "At least one medication is required";
             }
-            for (var _i = 0, _48 = (_32 = value.answer.value) !== null && _32 !== void 0 ? _32 : []; _i < _48.length; _i++) {
-                var m = _48[_i];
+            for (var _i = 0, _50 = (_32 = value.answer.value) !== null && _32 !== void 0 ? _32 : []; _i < _50.length; _i++) {
+                var m = _50[_i];
                 if (!(m.drugName || m.otherDrug)) {
                     return "A drug selection is required for each medication";
                 }
@@ -1060,14 +1060,23 @@ var useTellescopeForm = function (_a) {
         }
         // remaining are required, non-empty
         if (field.type === 'file' || field.type === 'files') {
-            if (!((_33 = file.blobs) === null || _33 === void 0 ? void 0 : _33.length)) {
+            var blobCount = (_34 = (_33 = file.blobs) === null || _33 === void 0 ? void 0 : _33.length) !== null && _34 !== void 0 ? _34 : 0;
+            var existingCount = 0;
+            if (field.type === 'files' && value.answer.type === 'files' && Array.isArray(value.answer.value)) {
+                existingCount = value.answer.value.filter(function (av) { var _a; return !((_a = file.blobs) === null || _a === void 0 ? void 0 : _a.some(function (b) { return b.name === av.name; })); }).length;
+            }
+            else if (field.type === 'file' && value.answer.type === 'file' && ((_35 = value.answer.value) === null || _35 === void 0 ? void 0 : _35.secureName)) {
+                existingCount = 1;
+            }
+            var totalCount = blobCount + existingCount;
+            if (totalCount === 0) {
                 return "A file is required";
             }
-            if (typeof ((_34 = field.options) === null || _34 === void 0 ? void 0 : _34.min) === 'number' && file.blobs.length < field.options.min) {
-                return "At least ".concat((_35 = field.options) === null || _35 === void 0 ? void 0 : _35.min, " file(s) are required");
+            if (typeof ((_36 = field.options) === null || _36 === void 0 ? void 0 : _36.min) === 'number' && totalCount < field.options.min) {
+                return "At least ".concat((_37 = field.options) === null || _37 === void 0 ? void 0 : _37.min, " file(s) are required");
             }
-            if (typeof ((_36 = field.options) === null || _36 === void 0 ? void 0 : _36.max) === 'number' && file.blobs.length > field.options.max) {
-                return "At most ".concat((_37 = field.options) === null || _37 === void 0 ? void 0 : _37.max, " file(s) are allowed");
+            if (typeof ((_38 = field.options) === null || _38 === void 0 ? void 0 : _38.max) === 'number' && totalCount > field.options.max) {
+                return "At most ".concat((_39 = field.options) === null || _39 === void 0 ? void 0 : _39.max, " file(s) are allowed");
             }
             return null; // no need to check against other stuff
         }
@@ -1084,7 +1093,7 @@ var useTellescopeForm = function (_a) {
         }
         // remaining values exist and need to be validated by type
         if (value.answer.type === 'Address') {
-            var stateOnly = (_39 = (_38 = field.options) === null || _38 === void 0 ? void 0 : _38.addressFields) === null || _39 === void 0 ? void 0 : _39.includes('state');
+            var stateOnly = (_41 = (_40 = field.options) === null || _40 === void 0 ? void 0 : _40.addressFields) === null || _41 === void 0 ? void 0 : _41.includes('state');
             if (!value.answer.value.addressLineOne && !stateOnly) {
                 return "Address Line 1 is required";
             }
@@ -1097,14 +1106,14 @@ var useTellescopeForm = function (_a) {
             if (!value.answer.value.zipCode && !stateOnly) {
                 return "ZIP code is required";
             }
-            if (!isZIPString((_40 = value.answer.value) === null || _40 === void 0 ? void 0 : _40.zipCode) && !stateOnly) {
+            if (!isZIPString((_42 = value.answer.value) === null || _42 === void 0 ? void 0 : _42.zipCode) && !stateOnly) {
                 return "Enter a valid ZIP code";
             }
-            if (!((_41 = value.answer.value) === null || _41 === void 0 ? void 0 : _41.zipPlusFour) && field.fullZIP && !stateOnly) {
+            if (!((_43 = value.answer.value) === null || _43 === void 0 ? void 0 : _43.zipPlusFour) && field.fullZIP && !stateOnly) {
                 return "ZIP+4 is required";
             }
-            if (((_42 = value.answer.value) === null || _42 === void 0 ? void 0 : _42.zipPlusFour) && !stateOnly) {
-                var zipPlus4 = ((_43 = value.answer.value) === null || _43 === void 0 ? void 0 : _43.zipPlusFour) || '';
+            if (((_44 = value.answer.value) === null || _44 === void 0 ? void 0 : _44.zipPlusFour) && !stateOnly) {
+                var zipPlus4 = ((_45 = value.answer.value) === null || _45 === void 0 ? void 0 : _45.zipPlusFour) || '';
                 if (zipPlus4.length !== 4 || !/\d{4}$/.test(zipPlus4)) {
                     return "ZIP+4 must be 4 digits";
                 }
@@ -1118,11 +1127,11 @@ var useTellescopeForm = function (_a) {
         }
         else if (value.answer.type === 'Table Input') {
             var rowNumber = 0;
-            for (var _49 = 0, _50 = value.answer.value || []; _49 < _50.length; _49++) {
-                var row = _50[_49];
+            for (var _51 = 0, _52 = value.answer.value || []; _51 < _52.length; _51++) {
+                var row = _52[_51];
                 rowNumber++;
-                for (var _51 = 0, row_1 = row; _51 < row_1.length; _51++) {
-                    var cell = row_1[_51];
+                for (var _53 = 0, row_1 = row; _53 < row_1.length; _53++) {
+                    var cell = row_1[_53];
                     if (!cell.entry) {
                         return "Enter a value for ".concat(cell.label, " in row ").concat(rowNumber);
                     }
@@ -1145,9 +1154,9 @@ var useTellescopeForm = function (_a) {
             }
         }
         else if (value.answer.type === 'rating') {
-            if ((((_44 = field === null || field === void 0 ? void 0 : field.options) === null || _44 === void 0 ? void 0 : _44.from) && value.answer.value < field.options.from)
-                || ((_45 = field === null || field === void 0 ? void 0 : field.options) === null || _45 === void 0 ? void 0 : _45.to) && value.answer.value > field.options.to) {
-                return "Please enter a number between ".concat((_46 = field === null || field === void 0 ? void 0 : field.options) === null || _46 === void 0 ? void 0 : _46.from, " and ").concat((_47 = field === null || field === void 0 ? void 0 : field.options) === null || _47 === void 0 ? void 0 : _47.to);
+            if ((((_46 = field === null || field === void 0 ? void 0 : field.options) === null || _46 === void 0 ? void 0 : _46.from) && value.answer.value < field.options.from)
+                || ((_47 = field === null || field === void 0 ? void 0 : field.options) === null || _47 === void 0 ? void 0 : _47.to) && value.answer.value > field.options.to) {
+                return "Please enter a number between ".concat((_48 = field === null || field === void 0 ? void 0 : field.options) === null || _48 === void 0 ? void 0 : _48.from, " and ").concat((_49 = field === null || field === void 0 ? void 0 : field.options) === null || _49 === void 0 ? void 0 : _49.to);
             }
         }
         else if (value.answer.type === 'signature') {

@@ -1213,13 +1213,24 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
     // remaining are required, non-empty
 
     if (field.type === 'file' || field.type === 'files') {
-      if (!file.blobs?.length) {
+      const blobCount = file.blobs?.length ?? 0
+
+      let existingCount = 0
+      if (field.type === 'files' && value.answer.type === 'files' && Array.isArray(value.answer.value)) {
+        existingCount = value.answer.value.filter(av => !file.blobs?.some(b => b.name === av.name)).length
+      } else if (field.type === 'file' && value.answer.type === 'file' && value.answer.value?.secureName) {
+        existingCount = 1
+      }
+
+      const totalCount = blobCount + existingCount
+
+      if (totalCount === 0) {
         return "A file is required"
       }
-      if (typeof field.options?.min === 'number' && file.blobs.length < field.options.min) {
+      if (typeof field.options?.min === 'number' && totalCount < field.options.min) {
         return `At least ${field.options?.min} file(s) are required`
       }
-      if (typeof field.options?.max === 'number' && file.blobs.length > field.options.max) {
+      if (typeof field.options?.max === 'number' && totalCount > field.options.max) {
         return `At most ${field.options?.max} file(s) are allowed`
       }
       return null // no need to check against other stuff

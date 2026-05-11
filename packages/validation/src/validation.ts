@@ -4673,6 +4673,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     excludeCareTeamFromSearch: booleanValidatorOptional,
     showVideoCallsOnTimeline: booleanValidatorOptional,
     allowOverrideEmailUniqueness: booleanValidatorOptional,
+    endPhoneCallWhenVideoJoined: booleanValidatorOptional,
   }, { isOptional: true }),
   tickets: objectValidator<OrganizationSettings['tickets']>({
     defaultJourneyDueDateOffsetInMS: numberValidatorOptional,

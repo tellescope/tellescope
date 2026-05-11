@@ -269,6 +269,7 @@ export type OrganizationSettings = {
     excludeCareTeamFromSearch?: boolean,
     showVideoCallsOnTimeline?: boolean,
     allowOverrideEmailUniqueness?: boolean,
+    endPhoneCallWhenVideoJoined?: boolean,
   },
   tickets?: {
     defaultJourneyDueDateOffsetInMS?: number | '',
