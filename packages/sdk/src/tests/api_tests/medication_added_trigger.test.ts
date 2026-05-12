@@ -182,7 +182,7 @@ export const medication_added_trigger_tests = async ({ sdk, sdkNonAdmin } : { sd
     title: "Medication - Beluga Protocol Test"
   })
 
-  // Simulate the Beluga RX_WRITTEN webhook
+  // Simulate the Beluga RX_WRITTEN webhook with two meds covering category present (typical) and "N/A"
   const webhookResponse = await fetch(`${host}/v1/webhooks/beluga`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -197,6 +197,15 @@ export const medication_added_trigger_tests = async ({ sdk, sdkNonAdmin } : { sd
         quantity: '1',
         medId: 'test-ndc-123',
         rxId: 'test-rx-456',
+        category: 'weightloss1',
+      }, {
+        name: 'Metformin',
+        strength: '500mg',
+        refills: '2',
+        quantity: '1',
+        medId: 'test-ndc-789',
+        rxId: 'test-rx-789',
+        category: 'N/A',
       }],
     }),
   })
@@ -216,18 +225,83 @@ export const medication_added_trigger_tests = async ({ sdk, sdkNonAdmin } : { sd
 
   // Verify the medication was created with correct protocol and source
   const belugaMeds = await sdk.api.enduser_medications.getSome({ filter: { enduserId: belugaEnduser.id } })
-  const belugaMed = belugaMeds[0]
+  const belugaMedSemaglutide = belugaMeds.find(m => m.title === 'Semaglutide')
+  const belugaMedMetformin = belugaMeds.find(m => m.title === 'Metformin')
+  if (!belugaMedSemaglutide || !belugaMedMetformin) {
+    throw new Error(`Beluga RX_WRITTEN - expected medications missing. Got: ${belugaMeds.map(m => m.title).join(', ')}`)
+  }
   await async_test(
     "Beluga RX_WRITTEN - Medication has protocol from form belugaVisitType",
-    async () => belugaMed,
-    { onResult: (m: EnduserMedication) => m.protocol === 'Weight Loss' && m.source === 'Beluga' && m.title === 'Semaglutide' }
+    async () => belugaMedSemaglutide,
+    { onResult: (m: EnduserMedication) => m?.protocol === 'Weight Loss' && m?.source === 'Beluga' && m?.title === 'Semaglutide' }
+  )
+  await async_test(
+    "Beluga RX_WRITTEN - Medication has category from webhook",
+    async () => belugaMedSemaglutide,
+    { onResult: (m: EnduserMedication) => m?.category === 'weightloss1' }
+  )
+  await async_test(
+    "Beluga RX_WRITTEN - Medication preserves N/A category verbatim",
+    async () => belugaMedMetformin,
+    { onResult: (m: EnduserMedication) => m?.category === 'N/A' }
+  )
+
+  // Backwards-compatibility: a webhook with no category on any med should result in undefined category
+  const belugaFormNoCategory = await sdk.api.forms.createOne({
+    title: 'Beluga Protocol Test Form (no category)',
+    belugaVisitType: 'Weight Loss',
+  })
+  const belugaEnduserNoCategory = await sdk.api.endusers.createOne({})
+  const belugaFormResponseNoCategory = await sdk.api.form_responses.createOne({
+    formId: belugaFormNoCategory.id,
+    enduserId: belugaEnduserNoCategory.id,
+    formTitle: belugaFormNoCategory.title,
+    responses: [{
+      fieldId: PLACEHOLDER_ID,
+      fieldTitle: 'placeholder',
+      answer: { type: 'string', value: 'test' },
+    }],
+  })
+
+  const webhookResponseNoCategory = await fetch(`${host}/v1/webhooks/beluga`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      masterId: `tellescope_${belugaFormResponseNoCategory.id}`,
+      event: 'RX_WRITTEN',
+      docName: 'Dr. Test',
+      medsPrescribed: [{
+        name: 'Ibuprofen',
+        strength: '200mg',
+        refills: '1',
+        quantity: '1',
+        medId: 'test-ndc-nocat',
+        rxId: 'test-rx-nocat',
+      }],
+    }),
+  })
+
+  if (!webhookResponseNoCategory.ok) {
+    throw new Error(`Beluga webhook (no category) failed with status ${webhookResponseNoCategory.status}: ${await webhookResponseNoCategory.text()}`)
+  }
+
+  await wait(undefined, 500)
+
+  const belugaMedsNoCategory = await sdk.api.enduser_medications.getSome({ filter: { enduserId: belugaEnduserNoCategory.id } })
+  const belugaMedNoCategory = belugaMedsNoCategory[0]
+  await async_test(
+    "Beluga RX_WRITTEN - Medication omits category when not provided",
+    async () => belugaMedNoCategory,
+    { onResult: (m: EnduserMedication) => m?.category === undefined || m?.category === null }
   )
 
   try {
     // Clean up Beluga test data
     await sdk.api.automation_triggers.deleteOne(belugaTrigger.id)
     await sdk.api.forms.deleteOne(belugaForm.id)
+    await sdk.api.forms.deleteOne(belugaFormNoCategory.id)
     await sdk.api.endusers.deleteOne(belugaEnduser.id) // also cleans up form response and medications
+    await sdk.api.endusers.deleteOne(belugaEnduserNoCategory.id) // also cleans up form response and medications
   } finally {}
 
   // ---- Set Fields with {{medication.name}} Test ----
@@ -276,11 +350,278 @@ export const medication_added_trigger_tests = async ({ sdk, sdkNonAdmin } : { sd
     { onResult: (e: Enduser) => e.fields?.['Specific Med'] === 'Metformin 500mg' }
   )
 
+  // ---- Set Fields with {{medication.category}} Test ----
+  log_header("Medication Added - Set Fields with {{medication.category}}")
+
+  const setFieldsCategoryTrigger = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Medication Added', info: { titles: [], protocols: [] } },
+    action: { type: 'Set Fields', info: { fields: [{ name: 'Medication Category', type: 'Custom Value' as const, value: '{{medication.category}}' }] }},
+    status: 'Active',
+    title: "Medication - Set Fields medication.category"
+  })
+
+  const setFieldsCategoryEnduser = await sdk.api.endusers.createOne({})
+
+  const setFieldsCategoryMed = await sdk.api.enduser_medications.createOne({
+    enduserId: setFieldsCategoryEnduser.id,
+    title: 'Ozempic 0.5mg',
+    category: 'weightloss1',
+  })
+  await wait(undefined, 500)
+
+  await async_test(
+    "Medication Added - Set Fields copies medication.category to enduser field",
+    () => sdk.api.endusers.getOne(setFieldsCategoryEnduser.id),
+    { onResult: (e: Enduser) => e.fields?.['Medication Category'] === 'weightloss1' }
+  )
+
+  // Category absent on medication → placeholder resolves to empty string
+  const setFieldsCategoryEnduserEmpty = await sdk.api.endusers.createOne({})
+  const setFieldsCategoryMedEmpty = await sdk.api.enduser_medications.createOne({
+    enduserId: setFieldsCategoryEnduserEmpty.id,
+    title: 'Lisinopril 20mg',
+  })
+  await wait(undefined, 500)
+
+  await async_test(
+    "Medication Added - Set Fields with no category resolves to empty string",
+    () => sdk.api.endusers.getOne(setFieldsCategoryEnduserEmpty.id),
+    { onResult: (e: Enduser) => e.fields?.['Medication Category'] === '' }
+  )
+
   try {
     await sdk.api.automation_triggers.deleteOne(setFieldsTrigger.id)
     await sdk.api.automation_triggers.deleteOne(setFieldsTriggerFiltered.id)
+    await sdk.api.automation_triggers.deleteOne(setFieldsCategoryTrigger.id)
     await sdk.api.endusers.deleteOne(setFieldsEnduser.id)
     await sdk.api.endusers.deleteOne(setFieldsEnduser2.id)
+    await sdk.api.endusers.deleteOne(setFieldsCategoryEnduser.id)
+    await sdk.api.endusers.deleteOne(setFieldsCategoryEnduserEmpty.id)
+  } finally {}
+
+  // ---- titleCondition (compound conditional logic on title) ----
+  log_header("Medication Added - titleCondition compound logic")
+
+  // C1: simple $contains — fires for medications whose title contains 'GLP' (case-sensitive)
+  const c1Trigger = await sdk.api.automation_triggers.createOne({
+    event: {
+      type: 'Medication Added',
+      info: {
+        titles: [],
+        protocols: [],
+        titleCondition: { condition: { title: { $contains: 'GLP' } } },
+      },
+    },
+    action: { type: 'Add Tags', info: { tags: ['Med-Cond-Contains-GLP'] }},
+    status: 'Active',
+    title: "Medication - titleCondition contains GLP"
+  })
+
+  const c1MatchEnduser = await sdk.api.endusers.createOne({})
+  await sdk.api.enduser_medications.createOne({ enduserId: c1MatchEnduser.id, title: 'Semaglutide GLP-1' })
+  await wait(undefined, 500)
+  await async_test(
+    "titleCondition $contains - matching medication fires",
+    () => sdk.api.endusers.getOne(c1MatchEnduser.id),
+    { onResult: (e: Enduser) => !!e.tags?.includes('Med-Cond-Contains-GLP') }
+  )
+
+  const c1MissEnduser = await sdk.api.endusers.createOne({})
+  await sdk.api.enduser_medications.createOne({ enduserId: c1MissEnduser.id, title: 'Aspirin' })
+  await wait(undefined, 500)
+  await async_test(
+    "titleCondition $contains - non-matching medication does NOT fire",
+    () => sdk.api.endusers.getOne(c1MissEnduser.id),
+    { onResult: (e: Enduser) => !e.tags?.includes('Med-Cond-Contains-GLP') }
+  )
+
+  // C2: $ne — fires for everything except 'Placebo'
+  const c2Trigger = await sdk.api.automation_triggers.createOne({
+    event: {
+      type: 'Medication Added',
+      info: {
+        titles: [],
+        protocols: [],
+        titleCondition: { condition: { title: { $ne: 'Placebo' } } },
+      },
+    },
+    action: { type: 'Add Tags', info: { tags: ['Med-Cond-Ne-Placebo'] }},
+    status: 'Active',
+    title: "Medication - titleCondition ne Placebo"
+  })
+
+  const c2MatchEnduser = await sdk.api.endusers.createOne({})
+  await sdk.api.enduser_medications.createOne({ enduserId: c2MatchEnduser.id, title: 'Metformin' })
+  await wait(undefined, 500)
+  await async_test(
+    "titleCondition $ne - non-Placebo medication fires",
+    () => sdk.api.endusers.getOne(c2MatchEnduser.id),
+    { onResult: (e: Enduser) => !!e.tags?.includes('Med-Cond-Ne-Placebo') }
+  )
+
+  const c2MissEnduser = await sdk.api.endusers.createOne({})
+  await sdk.api.enduser_medications.createOne({ enduserId: c2MissEnduser.id, title: 'Placebo' })
+  await wait(undefined, 500)
+  await async_test(
+    "titleCondition $ne - Placebo medication does NOT fire",
+    () => sdk.api.endusers.getOne(c2MissEnduser.id),
+    { onResult: (e: Enduser) => !e.tags?.includes('Med-Cond-Ne-Placebo') }
+  )
+
+  // C3: compound $and — contains 'mg' AND does not contain 'Placebo' (case-sensitive)
+  const c3Trigger = await sdk.api.automation_triggers.createOne({
+    event: {
+      type: 'Medication Added',
+      info: {
+        titles: [],
+        protocols: [],
+        titleCondition: {
+          $and: [
+            { condition: { title: { $contains: 'mg' } } },
+            { condition: { title: { $doesNotContain: 'Placebo' } } },
+          ],
+        },
+      },
+    },
+    action: { type: 'Add Tags', info: { tags: ['Med-Cond-And'] }},
+    status: 'Active',
+    title: "Medication - titleCondition compound AND"
+  })
+
+  const c3MatchEnduser = await sdk.api.endusers.createOne({})
+  await sdk.api.enduser_medications.createOne({ enduserId: c3MatchEnduser.id, title: 'Lisinopril 10mg' })
+  await wait(undefined, 500)
+  await async_test(
+    "titleCondition $and - both pass fires",
+    () => sdk.api.endusers.getOne(c3MatchEnduser.id),
+    { onResult: (e: Enduser) => !!e.tags?.includes('Med-Cond-And') }
+  )
+
+  const c3MissEnduser = await sdk.api.endusers.createOne({})
+  await sdk.api.enduser_medications.createOne({ enduserId: c3MissEnduser.id, title: 'Placebo 5mg' })
+  await wait(undefined, 500)
+  await async_test(
+    "titleCondition $and - second branch fails does NOT fire",
+    () => sdk.api.endusers.getOne(c3MissEnduser.id),
+    { onResult: (e: Enduser) => !e.tags?.includes('Med-Cond-And') }
+  )
+
+  // C4: compound $or — equals 'Aspirin' OR contains 'pril'
+  const c4Trigger = await sdk.api.automation_triggers.createOne({
+    event: {
+      type: 'Medication Added',
+      info: {
+        titles: [],
+        protocols: [],
+        titleCondition: {
+          $or: [
+            { condition: { title: 'Aspirin' } },
+            { condition: { title: { $contains: 'pril' } } },
+          ],
+        },
+      },
+    },
+    action: { type: 'Add Tags', info: { tags: ['Med-Cond-Or'] }},
+    status: 'Active',
+    title: "Medication - titleCondition compound OR"
+  })
+
+  const c4MatchA = await sdk.api.endusers.createOne({})
+  await sdk.api.enduser_medications.createOne({ enduserId: c4MatchA.id, title: 'Aspirin' })
+  await wait(undefined, 500)
+  await async_test(
+    "titleCondition $or - first branch matches fires",
+    () => sdk.api.endusers.getOne(c4MatchA.id),
+    { onResult: (e: Enduser) => !!e.tags?.includes('Med-Cond-Or') }
+  )
+
+  const c4MatchB = await sdk.api.endusers.createOne({})
+  await sdk.api.enduser_medications.createOne({ enduserId: c4MatchB.id, title: 'Lisinopril' })
+  await wait(undefined, 500)
+  await async_test(
+    "titleCondition $or - second branch matches fires",
+    () => sdk.api.endusers.getOne(c4MatchB.id),
+    { onResult: (e: Enduser) => !!e.tags?.includes('Med-Cond-Or') }
+  )
+
+  const c4Miss = await sdk.api.endusers.createOne({})
+  await sdk.api.enduser_medications.createOne({ enduserId: c4Miss.id, title: 'Metformin' })
+  await wait(undefined, 500)
+  await async_test(
+    "titleCondition $or - neither branch matches does NOT fire",
+    () => sdk.api.endusers.getOne(c4Miss.id),
+    { onResult: (e: Enduser) => !e.tags?.includes('Med-Cond-Or') }
+  )
+
+  // C5: backwards compatibility — no titleCondition, titles array still works
+  const c5Trigger = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Medication Added', info: { titles: ['Atorvastatin'], protocols: [] } },
+    action: { type: 'Add Tags', info: { tags: ['Med-Cond-BackCompat'] }},
+    status: 'Active',
+    title: "Medication - titles array back-compat"
+  })
+
+  const c5Match = await sdk.api.endusers.createOne({})
+  await sdk.api.enduser_medications.createOne({ enduserId: c5Match.id, title: 'Atorvastatin' })
+  await wait(undefined, 500)
+  await async_test(
+    "titles back-compat - title match still fires without titleCondition",
+    () => sdk.api.endusers.getOne(c5Match.id),
+    { onResult: (e: Enduser) => !!e.tags?.includes('Med-Cond-BackCompat') }
+  )
+
+  const c5Miss = await sdk.api.endusers.createOne({})
+  await sdk.api.enduser_medications.createOne({ enduserId: c5Miss.id, title: 'Aspirin' })
+  await wait(undefined, 500)
+  await async_test(
+    "titles back-compat - non-match does NOT fire without titleCondition",
+    () => sdk.api.endusers.getOne(c5Miss.id),
+    { onResult: (e: Enduser) => !e.tags?.includes('Med-Cond-BackCompat') }
+  )
+
+  // C6: combined — titles array AND titleCondition compose (both must pass)
+  const c6Trigger = await sdk.api.automation_triggers.createOne({
+    event: {
+      type: 'Medication Added',
+      info: {
+        titles: ['Lisinopril'],
+        protocols: [],
+        titleCondition: { condition: { title: { $contains: 'Lisin' } } },
+      },
+    },
+    action: { type: 'Add Tags', info: { tags: ['Med-Cond-Combined'] }},
+    status: 'Active',
+    title: "Medication - titles + titleCondition combined"
+  })
+
+  const c6Match = await sdk.api.endusers.createOne({})
+  await sdk.api.enduser_medications.createOne({ enduserId: c6Match.id, title: 'Lisinopril' })
+  await wait(undefined, 500)
+  await async_test(
+    "titleCondition combined - both pass fires",
+    () => sdk.api.endusers.getOne(c6Match.id),
+    { onResult: (e: Enduser) => !!e.tags?.includes('Med-Cond-Combined') }
+  )
+
+  try {
+    await sdk.api.automation_triggers.deleteOne(c1Trigger.id)
+    await sdk.api.automation_triggers.deleteOne(c2Trigger.id)
+    await sdk.api.automation_triggers.deleteOne(c3Trigger.id)
+    await sdk.api.automation_triggers.deleteOne(c4Trigger.id)
+    await sdk.api.automation_triggers.deleteOne(c5Trigger.id)
+    await sdk.api.automation_triggers.deleteOne(c6Trigger.id)
+    await sdk.api.endusers.deleteOne(c1MatchEnduser.id)
+    await sdk.api.endusers.deleteOne(c1MissEnduser.id)
+    await sdk.api.endusers.deleteOne(c2MatchEnduser.id)
+    await sdk.api.endusers.deleteOne(c2MissEnduser.id)
+    await sdk.api.endusers.deleteOne(c3MatchEnduser.id)
+    await sdk.api.endusers.deleteOne(c3MissEnduser.id)
+    await sdk.api.endusers.deleteOne(c4MatchA.id)
+    await sdk.api.endusers.deleteOne(c4MatchB.id)
+    await sdk.api.endusers.deleteOne(c4Miss.id)
+    await sdk.api.endusers.deleteOne(c5Match.id)
+    await sdk.api.endusers.deleteOne(c5Miss.id)
+    await sdk.api.endusers.deleteOne(c6Match.id)
   } finally {}
 }
 

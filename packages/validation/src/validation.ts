@@ -4795,6 +4795,7 @@ const _AUTOMATION_TRIGGER_EVENT_TYPES: { [K in AutomationTriggerEventType]: any 
   "Problem Created": true,
   "Message Delivery Failure": true,
   "Incoming Message": true,
+  "Outbound Chat Sent": true,
   "Pregnancy Ended": true,
   "Form Group Completed": true,
   "Form Group Incomplete": true,
@@ -4928,7 +4929,12 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
       keywords: listOfStringsValidatorOptionalOrEmptyOk,
     }),
     conditions: optionalEmptyObjectValidator,
-  }), 
+  }),
+  "Outbound Chat Sent": objectValidator<AutomationTriggerEvents["Outbound Chat Sent"]>({
+    type: exactMatchValidator(['Outbound Chat Sent']),
+    info: optionalEmptyObjectValidator,
+    conditions: optionalEmptyObjectValidator,
+  }),
   "Appointment No-Showed": objectValidator<AutomationTriggerEvents["Appointment No-Showed"]>({
     type: exactMatchValidator(['Appointment No-Showed']),
     info: objectValidator<AutomationTriggerEvents['Appointment No-Showed']['info']>({
@@ -4979,9 +4985,10 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     info: objectValidator<AutomationTriggerEvents['Medication Added']['info']>({
       titles: listOfStringsValidatorEmptyOk,
       protocols: listOfStringsValidatorEmptyOk,
+      titleCondition: optionalAnyObjectValidator,
     }),
     conditions: optionalEmptyObjectValidator,
-  }), 
+  }),
   "On Birthday": objectValidator<AutomationTriggerEvents["On Birthday"]>({
     type: exactMatchValidator(['On Birthday']),
     info: objectValidator<AutomationTriggerEvents['On Birthday']['info']>({

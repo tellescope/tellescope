@@ -3870,6 +3870,7 @@ var _AUTOMATION_TRIGGER_EVENT_TYPES = {
     "Problem Created": true,
     "Message Delivery Failure": true,
     "Incoming Message": true,
+    "Outbound Chat Sent": true,
     "Pregnancy Ended": true,
     "Form Group Completed": true,
     "Form Group Incomplete": true,
@@ -3999,6 +4000,11 @@ export var automationTriggerEventValidator = orValidator({
         }),
         conditions: optionalEmptyObjectValidator,
     }),
+    "Outbound Chat Sent": objectValidator({
+        type: exactMatchValidator(['Outbound Chat Sent']),
+        info: optionalEmptyObjectValidator,
+        conditions: optionalEmptyObjectValidator,
+    }),
     "Appointment No-Showed": objectValidator({
         type: exactMatchValidator(['Appointment No-Showed']),
         info: objectValidator({
@@ -4049,6 +4055,7 @@ export var automationTriggerEventValidator = orValidator({
         info: objectValidator({
             titles: listOfStringsValidatorEmptyOk,
             protocols: listOfStringsValidatorEmptyOk,
+            titleCondition: optionalAnyObjectValidator,
         }),
         conditions: optionalEmptyObjectValidator,
     }),

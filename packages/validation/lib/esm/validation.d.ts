@@ -1683,7 +1683,7 @@ export declare const automationTriggerEventValidator: ValidatorDefinition<import
     destinations?: string[] | undefined;
     channels?: string[] | undefined;
     keywords?: string[] | undefined;
-}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Appointment No-Showed", {
+}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Outbound Chat Sent", {}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Appointment No-Showed", {
     titles?: string[] | undefined;
     templateIds?: string[] | undefined;
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Appointment Created", {
@@ -1706,6 +1706,7 @@ export declare const automationTriggerEventValidator: ValidatorDefinition<import
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Medication Added", {
     titles: string[];
     protocols: string[];
+    titleCondition?: import("@tellescope/types-models").CompoundFilter<"title"> | undefined;
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"On Birthday", {
     minutes: number;
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Has Not Engaged", {

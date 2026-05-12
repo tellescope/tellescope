@@ -954,6 +954,27 @@ export var evaluate_conditional_logic = function (conditions, evaluate) {
     }
     return true;
 };
+export var evaluate_string_field_comparison = function (fieldValue, operator) {
+    var _a, _b;
+    if (typeof operator === 'string')
+        return (fieldValue !== null && fieldValue !== void 0 ? fieldValue : '') === operator;
+    if (operator === null || operator === undefined)
+        return !fieldValue;
+    if ('$exists' in operator)
+        return operator.$exists ? !!fieldValue : !fieldValue;
+    if ('$ne' in operator)
+        return (fieldValue !== null && fieldValue !== void 0 ? fieldValue : '') !== operator.$ne;
+    if ('$contains' in operator) {
+        return (fieldValue !== null && fieldValue !== void 0 ? fieldValue : '').includes(String((_a = operator.$contains) !== null && _a !== void 0 ? _a : ''));
+    }
+    if ('$doesNotContain' in operator) {
+        return !(fieldValue !== null && fieldValue !== void 0 ? fieldValue : '').includes(String((_b = operator.$doesNotContain) !== null && _b !== void 0 ? _b : ''));
+    }
+    return true;
+};
+export var evaluate_conditional_logic_for_medication_title = function (title, conditions) { return evaluate_conditional_logic(conditions, function (key, value) {
+    return key === 'title' ? evaluate_string_field_comparison(title, value) : true;
+}); };
 export var get_conditional_logic_values = function (conditions) {
     var key = Object.keys(conditions)[0];
     if (key === '$and') {
@@ -2597,7 +2618,8 @@ export var replace_medication_template_values = function (s, medication) {
         templates.push({
             match: match,
             replacement: (match === '{{medication.name}}' ? medication.title
-                : '')
+                : match === '{{medication.category}}' ? (medication.category || '')
+                    : '')
         });
         start = end + 2;
     }

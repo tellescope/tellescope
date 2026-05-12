@@ -457,6 +457,7 @@ export type CustomActions = {
         }>;
         chargebee_details: CustomAction<{
             fieldId: string;
+            enduserId?: string;
             billingAddress?: {
                 addressLineOne?: string;
                 addressLineTwo?: string;

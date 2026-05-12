@@ -398,7 +398,7 @@ var recordHasOwner = function (record, ownerField, enduserId) {
 export var enduser_cross_access_isolation_tests = function (_a) {
     var sdk = _a.sdk, _sdkNonAdmin = _a.sdkNonAdmin;
     return __awaiter(void 0, void 0, void 0, function () {
-        var discovered, exemptSet, missing, password, ts, enduserA, enduserB, sdkA, sdkB, _loop_1, _i, MODEL_CASES_1, c;
+        var discovered, exemptSet, missing, password, ts, enduserA, enduserB, sdkA, sdkB, selfUpdateResponse, adminUpdateResponse, _loop_1, _i, MODEL_CASES_1, c;
         var _b;
         return __generator(this, function (_c) {
             switch (_c.label) {
@@ -427,7 +427,7 @@ export var enduser_cross_access_isolation_tests = function (_a) {
                     sdkB = new EnduserSession({ host: host, businessId: businessId });
                     _c.label = 5;
                 case 5:
-                    _c.trys.push([5, , 12, 15]);
+                    _c.trys.push([5, , 14, 17]);
                     // Sanity check: each enduser session can authenticate. We only use sdkA
                     // for negative assertions, but a failed sdkB auth would mean the test
                     // data setup itself is malformed.
@@ -437,9 +437,22 @@ export var enduser_cross_access_isolation_tests = function (_a) {
                     // for negative assertions, but a failed sdkB auth would mean the test
                     // data setup itself is malformed.
                     _c.sent();
-                    return [4 /*yield*/, sdkB.authenticate(enduserB.email, password)];
+                    return [4 /*yield*/, sdkB.authenticate(enduserB.email, password)
+                        // Regression guard: hashedPassword must never appear in updateOne responses,
+                        // for either enduser self-update or admin-side update of an enduser.
+                    ];
                 case 7:
                     _c.sent();
+                    return [4 /*yield*/, sdkA.api.endusers.updateOne(enduserA.id, { fname: 'RedactionProbe' })];
+                case 8:
+                    selfUpdateResponse = _c.sent();
+                    assert(!!selfUpdateResponse && selfUpdateResponse.fname === 'RedactionProbe', 'enduser self-update: response should reflect the applied update', 'enduser self-update: update applied (sanity)');
+                    assert(selfUpdateResponse.hashedPassword === undefined, 'enduser self-update: hashedPassword leaked in response', 'enduser self-update: hashedPassword redacted from response');
+                    return [4 /*yield*/, sdk.api.endusers.updateOne(enduserA.id, { fname: 'AdminProbe' })];
+                case 9:
+                    adminUpdateResponse = _c.sent();
+                    assert(!!adminUpdateResponse && adminUpdateResponse.fname === 'AdminProbe', 'admin update of enduser: response should reflect the applied update', 'admin update of enduser: update applied (sanity)');
+                    assert(adminUpdateResponse.hashedPassword === undefined, 'admin update of enduser: hashedPassword leaked in response', 'admin update of enduser: hashedPassword redacted from response');
                     _loop_1 = function (c) {
                         var sublog, setupResult, e_1, payload, createdId, created, e_2, enduserApi, _d;
                         return __generator(this, function (_f) {
@@ -724,26 +737,26 @@ export var enduser_cross_access_isolation_tests = function (_a) {
                         });
                     };
                     _i = 0, MODEL_CASES_1 = MODEL_CASES;
-                    _c.label = 8;
-                case 8:
-                    if (!(_i < MODEL_CASES_1.length)) return [3 /*break*/, 11];
-                    c = MODEL_CASES_1[_i];
-                    return [5 /*yield**/, _loop_1(c)];
-                case 9:
-                    _c.sent();
                     _c.label = 10;
                 case 10:
+                    if (!(_i < MODEL_CASES_1.length)) return [3 /*break*/, 13];
+                    c = MODEL_CASES_1[_i];
+                    return [5 /*yield**/, _loop_1(c)];
+                case 11:
+                    _c.sent();
+                    _c.label = 12;
+                case 12:
                     _i++;
-                    return [3 /*break*/, 8];
-                case 11: return [3 /*break*/, 15];
-                case 12: return [4 /*yield*/, sdk.api.endusers.deleteOne(enduserA.id).catch(function () { })];
-                case 13:
+                    return [3 /*break*/, 10];
+                case 13: return [3 /*break*/, 17];
+                case 14: return [4 /*yield*/, sdk.api.endusers.deleteOne(enduserA.id).catch(function () { })];
+                case 15:
                     _c.sent();
                     return [4 /*yield*/, sdk.api.endusers.deleteOne(enduserB.id).catch(function () { })];
-                case 14:
+                case 16:
                     _c.sent();
                     return [7 /*endfinally*/];
-                case 15: return [2 /*return*/];
+                case 17: return [2 /*return*/];
             }
         });
     });

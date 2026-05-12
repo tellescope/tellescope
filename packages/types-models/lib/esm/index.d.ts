@@ -1077,6 +1077,7 @@ export interface EnduserMedication extends EnduserMedication_readonly, EnduserMe
     allergyNote?: string;
     status?: string;
     protocol?: string;
+    category?: string;
     scriptSureDraft?: {
         prescriptionRouteId?: string;
         drugId?: string;
@@ -4721,6 +4722,7 @@ export type AutomationTriggerEvents = {
     'Medication Added': AutomationTriggerEventBuilder<"Medication Added", {
         titles: string[];
         protocols: string[];
+        titleCondition?: CompoundFilter<'title'>;
     }, {}>;
     'No Recent Appointment': AutomationTriggerEventBuilder<"No Recent Appointment", {
         intervalInMS: number;
@@ -4781,6 +4783,7 @@ export type AutomationTriggerEvents = {
         channels?: string[];
         keywords?: string[];
     }, {}>;
+    'Outbound Chat Sent': AutomationTriggerEventBuilder<"Outbound Chat Sent", {}, {}>;
     'Pregnancy Ended': AutomationTriggerEventBuilder<"Pregnancy Ended", {
         reason?: string;
     }, {}>;

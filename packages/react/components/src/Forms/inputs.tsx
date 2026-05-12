@@ -5304,7 +5304,7 @@ export const RichTextInput = ({ field, value, onChange }: FormInputProps<'Rich T
   <WYSIWYG stopEnterPropagation initialHTML={value} onChange={v => onChange(v, field.id)} style={{ width: '100%' }} editorStyle={{ width: '100%' }} />
 )
 
-export const ChargeebeeInput = ({ field, value, onChange, setCustomerId, responses }: FormInputProps<'Chargebee'> & {
+export const ChargeebeeInput = ({ field, value, onChange, setCustomerId, responses, enduserId }: FormInputProps<'Chargebee'> & {
   setCustomerId: React.Dispatch<React.SetStateAction<string | undefined>>,
 }) => {
   const session = useResolvedSession()
@@ -5328,7 +5328,7 @@ export const ChargeebeeInput = ({ field, value, onChange, setCustomerId, respons
 
     const PUBLIC_FORM_ADDRESS_ERROR = 'A complete address question is required before a Chargebee payment field on public forms'
 
-    session.api.form_responses.chargebee_details({ fieldId: field.id, billingAddress })
+    session.api.form_responses.chargebee_details({ fieldId: field.id, billingAddress, enduserId })
     .then(({ url }) => setUrl(url ?? ''))
     .catch((err: any) => {
       const message = typeof err === 'string' ? err : (err?.message ?? err?.toString() ?? '')
@@ -5354,7 +5354,7 @@ export const ChargeebeeInput = ({ field, value, onChange, setCustomerId, respons
     setVerifying(true)
     setError('')
     try {
-      const { hasPaymentMethod } = await session.api.form_responses.chargebee_details({ fieldId: field.id, verify: true })
+      const { hasPaymentMethod } = await session.api.form_responses.chargebee_details({ fieldId: field.id, verify: true, enduserId })
       if (hasPaymentMethod) {
         onChange({ url: 'verified' }, field.id)
       } else {

@@ -78,6 +78,7 @@ import { eom_procedure_codes_tests } from "./api_tests/eom_procedure_codes.test"
 import { cross_org_api_key_tests } from "./api_tests/cross_org_api_key.test";
 import { custom_dashboards_tests } from "./api_tests/custom_dashboards.test";
 import { message_assignment_trigger_tests } from "./api_tests/message_assignment_trigger.test";
+import { outbound_chat_sent_trigger_tests } from "./api_tests/outbound_chat_sent_trigger.test";
 import { time_tracks_tests, time_tracks_historical_tests, time_tracks_correction_tests, time_tracks_review_tests, time_tracks_lock_tests, time_tracks_edge_case_tests } from "./api_tests/time_tracks.test";
 import { monthly_availability_restrictions_tests } from "./api_tests/monthly_availability_restrictions.test";
 import { calendar_event_limits_tests } from "./api_tests/calendar_event_limits.test";
@@ -95,6 +96,7 @@ import { load_team_chat_tests } from "./api_tests/load_team_chat.test";
 import { form_started_trigger_tests } from "./api_tests/form_started_trigger.test";
 import { form_submitted_trigger_tests } from "./api_tests/form_submitted_trigger.test";
 import { medication_added_trigger_tests } from "./api_tests/medication_added_trigger.test";
+import { conditional_logic_medication_unit_tests } from "./unit_tests/conditional_logic_medication.test";
 import { elation_user_id_tests } from "./api_tests/elation_user_id.test";
 import { organization_settings_duplicates_tests } from "./api_tests/organization_settings_duplicates.test";
 import { calendar_events_bulk_update_tests } from "./api_tests/calendar_events_bulk_update.test";
@@ -14303,10 +14305,13 @@ const ip_address_form_tests = async () => {
 
 
     await enduser_conditional_logic_tests()
+    await conditional_logic_medication_unit_tests()
     await replace_enduser_template_values_tests()
     await replace_form_field_template_values_tests()
     await mfa_tests()
     await setup_tests(sdk, sdkNonAdmin)
+    await outbound_chat_sent_trigger_tests({ sdk })
+    await automation_trigger_tests()
     await enduser_cross_access_isolation_tests({ sdk, sdkNonAdmin })
     await eom_procedure_codes_tests({ sdk, sdkNonAdmin })
     await cross_org_api_key_tests({ sdk, sdkNonAdmin })
@@ -14317,7 +14322,6 @@ const ip_address_form_tests = async () => {
     await form_submitted_trigger_tests({ sdk, sdkNonAdmin })
     await date_string_validation_tests({ sdk, sdkNonAdmin })
     await openloop_webhooks_tests({ sdk, sdkNonAdmin })
-    await automation_trigger_tests()
     await integrations_redacted_tests({ sdk, sdkNonAdmin })
     await mdb_sort_tests({ sdk, sdkNonAdmin })
     await search_tests()

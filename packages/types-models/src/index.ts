@@ -1147,6 +1147,7 @@ export interface EnduserMedication extends EnduserMedication_readonly, EnduserMe
   // Medication status (e.g., 'draft', 'pending', 'active', 'Prescribed')
   status?: string,
   protocol?: string,
+  category?: string, // sourced from upstream prescribing integrations (e.g. Beluga RX_WRITTEN)
   scriptSureDraft?: {
     prescriptionRouteId?: string,    // Optional reference to PrescriptionRoute used
     drugId?: string,                  // ScriptSure drug ID
@@ -4735,7 +4736,11 @@ export type AutomationTriggerEvents = {
     cancelReasons?: string[], // filter by specific cancel reasons
   }, {}>,
   'Appointment Rescheduled': AutomationTriggerEventBuilder<"Appointment Rescheduled", { titles?: string[], detectManualReschedules?: boolean }, {}>,
-  'Medication Added': AutomationTriggerEventBuilder<"Medication Added", { titles: string[], protocols: string[] }, {}>,
+  'Medication Added': AutomationTriggerEventBuilder<"Medication Added", {
+    titles: string[],
+    protocols: string[],
+    titleCondition?: CompoundFilter<'title'>,
+  }, {}>,
   'No Recent Appointment': AutomationTriggerEventBuilder<"No Recent Appointment", { 
     intervalInMS: number, 
     templateIds?: string[],
@@ -4776,6 +4781,7 @@ export type AutomationTriggerEvents = {
   'Problem Created': AutomationTriggerEventBuilder<"Problem Created", { titles?: string[] }, {}>,
   'Message Delivery Failure': AutomationTriggerEventBuilder<"Message Delivery Failure", { }, {}>,
   'Incoming Message': AutomationTriggerEventBuilder<"Incoming Message", { noCareTeam?: boolean, destinations?: string[], channels?: string[], keywords?: string[] }, {}>,
+  'Outbound Chat Sent': AutomationTriggerEventBuilder<"Outbound Chat Sent", { }, {}>,
   'Pregnancy Ended': AutomationTriggerEventBuilder<"Pregnancy Ended", { reason?: string }, {}>,
   'Form Group Completed': AutomationTriggerEventBuilder<"Form Group Completed", { groupId: string }, {}>,
   'Form Group Incomplete': AutomationTriggerEventBuilder<"Form Group Incomplete", { groupId: string, intervalInMS: number }, {}>,

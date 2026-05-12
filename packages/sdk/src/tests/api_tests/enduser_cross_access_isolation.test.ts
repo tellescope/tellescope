@@ -339,6 +339,32 @@ export const enduser_cross_access_isolation_tests = async (
     await sdkA.authenticate(enduserA.email!, password)
     await sdkB.authenticate(enduserB.email!, password)
 
+    // Regression guard: hashedPassword must never appear in updateOne responses,
+    // for either enduser self-update or admin-side update of an enduser.
+    const selfUpdateResponse = await sdkA.api.endusers.updateOne(enduserA.id, { fname: 'RedactionProbe' })
+    assert(
+      !!selfUpdateResponse && (selfUpdateResponse as any).fname === 'RedactionProbe',
+      'enduser self-update: response should reflect the applied update',
+      'enduser self-update: update applied (sanity)',
+    )
+    assert(
+      (selfUpdateResponse as any).hashedPassword === undefined,
+      'enduser self-update: hashedPassword leaked in response',
+      'enduser self-update: hashedPassword redacted from response',
+    )
+
+    const adminUpdateResponse = await sdk.api.endusers.updateOne(enduserA.id, { fname: 'AdminProbe' })
+    assert(
+      !!adminUpdateResponse && (adminUpdateResponse as any).fname === 'AdminProbe',
+      'admin update of enduser: response should reflect the applied update',
+      'admin update of enduser: update applied (sanity)',
+    )
+    assert(
+      (adminUpdateResponse as any).hashedPassword === undefined,
+      'admin update of enduser: hashedPassword leaked in response',
+      'admin update of enduser: hashedPassword redacted from response',
+    )
+
     for (const c of MODEL_CASES) {
       const sublog = (variant: string) => `${c.model}: ${variant}`
 

@@ -1037,6 +1037,31 @@ export const evaluate_conditional_logic = <T extends string>(conditions: Compoun
   return true
 }
 
+export const evaluate_string_field_comparison = (
+  fieldValue: string | undefined | null,
+  operator: string | Record<string, any> | null,
+): boolean => {
+  if (typeof operator === 'string') return (fieldValue ?? '') === operator
+  if (operator === null || operator === undefined) return !fieldValue
+
+  if ('$exists' in operator) return operator.$exists ? !!fieldValue : !fieldValue
+  if ('$ne' in operator) return (fieldValue ?? '') !== operator.$ne
+  if ('$contains' in operator) {
+    return (fieldValue ?? '').includes(String(operator.$contains ?? ''))
+  }
+  if ('$doesNotContain' in operator) {
+    return !(fieldValue ?? '').includes(String(operator.$doesNotContain ?? ''))
+  }
+  return true
+}
+
+export const evaluate_conditional_logic_for_medication_title = (
+  title: string,
+  conditions: CompoundFilter<'title'>,
+): boolean => evaluate_conditional_logic(conditions, (key, value) =>
+  key === 'title' ? evaluate_string_field_comparison(title, value as any) : true
+)
+
 export const get_conditional_logic_values = <T extends string>(conditions: CompoundFilter<T>): any[] => {
   const key = Object.keys(conditions)[0] as '$and' | '$or' | 'condition' | 'string'
 
@@ -2752,6 +2777,7 @@ export const replace_medication_template_values = (s: string, medication?: Omit<
       match,
       replacement: (
         match === '{{medication.name}}' ? medication.title
+        : match === '{{medication.category}}' ? (medication.category || '')
         : ''
       )
     })

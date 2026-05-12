@@ -3262,6 +3262,7 @@ export var schema = build_schema({
                 description: "Gets the relevant information for a Chargebee field",
                 parameters: {
                     fieldId: { validator: mongoIdStringValidator, required: true },
+                    enduserId: { validator: mongoIdStringValidator },
                     billingAddress: {
                         validator: objectValidator({
                             addressLineOne: stringValidatorOptional,
@@ -5960,7 +5961,7 @@ export var schema = build_schema({
                     frequencyDescriptor: stringValidatorOptional,
                     description: stringValidatorOptional,
                 }),
-            }, source: { validator: stringValidator1000Optional }, externalId: { validator: stringValidator250 }, notes: { validator: stringValidator }, references: { validator: listOfRelatedRecordsValidator, readonly: true }, orderStatus: { validator: stringValidator1000 }, externalOrderId: { validator: stringValidator250 }, pharmacyName: { validator: stringValidator1000 }, prescriberName: { validator: stringValidator1000 }, reasonForTaking: { validator: stringValidator }, directions: { validator: stringValidator }, pharmacyId: { validator: stringValidator1000 }, status: { validator: stringValidator }, allergyNote: { validator: stringValidator1000 }, protocol: { validator: stringValidator1000 }, scriptSureDraft: {
+            }, source: { validator: stringValidator1000Optional }, externalId: { validator: stringValidator250 }, notes: { validator: stringValidator }, references: { validator: listOfRelatedRecordsValidator, readonly: true }, orderStatus: { validator: stringValidator1000 }, externalOrderId: { validator: stringValidator250 }, pharmacyName: { validator: stringValidator1000 }, prescriberName: { validator: stringValidator1000 }, reasonForTaking: { validator: stringValidator }, directions: { validator: stringValidator }, pharmacyId: { validator: stringValidator1000 }, status: { validator: stringValidator }, allergyNote: { validator: stringValidator1000 }, protocol: { validator: stringValidator1000 }, category: { validator: stringValidator250 }, scriptSureDraft: {
                 validator: optionalAnyObjectValidator,
             } })
     },

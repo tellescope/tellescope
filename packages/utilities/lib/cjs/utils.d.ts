@@ -245,6 +245,8 @@ export declare const sanitize_html: (t: string) => string;
 export declare const plaintext_for_managed_content_record: (record: Pick<ManagedContentRecord, 'type' | 'blocks'>) => string | null;
 export declare const shuffle_array_in_place: <T>(array: T[]) => void;
 export declare const evaluate_conditional_logic: <T extends string>(conditions: CompoundFilter<T>, evaluate: (key: string, value: T) => boolean) => boolean;
+export declare const evaluate_string_field_comparison: (fieldValue: string | undefined | null, operator: string | Record<string, any> | null) => boolean;
+export declare const evaluate_conditional_logic_for_medication_title: (title: string, conditions: CompoundFilter<'title'>) => boolean;
 export declare const get_conditional_logic_values: <T extends string>(conditions: CompoundFilter<T>) => any[];
 export declare const replace_keys_and_values_in_object: <T>(value: T, replacer: (v: any) => any) => T;
 export declare const age_for_dob_mmddyyyy: (mmddyyyy: string) => number | "";

@@ -759,7 +759,7 @@ export type CustomActions = {
       { fieldId: string, enduserId?: string, selectedProductIds?: string[] }, 
       { customerId: string, clientSecret: string, publishableKey: string, stripeAccount: string, businessName: string, answerText?: string, isCheckout?: boolean }
     >,
-    chargebee_details: CustomAction<{ fieldId: string, billingAddress?: { addressLineOne?: string, addressLineTwo?: string, city?: string, state?: string, zipCode?: string }, verify?: boolean }, { url?: string, hasPaymentMethod?: boolean }>,
+    chargebee_details: CustomAction<{ fieldId: string, enduserId?: string, billingAddress?: { addressLineOne?: string, addressLineTwo?: string, city?: string, state?: string, zipCode?: string }, verify?: boolean }, { url?: string, hasPaymentMethod?: boolean }>,
     generate_pdf: CustomAction<
       { id: string }, 
       {  }
@@ -5146,6 +5146,7 @@ export const schema: SchemaV1 = build_schema({
         description: "Gets the relevant information for a Chargebee field",
         parameters: {
           fieldId: { validator: mongoIdStringValidator, required: true },
+          enduserId: { validator: mongoIdStringValidator },
           billingAddress: {
             validator: objectValidator<{
               addressLineOne?: string,
@@ -8585,6 +8586,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       status: { validator: stringValidator },
       allergyNote: { validator: stringValidator1000 },
       protocol: { validator: stringValidator1000 },
+      category: { validator: stringValidator250 },
       scriptSureDraft: {
         validator: optionalAnyObjectValidator,
       },

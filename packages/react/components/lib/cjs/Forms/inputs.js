@@ -3127,7 +3127,7 @@ var RichTextInput = function (_a) {
 exports.RichTextInput = RichTextInput;
 var ChargeebeeInput = function (_a) {
     var _b;
-    var field = _a.field, value = _a.value, onChange = _a.onChange, setCustomerId = _a.setCustomerId, responses = _a.responses;
+    var field = _a.field, value = _a.value, onChange = _a.onChange, setCustomerId = _a.setCustomerId, responses = _a.responses, enduserId = _a.enduserId;
     var session = (0, __1.useResolvedSession)();
     var _d = (0, react_2.useState)(''), url = _d[0], setUrl = _d[1];
     var _e = (0, react_2.useState)(''), error = _e[0], setError = _e[1];
@@ -3145,7 +3145,7 @@ var ChargeebeeInput = function (_a) {
             ? addressResponse.answer.value
             : undefined;
         var PUBLIC_FORM_ADDRESS_ERROR = 'A complete address question is required before a Chargebee payment field on public forms';
-        session.api.form_responses.chargebee_details({ fieldId: field.id, billingAddress: billingAddress })
+        session.api.form_responses.chargebee_details({ fieldId: field.id, billingAddress: billingAddress, enduserId: enduserId })
             .then(function (_a) {
             var url = _a.url;
             return setUrl(url !== null && url !== void 0 ? url : '');
@@ -3182,7 +3182,7 @@ var ChargeebeeInput = function (_a) {
                     _b.label = 1;
                 case 1:
                     _b.trys.push([1, 3, 4, 5]);
-                    return [4 /*yield*/, session.api.form_responses.chargebee_details({ fieldId: field.id, verify: true })];
+                    return [4 /*yield*/, session.api.form_responses.chargebee_details({ fieldId: field.id, verify: true, enduserId: enduserId })];
                 case 2:
                     hasPaymentMethod = (_b.sent()).hasPaymentMethod;
                     if (hasPaymentMethod) {
