@@ -2011,7 +2011,82 @@ exports.schema = (0, exports.build_schema)({
                             return;
                         return "User organizationIds are readonly";
                     }
-                }
+                },
+                {
+                    explanation: "linkedAccountAccess mutations are constrained to the owner with allowlisted transitions",
+                    evaluate: function (record, _, session, method, _a) {
+                        var _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
+                        var updates = _a.updates, original = _a.original;
+                        if (!updates || !('linkedAccountAccess' in updates))
+                            return;
+                        if (method === 'create') {
+                            if (updates.linkedAccountAccess && updates.linkedAccountAccess.length > 0) {
+                                return "linkedAccountAccess cannot be set on user creation";
+                            }
+                            return;
+                        }
+                        // Grant management is reserved to the actor's own session. From a switched session
+                        // (session.actorUserId set), even targeting the proxy identity's own record is rejected —
+                        // otherwise A-as-B could self-approve other pending requests on B, or delete B's existing
+                        // grants and silently revoke other grantees.
+                        if (session.actorUserId) {
+                            return "Cannot update linkedAccountAccess from a switched session";
+                        }
+                        // self-update only — record carries the post-merge updated document; original is the prior state.
+                        var ownerId = (_e = (_c = (_b = record._id) === null || _b === void 0 ? void 0 : _b.toString()) !== null && _c !== void 0 ? _c : (_d = original === null || original === void 0 ? void 0 : original._id) === null || _d === void 0 ? void 0 : _d.toString()) !== null && _e !== void 0 ? _e : original === null || original === void 0 ? void 0 : original.id;
+                        if (!(ownerId && ownerId === session.id)) {
+                            return "Only the account owner can update linkedAccountAccess";
+                        }
+                        var oldEntries = (_f = original === null || original === void 0 ? void 0 : original.linkedAccountAccess) !== null && _f !== void 0 ? _f : [];
+                        var newEntries = (_g = updates.linkedAccountAccess) !== null && _g !== void 0 ? _g : [];
+                        var _loop_1 = function (newEntry) {
+                            var oldMatch = oldEntries.find(function (e) { return e.userId === newEntry.userId; });
+                            if (!oldMatch) {
+                                return { value: "Cannot add entries to linkedAccountAccess via direct update; use request_linked_account_access" };
+                            }
+                            if (newEntry.email !== oldMatch.email)
+                                return { value: "linkedAccountAccess entry email is immutable" };
+                            if (((_h = newEntry.fname) !== null && _h !== void 0 ? _h : null) !== ((_j = oldMatch.fname) !== null && _j !== void 0 ? _j : null))
+                                return { value: "linkedAccountAccess entry fname is immutable" };
+                            if (((_k = newEntry.lname) !== null && _k !== void 0 ? _k : null) !== ((_l = oldMatch.lname) !== null && _l !== void 0 ? _l : null))
+                                return { value: "linkedAccountAccess entry lname is immutable" };
+                            if (((_m = newEntry.orgName) !== null && _m !== void 0 ? _m : null) !== ((_o = oldMatch.orgName) !== null && _o !== void 0 ? _o : null))
+                                return { value: "linkedAccountAccess entry orgName is immutable" };
+                            if (new Date(newEntry.createdAt).getTime() !== new Date(oldMatch.createdAt).getTime())
+                                return { value: "linkedAccountAccess entry createdAt is immutable" };
+                            if (new Date(newEntry.requestExpiresAt).getTime() !== new Date(oldMatch.requestExpiresAt).getTime())
+                                return { value: "linkedAccountAccess entry requestExpiresAt is immutable" };
+                            if (newEntry.status !== oldMatch.status) {
+                                if (!(oldMatch.status === 'pending' && newEntry.status === 'accepted')) {
+                                    return { value: "linkedAccountAccess status can only transition from pending to accepted" };
+                                }
+                                // Reject approval of an expired pending request — owner must wait for the requester
+                                // to re-issue. requestExpiresAt is immutable per the rule above; the only way for a
+                                // pending entry to refresh is request_linked_account_access replacing the expired entry.
+                                if (new Date(oldMatch.requestExpiresAt).getTime() < Date.now()) {
+                                    return { value: "linkedAccountAccess request has expired and cannot be approved; requester must re-request" };
+                                }
+                            }
+                        };
+                        for (var _i = 0, newEntries_1 = newEntries; _i < newEntries_1.length; _i++) {
+                            var newEntry = newEntries_1[_i];
+                            var state_1 = _loop_1(newEntry);
+                            if (typeof state_1 === "object")
+                                return state_1.value;
+                        }
+                        return;
+                    }
+                },
+                {
+                    explanation: "Legacy accountAccessGrantedTo field is no longer accepted",
+                    evaluate: function (_, __, ___, ____, _a) {
+                        var updates = _a.updates;
+                        if (updates && 'accountAccessGrantedTo' in updates) {
+                            return "accountAccessGrantedTo has been replaced by linkedAccountAccess";
+                        }
+                        return;
+                    }
+                },
             ],
         },
         defaultActions: {
@@ -2192,6 +2267,39 @@ exports.schema = (0, exports.build_schema)({
                 },
                 returns: {},
             },
+            get_linked_accounts: {
+                op: "custom", access: 'read', method: "get",
+                name: 'Get Linked Accounts',
+                path: '/users/linked-accounts',
+                description: "Returns accounts that have granted access to the caller",
+                parameters: {},
+                returns: {
+                    linkedAccounts: { validator: validation_1.objectAnyFieldsAnyValuesValidator, required: true },
+                },
+            },
+            switch_account: {
+                op: "custom", access: 'update', method: "post",
+                name: 'Switch Account',
+                path: '/users/switch-account',
+                description: "Switches the current session to a target account that has granted access",
+                parameters: {
+                    targetUserId: { validator: validation_1.mongoIdStringRequired, required: true },
+                },
+                returns: {
+                    authToken: { validator: validation_1.stringValidator, required: true },
+                    user: { validator: 'user', required: true },
+                },
+            },
+            request_linked_account_access: {
+                op: "custom", access: 'update', method: "post",
+                name: 'Request Linked Account Access',
+                path: '/users/request-linked-account-access',
+                description: "Requests linked-account access from another user identified by email; the target user must accept before the requester can switch into the account",
+                parameters: {
+                    targetEmail: { validator: validation_1.emailValidator, required: true },
+                },
+                returns: {},
+            },
         },
         publicActions: {
             begin_sso: {
@@ -2301,6 +2409,7 @@ exports.schema = (0, exports.build_schema)({
         fields: __assign(__assign({}, BuiltInFields), { billingTags: { validator: validation_1.labeledFieldsValidator }, defaultLocationId: { validator: validation_1.mongoIdStringRequired }, email: {
                 validator: validation_1.emailValidator,
                 required: true,
+                updatesDisabled: true,
                 examples: ['test@tellescope.com'],
                 redactions: ['enduser'],
             }, phone: {
@@ -2366,7 +2475,7 @@ exports.schema = (0, exports.build_schema)({
                     field: validation_1.stringValidator100,
                     value: validation_1.stringValidator5000,
                 }))
-            }, canvasId: { validator: validation_1.stringValidator100 }, medplumId: { validator: validation_1.stringValidator100 }, athenaId: { validator: validation_1.stringValidator100 }, dashboardView: { validator: validation_1.customDashboardViewValidator }, hideFromCalendarView: { validator: validation_1.booleanValidator }, requireSSO: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay } })
+            }, canvasId: { validator: validation_1.stringValidator100 }, medplumId: { validator: validation_1.stringValidator100 }, athenaId: { validator: validation_1.stringValidator100 }, dashboardView: { validator: validation_1.customDashboardViewValidator }, hideFromCalendarView: { validator: validation_1.booleanValidator }, requireSSO: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, linkedAccountAccess: { validator: validation_1.linkedAccountAccessValidator } })
     },
     templates: {
         info: {},
@@ -4898,7 +5007,7 @@ exports.schema = (0, exports.build_schema)({
                     id: validation_1.stringValidator100,
                     questionId: validation_1.stringValidator100,
                 })
-            }, canvasSyncEmailConsent: { validator: validation_1.booleanValidator }, canvasSyncPhoneConsent: { validator: validation_1.booleanValidator }, canvasStateToLocationId: { validator: (0, validation_1.objectAnyFieldsValidator)(validation_1.stringValidator100) }, enforceMFA: { validator: validation_1.booleanValidator }, replyToEnduserTransactionalEmails: { validator: validation_1.emailValidator }, customTermsOfService: { validator: validation_1.stringValidator }, customPrivacyPolicy: { validator: validation_1.stringValidator }, customPolicies: { validator: validation_1.customPoliciesValidator }, customPoliciesVersion: { validator: validation_1.stringValidator }, requireCustomTermsOnMagicLink: { validator: validation_1.booleanValidator }, allowCreateSuborganizations: { validator: validation_1.booleanValidator }, answersSyncToPortal: {
+            }, canvasSyncEmailConsent: { validator: validation_1.booleanValidator }, canvasSyncPhoneConsent: { validator: validation_1.booleanValidator }, canvasStateToLocationId: { validator: (0, validation_1.objectAnyFieldsValidator)(validation_1.stringValidator100) }, enforceMFA: { validator: validation_1.booleanValidator }, accountSwitchingEnabled: { validator: validation_1.booleanValidator }, replyToEnduserTransactionalEmails: { validator: validation_1.emailValidator }, customTermsOfService: { validator: validation_1.stringValidator }, customPrivacyPolicy: { validator: validation_1.stringValidator }, customPolicies: { validator: validation_1.customPoliciesValidator }, customPoliciesVersion: { validator: validation_1.stringValidator }, requireCustomTermsOnMagicLink: { validator: validation_1.booleanValidator }, allowCreateSuborganizations: { validator: validation_1.booleanValidator }, answersSyncToPortal: {
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     id: validation_1.stringValidator100,
                     questions: (0, validation_1.listValidatorEmptyOk)(validation_1.stringValidator1000),
@@ -4926,6 +5035,19 @@ exports.schema = (0, exports.build_schema)({
                         id: validation_1.mongoIdStringRequired,
                     })),
                     summaryFormId: validation_1.mongoIdStringOptional,
+                }))
+            }, belugaAutomationMappings: {
+                validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
+                    enduserCondition: validation_1.optionalAnyObjectValidator,
+                    patientPreferences: (0, validation_1.listValidator)((0, validation_1.objectValidator)({
+                        name: validation_1.stringValidator,
+                        strength: validation_1.stringValidator,
+                        refills: validation_1.stringValidator,
+                        quantity: validation_1.stringValidator,
+                        daysSupply: validation_1.stringValidator,
+                        medId: validation_1.stringValidator,
+                    })),
+                    pharmacyId: validation_1.stringValidator,
                 }))
             } }),
     },
@@ -6822,7 +6944,7 @@ exports.schema = (0, exports.build_schema)({
                     type: { validator: validation_1.stringValidator100 },
                     maxTokens: { validator: validation_1.positiveNumberValidator },
                     conversationId: { validator: validation_1.mongoIdStringRequired },
-                    prompt: { validator: validation_1.stringValidator25000 },
+                    prompt: { validator: validation_1.stringValidator100000EmptyOkay },
                     orchestrationId: { validator: validation_1.stringValidatorOptional }, // optional ID to group multiple conversations as part of the same workflow
                 },
                 returns: {

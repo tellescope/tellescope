@@ -49,6 +49,7 @@ import { purchase_made_trigger_tests } from "./api_tests/purchase_made_trigger.t
 import { appointment_rescheduled_trigger_tests } from "./api_tests/appointment_rescheduled_trigger.test"
 import { journey_error_branching_tests } from "./api_tests/journey_error_branching.test"
 import { afteraction_day_of_month_delay_tests } from "./api_tests/afteraction_day_of_month_delay.test"
+import { push_forms_to_portal_group_completion_tests } from "./api_tests/push_forms_to_portal_group_completion.test"
 import { setup_tests } from "./setup"
 import { evaluate_conditional_logic_for_enduser_fields, FORM_LOGIC_CALCULATED_FIELDS, get_care_team_primary, get_flattened_fields, get_next_reminder_timestamp, object_is_empty, replace_enduser_template_values, replace_form_field_template_values, responses_satisfy_conditions, truncate_string, weighted_round_robin, YYYY_MM_DD_to_MM_DD_YYYY } from "@tellescope/utilities"
 import { DEFAULT_OPERATIONS, PLACEHOLDER_ID, ZENDESK_INTEGRATIONS_TITLE, ZOOM_TITLE } from "@tellescope/constants"
@@ -74,6 +75,7 @@ import {
 
 import fs from "fs"
 import { load_inbox_data_tests } from "./api_tests/load_inbox_data.test";
+import { enduser_login_tests } from "./api_tests/enduser_login.test";
 import { eom_procedure_codes_tests } from "./api_tests/eom_procedure_codes.test";
 import { cross_org_api_key_tests } from "./api_tests/cross_org_api_key.test";
 import { custom_dashboards_tests } from "./api_tests/custom_dashboards.test";
@@ -102,6 +104,8 @@ import { organization_settings_duplicates_tests } from "./api_tests/organization
 import { calendar_events_bulk_update_tests } from "./api_tests/calendar_events_bulk_update.test";
 import { openloop_webhooks_tests } from "./api_tests/openloop_webhooks.test";
 import { beluga_pharmacy_mappings_tests } from "./api_tests/beluga_pharmacy_mappings.test";
+import { account_switcher_tests } from "./api_tests/account_switcher.test";
+import { set_fields_order_templates_tests } from "./api_tests/set_fields_order_templates.test";
 import { date_string_validation_tests } from "./api_tests/date_string_validation.test";
 import { enduser_session_invalidation_tests } from "./api_tests/enduser_session_invalidation.test";
 import { enduser_cross_access_isolation_tests } from "./api_tests/enduser_cross_access_isolation.test";
@@ -5089,6 +5093,7 @@ const automation_trigger_tests = async () => {
   log_header("Automation Trigger Tests")
 
   await order_status_equals_tests()
+  await set_fields_order_templates_tests({ sdk, sdkNonAdmin })
   await medication_added_trigger_tests({ sdk, sdkNonAdmin })
   await appointment_cancelled_tests()
   await set_fields_tests()
@@ -5097,6 +5102,7 @@ const automation_trigger_tests = async () => {
   await form_response_set_fields_trigger_tests()
   await form_response_set_fields_journey_tests()
   await appointment_completed_trigger_tests({ sdk, sdkNonAdmin })
+  await push_forms_to_portal_group_completion_tests({ sdk, sdkNonAdmin })
   await trigger_events_api_tests()
   await fields_changed_tests()
   await field_equals_trigger_tests()
@@ -7121,16 +7127,18 @@ const merge_enduser_tests = async () => {
   const stripeCustomerId = 'example_cu_id';
   const stripeKey = 'example_stripe_key';
   const [source, destination, otherEnduser] = (await sdk.api.endusers.createSome([
-    { 
-      email: 'source@tellescope.com', fname: 'source', lname: 'enduser', 
-      references: [{ type: '2', id: '2.2' }, { type: '3', id: '3.2' }, { type: '4', id: '4.2'}], 
+    {
+      email: 'source@tellescope.com', fname: 'source', lname: 'enduser',
+      references: [{ type: '2', id: '2.2' }, { type: '3', id: '3.2' }, { type: '4', id: '4.2'}],
       // @ts-ignore
       stripeCustomerId,
       stripeKey,
       athenaPracticeId: '12345',
       athenaDepartmentId: '54321',
+      insurance: { memberId: 'src-member', payerName: 'Source Payer' },
+      insuranceSecondary: { memberId: 'src-secondary' },
     },
-    { email: 'destination@tellescope.com', source: '4', externalId: "4", references: [{ type: '1', id: '1' }, { type: '2', id: '2' }] },
+    { email: 'destination@tellescope.com', source: '4', externalId: "4", references: [{ type: '1', id: '1' }, { type: '2', id: '2' }], insurance: { memberId: 'dest-member', payerName: 'Dest Payer' } },
     { email: 'other@tellescope.com'},
   ])).created
 
@@ -7179,7 +7187,10 @@ const merge_enduser_tests = async () => {
       && e.references?.find(r => r.type === '1')?.id === '1'
       && e.references?.find(r => r.type === '2')?.id === '2'
       && e.references?.find(r => r.type === '3')?.id === '3.2'
-      && !e.references?.find(r => r.type === '4')?.id 
+      && !e.references?.find(r => r.type === '4')?.id
+      && e.insurance?.memberId === 'dest-member'
+      && e.insurance?.payerName === 'Dest Payer'
+      && e.insuranceSecondary?.memberId === 'src-secondary'
     )}
   )
     
@@ -14310,6 +14321,8 @@ const ip_address_form_tests = async () => {
     await replace_form_field_template_values_tests()
     await mfa_tests()
     await setup_tests(sdk, sdkNonAdmin)
+    await account_switcher_tests({ sdk, sdkNonAdmin })
+    await enduser_login_tests({ sdk, sdkNonAdmin })
     await outbound_chat_sent_trigger_tests({ sdk })
     await automation_trigger_tests()
     await enduser_cross_access_isolation_tests({ sdk, sdkNonAdmin })

@@ -1140,6 +1140,17 @@ export var labeledFieldsValidator = listValidatorOptionalOrEmptyOk(objectValidat
     field: stringValidator100,
     value: stringValidator5000,
 }));
+export var linkedAccountAccessEntryValidator = objectValidator({
+    userId: mongoIdStringRequired,
+    email: emailValidator,
+    fname: stringValidatorOptional,
+    lname: stringValidatorOptional,
+    orgName: stringValidatorOptional,
+    status: exactMatchValidator(['pending', 'accepted']),
+    createdAt: dateValidator,
+    requestExpiresAt: dateValidator,
+});
+export var linkedAccountAccessValidator = listValidatorOptionalOrEmptyOk(linkedAccountAccessEntryValidator);
 var DEFAULT_ENDUSER_FIELDS = [
     '_id', 'email', 'phone', 'fname', 'lname', 'journeys', 'tags', 'preference'
 ];
@@ -2549,24 +2560,26 @@ export var automationActionValidator = orValidator({
         }) })),
     belugaAutoRx: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['belugaAutoRx']), info: objectValidator({
             patientPreference: objectValidator({
-                name: stringValidator,
-                strength: stringValidator,
-                refills: stringValidator,
-                quantity: stringValidator,
-                medId: stringValidator,
-            }),
-            pharmacyId: stringValidator,
+                name: stringValidatorOptional,
+                strength: stringValidatorOptional,
+                refills: stringValidatorOptional,
+                quantity: stringValidatorOptional,
+                medId: stringValidatorOptional,
+            }, { isOptional: true, emptyOk: true }),
+            pharmacyId: stringValidatorOptional,
+            useOrganizationMapping: booleanValidatorOptional,
         }) })),
     belugaUpdateVisit: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['belugaUpdateVisit']), info: objectValidator({
-            patientPreferences: listValidator(objectValidator({
-                name: stringValidator,
-                strength: stringValidator,
-                refills: stringValidator,
-                quantity: stringValidator,
-                daysSupply: stringValidator,
-                medId: stringValidator,
+            patientPreferences: listValidatorOptionalOrEmptyOk(objectValidator({
+                name: stringValidatorOptional,
+                strength: stringValidatorOptional,
+                refills: stringValidatorOptional,
+                quantity: stringValidatorOptional,
+                daysSupply: stringValidatorOptional,
+                medId: stringValidatorOptional,
             })),
-            pharmacyId: stringValidator,
+            pharmacyId: stringValidatorOptional,
+            useOrganizationMapping: booleanValidatorOptional,
         }) })),
     sendChat: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['sendChat']), info: objectValidator({
             templateId: mongoIdStringRequired,
@@ -3883,6 +3896,7 @@ var _AUTOMATION_TRIGGER_EVENT_TYPES = {
     "Eligibility Result Received": true,
     "File Added": true,
     "Incoming Fax": true,
+    "Beluga Visit Sync Failed": true,
 };
 export var AUTOMATION_TRIGGER_EVENT_TYPES = Object.keys(_AUTOMATION_TRIGGER_EVENT_TYPES);
 // Deprecated event types - not available for new triggers
@@ -4231,6 +4245,13 @@ export var automationTriggerEventValidator = orValidator({
         info: objectValidator({
             senderFaxNumbers: listOfStringsValidatorOptionalOrEmptyOk,
         }),
+        conditions: optionalEmptyObjectValidator,
+    }),
+    "Beluga Visit Sync Failed": objectValidator({
+        type: exactMatchValidator(['Beluga Visit Sync Failed']),
+        info: objectValidator({
+            formIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+        }, { emptyOk: true }),
         conditions: optionalEmptyObjectValidator,
     }),
 });

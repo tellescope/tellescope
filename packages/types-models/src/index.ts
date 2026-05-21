@@ -541,6 +541,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   answersSyncToPortal?: { id: string, questions: string[] }[]
   externalFormIdsToSync?: string[],
   enforceMFA?: boolean,
+  accountSwitchingEnabled?: boolean, // opt-in: must be true for users in this org to participate in linked-account access (as either requester or target)
   analyticsIframes?: {
     title: string,
     iframeURL: string,
@@ -571,6 +572,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   skipActivePatientBilling?: boolean,
   portalV2SchemaURL?: string,
   timeTrackingPrograms?: TimeTrackingProgram[],
+  belugaAutomationMappings?: BelugaAutomationMappingEntry[],
 }
 export type OrganizationTheme = {
   name: string,
@@ -673,6 +675,11 @@ export interface UserSession extends Session, OrganizationLimits { // User joine
   availablePhoneNumbers: string[],
   availableFromEmails: string[],
   isa?: boolean,
+  // When set, this session was created via account-switching. actorUserId is the user
+  // who initiated the switch (e.g. A switching into B → session.id = B, session.actorUserId = A).
+  actorUserId?: string,
+  actorEmail?: string,
+  actorBusinessId?: string,
 }
 
 export type StateCredentialInfo = {
@@ -721,6 +728,31 @@ export type UserCallRoutingBehavior = (
 )
 
 export type MFASettings = { email?: boolean }
+
+export interface LinkedAccount {
+  id: string,
+  email: string,
+  orgName: string,
+  fname?: string,
+  lname?: string,
+  requiresMFA: boolean,
+}
+
+export type LinkedAccountAccessStatus = 'pending' | 'accepted'
+
+export interface LinkedAccountAccessEntry {
+  userId: string,
+  email: string,
+  fname?: string,
+  lname?: string,
+  orgName?: string,
+  status: LinkedAccountAccessStatus,
+  createdAt: Date,
+  // Governs only the pending-request TTL. Once status flips to 'accepted',
+  // this field is preserved for audit but no longer gates anything; switching
+  // is permitted indefinitely until the owner revokes.
+  requestExpiresAt: Date,
+}
 
 export type LabeledField = { field: string, value: string }
 
@@ -810,6 +842,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
   dashboardView?: CustomDashboardView,
   hideFromCalendarView?: boolean,
   requireSSO?: string[],
+  linkedAccountAccess?: LinkedAccountAccessEntry[],
 }
 
 export type Preference = 'email' | 'sms' | 'call' | 'chat'
@@ -2604,7 +2637,7 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
   calendarEventId?: string,
   copiedFrom?: string,
   copiedFromEnduserId?: string,
-  groupId?: string, // may be an automationStepId when created from Journey in push forms action
+  groupId?: string, // may be an automationStepId when created from Journey in push forms action — intentional, so Canvas sibling lookup (canvas.ts) and the per-push completion detector can find the batch. The API resolves the real formGroupId from the automation step at trigger-detection time for "Form Group Completed" triggers.
   groupInstance?: string,
   groupPosition?: number,
   utm?: LabeledField[],
@@ -3372,8 +3405,9 @@ export type BelugaAutoRxPatientPreferenceItem = {
   medId: string,
 }
 export type BelugaAutoRxAutomationAction = AutomationActionBuilder<'belugaAutoRx', {
-  patientPreference: BelugaAutoRxPatientPreferenceItem,
-  pharmacyId: string,
+  patientPreference?: BelugaAutoRxPatientPreferenceItem,
+  pharmacyId?: string,
+  useOrganizationMapping?: boolean,
 }>
 export type BelugaUpdateVisitPatientPreferenceItem = {
   name: string,
@@ -3384,9 +3418,15 @@ export type BelugaUpdateVisitPatientPreferenceItem = {
   medId: string,
 }
 export type BelugaUpdateVisitAutomationAction = AutomationActionBuilder<'belugaUpdateVisit', {
+  patientPreferences?: BelugaUpdateVisitPatientPreferenceItem[],
+  pharmacyId?: string,
+  useOrganizationMapping?: boolean,
+}>
+export type BelugaAutomationMappingEntry = {
+  enduserCondition: Record<string, any>,
   patientPreferences: BelugaUpdateVisitPatientPreferenceItem[],
   pharmacyId: string,
-}>
+}
 export type SendChatAutomationAction = AutomationActionBuilder<'sendChat', { 
   templateId: string, 
   identifier: string, 
@@ -3951,6 +3991,9 @@ export interface UserLog extends UserLog_readonly, UserLog_required, UserLog_upd
   info?: Indexable,
   enduserId?: string,
   note?: string,
+  // Set on logs emitted during a switched-in session; reflects the user who initiated the switch.
+  // userId on the same row is the acted-as user (target). See UserSession.actorUserId.
+  actorUserId?: string,
 }
 
 export interface EnduserTask_readonly extends ClientRecord {}
@@ -4806,6 +4849,9 @@ export type AutomationTriggerEvents = {
   'File Added': AutomationTriggerEventBuilder<"File Added", { source: string }, { }>,
   'Incoming Fax': AutomationTriggerEventBuilder<"Incoming Fax", {
     senderFaxNumbers?: string[],
+  }, {}>,
+  'Beluga Visit Sync Failed': AutomationTriggerEventBuilder<"Beluga Visit Sync Failed", {
+    formIds?: string[],
   }, {}>,
 }
 export type AutomationTriggerEventType = keyof AutomationTriggerEvents

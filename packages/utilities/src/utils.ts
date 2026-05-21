@@ -1,4 +1,4 @@
-import { AllergyResponse, AvailabilityBlock, CalendarEvent, CalendarEventLimit, CompoundFilter, Enduser, EnduserInsurance, EnduserMedication, EnduserObservation, EnduserRelationship, File, Form, FormField, FormFieldType, FormResponse, FormResponseAnswerAddress, FormResponseAnswerNumber, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, Integration, LabeledField, ManagedContentRecord, MedicationResponse, Organization, OutOfOfficeBlock, Product, Purchase, RoundRobinAssignmentInfo, SMSMessage, TableInputCell, Ticket, Timezone, TIMEZONES, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models"
+import { AllergyResponse, AvailabilityBlock, CalendarEvent, CalendarEventLimit, CompoundFilter, Enduser, EnduserInsurance, EnduserMedication, EnduserObservation, EnduserOrder, EnduserRelationship, File, Form, FormField, FormFieldType, FormResponse, FormResponseAnswerAddress, FormResponseAnswerNumber, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, Integration, LabeledField, ManagedContentRecord, MedicationResponse, Organization, OutOfOfficeBlock, Product, Purchase, RoundRobinAssignmentInfo, SMSMessage, TableInputCell, Ticket, Timezone, TIMEZONES, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models"
 import { ADMIN_ROLE, ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME, CANVAS_TITLE, ENDUSER_FIELDS_WITH_NESTED_PATHS_DISPLAY_NAME, get_inverse_relationship_type, HEALTHIE_TITLE, MM_DD_YYYY_REGEX, READONLY_ENDUSER_FIELDS_TO_DISPLAY_NAME } from "@tellescope/constants"
 import sanitizeHtml from 'sanitize-html';
 import { DateTime } from "luxon"
@@ -2778,6 +2778,61 @@ export const replace_medication_template_values = (s: string, medication?: Omit<
       replacement: (
         match === '{{medication.name}}' ? medication.title
         : match === '{{medication.category}}' ? (medication.category || '')
+        : ''
+      )
+    })
+
+    start = end + 2
+  }
+
+  let replaced = s.toString()
+  for (const { match, replacement } of templates) {
+    replaced = replaced.replace(match, replacement)
+  }
+
+  return replaced
+}
+
+export const replace_order_template_values = (s: string, order?: Omit<EnduserOrder, 'id'> | null) => {
+  if (!order) return s
+  if (typeof s !== 'string') return s // e.g. Date value
+
+  let i = 0
+  let start = 0
+  let templates = [] as { match: string, replacement: string }[]
+  while (i < 100) {
+    i++
+
+    start = s.indexOf('{{order.', start)
+    if (start === -1) break;
+
+    const end = s.indexOf('}}', start)
+    if (end === -1) break;
+
+    const match = s.substring(start, end + 2) // +2 accounts for '}}'
+    templates.push({
+      match,
+      replacement: (
+        match === '{{order.id}}' ? ((order as any)?._id?.toString() || (order as any)?.id || '')
+        : match === '{{order.status}}' ? order.status
+        : match === '{{order.title}}' ? order.title
+        : match === '{{order.source}}' ? order.source
+        : match === '{{order.externalId}}' ? order.externalId
+        : match === '{{order.tracking}}' ? (order.tracking || '')
+        : match === '{{order.carrier}}' ? (order.carrier || '')
+        : match === '{{order.shippedDate}}' ? (order.shippedDate || '')
+        : match === '{{order.pharmacy}}' ? (order.pharmacy || '')
+        : match === '{{order.pharmacyOrderId}}' ? (order.pharmacyOrderId || '')
+        : match === '{{order.fill}}' ? (order.fill || '')
+        : match === '{{order.sku}}' ? (order.sku || '')
+        : match === '{{order.frequency}}' ? (order.frequency || '')
+        : match === '{{order.medication}}' ? (order.medication || '')
+        : match === '{{order.medicationSku}}' ? (order.medicationSku || '')
+        : match === '{{order.protocol}}' ? (order.protocol || '')
+        : match === '{{order.instructions}}' ? (order.instructions || '')
+        : match === '{{order.description}}' ? (order.description || '')
+        : match === '{{order.cancelledDate}}' ? (order.cancelledDate || '')
+        : match === '{{order.cancellationReason}}' ? (order.cancellationReason || '')
         : ''
       )
     })

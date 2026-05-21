@@ -356,6 +356,7 @@ import {
   AISummaryConfiguration,
   AISummaryDataSource,
   AISummaryDataSourceConfig,
+  LinkedAccountAccessEntry,
 } from "@tellescope/types-models"
 import {
   AppointmentBookingPage,
@@ -1588,6 +1589,18 @@ export const labeledFieldsValidator = listValidatorOptionalOrEmptyOk(objectValid
   field: stringValidator100,
   value: stringValidator5000,
 }))
+
+export const linkedAccountAccessEntryValidator = objectValidator<LinkedAccountAccessEntry>({
+  userId: mongoIdStringRequired,
+  email: emailValidator,
+  fname: stringValidatorOptional,
+  lname: stringValidatorOptional,
+  orgName: stringValidatorOptional,
+  status: exactMatchValidator<'pending' | 'accepted'>(['pending', 'accepted']),
+  createdAt: dateValidator,
+  requestExpiresAt: dateValidator,
+})
+export const linkedAccountAccessValidator = listValidatorOptionalOrEmptyOk(linkedAccountAccessEntryValidator)
 
 
 const DEFAULT_ENDUSER_FIELDS = [
@@ -3274,28 +3287,30 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     type: exactMatchValidator(['belugaAutoRx']),
     info: objectValidator<BelugaAutoRxAutomationAction['info']>({
       patientPreference: objectValidator<BelugaAutoRxPatientPreferenceItem>({
-        name: stringValidator,
-        strength: stringValidator,
-        refills: stringValidator,
-        quantity: stringValidator,
-        medId: stringValidator,
-      }),
-      pharmacyId: stringValidator,
+        name: stringValidatorOptional,
+        strength: stringValidatorOptional,
+        refills: stringValidatorOptional,
+        quantity: stringValidatorOptional,
+        medId: stringValidatorOptional,
+      }, { isOptional: true, emptyOk: true }),
+      pharmacyId: stringValidatorOptional,
+      useOrganizationMapping: booleanValidatorOptional,
     }),
   }),
   belugaUpdateVisit: objectValidator<BelugaUpdateVisitAutomationAction>({
     ...sharedAutomationActionValidators,
     type: exactMatchValidator(['belugaUpdateVisit']),
     info: objectValidator<BelugaUpdateVisitAutomationAction['info']>({
-      patientPreferences: listValidator(objectValidator<BelugaUpdateVisitPatientPreferenceItem>({
-        name: stringValidator,
-        strength: stringValidator,
-        refills: stringValidator,
-        quantity: stringValidator,
-        daysSupply: stringValidator,
-        medId: stringValidator,
+      patientPreferences: listValidatorOptionalOrEmptyOk(objectValidator<BelugaUpdateVisitPatientPreferenceItem>({
+        name: stringValidatorOptional,
+        strength: stringValidatorOptional,
+        refills: stringValidatorOptional,
+        quantity: stringValidatorOptional,
+        daysSupply: stringValidatorOptional,
+        medId: stringValidatorOptional,
       })),
-      pharmacyId: stringValidator,
+      pharmacyId: stringValidatorOptional,
+      useOrganizationMapping: booleanValidatorOptional,
     }),
   }),
   sendChat: objectValidator<SendChatAutomationAction>({
@@ -4808,6 +4823,7 @@ const _AUTOMATION_TRIGGER_EVENT_TYPES: { [K in AutomationTriggerEventType]: any 
   "Eligibility Result Received": true,
   "File Added": true,
   "Incoming Fax": true,
+  "Beluga Visit Sync Failed": true,
 }
 export const AUTOMATION_TRIGGER_EVENT_TYPES = Object.keys(_AUTOMATION_TRIGGER_EVENT_TYPES) as AutomationTriggerEventType[]
 
@@ -5161,6 +5177,13 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     info: objectValidator<AutomationTriggerEvents['Incoming Fax']['info']>({
       senderFaxNumbers: listOfStringsValidatorOptionalOrEmptyOk,
     }),
+    conditions: optionalEmptyObjectValidator,
+  }),
+  "Beluga Visit Sync Failed": objectValidator<AutomationTriggerEvents["Beluga Visit Sync Failed"]>({
+    type: exactMatchValidator(['Beluga Visit Sync Failed']),
+    info: objectValidator<AutomationTriggerEvents['Beluga Visit Sync Failed']['info']>({
+      formIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+    }, { emptyOk: true }),
     conditions: optionalEmptyObjectValidator,
   }),
 })

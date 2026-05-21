@@ -37,8 +37,15 @@ export const setup_tests = async (sdk: Session, sdkNonAdmin: Session) => {
   // Authenticate the SDKs first
   await sdk.authenticate(email, password)
   await sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)
-  
+
   await async_test('test_authenticated', sdk.test_authenticated, { expectedResult: 'Authenticated!' })
+
+  // Defensive: clear residual OTP gating from a previously-aborted run of
+  // enduser_session_invalidation_tests, which would otherwise cause enduser
+  // tokens minted in subsequent tests to be rejected as Unauthenticated.
+  await sdk.api.organizations.updateOne(sdk.userInfo.businessId, {
+    portalSettings: { authentication: { requireOTP: false, requireOTPAfterPassword: false } },
+  }, { replaceObjectFields: true })
 
   await async_test(
     'test_authenticated (with API Key)', 

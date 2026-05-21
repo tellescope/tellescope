@@ -10,7 +10,7 @@ var __assign = (this && this.__assign) || function () {
     return __assign.apply(this, arguments);
 };
 import { WEBHOOK_MODELS, } from "@tellescope/types-models";
-import { booleanValidator, dateValidator, emailValidator, fieldsValidator, journeysValidator, journeyStatesValidator, phoneValidator, nameValidator, nonNegNumberValidator, nonNegNumberValidatorOptional, mongoIdValidator, mongoIdStringRequired as mongoIdStringValidator, listOfMongoIdStringValidator, preferenceValidator, objectAnyFieldsAnyValuesValidator, stringValidator, stringValidator100, stringValidator105, listOfStringsValidator, emailEncodingValidator, numberToDateValidator, SMSMessageValidator, chatRoomTypeValidator, idStringToDateValidator, subdomainValidator, messageTemplateTypeValidator, stringValidator210, stringValidator250, stringValidator5000, listOfDisplayNameInfo, fileTypeValidator, fileSizeValidator, meetingStatusValidator, listOfAttendeesValidator, meetingInfoValidator, listOfUserIndentitiesValidator, meetingsListValidator, urlValidator, WebhookSubscriptionValidator, attendeeValidator, meetingDisplayInfoValidator, intakePhoneValidator, formResponsesValidator, stringValidator25000, automationActionValidator, automationEventValidator, automatedActionStatusValidator, listOfStringsValidatorEmptyOk, listOfChatAttachmentsValidator, listOfCalendarEventRemindersValidator, messageTemplateModeValidator, listOfAutomationConditionsValidator, chatRoomUserInfoValidator, CUDStringValidator, listOfRelatedRecordsValidator, cancelConditionsValidator, notificationPreferencesValidator, FHIRObservationCategoryValidator, FHIRObservationStatusCodeValidator, FHIRObservationValueValidator, userIdentityValidator, formFieldTypeValidator, previousFormFieldsValidator, numberValidator, organizationThemeValidator, managedContentRecordTypeValidator, passwordValidator, flowchartUIValidator, integrationAuthenticationsValidator, listOfMongoIdStringValidatorEmptyOk, formFieldOptionsValidator, blocksValidator, sessionTypeValidator, portalSettingsValidator, emailValidatorEmptyOkay, phoneValidatorOptional, stringValidator1000, databaseFieldsValidator, databaseRecordValuesValidator, automationEventsValidator, portalBlocksValidator, enduserFormResponsesForEventValidator, enduserTasksForEventValidator, stateCredentialsValidator, stateValidator, weeklyAvailabilitiesValidator, calendarEventLimitsValidator, timezoneValidator, formTypeValidator, managedContentRecordAssignmentTypeValidator, listOfGenericAttachmentsValidator, accessPermissionsValidator, organizationLimitsValidator, organizationSettingsValidator, communicationsChannelValidator, genericUnitWithQuantityValidator, stringValidator25000EmptyOkay, slugValidator, stringValidator5000EmptyOkay, loginFlowResultValidator, sharedWithOrganizationIdsValidator, stringValidator1000Optional, tellescopeGenderValidator, appointmentTermsValidator, paymentProcessorValidator, purchaseCreditValueValidator, costValidator, integrationTitleValidator, journeyContextValidator, stringValidator100000EmptyOkay, analyticsQueryValidator, dateRangeValidator, calendarEventPortalSettingsValidator, dateOptionalOrEmptyStringValidator, baseAvailabilityBlocksValidator, availabilityEntitiesValidator, indexUpdatesValidator, dateRangeOptionalValidator, booleanValidatorOptional, automationTriggerActionValidator, automationTriggerEventValidator, automatioNTriggerStatusValidator, exactMatchValidator, exactMatchValidatorOptional, listOfMongoIdStringValidatorOptionalOrEmptyOk, listOfStringsValidatorOptionalOrEmptyOk, stringValidatorOptionalEmptyOkay, analyticsQueryResultsValidator, stringValidatorOptional, addressValidator, superbillPatientInfoValidator, superbillProviderInfoValidator, superbillLineItemsValidator, billingCodeValidatorOptional, analyticsFrameTypeValidator, videoIntegrationTypesValidator, scheduledJourneysValidator, formScoringValidator, embeddingTypeValidator, listValidator, userCallRoutingBehaviorValidator, userUIRestrictionsValidator, userFieldRedactionsValidator, externalChatGPTMessagesValidator, enduserProfileViewBlocksValidator, customDashboardBlocksValidator, intakeDateOfBirthValidator, objectValidator, mongoIdStringRequired, objectAnyFieldsValidator, phoneTreeNodesValidator, phoneTreeEnduserConditionValidator, orValidator, optionalAnyObjectValidator, listValidatorOptionalOrEmptyOk, formCustomizationValidator, aiSummaryConfigurationValidator, buildInFieldsValidator, customEnduserFieldsValidatorOptionalOrEmpty, ticketActionsValidator, formResponseValidator, numberValidatorOptional, languageValidator, relatedRecordValidator, mongoIdStringOptional, tableViewColumnsValidator, formFieldCalloutConditionsValidator, endusersReportQueriesValidator, formResponsesReportQueriesValidator, phoneCallsReportQueriesValidator, listValidatorEmptyOk, phonePlaybackValidatorOptional, ticketSnoozesValidator, listOfStringsWithQualifierValidator, listOfStringsWithQualifierValidatorOptional, stringValidator100000OptionalEmptyOkay, mmsMessagesValidator, groupMMSUserStatesValidator, sortingFieldsValidator, listOfUniqueStringsValidatorEmptyOk, ticketReminderValidator, insuranceOptionalValidator, pharmacyValidator, listOfStringsValidatorUniqueOptionalOrEmptyOkay, diagnosesValidator, stateValidatorOptional, canvasCodingValidator, vitalConfigurationRangesValidator, smartMeterLinesValidator, formFieldFeedbackValidator, phonePlaybackValidator, enduserProfileWebhooksValidator, fieldsSyncValidator, athenaSubscriptionTypeValidator, dateValidatorOptional, listQueryQualifiersValidator, stringValidator5000OptionalEmptyOkay, labeledFieldsValidator, fieldMappingsValidator, analyticsFrameGroupingCategoriesValidator, customDashboardViewValidator, bookingRestrictionsByTemplateValidator, listOfNumbersValidatorUniqueOptionalOrEmptyOkay, enduserDiagnosisValidator, canvasCodingValidatorOptional, calendarEventAttendeesValidator, developHealthDrugsValidator, developHealthDiagnosesValidator, developHealthMockResultValidator, positiveNumberValidator, listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay, recentViewersValidator, stringValidator100000OptionalEmptyOkayEscapeHTML, customPoliciesValidator, stringValidator100EscapeHTML, outOfOfficeBlocksValidator, AIDecisionSourceValidator, AIMessageInputValidator, listOfObjectAnyFieldsAnyValuesValidator, listOfEmailCCsValidator, externalIdNumberValidatorOptional, DEPRECATED_AUTOMATION_TRIGGER_EVENT_TYPES, compoundFilterValidator, } from "@tellescope/validation";
+import { booleanValidator, dateValidator, emailValidator, fieldsValidator, journeysValidator, journeyStatesValidator, phoneValidator, nameValidator, nonNegNumberValidator, nonNegNumberValidatorOptional, mongoIdValidator, mongoIdStringRequired as mongoIdStringValidator, listOfMongoIdStringValidator, preferenceValidator, objectAnyFieldsAnyValuesValidator, stringValidator, stringValidator100, stringValidator105, listOfStringsValidator, emailEncodingValidator, numberToDateValidator, SMSMessageValidator, chatRoomTypeValidator, idStringToDateValidator, subdomainValidator, messageTemplateTypeValidator, stringValidator210, stringValidator250, stringValidator5000, listOfDisplayNameInfo, fileTypeValidator, fileSizeValidator, meetingStatusValidator, listOfAttendeesValidator, meetingInfoValidator, listOfUserIndentitiesValidator, meetingsListValidator, urlValidator, WebhookSubscriptionValidator, attendeeValidator, meetingDisplayInfoValidator, intakePhoneValidator, formResponsesValidator, stringValidator25000, automationActionValidator, automationEventValidator, automatedActionStatusValidator, listOfStringsValidatorEmptyOk, listOfChatAttachmentsValidator, listOfCalendarEventRemindersValidator, messageTemplateModeValidator, listOfAutomationConditionsValidator, chatRoomUserInfoValidator, CUDStringValidator, listOfRelatedRecordsValidator, cancelConditionsValidator, notificationPreferencesValidator, FHIRObservationCategoryValidator, FHIRObservationStatusCodeValidator, FHIRObservationValueValidator, userIdentityValidator, formFieldTypeValidator, previousFormFieldsValidator, numberValidator, organizationThemeValidator, managedContentRecordTypeValidator, passwordValidator, flowchartUIValidator, integrationAuthenticationsValidator, listOfMongoIdStringValidatorEmptyOk, formFieldOptionsValidator, blocksValidator, sessionTypeValidator, portalSettingsValidator, emailValidatorEmptyOkay, phoneValidatorOptional, stringValidator1000, databaseFieldsValidator, databaseRecordValuesValidator, automationEventsValidator, portalBlocksValidator, enduserFormResponsesForEventValidator, enduserTasksForEventValidator, stateCredentialsValidator, stateValidator, weeklyAvailabilitiesValidator, calendarEventLimitsValidator, timezoneValidator, formTypeValidator, managedContentRecordAssignmentTypeValidator, listOfGenericAttachmentsValidator, accessPermissionsValidator, organizationLimitsValidator, organizationSettingsValidator, communicationsChannelValidator, genericUnitWithQuantityValidator, stringValidator25000EmptyOkay, slugValidator, stringValidator5000EmptyOkay, loginFlowResultValidator, sharedWithOrganizationIdsValidator, stringValidator1000Optional, tellescopeGenderValidator, appointmentTermsValidator, paymentProcessorValidator, purchaseCreditValueValidator, costValidator, integrationTitleValidator, journeyContextValidator, stringValidator100000EmptyOkay, analyticsQueryValidator, dateRangeValidator, calendarEventPortalSettingsValidator, dateOptionalOrEmptyStringValidator, baseAvailabilityBlocksValidator, availabilityEntitiesValidator, indexUpdatesValidator, dateRangeOptionalValidator, booleanValidatorOptional, automationTriggerActionValidator, automationTriggerEventValidator, automatioNTriggerStatusValidator, exactMatchValidator, exactMatchValidatorOptional, listOfMongoIdStringValidatorOptionalOrEmptyOk, linkedAccountAccessValidator, listOfStringsValidatorOptionalOrEmptyOk, stringValidatorOptionalEmptyOkay, analyticsQueryResultsValidator, stringValidatorOptional, addressValidator, superbillPatientInfoValidator, superbillProviderInfoValidator, superbillLineItemsValidator, billingCodeValidatorOptional, analyticsFrameTypeValidator, videoIntegrationTypesValidator, scheduledJourneysValidator, formScoringValidator, embeddingTypeValidator, listValidator, userCallRoutingBehaviorValidator, userUIRestrictionsValidator, userFieldRedactionsValidator, externalChatGPTMessagesValidator, enduserProfileViewBlocksValidator, customDashboardBlocksValidator, intakeDateOfBirthValidator, objectValidator, mongoIdStringRequired, objectAnyFieldsValidator, phoneTreeNodesValidator, phoneTreeEnduserConditionValidator, orValidator, optionalAnyObjectValidator, listValidatorOptionalOrEmptyOk, formCustomizationValidator, aiSummaryConfigurationValidator, buildInFieldsValidator, customEnduserFieldsValidatorOptionalOrEmpty, ticketActionsValidator, formResponseValidator, numberValidatorOptional, languageValidator, relatedRecordValidator, mongoIdStringOptional, tableViewColumnsValidator, formFieldCalloutConditionsValidator, endusersReportQueriesValidator, formResponsesReportQueriesValidator, phoneCallsReportQueriesValidator, listValidatorEmptyOk, phonePlaybackValidatorOptional, ticketSnoozesValidator, listOfStringsWithQualifierValidator, listOfStringsWithQualifierValidatorOptional, stringValidator100000OptionalEmptyOkay, mmsMessagesValidator, groupMMSUserStatesValidator, sortingFieldsValidator, listOfUniqueStringsValidatorEmptyOk, ticketReminderValidator, insuranceOptionalValidator, pharmacyValidator, listOfStringsValidatorUniqueOptionalOrEmptyOkay, diagnosesValidator, stateValidatorOptional, canvasCodingValidator, vitalConfigurationRangesValidator, smartMeterLinesValidator, formFieldFeedbackValidator, phonePlaybackValidator, enduserProfileWebhooksValidator, fieldsSyncValidator, athenaSubscriptionTypeValidator, dateValidatorOptional, listQueryQualifiersValidator, stringValidator5000OptionalEmptyOkay, labeledFieldsValidator, fieldMappingsValidator, analyticsFrameGroupingCategoriesValidator, customDashboardViewValidator, bookingRestrictionsByTemplateValidator, listOfNumbersValidatorUniqueOptionalOrEmptyOkay, enduserDiagnosisValidator, canvasCodingValidatorOptional, calendarEventAttendeesValidator, developHealthDrugsValidator, developHealthDiagnosesValidator, developHealthMockResultValidator, positiveNumberValidator, listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay, recentViewersValidator, stringValidator100000OptionalEmptyOkayEscapeHTML, customPoliciesValidator, stringValidator100EscapeHTML, outOfOfficeBlocksValidator, AIDecisionSourceValidator, AIMessageInputValidator, listOfObjectAnyFieldsAnyValuesValidator, listOfEmailCCsValidator, externalIdNumberValidatorOptional, DEPRECATED_AUTOMATION_TRIGGER_EVENT_TYPES, compoundFilterValidator, } from "@tellescope/validation";
 import { CREATOR_ONLY_ACCESS, DEFAULT_OPERATIONS, PLACEHOLDER_ID, ENDUSER_SESSION_TYPE, USER_SESSION_TYPE, CANDID_TITLE, DEVELOP_HEALTH_TITLE, } from "@tellescope/constants";
 export var get_next_reminder_timestamp_for_ticket = function (_a) {
     var dueDateInMS = _a.dueDateInMS, reminders = _a.reminders, closedAt = _a.closedAt;
@@ -2006,7 +2006,82 @@ export var schema = build_schema({
                             return;
                         return "User organizationIds are readonly";
                     }
-                }
+                },
+                {
+                    explanation: "linkedAccountAccess mutations are constrained to the owner with allowlisted transitions",
+                    evaluate: function (record, _, session, method, _a) {
+                        var _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
+                        var updates = _a.updates, original = _a.original;
+                        if (!updates || !('linkedAccountAccess' in updates))
+                            return;
+                        if (method === 'create') {
+                            if (updates.linkedAccountAccess && updates.linkedAccountAccess.length > 0) {
+                                return "linkedAccountAccess cannot be set on user creation";
+                            }
+                            return;
+                        }
+                        // Grant management is reserved to the actor's own session. From a switched session
+                        // (session.actorUserId set), even targeting the proxy identity's own record is rejected —
+                        // otherwise A-as-B could self-approve other pending requests on B, or delete B's existing
+                        // grants and silently revoke other grantees.
+                        if (session.actorUserId) {
+                            return "Cannot update linkedAccountAccess from a switched session";
+                        }
+                        // self-update only — record carries the post-merge updated document; original is the prior state.
+                        var ownerId = (_e = (_c = (_b = record._id) === null || _b === void 0 ? void 0 : _b.toString()) !== null && _c !== void 0 ? _c : (_d = original === null || original === void 0 ? void 0 : original._id) === null || _d === void 0 ? void 0 : _d.toString()) !== null && _e !== void 0 ? _e : original === null || original === void 0 ? void 0 : original.id;
+                        if (!(ownerId && ownerId === session.id)) {
+                            return "Only the account owner can update linkedAccountAccess";
+                        }
+                        var oldEntries = (_f = original === null || original === void 0 ? void 0 : original.linkedAccountAccess) !== null && _f !== void 0 ? _f : [];
+                        var newEntries = (_g = updates.linkedAccountAccess) !== null && _g !== void 0 ? _g : [];
+                        var _loop_1 = function (newEntry) {
+                            var oldMatch = oldEntries.find(function (e) { return e.userId === newEntry.userId; });
+                            if (!oldMatch) {
+                                return { value: "Cannot add entries to linkedAccountAccess via direct update; use request_linked_account_access" };
+                            }
+                            if (newEntry.email !== oldMatch.email)
+                                return { value: "linkedAccountAccess entry email is immutable" };
+                            if (((_h = newEntry.fname) !== null && _h !== void 0 ? _h : null) !== ((_j = oldMatch.fname) !== null && _j !== void 0 ? _j : null))
+                                return { value: "linkedAccountAccess entry fname is immutable" };
+                            if (((_k = newEntry.lname) !== null && _k !== void 0 ? _k : null) !== ((_l = oldMatch.lname) !== null && _l !== void 0 ? _l : null))
+                                return { value: "linkedAccountAccess entry lname is immutable" };
+                            if (((_m = newEntry.orgName) !== null && _m !== void 0 ? _m : null) !== ((_o = oldMatch.orgName) !== null && _o !== void 0 ? _o : null))
+                                return { value: "linkedAccountAccess entry orgName is immutable" };
+                            if (new Date(newEntry.createdAt).getTime() !== new Date(oldMatch.createdAt).getTime())
+                                return { value: "linkedAccountAccess entry createdAt is immutable" };
+                            if (new Date(newEntry.requestExpiresAt).getTime() !== new Date(oldMatch.requestExpiresAt).getTime())
+                                return { value: "linkedAccountAccess entry requestExpiresAt is immutable" };
+                            if (newEntry.status !== oldMatch.status) {
+                                if (!(oldMatch.status === 'pending' && newEntry.status === 'accepted')) {
+                                    return { value: "linkedAccountAccess status can only transition from pending to accepted" };
+                                }
+                                // Reject approval of an expired pending request — owner must wait for the requester
+                                // to re-issue. requestExpiresAt is immutable per the rule above; the only way for a
+                                // pending entry to refresh is request_linked_account_access replacing the expired entry.
+                                if (new Date(oldMatch.requestExpiresAt).getTime() < Date.now()) {
+                                    return { value: "linkedAccountAccess request has expired and cannot be approved; requester must re-request" };
+                                }
+                            }
+                        };
+                        for (var _i = 0, newEntries_1 = newEntries; _i < newEntries_1.length; _i++) {
+                            var newEntry = newEntries_1[_i];
+                            var state_1 = _loop_1(newEntry);
+                            if (typeof state_1 === "object")
+                                return state_1.value;
+                        }
+                        return;
+                    }
+                },
+                {
+                    explanation: "Legacy accountAccessGrantedTo field is no longer accepted",
+                    evaluate: function (_, __, ___, ____, _a) {
+                        var updates = _a.updates;
+                        if (updates && 'accountAccessGrantedTo' in updates) {
+                            return "accountAccessGrantedTo has been replaced by linkedAccountAccess";
+                        }
+                        return;
+                    }
+                },
             ],
         },
         defaultActions: {
@@ -2187,6 +2262,39 @@ export var schema = build_schema({
                 },
                 returns: {},
             },
+            get_linked_accounts: {
+                op: "custom", access: 'read', method: "get",
+                name: 'Get Linked Accounts',
+                path: '/users/linked-accounts',
+                description: "Returns accounts that have granted access to the caller",
+                parameters: {},
+                returns: {
+                    linkedAccounts: { validator: objectAnyFieldsAnyValuesValidator, required: true },
+                },
+            },
+            switch_account: {
+                op: "custom", access: 'update', method: "post",
+                name: 'Switch Account',
+                path: '/users/switch-account',
+                description: "Switches the current session to a target account that has granted access",
+                parameters: {
+                    targetUserId: { validator: mongoIdStringRequired, required: true },
+                },
+                returns: {
+                    authToken: { validator: stringValidator, required: true },
+                    user: { validator: 'user', required: true },
+                },
+            },
+            request_linked_account_access: {
+                op: "custom", access: 'update', method: "post",
+                name: 'Request Linked Account Access',
+                path: '/users/request-linked-account-access',
+                description: "Requests linked-account access from another user identified by email; the target user must accept before the requester can switch into the account",
+                parameters: {
+                    targetEmail: { validator: emailValidator, required: true },
+                },
+                returns: {},
+            },
         },
         publicActions: {
             begin_sso: {
@@ -2296,6 +2404,7 @@ export var schema = build_schema({
         fields: __assign(__assign({}, BuiltInFields), { billingTags: { validator: labeledFieldsValidator }, defaultLocationId: { validator: mongoIdStringValidator }, email: {
                 validator: emailValidator,
                 required: true,
+                updatesDisabled: true,
                 examples: ['test@tellescope.com'],
                 redactions: ['enduser'],
             }, phone: {
@@ -2361,7 +2470,7 @@ export var schema = build_schema({
                     field: stringValidator100,
                     value: stringValidator5000,
                 }))
-            }, canvasId: { validator: stringValidator100 }, medplumId: { validator: stringValidator100 }, athenaId: { validator: stringValidator100 }, dashboardView: { validator: customDashboardViewValidator }, hideFromCalendarView: { validator: booleanValidator }, requireSSO: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay } })
+            }, canvasId: { validator: stringValidator100 }, medplumId: { validator: stringValidator100 }, athenaId: { validator: stringValidator100 }, dashboardView: { validator: customDashboardViewValidator }, hideFromCalendarView: { validator: booleanValidator }, requireSSO: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, linkedAccountAccess: { validator: linkedAccountAccessValidator } })
     },
     templates: {
         info: {},
@@ -4893,7 +5002,7 @@ export var schema = build_schema({
                     id: stringValidator100,
                     questionId: stringValidator100,
                 })
-            }, canvasSyncEmailConsent: { validator: booleanValidator }, canvasSyncPhoneConsent: { validator: booleanValidator }, canvasStateToLocationId: { validator: objectAnyFieldsValidator(stringValidator100) }, enforceMFA: { validator: booleanValidator }, replyToEnduserTransactionalEmails: { validator: emailValidator }, customTermsOfService: { validator: stringValidator }, customPrivacyPolicy: { validator: stringValidator }, customPolicies: { validator: customPoliciesValidator }, customPoliciesVersion: { validator: stringValidator }, requireCustomTermsOnMagicLink: { validator: booleanValidator }, allowCreateSuborganizations: { validator: booleanValidator }, answersSyncToPortal: {
+            }, canvasSyncEmailConsent: { validator: booleanValidator }, canvasSyncPhoneConsent: { validator: booleanValidator }, canvasStateToLocationId: { validator: objectAnyFieldsValidator(stringValidator100) }, enforceMFA: { validator: booleanValidator }, accountSwitchingEnabled: { validator: booleanValidator }, replyToEnduserTransactionalEmails: { validator: emailValidator }, customTermsOfService: { validator: stringValidator }, customPrivacyPolicy: { validator: stringValidator }, customPolicies: { validator: customPoliciesValidator }, customPoliciesVersion: { validator: stringValidator }, requireCustomTermsOnMagicLink: { validator: booleanValidator }, allowCreateSuborganizations: { validator: booleanValidator }, answersSyncToPortal: {
                 validator: listValidatorOptionalOrEmptyOk(objectValidator({
                     id: stringValidator100,
                     questions: listValidatorEmptyOk(stringValidator1000),
@@ -4921,6 +5030,19 @@ export var schema = build_schema({
                         id: mongoIdStringRequired,
                     })),
                     summaryFormId: mongoIdStringOptional,
+                }))
+            }, belugaAutomationMappings: {
+                validator: listValidatorOptionalOrEmptyOk(objectValidator({
+                    enduserCondition: optionalAnyObjectValidator,
+                    patientPreferences: listValidator(objectValidator({
+                        name: stringValidator,
+                        strength: stringValidator,
+                        refills: stringValidator,
+                        quantity: stringValidator,
+                        daysSupply: stringValidator,
+                        medId: stringValidator,
+                    })),
+                    pharmacyId: stringValidator,
                 }))
             } }),
     },
@@ -6817,7 +6939,7 @@ export var schema = build_schema({
                     type: { validator: stringValidator100 },
                     maxTokens: { validator: positiveNumberValidator },
                     conversationId: { validator: mongoIdStringValidator },
-                    prompt: { validator: stringValidator25000 },
+                    prompt: { validator: stringValidator100000EmptyOkay },
                     orchestrationId: { validator: stringValidatorOptional }, // optional ID to group multiple conversations as part of the same workflow
                 },
                 returns: {

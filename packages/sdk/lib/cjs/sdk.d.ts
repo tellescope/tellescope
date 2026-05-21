@@ -3857,6 +3857,9 @@ type Queries = {
         get_engagement_report: (args: extractFields<CustomActions['users']['get_engagement_report']['parameters']>) => (Promise<extractFields<CustomActions['users']['get_engagement_report']['returns']>>);
         get_users_for_groups: (args: extractFields<CustomActions['users']['get_users_for_groups']['parameters']>) => (Promise<extractFields<CustomActions['users']['get_users_for_groups']['returns']>>);
         play_phone_message: (args: extractFields<CustomActions['users']['play_phone_message']['parameters']>) => (Promise<extractFields<CustomActions['users']['play_phone_message']['returns']>>);
+        get_linked_accounts: () => (Promise<extractFields<CustomActions['users']['get_linked_accounts']['returns']>>);
+        switch_account: (args: extractFields<CustomActions['users']['switch_account']['parameters']>) => (Promise<extractFields<CustomActions['users']['switch_account']['returns']>>);
+        request_linked_account_access: (args: extractFields<CustomActions['users']['request_linked_account_access']['parameters']>) => (Promise<extractFields<CustomActions['users']['request_linked_account_access']['returns']>>);
     };
     files: {
         prepare_file_upload: (args: extractFields<CustomActions['files']['prepare_file_upload']['parameters']>) => (Promise<extractFields<CustomActions['files']['prepare_file_upload']['returns']>>);
@@ -4171,6 +4174,9 @@ export declare class Session extends SessionManager {
         availablePhoneNumbers: string[];
         availableFromEmails: string[];
         isa?: boolean | undefined;
+        actorUserId?: string | undefined;
+        actorEmail?: string | undefined;
+        actorBusinessId?: string | undefined;
         iat: number;
         exp: number;
         allowedPaths?: string[] | undefined;
@@ -4328,6 +4334,9 @@ export declare class Session extends SessionManager {
         availablePhoneNumbers: string[];
         availableFromEmails: string[];
         isa?: boolean | undefined;
+        actorUserId?: string | undefined;
+        actorEmail?: string | undefined;
+        actorBusinessId?: string | undefined;
         iat: number;
         exp: number;
         allowedPaths?: string[] | undefined;

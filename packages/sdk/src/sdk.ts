@@ -442,6 +442,15 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     play_phone_message: (args: extractFields<CustomActions['users']['play_phone_message']['parameters']>) => (
       Promise<extractFields<CustomActions['users']['play_phone_message']['returns']>>
     ),
+    get_linked_accounts: () => (
+      Promise<extractFields<CustomActions['users']['get_linked_accounts']['returns']>>
+    ),
+    switch_account: (args: extractFields<CustomActions['users']['switch_account']['parameters']>) => (
+      Promise<extractFields<CustomActions['users']['switch_account']['returns']>>
+    ),
+    request_linked_account_access: (args: extractFields<CustomActions['users']['request_linked_account_access']['parameters']>) => (
+      Promise<extractFields<CustomActions['users']['request_linked_account_access']['returns']>>
+    ),
   },
   files: {
     prepare_file_upload: (args: extractFields<CustomActions['files']['prepare_file_upload']['parameters']>) => (
@@ -1000,6 +1009,9 @@ export class Session extends SessionManager {
     queries.users.get_engagement_report = a => this._GET(`/v1/${schema.users.customActions.get_engagement_report.path}`, a)
     queries.users.get_users_for_groups = a => this._GET(`/v1/${schema.users.customActions.get_users_for_groups.path}`, a)
     queries.users.play_phone_message = a => this._POST(`/v1/${schema.users.customActions.play_phone_message.path}`, a)
+    queries.users.get_linked_accounts = () => this._GET(`/v1/${schema.users.customActions.get_linked_accounts.path}`)
+    queries.users.switch_account = a => this._POST(`/v1/${schema.users.customActions.switch_account.path}`, a)
+    queries.users.request_linked_account_access = a => this._POST(`/v1/${schema.users.customActions.request_linked_account_access.path}`, a)
 
     queries.users.configure_MFA = a => this._POST(`/v1/${schema.users.customActions.configure_MFA.path}`, a)
     queries.users.generate_MFA_challenge = a => this._POST(`/v1/${schema.users.customActions.generate_MFA_challenge.path}`, a)

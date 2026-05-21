@@ -76,18 +76,30 @@ var setup_tests = function (sdk, sdkNonAdmin) { return __awaiter(void 0, void 0,
                 return [4 /*yield*/, sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)];
             case 3:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('test_authenticated', sdk.test_authenticated, { expectedResult: 'Authenticated!' })];
+                return [4 /*yield*/, (0, testing_1.async_test)('test_authenticated', sdk.test_authenticated, { expectedResult: 'Authenticated!' })
+                    // Defensive: clear residual OTP gating from a previously-aborted run of
+                    // enduser_session_invalidation_tests, which would otherwise cause enduser
+                    // tokens minted in subsequent tests to be rejected as Unauthenticated.
+                ];
             case 4:
+                _a.sent();
+                // Defensive: clear residual OTP gating from a previously-aborted run of
+                // enduser_session_invalidation_tests, which would otherwise cause enduser
+                // tokens minted in subsequent tests to be rejected as Unauthenticated.
+                return [4 /*yield*/, sdk.api.organizations.updateOne(sdk.userInfo.businessId, {
+                        portalSettings: { authentication: { requireOTP: false, requireOTPAfterPassword: false } },
+                    }, { replaceObjectFields: true })];
+            case 5:
+                // Defensive: clear residual OTP gating from a previously-aborted run of
+                // enduser_session_invalidation_tests, which would otherwise cause enduser
+                // tokens minted in subsequent tests to be rejected as Unauthenticated.
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('test_authenticated (with API Key)', (new sdk_1.Session({ host: host, apiKey: '3n5q0SCBT_iUvZz-b9BJtX7o7HQUVJ9v132PgHJNJsg.' /* local test key */ })).test_authenticated, { expectedResult: 'Authenticated!' })
                     // login rate limit tests
                 ];
-            case 5:
-                _a.sent();
-                badSDK = new sdk_1.Session({ host: host });
-                return [4 /*yield*/, badSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)];
             case 6:
                 _a.sent();
+                badSDK = new sdk_1.Session({ host: host });
                 return [4 /*yield*/, badSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)];
             case 7:
                 _a.sent();
@@ -100,16 +112,16 @@ var setup_tests = function (sdk, sdkNonAdmin) { return __awaiter(void 0, void 0,
                 return [4 /*yield*/, badSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)];
             case 10:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('login rate limited', function () { return badSDK.authenticate('bademail@tellescope.com', 'badpassword@tellescope.com'); }, { shouldError: true, onError: function (e) { return e.message === 'Too many login attempts'; } })];
+                return [4 /*yield*/, badSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)];
             case 11:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('login not rate limited for other user', function () { return sdk.authenticate(email, password); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)('login rate limited', function () { return badSDK.authenticate('bademail@tellescope.com', 'badpassword@tellescope.com'); }, { shouldError: true, onError: function (e) { return e.message === 'Too many login attempts'; } })];
             case 12:
                 _a.sent();
-                badEnduserSDK = new sdk_1.EnduserSession({ host: host, businessId: businessId });
-                return [4 /*yield*/, badEnduserSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)];
+                return [4 /*yield*/, (0, testing_1.async_test)('login not rate limited for other user', function () { return sdk.authenticate(email, password); }, passOnAnyResult)];
             case 13:
                 _a.sent();
+                badEnduserSDK = new sdk_1.EnduserSession({ host: host, businessId: businessId });
                 return [4 /*yield*/, badEnduserSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)];
             case 14:
                 _a.sent();
@@ -122,105 +134,108 @@ var setup_tests = function (sdk, sdkNonAdmin) { return __awaiter(void 0, void 0,
                 return [4 /*yield*/, badEnduserSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)];
             case 17:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('login rate limited', function () { return badEnduserSDK.authenticate('bademail@tellescope.com', 'badpassword@tellescope.com'); }, { shouldError: true, onError: function (e) { return e.message === 'Too many login attempts'; } })];
+                return [4 /*yield*/, badEnduserSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)];
             case 18:
+                _a.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)('login rate limited', function () { return badEnduserSDK.authenticate('bademail@tellescope.com', 'badpassword@tellescope.com'); }, { shouldError: true, onError: function (e) { return e.message === 'Too many login attempts'; } })];
+            case 19:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('login not rate limited for other enduser', function () { return badEnduserSDK.authenticate('otherbademail@tellescope.com', 'badpassword@tellescope.com'); }, { shouldError: true, onError: function (e) { return e.message !== 'Too many login attempts'; } })
                     // prevent additional login throttling
                 ];
-            case 19:
+            case 20:
                 _a.sent();
                 // prevent additional login throttling
                 return [4 /*yield*/, (0, testing_1.async_test)('reset_db', function () { return sdk.reset_db(); }, passOnVoid)];
-            case 20:
+            case 21:
                 // prevent additional login throttling
                 _a.sent();
                 return [4 /*yield*/, sdk.logout()];
-            case 21:
-                _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('test_authenticated - (logout invalidates jwt)', sdk.test_authenticated, { shouldError: true, onError: function (e) { return e === 'Unauthenticated'; } })];
             case 22:
                 _a.sent();
-                return [4 /*yield*/, sdk.authenticate(email, password)];
+                return [4 /*yield*/, (0, testing_1.async_test)('test_authenticated - (logout invalidates jwt)', sdk.test_authenticated, { shouldError: true, onError: function (e) { return e === 'Unauthenticated'; } })];
             case 23:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('test_authenticated (re-authenticated)', sdk.test_authenticated, { expectedResult: 'Authenticated!' })];
+                return [4 /*yield*/, sdk.authenticate(email, password)];
             case 24:
+                _a.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)('test_authenticated (re-authenticated)', sdk.test_authenticated, { expectedResult: 'Authenticated!' })];
+            case 25:
                 _a.sent();
                 uInfo = sdk.userInfo;
                 originalAuthToken = sdk.authToken;
                 return [4 /*yield*/, sdk.refresh_session()];
-            case 25:
+            case 26:
                 _a.sent();
                 (0, testing_1.assert)(uInfo.id === sdk.userInfo.id, 'userInfo mismatch', 'userInfo id preserved after refresh');
                 (0, testing_1.assert)(!!originalAuthToken && !!sdk.authToken && sdk.authToken !== originalAuthToken, 'same authToken after refresh', 'authToken refresh');
                 return [4 /*yield*/, (0, testing_1.async_test)('role change by non-admin prevented (admin)', function () { return sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: ['Admin'] }, { replaceObjectFields: true }); }, testing_1.handleAnyError)];
-            case 26:
+            case 27:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('email change by non-admin prevented (admin)', function () { return sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { email: 'otheremail@tellescope.com' }, { replaceObjectFields: true }); }, testing_1.handleAnyError)];
-            case 27:
+            case 28:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('role change by non-admin prevented (non-admin)', function () { return sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: ['Not Admin'] }, { replaceObjectFields: true }); }, testing_1.handleAnyError)
                     // would assign default non-admin role, which could grant additional permissions than currently-defined non-admin role, should block
                 ];
-            case 28:
+            case 29:
                 _a.sent();
                 // would assign default non-admin role, which could grant additional permissions than currently-defined non-admin role, should block
                 return [4 /*yield*/, (0, testing_1.async_test)('role change by non-admin prevented (empty)', function () { return sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: [] }, { replaceObjectFields: true }); }, testing_1.handleAnyError)
                     // ensure that going to "Non-Admin" triggers a role change
                 ];
-            case 29:
+            case 30:
                 // would assign default non-admin role, which could grant additional permissions than currently-defined non-admin role, should block
                 _a.sent();
                 // ensure that going to "Non-Admin" triggers a role change
                 return [4 /*yield*/, sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: ['Test'] }, { replaceObjectFields: true })];
-            case 30:
+            case 31:
                 // ensure that going to "Non-Admin" triggers a role change
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.wait)(undefined, 2000)]; // wait for role change to propagate so authenticate does fail next
-            case 31:
+            case 32:
                 _a.sent(); // wait for role change to propagate so authenticate does fail next
                 return [4 /*yield*/, sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)];
-            case 32:
+            case 33:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('non admin authenticated', sdkNonAdmin.test_authenticated, { expectedResult: 'Authenticated!' })
                     // reset nonAdmin role to a default non-admin
                 ];
-            case 33:
+            case 34:
                 _a.sent();
                 // reset nonAdmin role to a default non-admin
                 return [4 /*yield*/, sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: ['Non-Admin'] }, { replaceObjectFields: true })];
-            case 34:
+            case 35:
                 // reset nonAdmin role to a default non-admin
                 _a.sent();
                 // should be unauthenticated due to role change
                 return [4 /*yield*/, (0, testing_1.wait)(undefined, 100)];
-            case 35:
+            case 36:
                 // reset nonAdmin role to a default non-admin
                 // should be unauthenticated due to role change
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('role change causes deauthentication', sdkNonAdmin.test_authenticated, testing_1.handleAnyError)
                     // reauthenticate
                 ];
-            case 36:
+            case 37:
                 _a.sent();
                 // reauthenticate
                 return [4 /*yield*/, (0, testing_1.wait)(undefined, 1000)];
-            case 37:
+            case 38:
                 // reauthenticate
                 _a.sent();
                 return [4 /*yield*/, sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)
                     // may do some stuff in background after returning
                 ];
-            case 38:
+            case 39:
                 _a.sent();
                 // may do some stuff in background after returning
                 return [4 /*yield*/, (0, testing_1.async_test)('reset_db', function () { return sdk.reset_db(); }, passOnVoid)];
-            case 39:
+            case 40:
                 // may do some stuff in background after returning
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.wait)(undefined, 250)];
-            case 40:
+            case 41:
                 _a.sent();
                 return [2 /*return*/];
         }

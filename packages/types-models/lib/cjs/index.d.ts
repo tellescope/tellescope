@@ -534,6 +534,7 @@ export interface Organization extends Organization_readonly, Organization_requir
     }[];
     externalFormIdsToSync?: string[];
     enforceMFA?: boolean;
+    accountSwitchingEnabled?: boolean;
     analyticsIframes?: {
         title: string;
         iframeURL: string;
@@ -569,6 +570,7 @@ export interface Organization extends Organization_readonly, Organization_requir
     skipActivePatientBilling?: boolean;
     portalV2SchemaURL?: string;
     timeTrackingPrograms?: TimeTrackingProgram[];
+    belugaAutomationMappings?: BelugaAutomationMappingEntry[];
 }
 export type OrganizationTheme = {
     name: string;
@@ -664,6 +666,9 @@ export interface UserSession extends Session, OrganizationLimits {
     availablePhoneNumbers: string[];
     availableFromEmails: string[];
     isa?: boolean;
+    actorUserId?: string;
+    actorEmail?: string;
+    actorBusinessId?: string;
 }
 export type StateCredentialInfo = {
     state: string;
@@ -701,6 +706,25 @@ export type UserCallRoutingBehavior = ('' | 'Assigned' | 'Unassigned' | 'All');
 export type MFASettings = {
     email?: boolean;
 };
+export interface LinkedAccount {
+    id: string;
+    email: string;
+    orgName: string;
+    fname?: string;
+    lname?: string;
+    requiresMFA: boolean;
+}
+export type LinkedAccountAccessStatus = 'pending' | 'accepted';
+export interface LinkedAccountAccessEntry {
+    userId: string;
+    email: string;
+    fname?: string;
+    lname?: string;
+    orgName?: string;
+    status: LinkedAccountAccessStatus;
+    createdAt: Date;
+    requestExpiresAt: Date;
+}
 export type LabeledField = {
     field: string;
     value: string;
@@ -791,6 +815,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
     dashboardView?: CustomDashboardView;
     hideFromCalendarView?: boolean;
     requireSSO?: string[];
+    linkedAccountAccess?: LinkedAccountAccessEntry[];
 }
 export type Preference = 'email' | 'sms' | 'call' | 'chat';
 export type CustomField = string | number | object | {
@@ -3332,8 +3357,9 @@ export type BelugaAutoRxPatientPreferenceItem = {
     medId: string;
 };
 export type BelugaAutoRxAutomationAction = AutomationActionBuilder<'belugaAutoRx', {
-    patientPreference: BelugaAutoRxPatientPreferenceItem;
-    pharmacyId: string;
+    patientPreference?: BelugaAutoRxPatientPreferenceItem;
+    pharmacyId?: string;
+    useOrganizationMapping?: boolean;
 }>;
 export type BelugaUpdateVisitPatientPreferenceItem = {
     name: string;
@@ -3344,9 +3370,15 @@ export type BelugaUpdateVisitPatientPreferenceItem = {
     medId: string;
 };
 export type BelugaUpdateVisitAutomationAction = AutomationActionBuilder<'belugaUpdateVisit', {
+    patientPreferences?: BelugaUpdateVisitPatientPreferenceItem[];
+    pharmacyId?: string;
+    useOrganizationMapping?: boolean;
+}>;
+export type BelugaAutomationMappingEntry = {
+    enduserCondition: Record<string, any>;
     patientPreferences: BelugaUpdateVisitPatientPreferenceItem[];
     pharmacyId: string;
-}>;
+};
 export type SendChatAutomationAction = AutomationActionBuilder<'sendChat', {
     templateId: string;
     identifier: string;
@@ -3915,6 +3947,7 @@ export interface UserLog extends UserLog_readonly, UserLog_required, UserLog_upd
     info?: Indexable;
     enduserId?: string;
     note?: string;
+    actorUserId?: string;
 }
 export interface EnduserTask_readonly extends ClientRecord {
 }
@@ -4823,6 +4856,9 @@ export type AutomationTriggerEvents = {
     }, {}>;
     'Incoming Fax': AutomationTriggerEventBuilder<"Incoming Fax", {
         senderFaxNumbers?: string[];
+    }, {}>;
+    'Beluga Visit Sync Failed': AutomationTriggerEventBuilder<"Beluga Visit Sync Failed", {
+        formIds?: string[];
     }, {}>;
 };
 export type AutomationTriggerEventType = keyof AutomationTriggerEvents;

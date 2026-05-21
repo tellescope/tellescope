@@ -90,7 +90,11 @@ import {
   AutomationAction,
   TimeTrackTimestamp,
   BelugaPharmacyMapping,
+  BelugaAutomationMappingEntry,
+  BelugaUpdateVisitPatientPreferenceItem,
   TimeTrack,
+  LinkedAccount,
+  LinkedAccountAccessEntry,
 } from "@tellescope/types-models"
 
 import {
@@ -261,6 +265,7 @@ import {
   exactMatchValidator,
   exactMatchValidatorOptional,
   listOfMongoIdStringValidatorOptionalOrEmptyOk,
+  linkedAccountAccessValidator,
   listOfStringsValidatorOptionalOrEmptyOk,
   stringValidatorOptionalEmptyOkay,
   analyticsQueryResultsValidator,
@@ -934,6 +939,9 @@ export type CustomActions = {
     consent: CustomAction<{ termsVersion: string, }, { user: User, authToken: string }>,
     get_users_for_groups: CustomAction<{ groups: string[] }, { userIds: string[] }>,
     play_phone_message: CustomAction<{ userId: string, message: string, enduserId?: string, journeyContext?: JourneyContext }, { }>,
+    get_linked_accounts: CustomAction<{}, { linkedAccounts: LinkedAccount[] }>,
+    switch_account: CustomAction<{ targetUserId: string }, { authToken: string, user: User }>,
+    request_linked_account_access: CustomAction<{ targetEmail: string }, { }>,
   },
   chat_rooms: {
     join_room: CustomAction<{ id: string }, { room: ChatRoom }>,
@@ -3558,7 +3566,73 @@ export const schema: SchemaV1 = build_schema({
 
             return "User organizationIds are readonly"
           }
-        }
+        },
+        {
+          explanation: "linkedAccountAccess mutations are constrained to the owner with allowlisted transitions",
+          evaluate: (record, _, session, method, { updates, original }) => {
+            if (!updates || !('linkedAccountAccess' in updates)) return
+            if (method === 'create') {
+              if (updates.linkedAccountAccess && (updates.linkedAccountAccess as any[]).length > 0) {
+                return "linkedAccountAccess cannot be set on user creation"
+              }
+              return
+            }
+
+            // Grant management is reserved to the actor's own session. From a switched session
+            // (session.actorUserId set), even targeting the proxy identity's own record is rejected —
+            // otherwise A-as-B could self-approve other pending requests on B, or delete B's existing
+            // grants and silently revoke other grantees.
+            if ((session as any).actorUserId) {
+              return "Cannot update linkedAccountAccess from a switched session"
+            }
+
+            // self-update only — record carries the post-merge updated document; original is the prior state.
+            const ownerId = (record as any)._id?.toString() ?? (original as any)?._id?.toString() ?? (original as any)?.id
+            if (!(ownerId && ownerId === session.id)) {
+              return "Only the account owner can update linkedAccountAccess"
+            }
+
+            const oldEntries: LinkedAccountAccessEntry[] = (original as any)?.linkedAccountAccess ?? []
+            const newEntries: LinkedAccountAccessEntry[] = (updates.linkedAccountAccess as any) ?? []
+
+            for (const newEntry of newEntries) {
+              const oldMatch = oldEntries.find(e => e.userId === newEntry.userId)
+              if (!oldMatch) {
+                return "Cannot add entries to linkedAccountAccess via direct update; use request_linked_account_access"
+              }
+
+              if (newEntry.email !== oldMatch.email) return "linkedAccountAccess entry email is immutable"
+              if ((newEntry.fname ?? null) !== (oldMatch.fname ?? null)) return "linkedAccountAccess entry fname is immutable"
+              if ((newEntry.lname ?? null) !== (oldMatch.lname ?? null)) return "linkedAccountAccess entry lname is immutable"
+              if ((newEntry.orgName ?? null) !== (oldMatch.orgName ?? null)) return "linkedAccountAccess entry orgName is immutable"
+              if (new Date(newEntry.createdAt).getTime() !== new Date(oldMatch.createdAt).getTime()) return "linkedAccountAccess entry createdAt is immutable"
+              if (new Date(newEntry.requestExpiresAt).getTime() !== new Date(oldMatch.requestExpiresAt).getTime()) return "linkedAccountAccess entry requestExpiresAt is immutable"
+
+              if (newEntry.status !== oldMatch.status) {
+                if (!(oldMatch.status === 'pending' && newEntry.status === 'accepted')) {
+                  return "linkedAccountAccess status can only transition from pending to accepted"
+                }
+                // Reject approval of an expired pending request — owner must wait for the requester
+                // to re-issue. requestExpiresAt is immutable per the rule above; the only way for a
+                // pending entry to refresh is request_linked_account_access replacing the expired entry.
+                if (new Date(oldMatch.requestExpiresAt).getTime() < Date.now()) {
+                  return "linkedAccountAccess request has expired and cannot be approved; requester must re-request"
+                }
+              }
+            }
+
+            return
+          }
+        },
+        {
+          explanation: "Legacy accountAccessGrantedTo field is no longer accepted",
+          evaluate: (_, __, ___, ____, { updates }) => {
+            if (updates && 'accountAccessGrantedTo' in updates) {
+              return "accountAccessGrantedTo has been replaced by linkedAccountAccess"
+            }
+            return
+          }
+        },
       ],
     },
     defaultActions: { 
@@ -3731,11 +3805,44 @@ export const schema: SchemaV1 = build_schema({
         name: 'Play Phone Message',
         path: '/users/play-phone-message',
         description: "Calls the user and plays a recorded message",
-        parameters: { 
+        parameters: {
           userId: { validator: mongoIdStringValidator, required: true },
           message: { validator: stringValidator5000, required: true },
           enduserId: { validator: mongoIdStringValidator },
           journeyContext: { validator: journeyContextValidator },
+        },
+        returns: { },
+      },
+      get_linked_accounts: {
+        op: "custom", access: 'read', method: "get",
+        name: 'Get Linked Accounts',
+        path: '/users/linked-accounts',
+        description: "Returns accounts that have granted access to the caller",
+        parameters: { },
+        returns: {
+          linkedAccounts: { validator: objectAnyFieldsAnyValuesValidator as any, required: true },
+        },
+      },
+      switch_account: {
+        op: "custom", access: 'update', method: "post",
+        name: 'Switch Account',
+        path: '/users/switch-account',
+        description: "Switches the current session to a target account that has granted access",
+        parameters: {
+          targetUserId: { validator: mongoIdStringRequired, required: true },
+        },
+        returns: {
+          authToken: { validator: stringValidator, required: true },
+          user: { validator: 'user' as any, required: true },
+        },
+      },
+      request_linked_account_access: {
+        op: "custom", access: 'update', method: "post",
+        name: 'Request Linked Account Access',
+        path: '/users/request-linked-account-access',
+        description: "Requests linked-account access from another user identified by email; the target user must accept before the requester can switch into the account",
+        parameters: {
+          targetEmail: { validator: emailValidator, required: true },
         },
         returns: { },
       },
@@ -3852,6 +3959,7 @@ export const schema: SchemaV1 = build_schema({
       email: {
         validator: emailValidator,
         required: true,
+        updatesDisabled: true,
         examples: ['test@tellescope.com'],
         redactions: ['enduser'],
       },
@@ -3978,6 +4086,7 @@ export const schema: SchemaV1 = build_schema({
       dashboardView: { validator: customDashboardViewValidator },
       hideFromCalendarView: { validator: booleanValidator },
       requireSSO: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
+      linkedAccountAccess: { validator: linkedAccountAccessValidator },
     }
   },
   templates: {
@@ -7170,6 +7279,7 @@ export const schema: SchemaV1 = build_schema({
       canvasSyncPhoneConsent: { validator: booleanValidator },
       canvasStateToLocationId: { validator: objectAnyFieldsValidator(stringValidator100) },
       enforceMFA: { validator: booleanValidator },
+      accountSwitchingEnabled: { validator: booleanValidator },
       replyToEnduserTransactionalEmails: { validator: emailValidator },
       customTermsOfService: { validator: stringValidator },
       customPrivacyPolicy: { validator: stringValidator },
@@ -7223,6 +7333,20 @@ export const schema: SchemaV1 = build_schema({
             id: mongoIdStringRequired,
           })),
           summaryFormId: mongoIdStringOptional,
+        }))
+      },
+      belugaAutomationMappings: {
+        validator: listValidatorOptionalOrEmptyOk(objectValidator<BelugaAutomationMappingEntry>({
+          enduserCondition: optionalAnyObjectValidator,
+          patientPreferences: listValidator(objectValidator<BelugaUpdateVisitPatientPreferenceItem>({
+            name: stringValidator,
+            strength: stringValidator,
+            refills: stringValidator,
+            quantity: stringValidator,
+            daysSupply: stringValidator,
+            medId: stringValidator,
+          })),
+          pharmacyId: stringValidator,
         }))
       },
     },
@@ -9734,7 +9858,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           type: { validator: stringValidator100 }, // only used on creation
           maxTokens: { validator: positiveNumberValidator },
           conversationId: { validator: mongoIdStringValidator },
-          prompt: { validator: stringValidator25000 },
+          prompt: { validator: stringValidator100000EmptyOkay },
           orchestrationId: { validator: stringValidatorOptional }, // optional ID to group multiple conversations as part of the same workflow
         },
         returns: {
