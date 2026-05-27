@@ -71,7 +71,7 @@ import { Button, CircularProgress, Flex, LoadingButton, Modal, Paper, Typography
 import { useListForFormFields, useOrganizationTheme, WithOrganizationTheme } from "./hooks";
 import { AddressInput, AllergiesInput, AppointmentBookingInput, BelugaPatientPreferenceInput, BridgeEligibilityInput, CandidEligibilityInput, ChargeebeeInput, ConditionsInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, EmotiiInput, FileInput, FilesInput, HeightInput, HiddenValueInput, InsuranceInput, LanguageSelect, MedicationsInput, MultipleChoiceInput, NumberInput, PharmacySearchInput, PhoneInput, Progress, RankingInput, RatingInput, RedirectInput, RelatedContactsInput, RichTextInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, TimezoneInput, defaultButtonStyles } from "./inputs";
 import { PRIMARY_HEX } from "@tellescope/constants";
-import { calculate_form_scoring, field_can_autosubmit, form_response_value_to_string, formatted_date, object_is_empty, objects_equivalent, read_local_storage, remove_script_tags, responses_satisfy_conditions, truncate_string } from "@tellescope/utilities";
+import { calculate_form_scoring, field_can_autosubmit, form_response_value_to_string, formatted_date, object_is_empty, objects_equivalent, read_local_storage, sanitize_user_html, responses_satisfy_conditions, truncate_string } from "@tellescope/utilities";
 import { Divider } from "@mui/material";
 export var TellescopeFormContainer = function (_a) {
     var businessId = _a.businessId, organizationIds = _a.organizationIds, props = __rest(_a, ["businessId", "organizationIds"]);
@@ -392,7 +392,7 @@ export var ThanksMessage = function (_a) {
     var thanksMessage = _a.thanksMessage, htmlThanksMessage = _a.htmlThanksMessage, showRestartAtEnd = _a.showRestartAtEnd, downloadComponent = _a.downloadComponent;
     return (_jsxs(Flex, __assign({ column: true }, { children: [htmlThanksMessage
                 ? (_jsx("div", { style: { textAlign: 'center' }, dangerouslySetInnerHTML: {
-                        __html: remove_script_tags(htmlThanksMessage)
+                        __html: sanitize_user_html(htmlThanksMessage)
                     } })) : (_jsx(Typography, __assign({ style: { marginTop: 25, alignSelf: 'center' } }, { children: thanksMessage || DEFAULT_THANKS_MESSAGE }))), read_local_storage('redirecting_public_group') === 'true' &&
                 _jsx(_Fragment, { children: _jsxs(Typography, __assign({ style: { marginTop: 25, alignSelf: 'center' } }, { children: ["Redirecting to next form... ", _jsx(CircularProgress, { size: 20, color: "primary" })] })) }), downloadComponent &&
                 _jsx(Flex, __assign({ justifyContent: "center", style: { marginTop: 15, marginBottom: 15 } }, { children: downloadComponent })), showRestartAtEnd && window.localStorage["ts_form_url"] &&
@@ -638,6 +638,8 @@ var HistoricalDataSection = function (_a) {
                                 promises.push(session.api.enduser_observations.getSome({
                                     filter: __assign({ enduserId: enduserId }, source.filter),
                                     limit: source.limit,
+                                    sortBy: 'timestamp',
+                                    sort: 'newFirst',
                                 })
                                     .then(function (obs) { loadedObservations_1 = obs; setObservations(obs); }));
                             }
@@ -713,7 +715,7 @@ export var Description = function (_a) {
     var _b, _c;
     var field = _a.field, _d = _a.color, color = _d === void 0 ? "primary" : _d, style = _a.style, enduserId = _a.enduserId, onFieldChange = _a.onFieldChange;
     var existingContent = (!field.htmlDescription && field.description ? (_jsx(Typography, __assign({ color: color, style: style }, { children: field.description }))) : field.htmlDescription ? (_jsx("span", { dangerouslySetInnerHTML: {
-            __html: remove_script_tags(field.htmlDescription)
+            __html: sanitize_user_html(field.htmlDescription)
         } })) : null);
     return (_jsxs(_Fragment, { children: [existingContent, field.type === 'description' && ((_c = (_b = field.options) === null || _b === void 0 ? void 0 : _b.historicalDataSources) === null || _c === void 0 ? void 0 : _c.length) && enduserId ? (_jsx(HistoricalDataSection, { sources: field.options.historicalDataSources, enduserId: enduserId, onDataLoaded: onFieldChange ? function (jsonString) { return onFieldChange(jsonString, field.id); } : undefined })) : null] }));
 };

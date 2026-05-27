@@ -68,7 +68,7 @@ var HTMLMessage = function (_a) {
     return ((0, jsx_runtime_1.jsx)(react_native_render_html_1.default, { defaultTextProps: { selectable: selectable }, baseStyle: {
             paddingTop: 4, // causes better fit into both 1-line and multiline chat bubbles
         }, contentWidth: width, source: {
-            html: ((0, utilities_1.remove_script_tags)(html))
+            html: ((0, utilities_1.sanitize_user_html)(html))
         }, tagsStyles: {
             'body': {
                 color: color,

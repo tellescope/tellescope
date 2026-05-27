@@ -422,7 +422,7 @@ var ThanksMessage = function (_a) {
     var thanksMessage = _a.thanksMessage, htmlThanksMessage = _a.htmlThanksMessage, showRestartAtEnd = _a.showRestartAtEnd, downloadComponent = _a.downloadComponent;
     return ((0, jsx_runtime_1.jsxs)(index_1.Flex, __assign({ column: true }, { children: [htmlThanksMessage
                 ? ((0, jsx_runtime_1.jsx)("div", { style: { textAlign: 'center' }, dangerouslySetInnerHTML: {
-                        __html: (0, utilities_1.remove_script_tags)(htmlThanksMessage)
+                        __html: (0, utilities_1.sanitize_user_html)(htmlThanksMessage)
                     } })) : ((0, jsx_runtime_1.jsx)(index_1.Typography, __assign({ style: { marginTop: 25, alignSelf: 'center' } }, { children: thanksMessage || exports.DEFAULT_THANKS_MESSAGE }))), (0, utilities_1.read_local_storage)('redirecting_public_group') === 'true' &&
                 (0, jsx_runtime_1.jsx)(jsx_runtime_1.Fragment, { children: (0, jsx_runtime_1.jsxs)(index_1.Typography, __assign({ style: { marginTop: 25, alignSelf: 'center' } }, { children: ["Redirecting to next form... ", (0, jsx_runtime_1.jsx)(index_1.CircularProgress, { size: 20, color: "primary" })] })) }), downloadComponent &&
                 (0, jsx_runtime_1.jsx)(index_1.Flex, __assign({ justifyContent: "center", style: { marginTop: 15, marginBottom: 15 } }, { children: downloadComponent })), showRestartAtEnd && window.localStorage["ts_form_url"] &&
@@ -671,6 +671,8 @@ var HistoricalDataSection = function (_a) {
                                 promises.push(session.api.enduser_observations.getSome({
                                     filter: __assign({ enduserId: enduserId }, source.filter),
                                     limit: source.limit,
+                                    sortBy: 'timestamp',
+                                    sort: 'newFirst',
                                 })
                                     .then(function (obs) { loadedObservations_1 = obs; setObservations(obs); }));
                             }
@@ -746,7 +748,7 @@ var Description = function (_a) {
     var _b, _c;
     var field = _a.field, _d = _a.color, color = _d === void 0 ? "primary" : _d, style = _a.style, enduserId = _a.enduserId, onFieldChange = _a.onFieldChange;
     var existingContent = (!field.htmlDescription && field.description ? ((0, jsx_runtime_1.jsx)(index_1.Typography, __assign({ color: color, style: style }, { children: field.description }))) : field.htmlDescription ? ((0, jsx_runtime_1.jsx)("span", { dangerouslySetInnerHTML: {
-            __html: (0, utilities_1.remove_script_tags)(field.htmlDescription)
+            __html: (0, utilities_1.sanitize_user_html)(field.htmlDescription)
         } })) : null);
     return ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [existingContent, field.type === 'description' && ((_c = (_b = field.options) === null || _b === void 0 ? void 0 : _b.historicalDataSources) === null || _c === void 0 ? void 0 : _c.length) && enduserId ? ((0, jsx_runtime_1.jsx)(HistoricalDataSection, { sources: field.options.historicalDataSources, enduserId: enduserId, onDataLoaded: onFieldChange ? function (jsonString) { return onFieldChange(jsonString, field.id); } : undefined })) : null] }));
 };

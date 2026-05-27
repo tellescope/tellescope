@@ -24,7 +24,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 };
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { remove_script_tags, sanitize_html_for_cms } from "@tellescope/utilities";
+import { sanitize_user_html, sanitize_html_for_cms } from "@tellescope/utilities";
 import { Button, Grid, Typography } from "@mui/material";
 import { PDFBlockUI } from "./components";
 import { css } from "@emotion/css";
@@ -150,7 +150,7 @@ export var ArticleViewer = function (_a) {
         }
         else if (article.htmlContent) {
             return (_jsx("div", { style: style, dangerouslySetInnerHTML: {
-                    __html: remove_script_tags(article.htmlContent)
+                    __html: sanitize_user_html(article.htmlContent)
                 } }));
         }
         else {
@@ -162,7 +162,7 @@ export var ArticleViewer = function (_a) {
             return (_jsx(Grid, __assign({ item: true }, { children: block.type === 'h1' ? (_jsx(Typography, __assign({ component: "h1", sx: { fontSize: 28, fontWeight: 'bold', m: 0, p: 0 }, style: blockStyleToCSS(block.style) }, { children: block.info.text })))
                     : block.type === 'h2' ? (_jsx(Typography, __assign({ component: "h2", sx: { fontSize: 23, m: 0, p: 0 }, style: blockStyleToCSS(block.style) }, { children: block.info.text })))
                         : block.type === 'html' ? (_jsx("div", { style: __assign({ fontSize: 18, lineHeight: '25pt' }, blockStyleToCSS(block.style)), className: css(templateObject_1 || (templateObject_1 = __makeTemplateObject(["p {\n                margin-top: 0;\n                margin-bottom: 0;\n              }"], ["p {\n                margin-top: 0;\n                margin-bottom: 0;\n              }"]))), dangerouslySetInnerHTML: {
-                                __html: remove_script_tags(block.info.html.replaceAll(/style="*"/g, ''))
+                                __html: sanitize_user_html(block.info.html.replaceAll(/style="*"/g, ''))
                             } }))
                             : block.type === 'raw-html' ? (_jsx("div", { style: __assign({ fontSize: 18, lineHeight: '25pt' }, blockStyleToCSS(block.style)), dangerouslySetInnerHTML: {
                                     __html: sanitize_html_for_cms(block.info.html)
@@ -193,7 +193,7 @@ export var html_for_article = function (article, options) {
         var _a, _b;
         return block.type === 'h1' ? ("<h1>".concat(block.info.text, "</h1>"))
             : block.type === 'h2' ? ("<h2>".concat(block.info.text, "</h2>"))
-                : block.type === 'html' ? ("<div>".concat(remove_script_tags(remove_script_tags(block.info.html)), "</div>"))
+                : block.type === 'html' ? ("<div>".concat(sanitize_user_html(sanitize_user_html(block.info.html)), "</div>"))
                     : block.type === 'raw-html' ? ("<div>".concat(sanitize_html_for_cms(block.info.html), "</div>"))
                         : block.type === 'image' ? (
                         // wrap with div to supporting centering later

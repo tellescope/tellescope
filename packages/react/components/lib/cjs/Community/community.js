@@ -73,7 +73,7 @@ var ResolvedContent = function (_a) {
     var textContent = _a.textContent, htmlContent = _a.htmlContent, style = _a.style;
     if (htmlContent) {
         return ((0, jsx_runtime_1.jsx)("div", { style: style, dangerouslySetInnerHTML: {
-                __html: (0, utilities_1.remove_script_tags)(htmlContent),
+                __html: (0, utilities_1.sanitize_user_html)(htmlContent),
             } }));
     }
     return (0, jsx_runtime_1.jsx)(material_1.Typography, { children: textContent });

@@ -2160,6 +2160,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
     score: string,
     externalId: string,
   }[]
+  syncAnswersAsHtml?: boolean,
   hideAfterUnsubmittedInMS?: number,
   hideFromCompose?: boolean,
   hideFromBulkSubmission?: boolean,
@@ -3405,6 +3406,7 @@ export type BelugaAutoRxPatientPreferenceItem = {
   medId: string,
 }
 export type BelugaAutoRxAutomationAction = AutomationActionBuilder<'belugaAutoRx', {
+  formId: string,
   patientPreference?: BelugaAutoRxPatientPreferenceItem,
   pharmacyId?: string,
   useOrganizationMapping?: boolean,
@@ -3418,6 +3420,7 @@ export type BelugaUpdateVisitPatientPreferenceItem = {
   medId: string,
 }
 export type BelugaUpdateVisitAutomationAction = AutomationActionBuilder<'belugaUpdateVisit', {
+  formId: string,
   patientPreferences?: BelugaUpdateVisitPatientPreferenceItem[],
   pharmacyId?: string,
   useOrganizationMapping?: boolean,

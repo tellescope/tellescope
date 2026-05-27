@@ -6,7 +6,7 @@ import { AddToDatabaseProps, AddressInput, AllergiesInput, AppointmentBookingInp
 import { PRIMARY_HEX } from "@tellescope/constants"
 import { FormResponse, FormField, Form, Enduser } from "@tellescope/types-client"
 import { FormResponseAnswerFileValue, OrganizationTheme, HistoricalDataSource } from "@tellescope/types-models"
-import { calculate_form_scoring, field_can_autosubmit, form_response_value_to_string, formatted_date, object_is_empty, objects_equivalent, read_local_storage, remove_script_tags, responses_satisfy_conditions, truncate_string } from "@tellescope/utilities"
+import { calculate_form_scoring, field_can_autosubmit, form_response_value_to_string, formatted_date, object_is_empty, objects_equivalent, read_local_storage, sanitize_user_html, responses_satisfy_conditions, truncate_string } from "@tellescope/utilities"
 import { Divider } from "@mui/material"
 
 export const TellescopeFormContainer = ({ businessId, organizationIds, ...props } : {
@@ -798,7 +798,7 @@ export const ThanksMessage = ({
     {htmlThanksMessage
       ? (
         <div style={{ textAlign: 'center' }} dangerouslySetInnerHTML={{
-          __html: remove_script_tags(htmlThanksMessage)
+          __html: sanitize_user_html(htmlThanksMessage)
         }} />
       ) : (
         <Typography style={{ marginTop: 25, alignSelf: 'center' }}>{thanksMessage || DEFAULT_THANKS_MESSAGE}</Typography>
@@ -1068,6 +1068,8 @@ const HistoricalDataSection = ({ sources, enduserId, onDataLoaded } : { sources:
               session.api.enduser_observations.getSome({
                 filter: { enduserId, ...source.filter },
                 limit: source.limit,
+                sortBy: 'timestamp',
+                sort: 'newFirst',
               })
               .then((obs: any[]) => { loadedObservations = obs; setObservations(obs) })
             )
@@ -1236,7 +1238,7 @@ export const Description = ({ field, color="primary", style, enduserId, onFieldC
       </Typography>
     ) : field.htmlDescription ? (
       <span dangerouslySetInnerHTML={{
-        __html: remove_script_tags(field.htmlDescription)
+        __html: sanitize_user_html(field.htmlDescription)
       }} />
     ) : null
   )

@@ -157,7 +157,7 @@ var ArticleViewer = function (_a) {
         }
         else if (article.htmlContent) {
             return ((0, jsx_runtime_1.jsx)("div", { style: style, dangerouslySetInnerHTML: {
-                    __html: (0, utilities_1.remove_script_tags)(article.htmlContent)
+                    __html: (0, utilities_1.sanitize_user_html)(article.htmlContent)
                 } }));
         }
         else {
@@ -169,7 +169,7 @@ var ArticleViewer = function (_a) {
             return ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: block.type === 'h1' ? ((0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ component: "h1", sx: { fontSize: 28, fontWeight: 'bold', m: 0, p: 0 }, style: blockStyleToCSS(block.style) }, { children: block.info.text })))
                     : block.type === 'h2' ? ((0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ component: "h2", sx: { fontSize: 23, m: 0, p: 0 }, style: blockStyleToCSS(block.style) }, { children: block.info.text })))
                         : block.type === 'html' ? ((0, jsx_runtime_1.jsx)("div", { style: __assign({ fontSize: 18, lineHeight: '25pt' }, blockStyleToCSS(block.style)), className: (0, css_1.css)(templateObject_1 || (templateObject_1 = __makeTemplateObject(["p {\n                margin-top: 0;\n                margin-bottom: 0;\n              }"], ["p {\n                margin-top: 0;\n                margin-bottom: 0;\n              }"]))), dangerouslySetInnerHTML: {
-                                __html: (0, utilities_1.remove_script_tags)(block.info.html.replaceAll(/style="*"/g, ''))
+                                __html: (0, utilities_1.sanitize_user_html)(block.info.html.replaceAll(/style="*"/g, ''))
                             } }))
                             : block.type === 'raw-html' ? ((0, jsx_runtime_1.jsx)("div", { style: __assign({ fontSize: 18, lineHeight: '25pt' }, blockStyleToCSS(block.style)), dangerouslySetInnerHTML: {
                                     __html: (0, utilities_1.sanitize_html_for_cms)(block.info.html)
@@ -201,7 +201,7 @@ var html_for_article = function (article, options) {
         var _a, _b;
         return block.type === 'h1' ? ("<h1>".concat(block.info.text, "</h1>"))
             : block.type === 'h2' ? ("<h2>".concat(block.info.text, "</h2>"))
-                : block.type === 'html' ? ("<div>".concat((0, utilities_1.remove_script_tags)((0, utilities_1.remove_script_tags)(block.info.html)), "</div>"))
+                : block.type === 'html' ? ("<div>".concat((0, utilities_1.sanitize_user_html)((0, utilities_1.sanitize_user_html)(block.info.html)), "</div>"))
                     : block.type === 'raw-html' ? ("<div>".concat((0, utilities_1.sanitize_html_for_cms)(block.info.html), "</div>"))
                         : block.type === 'image' ? (
                         // wrap with div to supporting centering later

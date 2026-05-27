@@ -601,6 +601,11 @@ export const time_for_calendar_event = (event: Pick<CalendarEvent, 'startTimeInM
   return `${hoursAmPm}:${minutes}${amPm === amPmEnd ? '' : amPm}-${hoursEnd}:${minutesEnd}${amPmEnd}`
 }
 
+/**
+ * @deprecated Use {@link sanitize_user_html} for any HTML that will be rendered (e.g. via
+ * `dangerouslySetInnerHTML`). This helper is retained for the validation/escaping path, where it
+ * operates on plain field values and is intentionally minimal so it does not alter their contents.
+ */
 export const remove_script_tags = (s: string) => s.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '')
 export const remove_style_tags = (s: string) => s.replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, '')
 export const remove_image_tags = (s: string) => s.replace(/<img[\s\S]*?>/gi, '')
@@ -692,6 +697,85 @@ export const sanitize_html_for_cms = (html: string) =>
       a: ['http', 'https', 'mailto', 'tel']
     }
   })
+
+/**
+ * Canonical sanitizer for HTML that will be rendered (e.g. via `dangerouslySetInnerHTML`):
+ * form descriptions/answers, CMS/articles, care plans, templates, chat, community posts,
+ * portal HTML blocks, email bodies, etc.
+ *
+ * Uses an allowlist parser (sanitize-html) tuned to be broad on formatting/structure so
+ * legitimate customization is preserved — rich text, headings, lists, tables, images, media,
+ * inline styles, and links — while only allowlisted tags, attributes, and URL schemes are kept.
+ * If a specific surface needs embeds (e.g. YouTube), add `iframe` with `allowedIframeHostnames`
+ * for that surface rather than loosening this shared function.
+ */
+export const sanitize_user_html = (html: string) => {
+  if (typeof html !== 'string' || !html) return ''
+  return sanitizeHtml(html, {
+    allowedTags: [
+      // text & inline
+      'a', 'abbr', 'b', 'bdi', 'bdo', 'br', 'cite', 'code', 'data', 'dfn', 'em', 'i', 'kbd',
+      'mark', 'q', 'rp', 'rt', 'ruby', 's', 'samp', 'small', 'span', 'strong', 'sub', 'sup',
+      'time', 'u', 'var', 'wbr', 'del', 'ins', 'abbr',
+      // block & structure
+      'address', 'article', 'aside', 'blockquote', 'caption', 'details', 'summary', 'div',
+      'figcaption', 'figure', 'footer', 'header', 'hgroup', 'hr', 'main', 'nav', 'p', 'pre',
+      'section',
+      // headings
+      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      // lists
+      'dd', 'dl', 'dt', 'li', 'ol', 'ul',
+      // tables
+      'col', 'colgroup', 'table', 'tbody', 'td', 'tfoot', 'th', 'thead', 'tr',
+      // media (no iframe/object/embed — those can execute or frame arbitrary content)
+      'img', 'audio', 'video', 'source', 'picture', 'track',
+    ],
+    allowedAttributes: {
+      // NOTE: `id`/`name` are intentionally omitted — caller-controlled id/name enable DOM
+      // clobbering (shadowing document/global properties) and duplicate-id breakage, with no
+      // legitimate need in rendered user content.
+      '*': [
+        'style', 'class', 'title', 'dir', 'lang', 'align', 'valign', 'width', 'height',
+        'color', 'bgcolor', 'aria-*', 'data-*', 'role',
+      ],
+      a: ['href', 'target', 'rel'],
+      img: ['src', 'srcset', 'sizes', 'alt', 'loading', 'decoding'],
+      audio: ['controls', 'src', 'preload', 'loop', 'muted'],
+      video: ['controls', 'src', 'poster', 'preload', 'loop', 'muted', 'playsinline'],
+      source: ['src', 'srcset', 'type', 'media', 'sizes'],
+      track: ['src', 'kind', 'srclang', 'label', 'default'],
+      col: ['span'],
+      colgroup: ['span'],
+      td: ['colspan', 'rowspan', 'headers'],
+      th: ['colspan', 'rowspan', 'headers', 'scope'],
+      ol: ['start', 'reversed', 'type'],
+      time: ['datetime'],
+      data: ['value'],
+      del: ['datetime'],
+      ins: ['datetime'],
+    },
+    // Only safe protocols. javascript:/vbscript: are not listed and are stripped.
+    allowedSchemes: ['http', 'https', 'mailto', 'tel'],
+    allowedSchemesByTag: {
+      img: ['http', 'https', 'data'],
+      source: ['http', 'https', 'data'],
+      video: ['http', 'https', 'data'],
+      audio: ['http', 'https', 'data'],
+    },
+    allowedSchemesAppliedToAttributes: ['href', 'src', 'srcset'],
+    allowProtocolRelative: true,
+    // Harden external links against reverse-tabnabbing.
+    transformTags: {
+      a: (tagName, attribs) => {
+        const href = attribs.href || ''
+        if (href.startsWith('http://') || href.startsWith('https://')) {
+          return { tagName, attribs: { ...attribs, target: '_blank', rel: 'noopener noreferrer' } }
+        }
+        return { tagName, attribs }
+      },
+    },
+  })
+}
 
 export const query_string_for_object = (query: Indexable) => {
   let queryString = ''
@@ -2756,6 +2840,69 @@ export const replace_purchase_template_values = (s: string, purchase?: Omit<Purc
   return replaced
 }
 
+export const replace_calendar_event_template_values = (
+  s: string,
+  event?: (Pick<CalendarEvent, 'title' | 'startTimeInMS' | 'durationInMinutes'
+    | 'type' | 'source' | 'externalId' | 'references' | 'videoURL' | 'externalVideoURL'
+    | 'instructions' | 'timezone'> & { _id?: any }) | null,
+  options: ReplacementOptions = {},
+) => {
+  if (!event) return s
+  if (typeof s !== 'string') return s
+
+  let i = 0
+  let start = 0
+  let templates = [] as { match: string, replacement: string }[]
+  while (i < 100) {
+    i++
+
+    start = s.indexOf('{{calendar_event.', start)
+    if (start === -1) break;
+
+    const end = s.indexOf('}}', start)
+    if (end === -1) break;
+
+    const match = s.substring(start, end + 2) // +2 accounts for '}}'
+    const field = match.replace('{{calendar_event.', '').replace('}}', '')
+
+    let replacement = ''
+
+    if (field === 'Healthie ID') {
+      replacement = (
+        event.source === HEALTHIE_TITLE && event.externalId
+          ? event.externalId
+          : event.references?.find(r => r.type === HEALTHIE_TITLE)?.id
+      ) || ''
+    } else if (field === 'id') {
+      replacement = (event as any)?._id?.toString() || ''
+    } else if (field === 'start') {
+      try { replacement = new Date(event.startTimeInMS).toISOString() } catch { replacement = '' }
+    } else {
+      const value = (event as any)[field]
+      if (value == null) {
+        replacement = ''
+      } else if (typeof value === 'object') {
+        replacement = options.objectToString === 'jsonEscaped'
+          ? JSON.stringify(JSON.stringify(value)).slice(1, -1)
+          : JSON.stringify(value)
+      } else {
+        replacement = value.toString()
+      }
+    }
+
+    templates.push({ match, replacement })
+
+    start = end + 2
+  }
+
+  let replaced = s.toString()
+  for (const { match, replacement } of templates) {
+    replaced = replaced.replace(match, replacement)
+  }
+
+  return replaced
+}
+
 export const replace_medication_template_values = (s: string, medication?: Omit<EnduserMedication, 'id'> | null) => {
   if (!medication) return s
   if (typeof s !== 'string') return s // e.g. Date value
@@ -3170,8 +3317,13 @@ export const value_for_dotted_key = (v: any, key: string, o?: { handleArray?: bo
   return value
 }
 
+const PROTO_POLLUTION_KEYS = new Set(['__proto__', 'constructor', 'prototype'])
+
 export const add_value_for_dotted_key = (_object: Record<any, any>, field: string, value: any) => {
   const keys = field.split('.')
+
+  // Never write through a path that could reach Object.prototype / a constructor.
+  if (keys.some(k => PROTO_POLLUTION_KEYS.has(k))) return
 
   let object = _object
   for (let i = 0; i < keys.length; i++) {

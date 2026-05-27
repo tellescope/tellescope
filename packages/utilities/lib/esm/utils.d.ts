@@ -173,11 +173,28 @@ export declare const calculate_date_difference_for_set_fields: (dateDifferenceOp
 } | undefined, enduserFields: Indexable<any> | undefined, fieldName: string, silent?: boolean) => number | '';
 export declare const fullMonth_day_year: (date: Date) => string;
 export declare const time_for_calendar_event: (event: Pick<CalendarEvent, 'startTimeInMS' | 'durationInMinutes'>) => string;
+/**
+ * @deprecated Use {@link sanitize_user_html} for any HTML that will be rendered (e.g. via
+ * `dangerouslySetInnerHTML`). This helper is retained for the validation/escaping path, where it
+ * operates on plain field values and is intentionally minimal so it does not alter their contents.
+ */
 export declare const remove_script_tags: (s: string) => string;
 export declare const remove_style_tags: (s: string) => string;
 export declare const remove_image_tags: (s: string) => string;
 export declare const sanitize_html_with_links: (html: string) => string;
 export declare const sanitize_html_for_cms: (html: string) => string;
+/**
+ * Canonical sanitizer for HTML that will be rendered (e.g. via `dangerouslySetInnerHTML`):
+ * form descriptions/answers, CMS/articles, care plans, templates, chat, community posts,
+ * portal HTML blocks, email bodies, etc.
+ *
+ * Uses an allowlist parser (sanitize-html) tuned to be broad on formatting/structure so
+ * legitimate customization is preserved — rich text, headings, lists, tables, images, media,
+ * inline styles, and links — while only allowlisted tags, attributes, and URL schemes are kept.
+ * If a specific surface needs embeds (e.g. YouTube), add `iframe` with `allowedIframeHostnames`
+ * for that surface rather than loosening this shared function.
+ */
+export declare const sanitize_user_html: (html: string) => string;
 export declare const query_string_for_object: (query: Indexable) => string;
 export declare const PROD_API_URL = "https://api.tellescope.com";
 export declare const STAGING_API_URL = "https://staging-api.tellescope.com";
@@ -325,6 +342,9 @@ export type ReplacementOptions = {
 };
 export declare const replace_tag_template_values_for_enduser: (tags: string[], enduser: Omit<Enduser, 'id'>, options?: ReplacementOptions) => any[];
 export declare const replace_purchase_template_values: (s: string, purchase?: Omit<Purchase, 'id'> | null) => string;
+export declare const replace_calendar_event_template_values: (s: string, event?: (Pick<CalendarEvent, 'title' | 'startTimeInMS' | 'durationInMinutes' | 'type' | 'source' | 'externalId' | 'references' | 'videoURL' | 'externalVideoURL' | 'instructions' | 'timezone'> & {
+    _id?: any;
+}) | null, options?: ReplacementOptions) => string;
 export declare const replace_medication_template_values: (s: string, medication?: Omit<EnduserMedication, 'id'> | null) => string;
 export declare const replace_order_template_values: (s: string, order?: Omit<EnduserOrder, 'id'> | null) => string;
 export declare const replace_form_field_template_values: (s: string, options: {

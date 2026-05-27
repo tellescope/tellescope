@@ -31,7 +31,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 };
 import { jsx as _jsx } from "react/jsx-runtime";
 import { useEffect, useRef, useState } from "react";
-import { user_display_name } from "@tellescope/utilities";
+import { sanitize_user_html, user_display_name } from "@tellescope/utilities";
 import { useEndusers, Typography, value_is_loaded, useUsers, convertHEIC, } from "./index";
 import { Avatar } from "./mui";
 import { useResolvedSession } from ".";
@@ -277,6 +277,6 @@ export var replace_links = function (html) {
         var replacementHTML = ("<a".concat(style ? " style=\"".concat(style, "\"") : '', " href=\"").concat(link, "\" target=\"_blank\">").concat(unstyledText, "</a>"));
         html = html.replace(linkTemplate, replacementHTML);
     }
-    return _jsx("span", { dangerouslySetInnerHTML: { __html: html } });
+    return _jsx("span", { dangerouslySetInnerHTML: { __html: sanitize_user_html(html) } });
 };
 //# sourceMappingURL=displays.js.map

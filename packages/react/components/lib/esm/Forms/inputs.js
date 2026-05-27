@@ -2878,7 +2878,13 @@ export var HiddenValueInput = function (_a) {
             goToPreviousField === null || goToPreviousField === void 0 ? void 0 : goToPreviousField();
         }
         else {
-            onChange(valueToSet, field.id);
+            // Avoid redundant setResponses when value is already correct — prevents the effect
+            // from cascading into every keystroke on sibling text fields in single-page forms.
+            if (value !== valueToSet) {
+                onChange(valueToSet, field.id);
+            }
+            if (isSinglePage)
+                return;
             if (dontNavigate)
                 return;
             // pass value that is set after above onChange

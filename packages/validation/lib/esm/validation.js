@@ -2559,6 +2559,7 @@ export var automationActionValidator = orValidator({
             shipping: stringValidator100,
         }) })),
     belugaAutoRx: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['belugaAutoRx']), info: objectValidator({
+            formId: mongoIdStringRequired,
             patientPreference: objectValidator({
                 name: stringValidatorOptional,
                 strength: stringValidatorOptional,
@@ -2570,6 +2571,7 @@ export var automationActionValidator = orValidator({
             useOrganizationMapping: booleanValidatorOptional,
         }) })),
     belugaUpdateVisit: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['belugaUpdateVisit']), info: objectValidator({
+            formId: mongoIdStringRequired,
             patientPreferences: listValidatorOptionalOrEmptyOk(objectValidator({
                 name: stringValidatorOptional,
                 strength: stringValidatorOptional,

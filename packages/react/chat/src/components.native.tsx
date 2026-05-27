@@ -15,7 +15,7 @@ import {
 } from "@tellescope/react-components"
 import { useState } from 'react';
 import { HTMLMessageProps } from './components';
-import { remove_script_tags } from '@tellescope/utilities';
+import { sanitize_user_html } from '@tellescope/utilities';
 import RenderHtml from 'react-native-render-html';
 
 export const HTMLMessage = ({ html: htmlUnprocessed, color="white", selectable=true } : HTMLMessageProps) => {
@@ -34,7 +34,7 @@ export const HTMLMessage = ({ html: htmlUnprocessed, color="white", selectable=t
       contentWidth={width}
       source={{ 
         html: (
-          remove_script_tags(html) 
+          sanitize_user_html(html) 
         )
       }}
       tagsStyles={{

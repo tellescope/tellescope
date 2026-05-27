@@ -51,7 +51,7 @@ import { Modal, TextInput, useWindowDimensions } from "react-native";
 import { Avatar } from 'react-native-paper';
 import { useFileUpload, Flex, Typography, AsyncIconButton, SendIcon, LabeledIconButton, Button, Paper, useChats, useResolvedSession, } from "@tellescope/react-components";
 import { useState } from 'react';
-import { remove_script_tags } from '@tellescope/utilities';
+import { sanitize_user_html } from '@tellescope/utilities';
 import RenderHtml from 'react-native-render-html';
 export var HTMLMessage = function (_a) {
     var htmlUnprocessed = _a.html, _b = _a.color, color = _b === void 0 ? "white" : _b, _c = _a.selectable, selectable = _c === void 0 ? true : _c;
@@ -62,7 +62,7 @@ export var HTMLMessage = function (_a) {
     return (_jsx(RenderHtml, { defaultTextProps: { selectable: selectable }, baseStyle: {
             paddingTop: 4, // causes better fit into both 1-line and multiline chat bubbles
         }, contentWidth: width, source: {
-            html: (remove_script_tags(html))
+            html: (sanitize_user_html(html))
         }, tagsStyles: {
             'body': {
                 color: color,

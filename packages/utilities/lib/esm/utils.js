@@ -581,6 +581,11 @@ export var time_for_calendar_event = function (event) {
     var _b = get_time_values(end), hoursEnd = _b.hoursAmPm, minutesEnd = _b.minutes, amPmEnd = _b.amPm;
     return "".concat(hoursAmPm, ":").concat(minutes).concat(amPm === amPmEnd ? '' : amPm, "-").concat(hoursEnd, ":").concat(minutesEnd).concat(amPmEnd);
 };
+/**
+ * @deprecated Use {@link sanitize_user_html} for any HTML that will be rendered (e.g. via
+ * `dangerouslySetInnerHTML`). This helper is retained for the validation/escaping path, where it
+ * operates on plain field values and is intentionally minimal so it does not alter their contents.
+ */
 export var remove_script_tags = function (s) { return s.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, ''); };
 export var remove_style_tags = function (s) { return s.replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, ''); };
 export var remove_image_tags = function (s) { return s.replace(/<img[\s\S]*?>/gi, ''); };
@@ -662,6 +667,85 @@ export var sanitize_html_for_cms = function (html) {
             img: ['http', 'https', 'data'],
             a: ['http', 'https', 'mailto', 'tel']
         }
+    });
+};
+/**
+ * Canonical sanitizer for HTML that will be rendered (e.g. via `dangerouslySetInnerHTML`):
+ * form descriptions/answers, CMS/articles, care plans, templates, chat, community posts,
+ * portal HTML blocks, email bodies, etc.
+ *
+ * Uses an allowlist parser (sanitize-html) tuned to be broad on formatting/structure so
+ * legitimate customization is preserved — rich text, headings, lists, tables, images, media,
+ * inline styles, and links — while only allowlisted tags, attributes, and URL schemes are kept.
+ * If a specific surface needs embeds (e.g. YouTube), add `iframe` with `allowedIframeHostnames`
+ * for that surface rather than loosening this shared function.
+ */
+export var sanitize_user_html = function (html) {
+    if (typeof html !== 'string' || !html)
+        return '';
+    return sanitizeHtml(html, {
+        allowedTags: [
+            // text & inline
+            'a', 'abbr', 'b', 'bdi', 'bdo', 'br', 'cite', 'code', 'data', 'dfn', 'em', 'i', 'kbd',
+            'mark', 'q', 'rp', 'rt', 'ruby', 's', 'samp', 'small', 'span', 'strong', 'sub', 'sup',
+            'time', 'u', 'var', 'wbr', 'del', 'ins', 'abbr',
+            // block & structure
+            'address', 'article', 'aside', 'blockquote', 'caption', 'details', 'summary', 'div',
+            'figcaption', 'figure', 'footer', 'header', 'hgroup', 'hr', 'main', 'nav', 'p', 'pre',
+            'section',
+            // headings
+            'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+            // lists
+            'dd', 'dl', 'dt', 'li', 'ol', 'ul',
+            // tables
+            'col', 'colgroup', 'table', 'tbody', 'td', 'tfoot', 'th', 'thead', 'tr',
+            // media (no iframe/object/embed — those can execute or frame arbitrary content)
+            'img', 'audio', 'video', 'source', 'picture', 'track',
+        ],
+        allowedAttributes: {
+            // NOTE: `id`/`name` are intentionally omitted — caller-controlled id/name enable DOM
+            // clobbering (shadowing document/global properties) and duplicate-id breakage, with no
+            // legitimate need in rendered user content.
+            '*': [
+                'style', 'class', 'title', 'dir', 'lang', 'align', 'valign', 'width', 'height',
+                'color', 'bgcolor', 'aria-*', 'data-*', 'role',
+            ],
+            a: ['href', 'target', 'rel'],
+            img: ['src', 'srcset', 'sizes', 'alt', 'loading', 'decoding'],
+            audio: ['controls', 'src', 'preload', 'loop', 'muted'],
+            video: ['controls', 'src', 'poster', 'preload', 'loop', 'muted', 'playsinline'],
+            source: ['src', 'srcset', 'type', 'media', 'sizes'],
+            track: ['src', 'kind', 'srclang', 'label', 'default'],
+            col: ['span'],
+            colgroup: ['span'],
+            td: ['colspan', 'rowspan', 'headers'],
+            th: ['colspan', 'rowspan', 'headers', 'scope'],
+            ol: ['start', 'reversed', 'type'],
+            time: ['datetime'],
+            data: ['value'],
+            del: ['datetime'],
+            ins: ['datetime'],
+        },
+        // Only safe protocols. javascript:/vbscript: are not listed and are stripped.
+        allowedSchemes: ['http', 'https', 'mailto', 'tel'],
+        allowedSchemesByTag: {
+            img: ['http', 'https', 'data'],
+            source: ['http', 'https', 'data'],
+            video: ['http', 'https', 'data'],
+            audio: ['http', 'https', 'data'],
+        },
+        allowedSchemesAppliedToAttributes: ['href', 'src', 'srcset'],
+        allowProtocolRelative: true,
+        // Harden external links against reverse-tabnabbing.
+        transformTags: {
+            a: function (tagName, attribs) {
+                var href = attribs.href || '';
+                if (href.startsWith('http://') || href.startsWith('https://')) {
+                    return { tagName: tagName, attribs: __assign(__assign({}, attribs), { target: '_blank', rel: 'noopener noreferrer' }) };
+                }
+                return { tagName: tagName, attribs: attribs };
+            },
+        },
     });
 };
 export var query_string_for_object = function (query) {
@@ -2598,6 +2682,67 @@ export var replace_purchase_template_values = function (s, purchase) {
     }
     return replaced;
 };
+export var replace_calendar_event_template_values = function (s, event, options) {
+    var _a, _b, _d;
+    if (options === void 0) { options = {}; }
+    if (!event)
+        return s;
+    if (typeof s !== 'string')
+        return s;
+    var i = 0;
+    var start = 0;
+    var templates = [];
+    while (i < 100) {
+        i++;
+        start = s.indexOf('{{calendar_event.', start);
+        if (start === -1)
+            break;
+        var end = s.indexOf('}}', start);
+        if (end === -1)
+            break;
+        var match = s.substring(start, end + 2); // +2 accounts for '}}'
+        var field = match.replace('{{calendar_event.', '').replace('}}', '');
+        var replacement = '';
+        if (field === 'Healthie ID') {
+            replacement = (event.source === HEALTHIE_TITLE && event.externalId
+                ? event.externalId
+                : (_b = (_a = event.references) === null || _a === void 0 ? void 0 : _a.find(function (r) { return r.type === HEALTHIE_TITLE; })) === null || _b === void 0 ? void 0 : _b.id) || '';
+        }
+        else if (field === 'id') {
+            replacement = ((_d = event === null || event === void 0 ? void 0 : event._id) === null || _d === void 0 ? void 0 : _d.toString()) || '';
+        }
+        else if (field === 'start') {
+            try {
+                replacement = new Date(event.startTimeInMS).toISOString();
+            }
+            catch (_e) {
+                replacement = '';
+            }
+        }
+        else {
+            var value = event[field];
+            if (value == null) {
+                replacement = '';
+            }
+            else if (typeof value === 'object') {
+                replacement = options.objectToString === 'jsonEscaped'
+                    ? JSON.stringify(JSON.stringify(value)).slice(1, -1)
+                    : JSON.stringify(value);
+            }
+            else {
+                replacement = value.toString();
+            }
+        }
+        templates.push({ match: match, replacement: replacement });
+        start = end + 2;
+    }
+    var replaced = s.toString();
+    for (var _i = 0, templates_2 = templates; _i < templates_2.length; _i++) {
+        var _f = templates_2[_i], match = _f.match, replacement = _f.replacement;
+        replaced = replaced.replace(match, replacement);
+    }
+    return replaced;
+};
 export var replace_medication_template_values = function (s, medication) {
     if (!medication)
         return s;
@@ -2624,8 +2769,8 @@ export var replace_medication_template_values = function (s, medication) {
         start = end + 2;
     }
     var replaced = s.toString();
-    for (var _i = 0, templates_2 = templates; _i < templates_2.length; _i++) {
-        var _a = templates_2[_i], match = _a.match, replacement = _a.replacement;
+    for (var _i = 0, templates_3 = templates; _i < templates_3.length; _i++) {
+        var _a = templates_3[_i], match = _a.match, replacement = _a.replacement;
         replaced = replaced.replace(match, replacement);
     }
     return replaced;
@@ -2675,8 +2820,8 @@ export var replace_order_template_values = function (s, order) {
         start = end + 2;
     }
     var replaced = s.toString();
-    for (var _i = 0, templates_3 = templates; _i < templates_3.length; _i++) {
-        var _b = templates_3[_i], match = _b.match, replacement = _b.replacement;
+    for (var _i = 0, templates_4 = templates; _i < templates_4.length; _i++) {
+        var _b = templates_4[_i], match = _b.match, replacement = _b.replacement;
         replaced = replaced.replace(match, replacement);
     }
     return replaced;
@@ -2785,8 +2930,8 @@ export var replace_form_field_template_values = function (s, options) {
             break;
     }
     var replaced = s.toString();
-    for (var _i = 0, templates_4 = templates; _i < templates_4.length; _i++) {
-        var _l = templates_4[_i], match = _l.match, replacement = _l.replacement;
+    for (var _i = 0, templates_5 = templates; _i < templates_5.length; _i++) {
+        var _l = templates_5[_i], match = _l.match, replacement = _l.replacement;
         replaced = replaced.replace(match, replacement);
     }
     return replaced;
@@ -2811,8 +2956,8 @@ var replacer = function (prefix, s, handleMatch) {
         start = end + 2;
     }
     var replaced = s.toString();
-    for (var _i = 0, templates_5 = templates; _i < templates_5.length; _i++) {
-        var _a = templates_5[_i], match = _a.match, replacement = _a.replacement;
+    for (var _i = 0, templates_6 = templates; _i < templates_6.length; _i++) {
+        var _a = templates_6[_i], match = _a.match, replacement = _a.replacement;
         replaced = replaced.replace(match, replacement);
     }
     return replaced;
@@ -2876,8 +3021,8 @@ export var replace_enduser_template_values = function (s, enduser, options) {
         start = end + 2;
     }
     var replaced = s.toString();
-    for (var _i = 0, templates_6 = templates; _i < templates_6.length; _i++) {
-        var _a = templates_6[_i], match = _a.match, replacement = _a.replacement;
+    for (var _i = 0, templates_7 = templates; _i < templates_7.length; _i++) {
+        var _a = templates_7[_i], match = _a.match, replacement = _a.replacement;
         replaced = replaced.replace(match, replacement);
     }
     return replaced;
@@ -2971,8 +3116,12 @@ export var value_for_dotted_key = function (v, key, o) {
     }
     return value;
 };
+var PROTO_POLLUTION_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
 export var add_value_for_dotted_key = function (_object, field, value) {
     var keys = field.split('.');
+    // Never write through a path that could reach Object.prototype / a constructor.
+    if (keys.some(function (k) { return PROTO_POLLUTION_KEYS.has(k); }))
+        return;
     var object = _object;
     for (var i = 0; i < keys.length; i++) {
         var key = keys[i];

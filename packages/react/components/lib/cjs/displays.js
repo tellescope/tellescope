@@ -295,7 +295,7 @@ var replace_links = function (html) {
         var replacementHTML = ("<a".concat(style ? " style=\"".concat(style, "\"") : '', " href=\"").concat(link, "\" target=\"_blank\">").concat(unstyledText, "</a>"));
         html = html.replace(linkTemplate, replacementHTML);
     }
-    return (0, jsx_runtime_1.jsx)("span", { dangerouslySetInnerHTML: { __html: html } });
+    return (0, jsx_runtime_1.jsx)("span", { dangerouslySetInnerHTML: { __html: (0, utilities_1.sanitize_user_html)(html) } });
 };
 exports.replace_links = replace_links;
 //# sourceMappingURL=displays.js.map

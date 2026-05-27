@@ -5060,8 +5060,13 @@ export const HiddenValueInput = ({ goToNextField, goToPreviousField, field, valu
       if (dontNavigate) return
       goToPreviousField?.()
     } else {
-      onChange(valueToSet, field.id)
+      // Avoid redundant setResponses when value is already correct — prevents the effect
+      // from cascading into every keystroke on sibling text fields in single-page forms.
+      if (value !== valueToSet) {
+        onChange(valueToSet, field.id)
+      }
 
+      if (isSinglePage) return
       if (dontNavigate) return
 
       // pass value that is set after above onChange

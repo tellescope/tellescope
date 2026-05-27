@@ -71,7 +71,7 @@ exports.HistoricalDataSnapshotDisplay = HistoricalDataSnapshotDisplay;
 var ResponseAnswer = function (_a) {
     var formResponse = _a.formResponse, fieldId = _a.fieldId, isHTML = _a.isHTML, a = _a.answer, printing = _a.printing, onImageClick = _a.onImageClick;
     return (((isHTML || a.type === 'Rich Text') && typeof a.value === 'string')
-        ? (0, jsx_runtime_1.jsx)("div", { dangerouslySetInnerHTML: { __html: (0, utilities_1.remove_script_tags)(a.value) } })
+        ? (0, jsx_runtime_1.jsx)("div", { dangerouslySetInnerHTML: { __html: (0, utilities_1.sanitize_user_html)(a.value) } })
         : a.value
             ? ((0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ component: "div" }, { children: (a.type === 'multiple_choice' || a.type === 'Database Select')
                     ? ((0, jsx_runtime_1.jsx)("div", { children: a.value.map(function (t, i) {
@@ -197,11 +197,11 @@ var FormResponseView = function (_a) {
                                             } }, { children: r.fieldTitle })) })), (0, jsx_runtime_1.jsx)("div", __assign({ style: {} }, { children: showAnswerInline && r.answer.type !== 'Question Group'
                                         && !(typeof r.answer.value === 'string' && r.answer.value.includes('{TELLESCOPE')) // hidden field for matching, not to display
                                         && ((r.answerIsHTML && typeof r.answer.value === 'string')
-                                            ? (0, jsx_runtime_1.jsx)("div", { dangerouslySetInnerHTML: { __html: (0, utilities_1.remove_script_tags)(r.answer.value) } })
+                                            ? (0, jsx_runtime_1.jsx)("div", { dangerouslySetInnerHTML: { __html: (0, utilities_1.sanitize_user_html)(r.answer.value) } })
                                             : (0, jsx_runtime_1.jsx)(exports.ResponseAnswer, { fieldId: r.fieldId, formResponse: response, answer: r.answer, printing: printing })) }))] })), r.fieldDescription
                             ? ((0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ style: {} }, { children: r.fieldDescription }))) : r.fieldHtmlDescription
                             ? ((0, jsx_runtime_1.jsx)("div", { dangerouslySetInnerHTML: {
-                                    __html: r.fieldHtmlDescription
+                                    __html: (0, utilities_1.sanitize_user_html)(r.fieldHtmlDescription)
                                 } }))
                             : null, !showAnswerInline &&
                             (0, jsx_runtime_1.jsx)("div", __assign({ style: {} }, { children: (0, jsx_runtime_1.jsx)(exports.ResponseAnswer, { answer: r.answer, formResponse: response, fieldId: r.fieldId }) }))] }), i)); }) })), (response.addenda || []).length > 0 &&

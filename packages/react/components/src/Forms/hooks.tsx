@@ -1219,7 +1219,9 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
       if (field.type === 'files' && value.answer.type === 'files' && Array.isArray(value.answer.value)) {
         existingCount = value.answer.value.filter(av => !file.blobs?.some(b => b.name === av.name)).length
       } else if (field.type === 'file' && value.answer.type === 'file' && value.answer.value?.secureName) {
-        existingCount = 1
+        const existingFileName = value.answer.value.name
+        const hasMatchingBlob = file.blobs?.some(b => b.name === existingFileName)
+        existingCount = hasMatchingBlob ? 0 : 1
       }
 
       const totalCount = blobCount + existingCount

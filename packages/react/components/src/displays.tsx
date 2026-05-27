@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react"
 
-import { user_display_name } from "@tellescope/utilities"
+import { sanitize_user_html, user_display_name } from "@tellescope/utilities"
 
 import {
   useEndusers,
@@ -304,5 +304,5 @@ export const replace_links = (html: string) => {
     html = html.replace(linkTemplate, replacementHTML)
   }
 
-  return <span dangerouslySetInnerHTML={{ __html: html }} />
+  return <span dangerouslySetInnerHTML={{ __html: sanitize_user_html(html) }} />
 }

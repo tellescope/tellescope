@@ -86,7 +86,7 @@ var material_1 = require("@mui/material");
 var HTMLMessage = function (_a) {
     var html = _a.html;
     return ((0, jsx_runtime_1.jsx)("div", { style: { padding: 2 }, dangerouslySetInnerHTML: {
-            __html: (0, utilities_1.remove_script_tags)(stripOuterParagraphTags(html).replace(/<a/g, '<a style="color: white;"')),
+            __html: (0, utilities_1.sanitize_user_html)(stripOuterParagraphTags(html).replace(/<a/g, '<a style="color: white;"')),
         } }));
 };
 exports.HTMLMessage = HTMLMessage;

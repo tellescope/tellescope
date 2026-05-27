@@ -28,7 +28,7 @@ import { Divider, Grid, LinearProgress, Paper, TextField, Typography } from "@mu
 import {
   usePostLiking,
 } from "./hooks"
-import { remove_script_tags, truncate_string, user_is_admin } from "@tellescope/utilities"
+import { sanitize_user_html, truncate_string, user_is_admin } from "@tellescope/utilities"
 
 import LikeIcon from "@mui/icons-material/ThumbUp"
 
@@ -50,7 +50,7 @@ export const ResolvedContent = ({ textContent, htmlContent, style } : { textCont
   if (htmlContent) {
     return (
       <div style={style} dangerouslySetInnerHTML={{
-        __html: remove_script_tags(htmlContent),
+        __html: sanitize_user_html(htmlContent),
       }} />
     )
   }

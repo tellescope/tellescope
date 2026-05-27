@@ -35,7 +35,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 require('source-map-support').install();
-import { Session } from "../../sdk";
+import { Session, EnduserSession } from "../../sdk";
 import { log_header, wait, async_test } from "@tellescope/testing";
 import { setup_tests } from "../setup";
 var host = process.env.API_URL || "http://localhost:8080";
@@ -71,9 +71,9 @@ var pollFor = function (fetchFn, evaluateFn, description, intervalMs, maxIterati
 export var push_forms_to_portal_group_completion_tests = function (_a) {
     var sdk = _a.sdk, sdkNonAdmin = _a.sdkNonAdmin;
     return __awaiter(void 0, void 0, void 0, function () {
-        var createdEnduserIds, createdJourneyIds, createdFormIds, createdFormGroupIds, createdTriggerIds, formA, fieldA, formB, fieldB, formGroup, trigger, journey, pushStep, enduser_1, pushedResponses, _i, pushedResponses_1, fr, _b, pushedResponses_2, fr, isFormA, targetFieldId, targetFieldTitle, _c, createdTriggerIds_1, id, e_1, _d, createdEnduserIds_1, id, e_2, _e, createdJourneyIds_1, id, e_3, _f, createdFormGroupIds_1, id, e_4, _g, createdFormIds_1, id, e_5;
-        return __generator(this, function (_h) {
-            switch (_h.label) {
+        var createdEnduserIds, createdJourneyIds, createdFormIds, createdFormGroupIds, createdTriggerIds, formA_1, fieldA_1, formB, fieldB_1, formGroup_1, runFlow, _i, createdTriggerIds_1, id, e_1, _b, createdEnduserIds_1, id, e_2, _c, createdJourneyIds_1, id, e_3, _d, createdFormGroupIds_1, id, e_4, _e, createdFormIds_1, id, e_5;
+        return __generator(this, function (_f) {
+            switch (_f.label) {
                 case 0:
                     log_header("Push Forms To Portal - Form Group Completed Trigger Tests");
                     createdEnduserIds = [];
@@ -81,24 +81,24 @@ export var push_forms_to_portal_group_completion_tests = function (_a) {
                     createdFormIds = [];
                     createdFormGroupIds = [];
                     createdTriggerIds = [];
-                    _h.label = 1;
+                    _f.label = 1;
                 case 1:
-                    _h.trys.push([1, , 20, 51]);
+                    _f.trys.push([1, , 9, 40]);
                     return [4 /*yield*/, sdk.api.forms.createOne({ title: 'Push To Portal Form A' })];
                 case 2:
-                    formA = _h.sent();
-                    createdFormIds.push(formA.id);
+                    formA_1 = _f.sent();
+                    createdFormIds.push(formA_1.id);
                     return [4 /*yield*/, sdk.api.form_fields.createOne({
-                            formId: formA.id,
+                            formId: formA_1.id,
                             type: 'string',
                             title: 'FieldA',
                             previousFields: [{ type: 'root', info: {} }],
                         })];
                 case 3:
-                    fieldA = _h.sent();
+                    fieldA_1 = _f.sent();
                     return [4 /*yield*/, sdk.api.forms.createOne({ title: 'Push To Portal Form B' })];
                 case 4:
-                    formB = _h.sent();
+                    formB = _f.sent();
                     createdFormIds.push(formB.id);
                     return [4 /*yield*/, sdk.api.form_fields.createOne({
                             formId: formB.id,
@@ -106,232 +106,268 @@ export var push_forms_to_portal_group_completion_tests = function (_a) {
                             title: 'FieldB',
                             previousFields: [{ type: 'root', info: {} }],
                         })
-                        // 2. Create a form group containing both forms
+                        // 2. Create a form group containing both forms (shared across both submission flows)
                     ];
                 case 5:
-                    fieldB = _h.sent();
+                    fieldB_1 = _f.sent();
                     return [4 /*yield*/, sdk.api.form_groups.createOne({
                             title: 'Push To Portal Test Group',
-                            formIds: [formA.id, formB.id],
+                            formIds: [formA_1.id, formB.id],
                         })];
                 case 6:
-                    formGroup = _h.sent();
-                    createdFormGroupIds.push(formGroup.id);
-                    return [4 /*yield*/, sdk.api.automation_triggers.createOne({
-                            event: { type: 'Form Group Completed', info: { groupId: formGroup.id } },
-                            action: { type: 'Add Tags', info: { tags: ['form-group-completed-push'] } },
-                            status: 'Active',
-                            title: 'Form Group Completed - Push to Portal',
-                        })];
-                case 7:
-                    trigger = _h.sent();
-                    createdTriggerIds.push(trigger.id);
-                    return [4 /*yield*/, sdk.api.journeys.createOne({
-                            title: 'Push To Portal Trigger Journey',
-                        })];
-                case 8:
-                    journey = _h.sent();
-                    createdJourneyIds.push(journey.id);
-                    return [4 /*yield*/, sdk.api.automation_steps.createOne({
-                            journeyId: journey.id,
-                            action: { type: 'pushFormsToPortal', info: { formGroupIds: [formGroup.id] } },
-                            events: [{ type: 'onJourneyStart', info: {} }],
-                        })
-                        // 5. Create enduser and add to journey
-                    ];
-                case 9:
-                    pushStep = _h.sent();
-                    return [4 /*yield*/, sdk.api.endusers.createOne({ fname: 'PushPortal', lname: 'Tester' })];
-                case 10:
-                    enduser_1 = _h.sent();
-                    createdEnduserIds.push(enduser_1.id);
-                    return [4 /*yield*/, sdk.api.endusers.add_to_journey({
-                            enduserIds: [enduser_1.id],
-                            journeyId: journey.id,
-                        })
-                        // 6. Poll for the worker to create the push-to-portal form_responses
-                    ];
-                case 11:
-                    _h.sent();
-                    return [4 /*yield*/, pollFor(function () { return __awaiter(void 0, void 0, void 0, function () {
-                            var responses, pushed;
-                            return __generator(this, function (_a) {
-                                switch (_a.label) {
-                                    case 0: return [4 /*yield*/, sdk.api.form_responses.getSome({
-                                            filter: { enduserId: enduser_1.id },
+                    formGroup_1 = _f.sent();
+                    createdFormGroupIds.push(formGroup_1.id);
+                    runFlow = function (_a) {
+                        var label = _a.label, tag = _a.tag, submitAsEnduser = _a.submitAsEnduser;
+                        return __awaiter(void 0, void 0, void 0, function () {
+                            var trigger, journey, pushStep, enduser, pushedResponses, _i, pushedResponses_1, fr, submitterApi, authToken, enduserSDK, _b, pushedResponses_2, fr, isFormA, targetFieldId, targetFieldTitle;
+                            return __generator(this, function (_c) {
+                                switch (_c.label) {
+                                    case 0: return [4 /*yield*/, sdk.api.automation_triggers.createOne({
+                                            event: { type: 'Form Group Completed', info: { groupId: formGroup_1.id } },
+                                            action: { type: 'Add Tags', info: { tags: [tag] } },
+                                            status: 'Active',
+                                            title: "Form Group Completed - Push to Portal (".concat(label, ")"),
                                         })];
                                     case 1:
-                                        responses = _a.sent();
-                                        pushed = responses.filter(function (r) { return !!r.pushedToPortalAt; });
-                                        return [2 /*return*/, pushed.length >= 2 ? pushed : undefined];
+                                        trigger = _c.sent();
+                                        createdTriggerIds.push(trigger.id);
+                                        return [4 /*yield*/, sdk.api.journeys.createOne({
+                                                title: "Push To Portal Trigger Journey (".concat(label, ")"),
+                                            })];
+                                    case 2:
+                                        journey = _c.sent();
+                                        createdJourneyIds.push(journey.id);
+                                        return [4 /*yield*/, sdk.api.automation_steps.createOne({
+                                                journeyId: journey.id,
+                                                action: { type: 'pushFormsToPortal', info: { formGroupIds: [formGroup_1.id] } },
+                                                events: [{ type: 'onJourneyStart', info: {} }],
+                                            })];
+                                    case 3:
+                                        pushStep = _c.sent();
+                                        return [4 /*yield*/, sdk.api.endusers.createOne({ fname: 'PushPortal', lname: label })];
+                                    case 4:
+                                        enduser = _c.sent();
+                                        createdEnduserIds.push(enduser.id);
+                                        return [4 /*yield*/, sdk.api.endusers.add_to_journey({
+                                                enduserIds: [enduser.id],
+                                                journeyId: journey.id,
+                                            })];
+                                    case 5:
+                                        _c.sent();
+                                        return [4 /*yield*/, pollFor(function () { return __awaiter(void 0, void 0, void 0, function () {
+                                                var responses, pushed;
+                                                return __generator(this, function (_a) {
+                                                    switch (_a.label) {
+                                                        case 0: return [4 /*yield*/, sdk.api.form_responses.getSome({
+                                                                filter: { enduserId: enduser.id },
+                                                            })];
+                                                        case 1:
+                                                            responses = _a.sent();
+                                                            pushed = responses.filter(function (r) { return !!r.pushedToPortalAt; });
+                                                            return [2 /*return*/, pushed.length >= 2 ? pushed : undefined];
+                                                    }
+                                                });
+                                            }); }, function (result) { return Array.isArray(result) && result.length >= 2; }, "pushed-to-portal form_responses to be created by worker (".concat(label, ")"), 500, 40)];
+                                    case 6:
+                                        pushedResponses = _c.sent();
+                                        for (_i = 0, pushedResponses_1 = pushedResponses; _i < pushedResponses_1.length; _i++) {
+                                            fr = pushedResponses_1[_i];
+                                            if (!fr.pushedToPortalAt) {
+                                                throw new Error("Expected pushedToPortalAt to be set on form_response ".concat(fr.id, " (").concat(label, ")"));
+                                            }
+                                            if (fr.groupId !== pushStep.id) {
+                                                throw new Error("Expected form_response.groupId (".concat(fr.groupId, ") to equal automation step id (").concat(pushStep.id, ") (").concat(label, ")"));
+                                            }
+                                            if (fr.automationStepId !== pushStep.id) {
+                                                throw new Error("Expected form_response.automationStepId (".concat(fr.automationStepId, ") to equal automation step id (").concat(pushStep.id, ") (").concat(label, ")"));
+                                            }
+                                        }
+                                        return [4 /*yield*/, async_test("Worker writes groupId === automationStepId and pushedToPortalAt set (".concat(label, ")"), function () { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
+                                                return [2 /*return*/, true];
+                                            }); }); }, { onResult: function (r) { return r === true; } })
+                                            // Build the submitter session
+                                        ];
+                                    case 7:
+                                        _c.sent();
+                                        if (!submitAsEnduser) return [3 /*break*/, 9];
+                                        return [4 /*yield*/, sdk.api.endusers.generate_auth_token({ id: enduser.id })];
+                                    case 8:
+                                        authToken = (_c.sent()).authToken;
+                                        enduserSDK = new EnduserSession({ host: host, authToken: authToken, businessId: sdk.userInfo.businessId });
+                                        submitterApi = enduserSDK.api;
+                                        return [3 /*break*/, 10];
+                                    case 9:
+                                        submitterApi = sdk.api;
+                                        _c.label = 10;
+                                    case 10:
+                                        _b = 0, pushedResponses_2 = pushedResponses;
+                                        _c.label = 11;
+                                    case 11:
+                                        if (!(_b < pushedResponses_2.length)) return [3 /*break*/, 14];
+                                        fr = pushedResponses_2[_b];
+                                        isFormA = fr.formId === formA_1.id;
+                                        targetFieldId = isFormA ? fieldA_1.id : fieldB_1.id;
+                                        targetFieldTitle = isFormA ? 'FieldA' : 'FieldB';
+                                        return [4 /*yield*/, submitterApi.form_responses.submit_form_response({
+                                                accessCode: fr.accessCode,
+                                                responses: [{
+                                                        fieldId: targetFieldId,
+                                                        fieldTitle: targetFieldTitle,
+                                                        answer: { type: 'string', value: 'pushed-portal-answer' },
+                                                    }],
+                                            })];
+                                    case 12:
+                                        _c.sent();
+                                        _c.label = 13;
+                                    case 13:
+                                        _b++;
+                                        return [3 /*break*/, 11];
+                                    case 14: return [4 /*yield*/, pollFor(function () { return __awaiter(void 0, void 0, void 0, function () {
+                                            var e;
+                                            var _a;
+                                            return __generator(this, function (_b) {
+                                                switch (_b.label) {
+                                                    case 0: return [4 /*yield*/, sdk.api.endusers.getOne(enduser.id)];
+                                                    case 1:
+                                                        e = _b.sent();
+                                                        return [2 /*return*/, ((_a = e.tags) === null || _a === void 0 ? void 0 : _a.includes(tag)) ? e : undefined];
+                                                }
+                                            });
+                                        }); }, function (result) { return !!result; }, "Form Group Completed trigger to apply tag after push-to-portal submissions (".concat(label, ")"), 500, 30)];
+                                    case 15:
+                                        _c.sent();
+                                        return [4 /*yield*/, async_test("Form Group Completed trigger fires for push-to-portal completion (".concat(label, ")"), function () { return sdk.api.endusers.getOne(enduser.id); }, { onResult: function (e) { var _a; return !!((_a = e.tags) === null || _a === void 0 ? void 0 : _a.includes(tag)); } })];
+                                    case 16:
+                                        _c.sent();
+                                        return [2 /*return*/];
                                 }
                             });
-                        }); }, function (result) { return Array.isArray(result) && result.length >= 2; }, 'pushed-to-portal form_responses to be created by worker', 500, 40)
-                        // 7. Assert worker behavior: groupId === automationStepId and pushedToPortalAt is set
-                    ];
-                case 12:
-                    pushedResponses = _h.sent();
-                    // 7. Assert worker behavior: groupId === automationStepId and pushedToPortalAt is set
-                    for (_i = 0, pushedResponses_1 = pushedResponses; _i < pushedResponses_1.length; _i++) {
-                        fr = pushedResponses_1[_i];
-                        if (!fr.pushedToPortalAt) {
-                            throw new Error("Expected pushedToPortalAt to be set on form_response ".concat(fr.id));
-                        }
-                        if (fr.groupId !== pushStep.id) {
-                            throw new Error("Expected form_response.groupId (".concat(fr.groupId, ") to equal automation step id (").concat(pushStep.id, ")"));
-                        }
-                        if (fr.automationStepId !== pushStep.id) {
-                            throw new Error("Expected form_response.automationStepId (".concat(fr.automationStepId, ") to equal automation step id (").concat(pushStep.id, ")"));
-                        }
-                    }
-                    return [4 /*yield*/, async_test("Worker writes groupId === automationStepId and pushedToPortalAt set", function () { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
-                            return [2 /*return*/, true];
-                        }); }); }, { onResult: function (r) { return r === true; } })
-                        // 8. Submit every form_response on behalf of the enduser
-                        // Identify which form_response corresponds to formA / formB via formId
-                    ];
-                case 13:
-                    _h.sent();
-                    _b = 0, pushedResponses_2 = pushedResponses;
-                    _h.label = 14;
-                case 14:
-                    if (!(_b < pushedResponses_2.length)) return [3 /*break*/, 17];
-                    fr = pushedResponses_2[_b];
-                    isFormA = fr.formId === formA.id;
-                    targetFieldId = isFormA ? fieldA.id : fieldB.id;
-                    targetFieldTitle = isFormA ? 'FieldA' : 'FieldB';
-                    return [4 /*yield*/, sdk.api.form_responses.submit_form_response({
-                            accessCode: fr.accessCode,
-                            responses: [{
-                                    fieldId: targetFieldId,
-                                    fieldTitle: targetFieldTitle,
-                                    answer: { type: 'string', value: 'pushed-portal-answer' },
-                                }],
-                        })];
-                case 15:
-                    _h.sent();
-                    _h.label = 16;
-                case 16:
-                    _b++;
-                    return [3 /*break*/, 14];
-                case 17: 
-                // 9. Poll for the trigger's side-effect (tag on enduser)
-                return [4 /*yield*/, pollFor(function () { return __awaiter(void 0, void 0, void 0, function () {
-                        var e;
-                        var _a;
-                        return __generator(this, function (_b) {
-                            switch (_b.label) {
-                                case 0: return [4 /*yield*/, sdk.api.endusers.getOne(enduser_1.id)];
-                                case 1:
-                                    e = _b.sent();
-                                    return [2 /*return*/, ((_a = e.tags) === null || _a === void 0 ? void 0 : _a.includes('form-group-completed-push')) ? e : undefined];
-                            }
                         });
-                    }); }, function (result) { return !!result; }, 'Form Group Completed trigger to apply tag after push-to-portal submissions', 500, 30)];
-                case 18:
-                    // 9. Poll for the trigger's side-effect (tag on enduser)
-                    _h.sent();
-                    return [4 /*yield*/, async_test("Form Group Completed trigger fires for push-to-portal completion", function () { return sdk.api.endusers.getOne(enduser_1.id); }, { onResult: function (e) { var _a; return !!((_a = e.tags) === null || _a === void 0 ? void 0 : _a.includes('form-group-completed-push')); } })];
-                case 19:
-                    _h.sent();
-                    return [3 /*break*/, 51];
-                case 20:
-                    _c = 0, createdTriggerIds_1 = createdTriggerIds;
-                    _h.label = 21;
-                case 21:
-                    if (!(_c < createdTriggerIds_1.length)) return [3 /*break*/, 26];
-                    id = createdTriggerIds_1[_c];
-                    _h.label = 22;
-                case 22:
-                    _h.trys.push([22, 24, , 25]);
+                    };
+                    // Admin submitter: simulates a staff user filling in the form on behalf of the patient
+                    // (uses a user-scoped DB in submit_form_response).
+                    return [4 /*yield*/, runFlow({
+                            label: 'admin-submit',
+                            tag: 'form-group-completed-push-admin',
+                            submitAsEnduser: false,
+                        })
+                        // Enduser submitter: simulates the patient submitting via the portal
+                        // (uses an enduser-scoped DB in submit_form_response — exercises the path QA caught).
+                    ];
+                case 7:
+                    // Admin submitter: simulates a staff user filling in the form on behalf of the patient
+                    // (uses a user-scoped DB in submit_form_response).
+                    _f.sent();
+                    // Enduser submitter: simulates the patient submitting via the portal
+                    // (uses an enduser-scoped DB in submit_form_response — exercises the path QA caught).
+                    return [4 /*yield*/, runFlow({
+                            label: 'enduser-submit',
+                            tag: 'form-group-completed-push-enduser',
+                            submitAsEnduser: true,
+                        })];
+                case 8:
+                    // Enduser submitter: simulates the patient submitting via the portal
+                    // (uses an enduser-scoped DB in submit_form_response — exercises the path QA caught).
+                    _f.sent();
+                    return [3 /*break*/, 40];
+                case 9:
+                    _i = 0, createdTriggerIds_1 = createdTriggerIds;
+                    _f.label = 10;
+                case 10:
+                    if (!(_i < createdTriggerIds_1.length)) return [3 /*break*/, 15];
+                    id = createdTriggerIds_1[_i];
+                    _f.label = 11;
+                case 11:
+                    _f.trys.push([11, 13, , 14]);
                     return [4 /*yield*/, sdk.api.automation_triggers.deleteOne(id)];
-                case 23:
-                    _h.sent();
-                    return [3 /*break*/, 25];
-                case 24:
-                    e_1 = _h.sent();
-                    return [3 /*break*/, 25];
-                case 25:
-                    _c++;
-                    return [3 /*break*/, 21];
-                case 26:
-                    _d = 0, createdEnduserIds_1 = createdEnduserIds;
-                    _h.label = 27;
-                case 27:
-                    if (!(_d < createdEnduserIds_1.length)) return [3 /*break*/, 32];
-                    id = createdEnduserIds_1[_d];
-                    _h.label = 28;
-                case 28:
-                    _h.trys.push([28, 30, , 31]);
+                case 12:
+                    _f.sent();
+                    return [3 /*break*/, 14];
+                case 13:
+                    e_1 = _f.sent();
+                    return [3 /*break*/, 14];
+                case 14:
+                    _i++;
+                    return [3 /*break*/, 10];
+                case 15:
+                    _b = 0, createdEnduserIds_1 = createdEnduserIds;
+                    _f.label = 16;
+                case 16:
+                    if (!(_b < createdEnduserIds_1.length)) return [3 /*break*/, 21];
+                    id = createdEnduserIds_1[_b];
+                    _f.label = 17;
+                case 17:
+                    _f.trys.push([17, 19, , 20]);
                     return [4 /*yield*/, sdk.api.endusers.deleteOne(id)];
-                case 29:
-                    _h.sent();
-                    return [3 /*break*/, 31];
-                case 30:
-                    e_2 = _h.sent();
-                    return [3 /*break*/, 31];
-                case 31:
-                    _d++;
-                    return [3 /*break*/, 27];
-                case 32:
-                    _e = 0, createdJourneyIds_1 = createdJourneyIds;
-                    _h.label = 33;
-                case 33:
-                    if (!(_e < createdJourneyIds_1.length)) return [3 /*break*/, 38];
-                    id = createdJourneyIds_1[_e];
-                    _h.label = 34;
-                case 34:
-                    _h.trys.push([34, 36, , 37]);
+                case 18:
+                    _f.sent();
+                    return [3 /*break*/, 20];
+                case 19:
+                    e_2 = _f.sent();
+                    return [3 /*break*/, 20];
+                case 20:
+                    _b++;
+                    return [3 /*break*/, 16];
+                case 21:
+                    _c = 0, createdJourneyIds_1 = createdJourneyIds;
+                    _f.label = 22;
+                case 22:
+                    if (!(_c < createdJourneyIds_1.length)) return [3 /*break*/, 27];
+                    id = createdJourneyIds_1[_c];
+                    _f.label = 23;
+                case 23:
+                    _f.trys.push([23, 25, , 26]);
                     return [4 /*yield*/, sdk.api.journeys.deleteOne(id)];
-                case 35:
-                    _h.sent();
-                    return [3 /*break*/, 37];
-                case 36:
-                    e_3 = _h.sent();
-                    return [3 /*break*/, 37];
-                case 37:
-                    _e++;
-                    return [3 /*break*/, 33];
-                case 38:
-                    _f = 0, createdFormGroupIds_1 = createdFormGroupIds;
-                    _h.label = 39;
-                case 39:
-                    if (!(_f < createdFormGroupIds_1.length)) return [3 /*break*/, 44];
-                    id = createdFormGroupIds_1[_f];
-                    _h.label = 40;
-                case 40:
-                    _h.trys.push([40, 42, , 43]);
+                case 24:
+                    _f.sent();
+                    return [3 /*break*/, 26];
+                case 25:
+                    e_3 = _f.sent();
+                    return [3 /*break*/, 26];
+                case 26:
+                    _c++;
+                    return [3 /*break*/, 22];
+                case 27:
+                    _d = 0, createdFormGroupIds_1 = createdFormGroupIds;
+                    _f.label = 28;
+                case 28:
+                    if (!(_d < createdFormGroupIds_1.length)) return [3 /*break*/, 33];
+                    id = createdFormGroupIds_1[_d];
+                    _f.label = 29;
+                case 29:
+                    _f.trys.push([29, 31, , 32]);
                     return [4 /*yield*/, sdk.api.form_groups.deleteOne(id)];
-                case 41:
-                    _h.sent();
-                    return [3 /*break*/, 43];
-                case 42:
-                    e_4 = _h.sent();
-                    return [3 /*break*/, 43];
-                case 43:
-                    _f++;
-                    return [3 /*break*/, 39];
-                case 44:
-                    _g = 0, createdFormIds_1 = createdFormIds;
-                    _h.label = 45;
-                case 45:
-                    if (!(_g < createdFormIds_1.length)) return [3 /*break*/, 50];
-                    id = createdFormIds_1[_g];
-                    _h.label = 46;
-                case 46:
-                    _h.trys.push([46, 48, , 49]);
+                case 30:
+                    _f.sent();
+                    return [3 /*break*/, 32];
+                case 31:
+                    e_4 = _f.sent();
+                    return [3 /*break*/, 32];
+                case 32:
+                    _d++;
+                    return [3 /*break*/, 28];
+                case 33:
+                    _e = 0, createdFormIds_1 = createdFormIds;
+                    _f.label = 34;
+                case 34:
+                    if (!(_e < createdFormIds_1.length)) return [3 /*break*/, 39];
+                    id = createdFormIds_1[_e];
+                    _f.label = 35;
+                case 35:
+                    _f.trys.push([35, 37, , 38]);
                     return [4 /*yield*/, sdk.api.forms.deleteOne(id)];
-                case 47:
-                    _h.sent();
-                    return [3 /*break*/, 49];
-                case 48:
-                    e_5 = _h.sent();
-                    return [3 /*break*/, 49];
-                case 49:
-                    _g++;
-                    return [3 /*break*/, 45];
-                case 50: return [7 /*endfinally*/];
-                case 51: return [2 /*return*/];
+                case 36:
+                    _f.sent();
+                    return [3 /*break*/, 38];
+                case 37:
+                    e_5 = _f.sent();
+                    return [3 /*break*/, 38];
+                case 38:
+                    _e++;
+                    return [3 /*break*/, 34];
+                case 39: return [7 /*endfinally*/];
+                case 40: return [2 /*return*/];
             }
         });
     });

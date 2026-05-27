@@ -1,6 +1,6 @@
 require('source-map-support').install();
 
-import { Session } from "../../sdk"
+import { Session, EnduserSession } from "../../sdk"
 import { log_header, wait, async_test } from "@tellescope/testing"
 import { Enduser } from "@tellescope/types-client"
 import { setup_tests } from "../setup"
@@ -52,110 +52,135 @@ export const push_forms_to_portal_group_completion_tests = async ({ sdk, sdkNonA
       previousFields: [{ type: 'root', info: {} }],
     })
 
-    // 2. Create a form group containing both forms
+    // 2. Create a form group containing both forms (shared across both submission flows)
     const formGroup = await sdk.api.form_groups.createOne({
       title: 'Push To Portal Test Group',
       formIds: [formA.id, formB.id],
     })
     createdFormGroupIds.push(formGroup.id)
 
-    // 3. Configure trigger with event.info.groupId = the real formGroupId
-    const trigger = await sdk.api.automation_triggers.createOne({
-      event: { type: 'Form Group Completed', info: { groupId: formGroup.id } },
-      action: { type: 'Add Tags', info: { tags: ['form-group-completed-push'] } },
-      status: 'Active',
-      title: 'Form Group Completed - Push to Portal',
-    })
-    createdTriggerIds.push(trigger.id)
-
-    // 4. Create journey with a pushFormsToPortal step referencing the form group
-    const journey = await sdk.api.journeys.createOne({
-      title: 'Push To Portal Trigger Journey',
-    })
-    createdJourneyIds.push(journey.id)
-
-    const pushStep = await sdk.api.automation_steps.createOne({
-      journeyId: journey.id,
-      action: { type: 'pushFormsToPortal', info: { formGroupIds: [formGroup.id] } },
-      events: [{ type: 'onJourneyStart', info: {} }],
-    })
-
-    // 5. Create enduser and add to journey
-    const enduser = await sdk.api.endusers.createOne({ fname: 'PushPortal', lname: 'Tester' })
-    createdEnduserIds.push(enduser.id)
-
-    await sdk.api.endusers.add_to_journey({
-      enduserIds: [enduser.id],
-      journeyId: journey.id,
-    })
-
-    // 6. Poll for the worker to create the push-to-portal form_responses
-    const pushedResponses = await pollFor(
-      async () => {
-        const responses = await sdk.api.form_responses.getSome({
-          filter: { enduserId: enduser.id },
-        })
-        const pushed = responses.filter(r => !!r.pushedToPortalAt)
-        return pushed.length >= 2 ? pushed : undefined
-      },
-      (result): result is any[] => Array.isArray(result) && result.length >= 2,
-      'pushed-to-portal form_responses to be created by worker',
-      500,
-      40,
-    )
-
-    // 7. Assert worker behavior: groupId === automationStepId and pushedToPortalAt is set
-    for (const fr of pushedResponses) {
-      if (!fr.pushedToPortalAt) {
-        throw new Error(`Expected pushedToPortalAt to be set on form_response ${fr.id}`)
-      }
-      if (fr.groupId !== pushStep.id) {
-        throw new Error(`Expected form_response.groupId (${fr.groupId}) to equal automation step id (${pushStep.id})`)
-      }
-      if (fr.automationStepId !== pushStep.id) {
-        throw new Error(`Expected form_response.automationStepId (${fr.automationStepId}) to equal automation step id (${pushStep.id})`)
-      }
-    }
-
-    await async_test(
-      "Worker writes groupId === automationStepId and pushedToPortalAt set",
-      async () => true,
-      { onResult: r => r === true },
-    )
-
-    // 8. Submit every form_response on behalf of the enduser
-    // Identify which form_response corresponds to formA / formB via formId
-    for (const fr of pushedResponses) {
-      const isFormA = fr.formId === formA.id
-      const targetFieldId = isFormA ? fieldA.id : fieldB.id
-      const targetFieldTitle = isFormA ? 'FieldA' : 'FieldB'
-      await sdk.api.form_responses.submit_form_response({
-        accessCode: fr.accessCode as string,
-        responses: [{
-          fieldId: targetFieldId,
-          fieldTitle: targetFieldTitle,
-          answer: { type: 'string', value: 'pushed-portal-answer' },
-        }],
+    // Helper: run the full push-to-portal → submit → trigger flow with a configurable submitter.
+    // Each invocation creates its own trigger/journey/step/enduser and asserts its own tag.
+    // We test both the admin (user-session) submitter and the enduser (portal-session) submitter
+    // because they exercise different DB scopes in submit_form_response — and the regression QA caught
+    // was only triggered on the enduser-session path.
+    const runFlow = async ({ label, tag, submitAsEnduser } : { label: string, tag: string, submitAsEnduser: boolean }) => {
+      const trigger = await sdk.api.automation_triggers.createOne({
+        event: { type: 'Form Group Completed', info: { groupId: formGroup.id } },
+        action: { type: 'Add Tags', info: { tags: [tag] } },
+        status: 'Active',
+        title: `Form Group Completed - Push to Portal (${label})`,
       })
+      createdTriggerIds.push(trigger.id)
+
+      const journey = await sdk.api.journeys.createOne({
+        title: `Push To Portal Trigger Journey (${label})`,
+      })
+      createdJourneyIds.push(journey.id)
+
+      const pushStep = await sdk.api.automation_steps.createOne({
+        journeyId: journey.id,
+        action: { type: 'pushFormsToPortal', info: { formGroupIds: [formGroup.id] } },
+        events: [{ type: 'onJourneyStart', info: {} }],
+      })
+
+      const enduser = await sdk.api.endusers.createOne({ fname: 'PushPortal', lname: label })
+      createdEnduserIds.push(enduser.id)
+
+      await sdk.api.endusers.add_to_journey({
+        enduserIds: [enduser.id],
+        journeyId: journey.id,
+      })
+
+      const pushedResponses = await pollFor(
+        async () => {
+          const responses = await sdk.api.form_responses.getSome({
+            filter: { enduserId: enduser.id },
+          })
+          const pushed = responses.filter(r => !!r.pushedToPortalAt)
+          return pushed.length >= 2 ? pushed : undefined
+        },
+        (result): result is any[] => Array.isArray(result) && result.length >= 2,
+        `pushed-to-portal form_responses to be created by worker (${label})`,
+        500,
+        40,
+      )
+
+      for (const fr of pushedResponses) {
+        if (!fr.pushedToPortalAt) {
+          throw new Error(`Expected pushedToPortalAt to be set on form_response ${fr.id} (${label})`)
+        }
+        if (fr.groupId !== pushStep.id) {
+          throw new Error(`Expected form_response.groupId (${fr.groupId}) to equal automation step id (${pushStep.id}) (${label})`)
+        }
+        if (fr.automationStepId !== pushStep.id) {
+          throw new Error(`Expected form_response.automationStepId (${fr.automationStepId}) to equal automation step id (${pushStep.id}) (${label})`)
+        }
+      }
+
+      await async_test(
+        `Worker writes groupId === automationStepId and pushedToPortalAt set (${label})`,
+        async () => true,
+        { onResult: r => r === true },
+      )
+
+      // Build the submitter session
+      let submitterApi: typeof sdk.api | EnduserSession['api']
+      if (submitAsEnduser) {
+        const { authToken } = await sdk.api.endusers.generate_auth_token({ id: enduser.id })
+        const enduserSDK = new EnduserSession({ host, authToken, businessId: sdk.userInfo.businessId })
+        submitterApi = enduserSDK.api
+      } else {
+        submitterApi = sdk.api
+      }
+
+      for (const fr of pushedResponses) {
+        const isFormA = fr.formId === formA.id
+        const targetFieldId = isFormA ? fieldA.id : fieldB.id
+        const targetFieldTitle = isFormA ? 'FieldA' : 'FieldB'
+        await submitterApi.form_responses.submit_form_response({
+          accessCode: fr.accessCode as string,
+          responses: [{
+            fieldId: targetFieldId,
+            fieldTitle: targetFieldTitle,
+            answer: { type: 'string', value: 'pushed-portal-answer' },
+          }],
+        })
+      }
+
+      await pollFor(
+        async () => {
+          const e = await sdk.api.endusers.getOne(enduser.id)
+          return e.tags?.includes(tag) ? e : undefined
+        },
+        (result): result is Enduser => !!result,
+        `Form Group Completed trigger to apply tag after push-to-portal submissions (${label})`,
+        500,
+        30,
+      )
+
+      await async_test(
+        `Form Group Completed trigger fires for push-to-portal completion (${label})`,
+        () => sdk.api.endusers.getOne(enduser.id),
+        { onResult: (e: Enduser) => !!e.tags?.includes(tag) },
+      )
     }
 
-    // 9. Poll for the trigger's side-effect (tag on enduser)
-    await pollFor(
-      async () => {
-        const e = await sdk.api.endusers.getOne(enduser.id)
-        return e.tags?.includes('form-group-completed-push') ? e : undefined
-      },
-      (result): result is Enduser => !!result,
-      'Form Group Completed trigger to apply tag after push-to-portal submissions',
-      500,
-      30,
-    )
+    // Admin submitter: simulates a staff user filling in the form on behalf of the patient
+    // (uses a user-scoped DB in submit_form_response).
+    await runFlow({
+      label: 'admin-submit',
+      tag: 'form-group-completed-push-admin',
+      submitAsEnduser: false,
+    })
 
-    await async_test(
-      "Form Group Completed trigger fires for push-to-portal completion",
-      () => sdk.api.endusers.getOne(enduser.id),
-      { onResult: (e: Enduser) => !!e.tags?.includes('form-group-completed-push') },
-    )
+    // Enduser submitter: simulates the patient submitting via the portal
+    // (uses an enduser-scoped DB in submit_form_response — exercises the path QA caught).
+    await runFlow({
+      label: 'enduser-submit',
+      tag: 'form-group-completed-push-enduser',
+      submitAsEnduser: true,
+    })
 
   } finally {
     for (const id of createdTriggerIds) {

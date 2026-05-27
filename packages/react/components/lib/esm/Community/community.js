@@ -50,7 +50,7 @@ import { useCallback, useState } from "react";
 import { HoverPaper, LoadingLinear, ScrollingList, useForumPosts, useForums, Link, LabeledIconButton, usePostComments, Form, SubmitButton, useModalIconButton, IconModal, ResolveDisplayPicture, elapsed_time_display_string, ResolveDisplayName, useResolvedSession, DeleteWithConfimrationIcon, DisplayPicture, } from "../index";
 import { Divider, Grid, LinearProgress, Paper, TextField, Typography } from "@mui/material";
 import { usePostLiking, } from "./hooks";
-import { remove_script_tags, truncate_string, user_is_admin } from "@tellescope/utilities";
+import { sanitize_user_html, truncate_string, user_is_admin } from "@tellescope/utilities";
 import LikeIcon from "@mui/icons-material/ThumbUp";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
@@ -66,7 +66,7 @@ export var ResolvedContent = function (_a) {
     var textContent = _a.textContent, htmlContent = _a.htmlContent, style = _a.style;
     if (htmlContent) {
         return (_jsx("div", { style: style, dangerouslySetInnerHTML: {
-                __html: remove_script_tags(htmlContent),
+                __html: sanitize_user_html(htmlContent),
             } }));
     }
     return _jsx(Typography, { children: textContent });

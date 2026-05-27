@@ -1,6 +1,6 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { ManagedContentRecord } from "@tellescope/types-client"
-import { remove_script_tags, sanitize_html_for_cms } from "@tellescope/utilities"
+import { sanitize_user_html, sanitize_html_for_cms } from "@tellescope/utilities"
 import { Button, Grid, Typography } from "@mui/material"
 import { PDFBlockUI } from "./components"
 import { css } from "@emotion/css"
@@ -190,7 +190,7 @@ export const ArticleViewer = ({
     else if (article.htmlContent) {
       return (
         <div style={style} dangerouslySetInnerHTML={{
-          __html: remove_script_tags(article.htmlContent)
+          __html: sanitize_user_html(article.htmlContent)
         }} />
       )
     } else {
@@ -224,7 +224,7 @@ export const ArticleViewer = ({
                 margin-bottom: 0;
               }`}
               dangerouslySetInnerHTML={{
-                __html: remove_script_tags(
+                __html: sanitize_user_html(
                   block.info.html.replaceAll(/style="*"/g, '')
                 )
               }}
@@ -306,7 +306,7 @@ export const html_for_article = (article: ManagedContentRecord, options?: { root
           `<h2>${block.info.text}</h2>`
         )
       : block.type === 'html' ? (
-        `<div>${remove_script_tags(remove_script_tags(block.info.html))}</div>`
+        `<div>${sanitize_user_html(sanitize_user_html(block.info.html))}</div>`
         )
       : block.type === 'raw-html' ? (
         `<div>${sanitize_html_for_cms(block.info.html)}</div>`

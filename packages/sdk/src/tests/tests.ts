@@ -76,6 +76,7 @@ import {
 import fs from "fs"
 import { load_inbox_data_tests } from "./api_tests/load_inbox_data.test";
 import { enduser_login_tests } from "./api_tests/enduser_login.test";
+import { enduser_login_rate_limits_tests } from "./api_tests/enduser_login_rate_limits.test";
 import { eom_procedure_codes_tests } from "./api_tests/eom_procedure_codes.test";
 import { cross_org_api_key_tests } from "./api_tests/cross_org_api_key.test";
 import { custom_dashboards_tests } from "./api_tests/custom_dashboards.test";
@@ -88,6 +89,12 @@ import { custom_aggregation_tests } from "./api_tests/custom_aggregation.test";
 import { chats_analytics_tests } from "./api_tests/chats_analytics.test";
 import { no_access_permission_checks_tests } from "./api_tests/no_access_permission_checks.test";
 import { field_redaction_tests } from "./api_tests/field_redaction.test";
+import { data_sync_redaction_bypass_tests } from "./api_tests/security/F-0001-data-sync-redaction-bypass.test";
+import { ai_conversations_rbac_tests } from "./api_tests/security/F-0005-ai-conversations-rbac.test";
+import { invite_user_enumeration_tests } from "./api_tests/security/F-0007-invite-user-enumeration.test";
+import { handle_incoming_communication_cross_tenant_tests } from "./api_tests/security/F-0008-handle-incoming-communication-cross-tenant.test";
+import { sanitize_user_html_xss_tests } from "./api_tests/security/F-0013-sanitize-user-html.test";
+import { prototype_pollution_tests } from "./api_tests/security/F-0016-prototype-pollution.test";
 import { bulk_assignment_tests } from "./api_tests/bulk_assignment.test";
 import { managed_content_enduser_access_tests } from "./api_tests/managed_content_enduser_access.test";
 import { managed_content_file_access_tests } from "./api_tests/managed_content_file_access.test";
@@ -109,6 +116,7 @@ import { set_fields_order_templates_tests } from "./api_tests/set_fields_order_t
 import { date_string_validation_tests } from "./api_tests/date_string_validation.test";
 import { enduser_session_invalidation_tests } from "./api_tests/enduser_session_invalidation.test";
 import { enduser_cross_access_isolation_tests } from "./api_tests/enduser_cross_access_isolation.test";
+import { calendar_event_webhook_template_tests } from "./api_tests/calendar_event_webhook_template.test";
 
 const UniquenessViolationMessage = 'Uniqueness Violation'
 
@@ -5092,6 +5100,7 @@ const trigger_events_api_tests = async () => {
 const automation_trigger_tests = async () => {
   log_header("Automation Trigger Tests")
 
+  await push_forms_to_portal_group_completion_tests({ sdk, sdkNonAdmin })
   await order_status_equals_tests()
   await set_fields_order_templates_tests({ sdk, sdkNonAdmin })
   await medication_added_trigger_tests({ sdk, sdkNonAdmin })
@@ -5102,7 +5111,6 @@ const automation_trigger_tests = async () => {
   await form_response_set_fields_trigger_tests()
   await form_response_set_fields_journey_tests()
   await appointment_completed_trigger_tests({ sdk, sdkNonAdmin })
-  await push_forms_to_portal_group_completion_tests({ sdk, sdkNonAdmin })
   await trigger_events_api_tests()
   await fields_changed_tests()
   await field_equals_trigger_tests()
@@ -14321,10 +14329,19 @@ const ip_address_form_tests = async () => {
     await replace_form_field_template_values_tests()
     await mfa_tests()
     await setup_tests(sdk, sdkNonAdmin)
+    await invite_user_enumeration_tests({ sdk, sdkNonAdmin })
+    await handle_incoming_communication_cross_tenant_tests({ sdk, sdkNonAdmin })
+    await calendar_event_webhook_template_tests({ sdk, sdkNonAdmin })
+    await outbound_chat_sent_trigger_tests({ sdk })
+    await enduser_login_rate_limits_tests({ sdk, sdkNonAdmin })
+    await data_sync_redaction_bypass_tests({ sdk, sdkNonAdmin })
+    await ai_conversations_rbac_tests({ sdk, sdkNonAdmin })
+    await sanitize_user_html_xss_tests()
+    await prototype_pollution_tests()
+    await automation_trigger_tests()
     await account_switcher_tests({ sdk, sdkNonAdmin })
     await enduser_login_tests({ sdk, sdkNonAdmin })
     await outbound_chat_sent_trigger_tests({ sdk })
-    await automation_trigger_tests()
     await enduser_cross_access_isolation_tests({ sdk, sdkNonAdmin })
     await eom_procedure_codes_tests({ sdk, sdkNonAdmin })
     await cross_org_api_key_tests({ sdk, sdkNonAdmin })

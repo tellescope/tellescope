@@ -1,7 +1,7 @@
 import React, { useEffect } from "react"
 import { Divider, Grid, Typography } from "@mui/material"
 import { Enduser, FormResponse } from "@tellescope/types-client"
-import { form_response_value_to_string, formatted_date, getOrgnizationLogoURL, remove_script_tags, user_display_name } from "@tellescope/utilities"
+import { form_response_value_to_string, formatted_date, getOrgnizationLogoURL, sanitize_user_html, user_display_name } from "@tellescope/utilities"
 import { DownloadFileIconButton, ImageProps, LabeledIconButton, SecureImage, useEndusers, useEnduserMedications, useEnduserObservations, useOrganization, useResolvedSession, useSession, useUsers, value_is_loaded } from "../index"
 import CloseIcon from '@mui/icons-material/Close';
 import { DatabaseSelectResponse, FormResponseAnswerAddress, FormResponseValueAnswer } from "@tellescope/types-models"
@@ -161,7 +161,7 @@ export const ResponseAnswer = ({ formResponse, fieldId, isHTML, answer: a, print
   isHTML?: boolean,
 }) => (
 ((isHTML || a.type === 'Rich Text') && typeof a.value === 'string') 
-  ? <div dangerouslySetInnerHTML={{ __html: remove_script_tags(a.value) }} />
+  ? <div dangerouslySetInnerHTML={{ __html: sanitize_user_html(a.value) }} />
   : a.value 
     ? (
     <Typography component="div">
@@ -461,7 +461,7 @@ export const FormResponseView = ({ showAnswerInline=true, logoURL, enduser, onCl
                 && !(typeof r.answer.value === 'string' && r.answer.value.includes('{TELLESCOPE')) // hidden field for matching, not to display
                 && (
                   (r.answerIsHTML && typeof r.answer.value === 'string')
-                    ? <div dangerouslySetInnerHTML={{ __html: remove_script_tags(r.answer.value) }} />
+                    ? <div dangerouslySetInnerHTML={{ __html: sanitize_user_html(r.answer.value) }} />
                     : <ResponseAnswer fieldId={r.fieldId} formResponse={response} answer={r.answer} printing={printing} />
                 )
                 }
@@ -476,7 +476,7 @@ export const FormResponseView = ({ showAnswerInline=true, logoURL, enduser, onCl
               ): r.fieldHtmlDescription
                 ? (
                   <div dangerouslySetInnerHTML={{
-                    __html: r.fieldHtmlDescription
+                    __html: sanitize_user_html(r.fieldHtmlDescription)
                   }} />
                 )
                 : null

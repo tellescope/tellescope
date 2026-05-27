@@ -7,7 +7,7 @@ import {
   SendIcon,
   useChats,
 } from "@tellescope/react-components"
-import { remove_script_tags, user_display_name } from "@tellescope/utilities";
+import { sanitize_user_html, user_display_name } from "@tellescope/utilities";
 
 const stripOuterParagraphTags = (html: string): string => {
   let result = html.trim()
@@ -27,7 +27,7 @@ export interface HTMLMessageProps {
 export const HTMLMessage = ({ html } : HTMLMessageProps) => (
   <div style={{ padding: 2 }}
     dangerouslySetInnerHTML={{
-      __html: remove_script_tags(
+      __html: sanitize_user_html(
         stripOuterParagraphTags(html).replace(/<a/g, '<a style="color: white;"')
       ),
     }} 

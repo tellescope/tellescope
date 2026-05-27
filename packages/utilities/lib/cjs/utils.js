@@ -35,9 +35,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.time_for_calendar_event = exports.fullMonth_day_year = exports.calculate_date_difference_for_set_fields = exports.calculate_days_between_dates_from_enduser = exports.resolve_date_value = exports.calculate_days_between_dates = exports.parse_date_string = exports.mm_dd_yyyy = exports.yyyy_mm_dd_numeric = exports.yyyy_mm_dd = exports.formatted_date_hh_mm = exports.get_add_to_gcal_link = exports.formatted_date = exports.get_time_values = exports.MONTHS = exports.MONTHS_FULL = exports.sorted_records = exports.wait = exports.findFirstUnansweredField = exports.throwFunction = exports.ensure_https_url = exports.to_absolute_url = exports.build_portal_link_string = exports.build_content_link_string = exports.build_file_link_string = exports.build_form_group_link_string = exports.build_form_link_string = exports.build_link_string = exports.getTemplatedData = exports.parse_link_template = exports.map_object = exports.format_stripe_subscription_interval = exports.truncate_string = exports.defined_fields = exports.user_is_active = exports.user_display_name = exports.objects_equivalent = exports.to_object_id = exports.url_safe_path = exports.is_whitespace = exports.matching_fields = exports.is_object = exports.filter_object = exports.is_defined = exports.is_truthy = exports.object_is_empty = exports.first_letter_lowercase = exports.first_letter_capitalized = exports.user_is_admin = exports.ObjectId = void 0;
-exports.get_next_reminder_timestamp = exports.mfa_is_enabled = exports.URIDecodeEmail = exports.get_recent_outbound_communication_date = exports.get_recent_engagement_date = exports.MM_DD_YYYY_to_YYYY_MM_DD = exports.YYYY_MM_DD_to_MM_DD_YYYY = exports.getLocalTimezone = exports.string_matches_key_or_value = exports.evaluate_conditional_logic_for_enduser_fields = exports.UPCOMING_EVENT_COUNT_KEY = exports.get_enduser_field_value_for_key = exports.age_for_dob_mmddyyyy = exports.replace_keys_and_values_in_object = exports.get_conditional_logic_values = exports.evaluate_conditional_logic_for_medication_title = exports.evaluate_string_field_comparison = exports.evaluate_conditional_logic = exports.shuffle_array_in_place = exports.plaintext_for_managed_content_record = exports.sanitize_html = exports.timezone_for_enduser = exports.safeJSONParse = exports.payment_cost_to_string = exports.read_local_storage = exports.update_local_storage = exports.is_organization_owner = exports.form_response_value_to_string = exports.is_table_input_response = exports.user_has_record_access = exports.is_suborganization = exports.matches_organization = exports.getDefaultPortalURL = exports.getPublicFileURL = exports.getOrgnizationFaviconURL = exports.getOrgnizationLogoURL = exports.getBuiltInPublicFileName = exports.getGoogleClientAPIKey = exports.getGoogleClientId = exports.getApiURL = exports.getEnvironment = exports.TEST_API_URL = exports.STAGING_API_URL = exports.PROD_API_URL = exports.query_string_for_object = exports.sanitize_html_for_cms = exports.sanitize_html_with_links = exports.remove_image_tags = exports.remove_style_tags = exports.remove_script_tags = void 0;
-exports.is_timezone = exports.downloadFile = exports.get_prepopulated_responses = exports.INVALID_PREPOPULATION_TYPES = exports.add_value_for_dotted_key = exports.value_for_dotted_key = exports.get_flattened_fields = exports.skip_due_date_as_needed = exports.is_full_iso_string_heuristic = exports.display_time_for_seconds = exports.replace_enduser_template_values = exports.replace_secret_values = exports.get_secret_names = exports.replace_sms_template_values = exports.replace_form_field_template_values = exports.replace_order_template_values = exports.replace_medication_template_values = exports.replace_purchase_template_values = exports.replace_tag_template_values_for_enduser = exports.append_current_utm_params = exports.get_utm_params = exports.is_out_of_office = exports.color_for_classification = exports.classification_for_vital = exports.SMS_UNSUBSCRIBE_KEYWORDS = exports.satisfies_vital_comparison = exports.field_can_autosubmit = exports.field_can_autoadvance = exports.decodeJWT = exports.validate_organization_for_develop_health = exports.validate_user_for_develop_health = exports.validate_enduser_for_develop_health = exports.validate_enduser_for_script_sure = exports.validate_enduser_for_dose_spot = exports.validate_enduser_for_smart_meter = exports.validate_enduser_for_gogo = exports.json_error_string = exports.validate_enduser_for_candid = exports.validate_provider_for_candid = exports.validate_organization_for_candid = exports.validate_insurance_for_eligibility = exports.weighted_round_robin = exports.responses_satisfy_conditions = exports.calculate_bmi_from_responses = exports.calculate_bmi = exports.FORM_LOGIC_URL_PARAMETER = exports.FORM_LOGIC_CALCULATED_FIELDS = exports.calculate_form_scoring = exports.batch_array = exports.capture_is_supported = void 0;
-exports.formatDuration = exports.calculateTimeTrackDuration = exports.validate_custom_field_references = exports.slot_violates_calendar_event_limits = exports.replace_form_response_template_values = exports.resolve_integration_id = exports.replace_snippet_template_values = exports.get_snippet_keys = exports.emit_gtm_event = exports.get_care_team_primary = exports.is_checkbox_custom_field_value = exports.enrich_doxy_url = exports.to_human_readable_phone_number = exports.get_canvas_id = exports.should_show_unsubmitted_form_response_for_interval = exports.enduser_insurance_string = exports.enduser_address_string = void 0;
+exports.mfa_is_enabled = exports.URIDecodeEmail = exports.get_recent_outbound_communication_date = exports.get_recent_engagement_date = exports.MM_DD_YYYY_to_YYYY_MM_DD = exports.YYYY_MM_DD_to_MM_DD_YYYY = exports.getLocalTimezone = exports.string_matches_key_or_value = exports.evaluate_conditional_logic_for_enduser_fields = exports.UPCOMING_EVENT_COUNT_KEY = exports.get_enduser_field_value_for_key = exports.age_for_dob_mmddyyyy = exports.replace_keys_and_values_in_object = exports.get_conditional_logic_values = exports.evaluate_conditional_logic_for_medication_title = exports.evaluate_string_field_comparison = exports.evaluate_conditional_logic = exports.shuffle_array_in_place = exports.plaintext_for_managed_content_record = exports.sanitize_html = exports.timezone_for_enduser = exports.safeJSONParse = exports.payment_cost_to_string = exports.read_local_storage = exports.update_local_storage = exports.is_organization_owner = exports.form_response_value_to_string = exports.is_table_input_response = exports.user_has_record_access = exports.is_suborganization = exports.matches_organization = exports.getDefaultPortalURL = exports.getPublicFileURL = exports.getOrgnizationFaviconURL = exports.getOrgnizationLogoURL = exports.getBuiltInPublicFileName = exports.getGoogleClientAPIKey = exports.getGoogleClientId = exports.getApiURL = exports.getEnvironment = exports.TEST_API_URL = exports.STAGING_API_URL = exports.PROD_API_URL = exports.query_string_for_object = exports.sanitize_user_html = exports.sanitize_html_for_cms = exports.sanitize_html_with_links = exports.remove_image_tags = exports.remove_style_tags = exports.remove_script_tags = void 0;
+exports.get_prepopulated_responses = exports.INVALID_PREPOPULATION_TYPES = exports.add_value_for_dotted_key = exports.value_for_dotted_key = exports.get_flattened_fields = exports.skip_due_date_as_needed = exports.is_full_iso_string_heuristic = exports.display_time_for_seconds = exports.replace_enduser_template_values = exports.replace_secret_values = exports.get_secret_names = exports.replace_sms_template_values = exports.replace_form_field_template_values = exports.replace_order_template_values = exports.replace_medication_template_values = exports.replace_calendar_event_template_values = exports.replace_purchase_template_values = exports.replace_tag_template_values_for_enduser = exports.append_current_utm_params = exports.get_utm_params = exports.is_out_of_office = exports.color_for_classification = exports.classification_for_vital = exports.SMS_UNSUBSCRIBE_KEYWORDS = exports.satisfies_vital_comparison = exports.field_can_autosubmit = exports.field_can_autoadvance = exports.decodeJWT = exports.validate_organization_for_develop_health = exports.validate_user_for_develop_health = exports.validate_enduser_for_develop_health = exports.validate_enduser_for_script_sure = exports.validate_enduser_for_dose_spot = exports.validate_enduser_for_smart_meter = exports.validate_enduser_for_gogo = exports.json_error_string = exports.validate_enduser_for_candid = exports.validate_provider_for_candid = exports.validate_organization_for_candid = exports.validate_insurance_for_eligibility = exports.weighted_round_robin = exports.responses_satisfy_conditions = exports.calculate_bmi_from_responses = exports.calculate_bmi = exports.FORM_LOGIC_URL_PARAMETER = exports.FORM_LOGIC_CALCULATED_FIELDS = exports.calculate_form_scoring = exports.batch_array = exports.capture_is_supported = exports.get_next_reminder_timestamp = void 0;
+exports.formatDuration = exports.calculateTimeTrackDuration = exports.validate_custom_field_references = exports.slot_violates_calendar_event_limits = exports.replace_form_response_template_values = exports.resolve_integration_id = exports.replace_snippet_template_values = exports.get_snippet_keys = exports.emit_gtm_event = exports.get_care_team_primary = exports.is_checkbox_custom_field_value = exports.enrich_doxy_url = exports.to_human_readable_phone_number = exports.get_canvas_id = exports.should_show_unsubmitted_form_response_for_interval = exports.enduser_insurance_string = exports.enduser_address_string = exports.is_timezone = exports.downloadFile = void 0;
 var types_models_1 = require("@tellescope/types-models");
 var constants_1 = require("@tellescope/constants");
 var sanitize_html_1 = __importDefault(require("sanitize-html"));
@@ -637,6 +637,11 @@ var time_for_calendar_event = function (event) {
     return "".concat(hoursAmPm, ":").concat(minutes).concat(amPm === amPmEnd ? '' : amPm, "-").concat(hoursEnd, ":").concat(minutesEnd).concat(amPmEnd);
 };
 exports.time_for_calendar_event = time_for_calendar_event;
+/**
+ * @deprecated Use {@link sanitize_user_html} for any HTML that will be rendered (e.g. via
+ * `dangerouslySetInnerHTML`). This helper is retained for the validation/escaping path, where it
+ * operates on plain field values and is intentionally minimal so it does not alter their contents.
+ */
 var remove_script_tags = function (s) { return s.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, ''); };
 exports.remove_script_tags = remove_script_tags;
 var remove_style_tags = function (s) { return s.replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, ''); };
@@ -725,6 +730,86 @@ var sanitize_html_for_cms = function (html) {
     });
 };
 exports.sanitize_html_for_cms = sanitize_html_for_cms;
+/**
+ * Canonical sanitizer for HTML that will be rendered (e.g. via `dangerouslySetInnerHTML`):
+ * form descriptions/answers, CMS/articles, care plans, templates, chat, community posts,
+ * portal HTML blocks, email bodies, etc.
+ *
+ * Uses an allowlist parser (sanitize-html) tuned to be broad on formatting/structure so
+ * legitimate customization is preserved — rich text, headings, lists, tables, images, media,
+ * inline styles, and links — while only allowlisted tags, attributes, and URL schemes are kept.
+ * If a specific surface needs embeds (e.g. YouTube), add `iframe` with `allowedIframeHostnames`
+ * for that surface rather than loosening this shared function.
+ */
+var sanitize_user_html = function (html) {
+    if (typeof html !== 'string' || !html)
+        return '';
+    return (0, sanitize_html_1.default)(html, {
+        allowedTags: [
+            // text & inline
+            'a', 'abbr', 'b', 'bdi', 'bdo', 'br', 'cite', 'code', 'data', 'dfn', 'em', 'i', 'kbd',
+            'mark', 'q', 'rp', 'rt', 'ruby', 's', 'samp', 'small', 'span', 'strong', 'sub', 'sup',
+            'time', 'u', 'var', 'wbr', 'del', 'ins', 'abbr',
+            // block & structure
+            'address', 'article', 'aside', 'blockquote', 'caption', 'details', 'summary', 'div',
+            'figcaption', 'figure', 'footer', 'header', 'hgroup', 'hr', 'main', 'nav', 'p', 'pre',
+            'section',
+            // headings
+            'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+            // lists
+            'dd', 'dl', 'dt', 'li', 'ol', 'ul',
+            // tables
+            'col', 'colgroup', 'table', 'tbody', 'td', 'tfoot', 'th', 'thead', 'tr',
+            // media (no iframe/object/embed — those can execute or frame arbitrary content)
+            'img', 'audio', 'video', 'source', 'picture', 'track',
+        ],
+        allowedAttributes: {
+            // NOTE: `id`/`name` are intentionally omitted — caller-controlled id/name enable DOM
+            // clobbering (shadowing document/global properties) and duplicate-id breakage, with no
+            // legitimate need in rendered user content.
+            '*': [
+                'style', 'class', 'title', 'dir', 'lang', 'align', 'valign', 'width', 'height',
+                'color', 'bgcolor', 'aria-*', 'data-*', 'role',
+            ],
+            a: ['href', 'target', 'rel'],
+            img: ['src', 'srcset', 'sizes', 'alt', 'loading', 'decoding'],
+            audio: ['controls', 'src', 'preload', 'loop', 'muted'],
+            video: ['controls', 'src', 'poster', 'preload', 'loop', 'muted', 'playsinline'],
+            source: ['src', 'srcset', 'type', 'media', 'sizes'],
+            track: ['src', 'kind', 'srclang', 'label', 'default'],
+            col: ['span'],
+            colgroup: ['span'],
+            td: ['colspan', 'rowspan', 'headers'],
+            th: ['colspan', 'rowspan', 'headers', 'scope'],
+            ol: ['start', 'reversed', 'type'],
+            time: ['datetime'],
+            data: ['value'],
+            del: ['datetime'],
+            ins: ['datetime'],
+        },
+        // Only safe protocols. javascript:/vbscript: are not listed and are stripped.
+        allowedSchemes: ['http', 'https', 'mailto', 'tel'],
+        allowedSchemesByTag: {
+            img: ['http', 'https', 'data'],
+            source: ['http', 'https', 'data'],
+            video: ['http', 'https', 'data'],
+            audio: ['http', 'https', 'data'],
+        },
+        allowedSchemesAppliedToAttributes: ['href', 'src', 'srcset'],
+        allowProtocolRelative: true,
+        // Harden external links against reverse-tabnabbing.
+        transformTags: {
+            a: function (tagName, attribs) {
+                var href = attribs.href || '';
+                if (href.startsWith('http://') || href.startsWith('https://')) {
+                    return { tagName: tagName, attribs: __assign(__assign({}, attribs), { target: '_blank', rel: 'noopener noreferrer' }) };
+                }
+                return { tagName: tagName, attribs: attribs };
+            },
+        },
+    });
+};
+exports.sanitize_user_html = sanitize_user_html;
 var query_string_for_object = function (query) {
     var queryString = '';
     if (query && !(0, exports.object_is_empty)(query)) {
@@ -2730,6 +2815,68 @@ var replace_purchase_template_values = function (s, purchase) {
     return replaced;
 };
 exports.replace_purchase_template_values = replace_purchase_template_values;
+var replace_calendar_event_template_values = function (s, event, options) {
+    var _a, _b, _d;
+    if (options === void 0) { options = {}; }
+    if (!event)
+        return s;
+    if (typeof s !== 'string')
+        return s;
+    var i = 0;
+    var start = 0;
+    var templates = [];
+    while (i < 100) {
+        i++;
+        start = s.indexOf('{{calendar_event.', start);
+        if (start === -1)
+            break;
+        var end = s.indexOf('}}', start);
+        if (end === -1)
+            break;
+        var match = s.substring(start, end + 2); // +2 accounts for '}}'
+        var field = match.replace('{{calendar_event.', '').replace('}}', '');
+        var replacement = '';
+        if (field === 'Healthie ID') {
+            replacement = (event.source === constants_1.HEALTHIE_TITLE && event.externalId
+                ? event.externalId
+                : (_b = (_a = event.references) === null || _a === void 0 ? void 0 : _a.find(function (r) { return r.type === constants_1.HEALTHIE_TITLE; })) === null || _b === void 0 ? void 0 : _b.id) || '';
+        }
+        else if (field === 'id') {
+            replacement = ((_d = event === null || event === void 0 ? void 0 : event._id) === null || _d === void 0 ? void 0 : _d.toString()) || '';
+        }
+        else if (field === 'start') {
+            try {
+                replacement = new Date(event.startTimeInMS).toISOString();
+            }
+            catch (_e) {
+                replacement = '';
+            }
+        }
+        else {
+            var value = event[field];
+            if (value == null) {
+                replacement = '';
+            }
+            else if (typeof value === 'object') {
+                replacement = options.objectToString === 'jsonEscaped'
+                    ? JSON.stringify(JSON.stringify(value)).slice(1, -1)
+                    : JSON.stringify(value);
+            }
+            else {
+                replacement = value.toString();
+            }
+        }
+        templates.push({ match: match, replacement: replacement });
+        start = end + 2;
+    }
+    var replaced = s.toString();
+    for (var _i = 0, templates_2 = templates; _i < templates_2.length; _i++) {
+        var _f = templates_2[_i], match = _f.match, replacement = _f.replacement;
+        replaced = replaced.replace(match, replacement);
+    }
+    return replaced;
+};
+exports.replace_calendar_event_template_values = replace_calendar_event_template_values;
 var replace_medication_template_values = function (s, medication) {
     if (!medication)
         return s;
@@ -2756,8 +2903,8 @@ var replace_medication_template_values = function (s, medication) {
         start = end + 2;
     }
     var replaced = s.toString();
-    for (var _i = 0, templates_2 = templates; _i < templates_2.length; _i++) {
-        var _a = templates_2[_i], match = _a.match, replacement = _a.replacement;
+    for (var _i = 0, templates_3 = templates; _i < templates_3.length; _i++) {
+        var _a = templates_3[_i], match = _a.match, replacement = _a.replacement;
         replaced = replaced.replace(match, replacement);
     }
     return replaced;
@@ -2808,8 +2955,8 @@ var replace_order_template_values = function (s, order) {
         start = end + 2;
     }
     var replaced = s.toString();
-    for (var _i = 0, templates_3 = templates; _i < templates_3.length; _i++) {
-        var _b = templates_3[_i], match = _b.match, replacement = _b.replacement;
+    for (var _i = 0, templates_4 = templates; _i < templates_4.length; _i++) {
+        var _b = templates_4[_i], match = _b.match, replacement = _b.replacement;
         replaced = replaced.replace(match, replacement);
     }
     return replaced;
@@ -2919,8 +3066,8 @@ var replace_form_field_template_values = function (s, options) {
             break;
     }
     var replaced = s.toString();
-    for (var _i = 0, templates_4 = templates; _i < templates_4.length; _i++) {
-        var _l = templates_4[_i], match = _l.match, replacement = _l.replacement;
+    for (var _i = 0, templates_5 = templates; _i < templates_5.length; _i++) {
+        var _l = templates_5[_i], match = _l.match, replacement = _l.replacement;
         replaced = replaced.replace(match, replacement);
     }
     return replaced;
@@ -2946,8 +3093,8 @@ var replacer = function (prefix, s, handleMatch) {
         start = end + 2;
     }
     var replaced = s.toString();
-    for (var _i = 0, templates_5 = templates; _i < templates_5.length; _i++) {
-        var _a = templates_5[_i], match = _a.match, replacement = _a.replacement;
+    for (var _i = 0, templates_6 = templates; _i < templates_6.length; _i++) {
+        var _a = templates_6[_i], match = _a.match, replacement = _a.replacement;
         replaced = replaced.replace(match, replacement);
     }
     return replaced;
@@ -3014,8 +3161,8 @@ var replace_enduser_template_values = function (s, enduser, options) {
         start = end + 2;
     }
     var replaced = s.toString();
-    for (var _i = 0, templates_6 = templates; _i < templates_6.length; _i++) {
-        var _a = templates_6[_i], match = _a.match, replacement = _a.replacement;
+    for (var _i = 0, templates_7 = templates; _i < templates_7.length; _i++) {
+        var _a = templates_7[_i], match = _a.match, replacement = _a.replacement;
         replaced = replaced.replace(match, replacement);
     }
     return replaced;
@@ -3115,8 +3262,12 @@ var value_for_dotted_key = function (v, key, o) {
     return value;
 };
 exports.value_for_dotted_key = value_for_dotted_key;
+var PROTO_POLLUTION_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
 var add_value_for_dotted_key = function (_object, field, value) {
     var keys = field.split('.');
+    // Never write through a path that could reach Object.prototype / a constructor.
+    if (keys.some(function (k) { return PROTO_POLLUTION_KEYS.has(k); }))
+        return;
     var object = _object;
     for (var i = 0; i < keys.length; i++) {
         var key = keys[i];

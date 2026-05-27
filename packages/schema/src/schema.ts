@@ -79,6 +79,7 @@ import {
   DevelopHealthRunBenefitVerificationBaseArguments,
   WeeklyAvailability,
   CanvasCreateNoteAutomationAction,
+  CanvasCoding,
   StripeKeyDetail,
   MetriportIntegrationDetail,
   EnduserDevice,
@@ -714,9 +715,9 @@ export type CustomActions = {
     >,
     file_download_URL: CustomAction<{ secureName: string, preferInBrowser?: boolean, }, { downloadURL: string, name: string }>,
     run_ocr: CustomAction<{ id: string, type: string }, { file: File }>,
-    confirm_file_upload: CustomAction<{ id: string, syncToBeluga?: boolean, formResponseId?: string }, { }>,
+    confirm_file_upload: CustomAction<{ id: string, syncToBeluga?: boolean, syncToMDI?: boolean, formResponseId?: string }, { }>,
     send_fax: CustomAction<{ id: string, recipientFaxNumber: string }, { }>,
-    push: CustomAction<{ id: string, destination: string, type?: string, typeId?: string }, { file?: File }>,
+    push: CustomAction<{ id: string, destination: string, type?: string, typeId?: string, canvasCategory?: string, canvasType?: CanvasCoding, canvasReviewMode?: string, canvasComment?: string }, { file?: File }>,
   },
   form_fields: {
     load_choices_from_database: CustomAction<{ fieldId: string, lastId?: string, limit?: number, databaseId?: string, search?: string }, { choices: DatabaseRecordClient[] }>,
@@ -4313,10 +4314,11 @@ export const schema: SchemaV1 = build_schema({
         op: "custom", access: 'create', method: "post",
         name: 'Confirm File Upload',
         path: '/files/confirm-upload',
-        description: "Triggers file create side effects / webhooks to be called after client-side upload is complete. Optionally syncs file to Beluga if syncToBeluga is true and formResponseId is provided.",
+        description: "Triggers file create side effects / webhooks to be called after client-side upload is complete. Optionally syncs file to Beluga if syncToBeluga is true and formResponseId is provided, or to MD Integrations if syncToMDI is true and formResponseId is provided.",
         parameters: {
           id: { validator: mongoIdStringRequired, required: true },
           syncToBeluga: { validator: booleanValidator },
+          syncToMDI: { validator: booleanValidator },
           formResponseId: { validator: mongoIdStringValidator },
         },
         returns: { },
@@ -4337,13 +4339,17 @@ export const schema: SchemaV1 = build_schema({
         name: 'Push File',
         path: '/files/push',
         description: "Sends a file to an integrated system (e.g. athenahealth)",
-        parameters: { 
+        parameters: {
           id: { validator: mongoIdStringRequired, required: true },
           destination: { validator: stringValidator, required: true },
           type: { validator: stringValidator },
           typeId: { validator: stringValidator },
+          canvasCategory: { validator: stringValidator },
+          canvasType: { validator: canvasCodingValidator },
+          canvasReviewMode: { validator: stringValidator },
+          canvasComment: { validator: stringValidator5000 },
         },
-        returns: { 
+        returns: {
           file: { validator: 'file' as any },
         },
       },
@@ -4864,8 +4870,9 @@ export const schema: SchemaV1 = build_schema({
       publicShowDownload: { validator: booleanValidator },
       canvasId: { validator: stringValidator100 },
       canvasQuestionId: { validator: stringValidator100 },
-      syncToOLH: { validator: booleanValidator }, 
+      syncToOLH: { validator: booleanValidator },
       syncWithResponsesFromFormIds: { validator: listOfUniqueStringsValidatorEmptyOk },
+      syncAnswersAsHtml: { validator: booleanValidator },
       scoresSync: {
         validator: listValidatorOptionalOrEmptyOk(objectValidator<{ score: string, externalId: string }>({ 
           score: stringValidator100,
@@ -5982,7 +5989,7 @@ export const schema: SchemaV1 = build_schema({
       canvasCoding: { validator: canvasCodingValidator },
       canvasReasonCoding: { validator: canvasCodingValidator },
       canvasLocationId: { validator: stringValidator100 },
-      references: { validator: listOfRelatedRecordsValidator, readonly: true },
+      references: { validator: listOfRelatedRecordsValidator, updatesDisabled: true },
       completedAt: { validator: dateValidatorOptional },
       completedBy: { validator: stringValidator },
       confirmedAt: { validator: dateValidatorOptional },

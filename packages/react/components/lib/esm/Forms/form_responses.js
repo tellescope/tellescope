@@ -20,7 +20,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 };
 import { jsxs as _jsxs, jsx as _jsx, Fragment as _Fragment } from "react/jsx-runtime";
 import { Divider, Grid, Typography } from "@mui/material";
-import { form_response_value_to_string, formatted_date, getOrgnizationLogoURL, remove_script_tags, user_display_name } from "@tellescope/utilities";
+import { form_response_value_to_string, formatted_date, getOrgnizationLogoURL, sanitize_user_html, user_display_name } from "@tellescope/utilities";
 import { DownloadFileIconButton, LabeledIconButton, SecureImage, useEnduserMedications, useEnduserObservations, useOrganization, useResolvedSession, useUsers, value_is_loaded } from "../index";
 import CloseIcon from '@mui/icons-material/Close';
 import { Image } from "../layout";
@@ -63,7 +63,7 @@ export var HistoricalDataSnapshotDisplay = function (_a) {
 export var ResponseAnswer = function (_a) {
     var formResponse = _a.formResponse, fieldId = _a.fieldId, isHTML = _a.isHTML, a = _a.answer, printing = _a.printing, onImageClick = _a.onImageClick;
     return (((isHTML || a.type === 'Rich Text') && typeof a.value === 'string')
-        ? _jsx("div", { dangerouslySetInnerHTML: { __html: remove_script_tags(a.value) } })
+        ? _jsx("div", { dangerouslySetInnerHTML: { __html: sanitize_user_html(a.value) } })
         : a.value
             ? (_jsx(Typography, __assign({ component: "div" }, { children: (a.type === 'multiple_choice' || a.type === 'Database Select')
                     ? (_jsx("div", { children: a.value.map(function (t, i) {
@@ -186,11 +186,11 @@ export var FormResponseView = function (_a) {
                                             } }, { children: r.fieldTitle })) })), _jsx("div", __assign({ style: {} }, { children: showAnswerInline && r.answer.type !== 'Question Group'
                                         && !(typeof r.answer.value === 'string' && r.answer.value.includes('{TELLESCOPE')) // hidden field for matching, not to display
                                         && ((r.answerIsHTML && typeof r.answer.value === 'string')
-                                            ? _jsx("div", { dangerouslySetInnerHTML: { __html: remove_script_tags(r.answer.value) } })
+                                            ? _jsx("div", { dangerouslySetInnerHTML: { __html: sanitize_user_html(r.answer.value) } })
                                             : _jsx(ResponseAnswer, { fieldId: r.fieldId, formResponse: response, answer: r.answer, printing: printing })) }))] })), r.fieldDescription
                             ? (_jsx(Typography, __assign({ style: {} }, { children: r.fieldDescription }))) : r.fieldHtmlDescription
                             ? (_jsx("div", { dangerouslySetInnerHTML: {
-                                    __html: r.fieldHtmlDescription
+                                    __html: sanitize_user_html(r.fieldHtmlDescription)
                                 } }))
                             : null, !showAnswerInline &&
                             _jsx("div", __assign({ style: {} }, { children: _jsx(ResponseAnswer, { answer: r.answer, formResponse: response, fieldId: r.fieldId }) }))] }), i)); }) })), (response.addenda || []).length > 0 &&

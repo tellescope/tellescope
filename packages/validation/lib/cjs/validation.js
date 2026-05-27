@@ -2610,6 +2610,7 @@ exports.automationActionValidator = (0, exports.orValidator)({
             shipping: exports.stringValidator100,
         }) })),
     belugaAutoRx: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['belugaAutoRx']), info: (0, exports.objectValidator)({
+            formId: exports.mongoIdStringRequired,
             patientPreference: (0, exports.objectValidator)({
                 name: exports.stringValidatorOptional,
                 strength: exports.stringValidatorOptional,
@@ -2621,6 +2622,7 @@ exports.automationActionValidator = (0, exports.orValidator)({
             useOrganizationMapping: exports.booleanValidatorOptional,
         }) })),
     belugaUpdateVisit: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['belugaUpdateVisit']), info: (0, exports.objectValidator)({
+            formId: exports.mongoIdStringRequired,
             patientPreferences: (0, exports.listValidatorOptionalOrEmptyOk)((0, exports.objectValidator)({
                 name: exports.stringValidatorOptional,
                 strength: exports.stringValidatorOptional,

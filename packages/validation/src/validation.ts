@@ -3286,6 +3286,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     ...sharedAutomationActionValidators,
     type: exactMatchValidator(['belugaAutoRx']),
     info: objectValidator<BelugaAutoRxAutomationAction['info']>({
+      formId: mongoIdStringRequired,
       patientPreference: objectValidator<BelugaAutoRxPatientPreferenceItem>({
         name: stringValidatorOptional,
         strength: stringValidatorOptional,
@@ -3301,6 +3302,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     ...sharedAutomationActionValidators,
     type: exactMatchValidator(['belugaUpdateVisit']),
     info: objectValidator<BelugaUpdateVisitAutomationAction['info']>({
+      formId: mongoIdStringRequired,
       patientPreferences: listValidatorOptionalOrEmptyOk(objectValidator<BelugaUpdateVisitPatientPreferenceItem>({
         name: stringValidatorOptional,
         strength: stringValidatorOptional,
