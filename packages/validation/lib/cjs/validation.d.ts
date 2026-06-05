@@ -195,6 +195,7 @@ export declare const stringValidator20000ptional: ValidatorDefinition<string>;
 export declare const stringValidator5000EmptyOkay: ValidatorDefinition<string>;
 export declare const stringValidator5000Optional: ValidatorDefinition<string>;
 export declare const stringValidator25000: ValidatorDefinition<string>;
+export declare const stringValidator100000: ValidatorDefinition<string>;
 export declare const stringValidator100000EmptyOkay: ValidatorDefinition<string>;
 export declare const stringValidator100000OptionalEmptyOkay: ValidatorDefinition<string>;
 export declare const stringValidator100000OptionalEmptyOkayEscapeHTML: ValidatorDefinition<string>;
@@ -808,6 +809,7 @@ export declare const ticketActionValidator: ValidatorDefinition<(import("@telles
     templateId: string;
     chatId?: string | undefined;
     chatRoomId?: string | undefined;
+    enableChatReply?: boolean | undefined;
 }> & {
     type: "Send Chat";
 })>;
@@ -834,6 +836,7 @@ export declare const ticketActionsValidator: ValidatorDefinition<((import("@tell
     templateId: string;
     chatId?: string | undefined;
     chatRoomId?: string | undefined;
+    enableChatReply?: boolean | undefined;
 }> & {
     type: "Send Chat";
 }))[]>;
@@ -867,6 +870,9 @@ export declare const relatedRecordsValidatorOptional: ValidatorDefinition<Relate
 export declare const searchOptionsValidator: ValidatorDefinition<SearchOptions>;
 export declare const notificationPreferenceValidator: ValidatorDefinition<NotificationPreference>;
 export declare const notificationPreferencesValidator: ValidatorDefinition<Indexable<NotificationPreference>>;
+export declare const userPortalSettingsValidator: ValidatorDefinition<{
+    [index: string]: string | boolean;
+}>;
 export declare const FHIRObservationCategoryValidator: ValidatorDefinition<ObservationCategory>;
 export declare const FHIR_OBSERVATION_STATUS_CODES: ObservationStatusCode[];
 export declare const FHIRObservationStatusCodeValidator: ValidatorDefinition<ObservationStatusCode>;

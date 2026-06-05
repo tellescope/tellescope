@@ -257,6 +257,8 @@ export type OrganizationSettings = {
         disableSnooze?: boolean;
         showCommunications?: boolean;
         showJourneys?: boolean;
+        showMedications?: boolean;
+        showObservations?: boolean;
         requireDueDate?: boolean;
         allowArchival?: boolean;
         returnToTicketsList?: boolean;
@@ -766,6 +768,9 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
     acknowledgedIntegrations?: Date;
     notificationPreferences?: {
         [index: string]: NotificationPreference;
+    };
+    portalSettings?: {
+        [key: string]: string | boolean;
     };
     notificationEmailsDisabled?: boolean;
     disableIncomingPhoneCalls?: boolean;
@@ -1589,6 +1594,7 @@ export type TicketActions = {
         templateId: string;
         chatId?: string;
         chatRoomId?: string;
+        enableChatReply?: boolean;
     }>;
 };
 export type TicketActionType = keyof TicketActions;
@@ -3362,6 +3368,7 @@ export type BelugaAutoRxAutomationAction = AutomationActionBuilder<'belugaAutoRx
     patientPreference?: BelugaAutoRxPatientPreferenceItem;
     pharmacyId?: string;
     useOrganizationMapping?: boolean;
+    customFieldName?: string;
 }>;
 export type BelugaUpdateVisitPatientPreferenceItem = {
     name: string;
@@ -3376,8 +3383,10 @@ export type BelugaUpdateVisitAutomationAction = AutomationActionBuilder<'belugaU
     patientPreferences?: BelugaUpdateVisitPatientPreferenceItem[];
     pharmacyId?: string;
     useOrganizationMapping?: boolean;
+    customFieldName?: string;
 }>;
 export type BelugaAutomationMappingEntry = {
+    title?: string;
     enduserCondition: Record<string, any>;
     patientPreferences: BelugaUpdateVisitPatientPreferenceItem[];
     pharmacyId: string;

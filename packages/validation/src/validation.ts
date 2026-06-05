@@ -1045,9 +1045,16 @@ export const stringValidator25000: ValidatorDefinition<string> = {
   getExample: getExampleString,
   getType: getTypeString,
 }
+export const stringValidator100000: ValidatorDefinition<string> = {
+  validate: (o={}) => build_validator(
+    escapeString(o), { ...o, maxLength: 100000, listOf: false  }
+  ),
+  getExample: getExampleString,
+  getType: getTypeString,
+}
 export const stringValidator100000EmptyOkay: ValidatorDefinition<string> = {
   validate: (o={}) => build_validator(
-    escapeString(o), { ...o, maxLength: 100000, listOf: false, emptyStringOk: true } 
+    escapeString(o), { ...o, maxLength: 100000, listOf: false, emptyStringOk: true }
   ),
   getExample: getExampleString,
   getType: getTypeString,
@@ -2892,6 +2899,7 @@ export const ticketActionValidator = orValidator<{ [K in TicketActionType]: Tick
       templateId: mongoIdStringRequired,
       chatId: mongoIdStringOptional,
       chatRoomId: mongoIdStringOptional,
+      enableChatReply: booleanValidatorOptional,
     }, { emptyOk: false }),
     completedAt: dateOptionalOrEmptyStringValidator,
     optional: booleanValidatorOptional,
@@ -2977,7 +2985,7 @@ export const AIDecisionSourceValidator = objectValidator<AIContextSource>({
 
 export const AIMessageInputValidator = objectValidator<{ role: 'user' | 'assistant', text: string }>({
   role: exactMatchValidator(['user', 'assistant']),
-  text: stringValidator25000,
+  text: stringValidator100000,
 }, { emptyOk: false })
 
 export const automationActionValidator = orValidator<{ [K in AutomationActionType]: AutomationAction & { type: K } } | { [K in BrandedWebhookActions]: SendWebhookAutomationAction } >({
@@ -3296,6 +3304,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       }, { isOptional: true, emptyOk: true }),
       pharmacyId: stringValidatorOptional,
       useOrganizationMapping: booleanValidatorOptional,
+      customFieldName: stringValidatorOptional,
     }),
   }),
   belugaUpdateVisit: objectValidator<BelugaUpdateVisitAutomationAction>({
@@ -3313,6 +3322,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       })),
       pharmacyId: stringValidatorOptional,
       useOrganizationMapping: booleanValidatorOptional,
+      customFieldName: stringValidatorOptional,
     }),
   }),
   sendChat: objectValidator<SendChatAutomationAction>({
@@ -3599,6 +3609,19 @@ export const notificationPreferenceValidator = objectValidator<NotificationPrefe
   browser: booleanValidatorOptional,
 })
 export const notificationPreferencesValidator = objectAnyFieldsValidator(notificationPreferenceValidator)
+
+// keys: <=250 chars; values: boolean OR string <=250 chars.
+// boolean listed FIRST in orValidator so real booleans aren't coerced to strings.
+// isOptional is required on the orValidator: without it, orValidator's outer
+// build_validator falsy-guard (validation.ts:527) rejects a `false` value as
+// "missing value" before the inner boolean branch ever runs (a `true` value is
+// truthy and slips through, so the bug only manifests for `false`).
+// Named userPortalSettingsValidator to avoid collision with the existing
+// (organization) portalSettingsValidator below.
+export const userPortalSettingsValidator = indexableValidator(
+  stringValidator250,
+  orValidator({ boolean: booleanValidator, string: stringValidator250 }, { isOptional: true }),
+)
 
 export const FHIRObservationCategoryValidator = exactMatchValidator<ObservationCategory>(['vital-signs', 'laboratory'])
 
@@ -4697,6 +4720,8 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     disableSnooze: booleanValidatorOptional,
     showCommunications: booleanValidatorOptional,
     showJourneys: booleanValidatorOptional,
+    showMedications: booleanValidatorOptional,
+    showObservations: booleanValidatorOptional,
     requireDueDate: booleanValidatorOptional,
     allowArchival: booleanValidatorOptional,
     returnToTicketsList: booleanValidatorOptional,

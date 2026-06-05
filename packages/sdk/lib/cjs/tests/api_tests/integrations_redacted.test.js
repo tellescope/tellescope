@@ -63,7 +63,7 @@ var integrations_redacted_tests = function (_a) {
                     sensitiveIntegrationId = '';
                     _b.label = 1;
                 case 1:
-                    _b.trys.push([1, , 26, 35]);
+                    _b.trys.push([1, , 27, 36]);
                     return [4 /*yield*/, sdk.api.integrations.createOne({
                             title: 'Test Redacted Integration',
                             authentication: { type: 'oauth2', info: { access_token: 'test-access-token', refresh_token: 'test-refresh-token', scope: '', token_type: 'Bearer', expiry_date: new Date().getTime() } },
@@ -206,38 +206,48 @@ var integrations_redacted_tests = function (_a) {
                     return [4 /*yield*/, (0, testing_1.async_test)("load_redacted still returns non-sensitive fields", function () { return sdk.api.integrations.load_redacted({}); }, { onResult: function (r) {
                                 var found = r.integrations.find(function (i) { return i.id === sensitiveIntegrationId; });
                                 return !!found && found.emailDisabled === true && found.title === 'Test All Sensitive Fields';
-                            } })];
+                            } })
+                        // F-0049: connect_stripe must reject caller-supplied accountId (Stripe-account-spoofing defense).
+                        // Stripe Connect is deprecated in Tellescope; accountId was a test shortcut, kept rejected to preserve SDK shape.
+                    ];
                 case 25:
                     _b.sent();
-                    return [3 /*break*/, 35];
+                    // F-0049: connect_stripe must reject caller-supplied accountId (Stripe-account-spoofing defense).
+                    // Stripe Connect is deprecated in Tellescope; accountId was a test shortcut, kept rejected to preserve SDK shape.
+                    return [4 /*yield*/, (0, testing_1.async_test)("connect_stripe rejects caller-supplied accountId", function () { return sdk.api.integrations.connect_stripe({ countryCode: 'US', accountId: 'acct_someoneElsesAccount' }); }, { shouldError: true, onError: function (e) { return /accountId is not supported/i.test((e === null || e === void 0 ? void 0 : e.message) || (e === null || e === void 0 ? void 0 : e.toString()) || ''); } })];
                 case 26:
-                    if (!integrationId) return [3 /*break*/, 30];
-                    _b.label = 27;
-                case 27:
-                    _b.trys.push([27, 29, , 30]);
-                    return [4 /*yield*/, sdk.api.integrations.deleteOne(integrationId)];
-                case 28:
+                    // F-0049: connect_stripe must reject caller-supplied accountId (Stripe-account-spoofing defense).
+                    // Stripe Connect is deprecated in Tellescope; accountId was a test shortcut, kept rejected to preserve SDK shape.
                     _b.sent();
-                    return [3 /*break*/, 30];
+                    return [3 /*break*/, 36];
+                case 27:
+                    if (!integrationId) return [3 /*break*/, 31];
+                    _b.label = 28;
+                case 28:
+                    _b.trys.push([28, 30, , 31]);
+                    return [4 /*yield*/, sdk.api.integrations.deleteOne(integrationId)];
                 case 29:
+                    _b.sent();
+                    return [3 /*break*/, 31];
+                case 30:
                     error_1 = _b.sent();
                     console.error('Cleanup error:', error_1);
-                    return [3 /*break*/, 30];
-                case 30:
-                    if (!sensitiveIntegrationId) return [3 /*break*/, 34];
-                    _b.label = 31;
+                    return [3 /*break*/, 31];
                 case 31:
-                    _b.trys.push([31, 33, , 34]);
-                    return [4 /*yield*/, sdk.api.integrations.deleteOne(sensitiveIntegrationId)];
+                    if (!sensitiveIntegrationId) return [3 /*break*/, 35];
+                    _b.label = 32;
                 case 32:
-                    _b.sent();
-                    return [3 /*break*/, 34];
+                    _b.trys.push([32, 34, , 35]);
+                    return [4 /*yield*/, sdk.api.integrations.deleteOne(sensitiveIntegrationId)];
                 case 33:
+                    _b.sent();
+                    return [3 /*break*/, 35];
+                case 34:
                     error_2 = _b.sent();
                     console.error('Cleanup error (sensitive integration):', error_2);
-                    return [3 /*break*/, 34];
-                case 34: return [7 /*endfinally*/];
-                case 35: return [2 /*return*/];
+                    return [3 /*break*/, 35];
+                case 35: return [7 /*endfinally*/];
+                case 36: return [2 /*return*/];
             }
         });
     });

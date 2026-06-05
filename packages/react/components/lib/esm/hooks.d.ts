@@ -8,8 +8,9 @@ export interface SearchAPIProps<T> {
         };
     }) => Promise<T[]>;
     onLoad?: (results: T[]) => void;
+    debounceMS?: number;
 }
-export declare const useSearchAPI: <T>({ query, onLoad, searchAPI }: {
+export declare const useSearchAPI: <T>({ query, onLoad, searchAPI, debounceMS }: {
     query: string;
 } & SearchAPIProps<T>) => void;
 export declare const useAddGTMTag: (gtmTag?: string) => void;

@@ -205,6 +205,14 @@ export const integrations_redacted_tests = async ({ sdk, sdkNonAdmin } : { sdk: 
       }}
     )
 
+    // F-0049: connect_stripe must reject caller-supplied accountId (Stripe-account-spoofing defense).
+    // Stripe Connect is deprecated in Tellescope; accountId was a test shortcut, kept rejected to preserve SDK shape.
+    await async_test(
+      "connect_stripe rejects caller-supplied accountId",
+      () => sdk.api.integrations.connect_stripe({ countryCode: 'US', accountId: 'acct_someoneElsesAccount' } as any),
+      { shouldError: true, onError: (e: any) => /accountId is not supported/i.test(e?.message || e?.toString() || '') }
+    )
+
   } finally {
     if (integrationId) {
       try {

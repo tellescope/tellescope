@@ -33,7 +33,7 @@ var useLoadedState = function (fetch, dependencies) {
 };
 exports.useLoadedState = useLoadedState;
 var useSearchAPI = function (_a) {
-    var query = _a.query, onLoad = _a.onLoad, searchAPI = _a.searchAPI;
+    var query = _a.query, onLoad = _a.onLoad, searchAPI = _a.searchAPI, _b = _a.debounceMS, debounceMS = _b === void 0 ? 300 : _b;
     var searchedRef = (0, react_1.useRef)('');
     (0, react_1.useEffect)(function () {
         var trimmed = query === null || query === void 0 ? void 0 : query.trim();
@@ -57,9 +57,9 @@ var useSearchAPI = function (_a) {
                 onLoad === null || onLoad === void 0 ? void 0 : onLoad(results);
             })
                 .catch(console.error);
-        }, 150);
+        }, debounceMS);
         return function () { clearTimeout(t); };
-    }, [query, searchAPI, onLoad, searchedRef]);
+    }, [query, searchAPI, onLoad, searchedRef, debounceMS]);
 };
 exports.useSearchAPI = useSearchAPI;
 var useAddGTMTag = function (gtmTag) {

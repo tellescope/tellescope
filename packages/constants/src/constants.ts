@@ -1280,6 +1280,8 @@ export const DEFAULT_AI_SUMMARY_DATA_SOURCE_LIMIT = 25
 export const DEFAULT_AI_SUMMARY_MAX_OUTPUT_TOKENS = 600
 export const MAX_AI_SUMMARY_DATA_SOURCES = 25
 
+export const DEFAULT_HISTORICAL_DATA_SOURCE_LIMIT = 100 // matches backend DEFAULT_LIMIT — non-breaking
+
 export const EXAMPLE_AI_SUMMARY_PROMPT =
 `Summarize this patient's recent activity in 4-6 bullet points.
 Focus on changes since their last visit, current medications, recent symptoms or

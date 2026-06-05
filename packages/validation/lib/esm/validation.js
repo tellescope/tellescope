@@ -612,6 +612,14 @@ export var stringValidator25000 = {
     getExample: getExampleString,
     getType: getTypeString,
 };
+export var stringValidator100000 = {
+    validate: function (o) {
+        if (o === void 0) { o = {}; }
+        return build_validator(escapeString(o), __assign(__assign({}, o), { maxLength: 100000, listOf: false }));
+    },
+    getExample: getExampleString,
+    getType: getTypeString,
+};
 export var stringValidator100000EmptyOkay = {
     validate: function (o) {
         if (o === void 0) { o = {}; }
@@ -2297,6 +2305,7 @@ export var ticketActionValidator = orValidator({
             templateId: mongoIdStringRequired,
             chatId: mongoIdStringOptional,
             chatRoomId: mongoIdStringOptional,
+            enableChatReply: booleanValidatorOptional,
         }, { emptyOk: false }),
         completedAt: dateOptionalOrEmptyStringValidator,
         optional: booleanValidatorOptional,
@@ -2371,7 +2380,7 @@ export var AIDecisionSourceValidator = objectValidator({
 });
 export var AIMessageInputValidator = objectValidator({
     role: exactMatchValidator(['user', 'assistant']),
-    text: stringValidator25000,
+    text: stringValidator100000,
 }, { emptyOk: false });
 export var automationActionValidator = orValidator({
     developHealthMedEligibility: objectValidator(__assign({ type: exactMatchValidator(['developHealthMedEligibility']), info: objectValidator({
@@ -2569,6 +2578,7 @@ export var automationActionValidator = orValidator({
             }, { isOptional: true, emptyOk: true }),
             pharmacyId: stringValidatorOptional,
             useOrganizationMapping: booleanValidatorOptional,
+            customFieldName: stringValidatorOptional,
         }) })),
     belugaUpdateVisit: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['belugaUpdateVisit']), info: objectValidator({
             formId: mongoIdStringRequired,
@@ -2582,6 +2592,7 @@ export var automationActionValidator = orValidator({
             })),
             pharmacyId: stringValidatorOptional,
             useOrganizationMapping: booleanValidatorOptional,
+            customFieldName: stringValidatorOptional,
         }) })),
     sendChat: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['sendChat']), info: objectValidator({
             templateId: mongoIdStringRequired,
@@ -2738,6 +2749,15 @@ export var notificationPreferenceValidator = objectValidator({
     browser: booleanValidatorOptional,
 });
 export var notificationPreferencesValidator = objectAnyFieldsValidator(notificationPreferenceValidator);
+// keys: <=250 chars; values: boolean OR string <=250 chars.
+// boolean listed FIRST in orValidator so real booleans aren't coerced to strings.
+// isOptional is required on the orValidator: without it, orValidator's outer
+// build_validator falsy-guard (validation.ts:527) rejects a `false` value as
+// "missing value" before the inner boolean branch ever runs (a `true` value is
+// truthy and slips through, so the bug only manifests for `false`).
+// Named userPortalSettingsValidator to avoid collision with the existing
+// (organization) portalSettingsValidator below.
+export var userPortalSettingsValidator = indexableValidator(stringValidator250, orValidator({ boolean: booleanValidator, string: stringValidator250 }, { isOptional: true }));
 export var FHIRObservationCategoryValidator = exactMatchValidator(['vital-signs', 'laboratory']);
 var _FHIR_OBSERVATION_STATUS_CODES = {
     "entered-in-error": '',
@@ -3774,6 +3794,8 @@ export var organizationSettingsValidator = objectValidator({
         disableSnooze: booleanValidatorOptional,
         showCommunications: booleanValidatorOptional,
         showJourneys: booleanValidatorOptional,
+        showMedications: booleanValidatorOptional,
+        showObservations: booleanValidatorOptional,
         requireDueDate: booleanValidatorOptional,
         allowArchival: booleanValidatorOptional,
         returnToTicketsList: booleanValidatorOptional,

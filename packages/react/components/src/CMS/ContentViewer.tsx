@@ -253,9 +253,10 @@ export const ArticleViewer = ({
           : block.type === 'youtube' ? (
               <iframe width={rootWidth} height={rootWidth * 315 / 560}
                 title={`YouTube video player ${i}`} allowFullScreen
+                referrerPolicy="strict-origin-when-cross-origin"
                 src={correct_youtube_link_for_embed(block.info.link)}
               >
-              </iframe> 
+              </iframe>
             )
           : block.type === 'iframe' ? (
               <iframe width={rootWidth} 
@@ -318,10 +319,11 @@ export const html_for_article = (article: ManagedContentRecord, options?: { root
           </div>`
         )
       : block.type === 'youtube' ? (
-          `<iframe width="${rootWidth}" 
+          `<iframe width="${rootWidth}"
             height="${rootWidth * 315 / 560}"
             title="${`YouTube video player ${i}`}"
             allowFullScreen
+            referrerpolicy="strict-origin-when-cross-origin"
             src="${correct_youtube_link_for_embed(block.info.link)}"
             style="margin-top: 12; margin-bottom: 12"
           >

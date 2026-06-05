@@ -4,7 +4,7 @@ import { useTellescopeForm, Response, FileResponse, NextFieldLogicOptions } from
 import { FormInputs } from "./types";
 import { AddToDatabaseProps } from "./inputs";
 import { FormResponse, FormField, Form, Enduser } from "@tellescope/types-client";
-import { OrganizationTheme } from "@tellescope/types-models";
+import { OrganizationTheme, HistoricalDataSource } from "@tellescope/types-models";
 export declare const TellescopeFormContainer: ({ businessId, organizationIds, ...props }: {
     businessId?: string | undefined;
     organizationIds?: string[] | undefined;
@@ -99,6 +99,12 @@ export declare const UpdateResponse: ({ selectedFiles, enduserId, responses, onS
     formId: string;
     includedFieldIds: string[];
 }) => JSX.Element;
+export declare const HistoricalDataSection: ({ sources, enduserId, onDataLoaded, hideHeaders }: {
+    sources: HistoricalDataSource[];
+    enduserId: string;
+    onDataLoaded?: ((json: string) => void) | undefined;
+    hideHeaders?: boolean | undefined;
+}) => JSX.Element | null;
 export declare const Description: ({ field, color, style, enduserId, onFieldChange }: {
     field: FormField;
     color?: string | undefined;

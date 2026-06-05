@@ -276,6 +276,8 @@ export type OrganizationSettings = {
     disableSnooze?: boolean,
     showCommunications?: boolean,
     showJourneys?: boolean,
+    showMedications?: boolean,
+    showObservations?: boolean,
     requireDueDate?: boolean,
     allowArchival?: boolean,
     returnToTicketsList?: boolean,
@@ -794,6 +796,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
   notificationPreferences?: {
     [index: string]: NotificationPreference,
   },
+  portalSettings?: { [key: string]: string | boolean },
   notificationEmailsDisabled?: boolean,
   disableIncomingPhoneCalls?: boolean,
   disableTicketAutoAssignment?: boolean,
@@ -1651,7 +1654,7 @@ export type TicketActions = {
   "Create Prescription": TicketActionBuilder<'Create Prescription', { }>,
   "Send SMS": TicketActionBuilder<'Send SMS', { templateId: string, smsId?: string, bulkForEvent?: boolean }>,
   "Send Email": TicketActionBuilder<'Send Email', { templateId: string, emailId?: string }>,
-  "Send Chat": TicketActionBuilder<'Send Chat', { templateId: string, chatId?: string, chatRoomId?: string }>,
+  "Send Chat": TicketActionBuilder<'Send Chat', { templateId: string, chatId?: string, chatRoomId?: string, enableChatReply?: boolean }>,
 }
 export type TicketActionType = keyof TicketActions
 export type TicketAction = TicketActions[TicketActionType]
@@ -3410,6 +3413,7 @@ export type BelugaAutoRxAutomationAction = AutomationActionBuilder<'belugaAutoRx
   patientPreference?: BelugaAutoRxPatientPreferenceItem,
   pharmacyId?: string,
   useOrganizationMapping?: boolean,
+  customFieldName?: string,
 }>
 export type BelugaUpdateVisitPatientPreferenceItem = {
   name: string,
@@ -3424,8 +3428,10 @@ export type BelugaUpdateVisitAutomationAction = AutomationActionBuilder<'belugaU
   patientPreferences?: BelugaUpdateVisitPatientPreferenceItem[],
   pharmacyId?: string,
   useOrganizationMapping?: boolean,
+  customFieldName?: string,
 }>
 export type BelugaAutomationMappingEntry = {
+  title?: string,
   enduserCondition: Record<string, any>,
   patientPreferences: BelugaUpdateVisitPatientPreferenceItem[],
   pharmacyId: string,

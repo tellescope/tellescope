@@ -272,5 +272,6 @@ export declare const AI_SUMMARY_CACHE_TTL_MS: number;
 export declare const DEFAULT_AI_SUMMARY_DATA_SOURCE_LIMIT = 25;
 export declare const DEFAULT_AI_SUMMARY_MAX_OUTPUT_TOKENS = 600;
 export declare const MAX_AI_SUMMARY_DATA_SOURCES = 25;
+export declare const DEFAULT_HISTORICAL_DATA_SOURCE_LIMIT = 100;
 export declare const EXAMPLE_AI_SUMMARY_PROMPT = "Summarize this patient's recent activity in 4-6 bullet points.\nFocus on changes since their last visit, current medications, recent symptoms or\ncomplaints, and any outstanding follow-ups. Keep clinical and concise.";
 //# sourceMappingURL=constants.d.ts.map

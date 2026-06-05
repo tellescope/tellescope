@@ -36,6 +36,7 @@ import {
 
 import { Session, APIQuery, EnduserSession } from "../sdk"
 import { enduser_observations_acknowledge_tests } from "./api_tests/enduser_observations_acknowledge.test"
+import { user_portal_settings_tests } from "./api_tests/user_portal_settings.test"
 import { integrations_redacted_tests } from "./api_tests/integrations_redacted.test"
 import { get_some_projection_tests } from "./api_tests/get_some_projection.test"
 import { mdb_sort_tests } from "./api_tests/mdb_sort.test"
@@ -91,6 +92,8 @@ import { no_access_permission_checks_tests } from "./api_tests/no_access_permiss
 import { field_redaction_tests } from "./api_tests/field_redaction.test";
 import { data_sync_redaction_bypass_tests } from "./api_tests/security/F-0001-data-sync-redaction-bypass.test";
 import { ai_conversations_rbac_tests } from "./api_tests/security/F-0005-ai-conversations-rbac.test";
+import { cascade_role_rename_cross_tenant_tests } from "./api_tests/security/F-0053-cascade-role-rename-cross-tenant.test";
+import { self_admin_role_assignment_tests } from "./api_tests/security/F-0076-self-admin-role-assignment.test";
 import { invite_user_enumeration_tests } from "./api_tests/security/F-0007-invite-user-enumeration.test";
 import { handle_incoming_communication_cross_tenant_tests } from "./api_tests/security/F-0008-handle-incoming-communication-cross-tenant.test";
 import { sanitize_user_html_xss_tests } from "./api_tests/security/F-0013-sanitize-user-html.test";
@@ -14336,6 +14339,8 @@ const ip_address_form_tests = async () => {
     await enduser_login_rate_limits_tests({ sdk, sdkNonAdmin })
     await data_sync_redaction_bypass_tests({ sdk, sdkNonAdmin })
     await ai_conversations_rbac_tests({ sdk, sdkNonAdmin })
+    await cascade_role_rename_cross_tenant_tests({ sdk, sdkNonAdmin })
+    await self_admin_role_assignment_tests({ sdk, sdkNonAdmin })
     await sanitize_user_html_xss_tests()
     await prototype_pollution_tests()
     await automation_trigger_tests()
@@ -14393,6 +14398,7 @@ const ip_address_form_tests = async () => {
     await inbox_threads_loading_tests()
     await load_inbox_data_tests({ sdk, sdkNonAdmin })
     await enduser_observations_acknowledge_tests({ sdk, sdkNonAdmin })
+    await user_portal_settings_tests({ sdk, sdkNonAdmin })
     await create_user_notifications_trigger_tests({ sdk })
     await group_mms_active_tests()
     await auto_reply_tests()

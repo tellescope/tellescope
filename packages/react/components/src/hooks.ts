@@ -31,8 +31,9 @@ export const useLoadedState = <T, D={}>(fetch?: (d: Partial<D>) => Promise<T | v
 export interface SearchAPIProps <T> {
   searchAPI?: (args: { search: { query: string } }) => Promise<T[]>,
   onLoad?: (results: T[]) => void,
+  debounceMS?: number,
 }
-export const useSearchAPI = <T,>({ query, onLoad, searchAPI } : { query: string } & SearchAPIProps<T>) => {
+export const useSearchAPI = <T,>({ query, onLoad, searchAPI, debounceMS = 300 } : { query: string } & SearchAPIProps<T>) => {
   const searchedRef = useRef('')
 
   useEffect(() => {
@@ -56,10 +57,10 @@ export const useSearchAPI = <T,>({ query, onLoad, searchAPI } : { query: string 
         onLoad?.(results)
       })
       .catch(console.error)
-    }, 150)
+    }, debounceMS)
 
     return () => { clearTimeout(t) }
-  }, [query, searchAPI, onLoad, searchedRef])
+  }, [query, searchAPI, onLoad, searchedRef, debounceMS])
 }
 
 export const useAddGTMTag = (gtmTag?: string) => {

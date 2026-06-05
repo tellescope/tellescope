@@ -3,7 +3,7 @@ import { Button, CircularProgress, FileBlob, FileUploadHandler, Flex, LinearProg
 import { useListForFormFields, useOrganizationTheme, useTellescopeForm, WithOrganizationTheme, Response, FileResponse, NextFieldLogicOptions } from "./hooks"
 import { ChangeHandler, FormInputs } from "./types"
 import { AddToDatabaseProps, AddressInput, AllergiesInput, AppointmentBookingInput, BelugaPatientPreferenceInput, BridgeEligibilityInput, CandidEligibilityInput, ChargeebeeInput, ConditionsInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, EmotiiInput, FileInput, FilesInput, HeightInput, HiddenValueInput, InsuranceInput, LanguageSelect, MedicationsInput, MultipleChoiceInput, NumberInput, PharmacySearchInput, PhoneInput, Progress, RankingInput, RatingInput, RedirectInput, RelatedContactsInput, RichTextInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, TimezoneInput, defaultButtonStyles } from "./inputs"
-import { PRIMARY_HEX } from "@tellescope/constants"
+import { PRIMARY_HEX, DEFAULT_HISTORICAL_DATA_SOURCE_LIMIT } from "@tellescope/constants"
 import { FormResponse, FormField, Form, Enduser } from "@tellescope/types-client"
 import { FormResponseAnswerFileValue, OrganizationTheme, HistoricalDataSource } from "@tellescope/types-models"
 import { calculate_form_scoring, field_can_autosubmit, form_response_value_to_string, formatted_date, object_is_empty, objects_equivalent, read_local_storage, sanitize_user_html, responses_satisfy_conditions, truncate_string } from "@tellescope/utilities"
@@ -1037,7 +1037,7 @@ export const UpdateResponse = ({
   )
 }
 
-const HistoricalDataSection = ({ sources, enduserId, onDataLoaded } : { sources: HistoricalDataSource[], enduserId: string, onDataLoaded?: (json: string) => void }) => {
+export const HistoricalDataSection = ({ sources, enduserId, onDataLoaded, hideHeaders } : { sources: HistoricalDataSource[], enduserId: string, onDataLoaded?: (json: string) => void, hideHeaders?: boolean }) => {
   const session = useSession({ throwIfMissingContext: false })
   const [observations, setObservations] = useState<any[]>([])
   const [medications, setMedications] = useState<any[]>([])
@@ -1067,7 +1067,7 @@ const HistoricalDataSection = ({ sources, enduserId, onDataLoaded } : { sources:
             promises.push(
               session.api.enduser_observations.getSome({
                 filter: { enduserId, ...source.filter },
-                limit: source.limit,
+                limit: source.limit ?? DEFAULT_HISTORICAL_DATA_SOURCE_LIMIT,
                 sortBy: 'timestamp',
                 sort: 'newFirst',
               })
@@ -1077,7 +1077,7 @@ const HistoricalDataSection = ({ sources, enduserId, onDataLoaded } : { sources:
             promises.push(
               session.api.enduser_medications.getSome({
                 filter: { enduserId, status: { _ne: 'draft' }, ...source.filter },
-                limit: source.limit,
+                limit: source.limit ?? DEFAULT_HISTORICAL_DATA_SOURCE_LIMIT,
               })
               .then((meds: any[]) => { loadedMedications = meds; setMedications(meds) })
             )
@@ -1143,7 +1143,7 @@ const HistoricalDataSection = ({ sources, enduserId, onDataLoaded } : { sources:
     <div style={{ marginTop: 10 }}>
       {hasObservations && (
         <div style={{ marginBottom: 15 }}>
-          <Typography style={{ fontWeight: 'bold', marginBottom: 5 }}>Observations</Typography>
+          {!hideHeaders && <Typography style={{ fontWeight: 'bold', marginBottom: 5 }}>Observations</Typography>}
           {observations.length === 0 ? (
             <Typography style={{ fontStyle: 'italic', color: '#888' }}>No observations found</Typography>
           ) : (
@@ -1177,7 +1177,7 @@ const HistoricalDataSection = ({ sources, enduserId, onDataLoaded } : { sources:
 
       {hasMedications && (
         <div style={{ marginBottom: 15 }}>
-          <Typography style={{ fontWeight: 'bold', marginBottom: 5 }}>Medications</Typography>
+          {!hideHeaders && <Typography style={{ fontWeight: 'bold', marginBottom: 5 }}>Medications</Typography>}
           {medications.length === 0 ? (
             <Typography style={{ fontStyle: 'italic', color: '#888' }}>No medications found</Typography>
           ) : (

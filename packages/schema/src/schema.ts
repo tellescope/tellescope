@@ -195,6 +195,7 @@ import {
   listOfRelatedRecordsValidator,
   cancelConditionsValidator,
   notificationPreferencesValidator,
+  userPortalSettingsValidator,
   FHIRObservationCategoryValidator,
   FHIRObservationStatusCodeValidator,
   FHIRObservationValueValidator,
@@ -250,6 +251,7 @@ import {
   integrationTitleValidator,
   IntegrationsTitleType,
   journeyContextValidator,
+  stringValidator100000,
   stringValidator100000EmptyOkay,
   analyticsQueryValidator,
   dateRangeValidator,
@@ -3445,6 +3447,14 @@ export const schema: SchemaV1 = build_schema({
         {
           explanation: "Only admin users can set the admin role",
           evaluate: ({ _id }, deps, session, type, { updates }) => {
+            // NOTE (F-0076, false-positive): this self-exception is NOT a privilege-escalation hole.
+            // It looks like a non-admin could self-promote by updating their own record, but the
+            // "Only admin users can update user roles" constraint below (which has NO self-exception)
+            // runs in this same AND-evaluated array and rejects ANY non-admin update that includes
+            // `roles`. validateRelationshipConstraints throws on the FIRST evaluator returning a string,
+            // so a non-admin self-update with `roles` is blocked there regardless of this branch.
+            // An Admin self-updating passes that constraint via its Admin check, so this branch is
+            // redundant-but-safe. Regression: sdk/src/tests/api_tests/security/F-0076-self-admin-role-assignment.test.ts
             if (_id && _id.toString() === session.id) return
             if ((session as UserSession)?.roles?.includes('Admin')) return
 
@@ -4027,6 +4037,9 @@ export const schema: SchemaV1 = build_schema({
       notificationPreferences: {
         validator: notificationPreferencesValidator,
         redactions: ['enduser'],
+      },
+      portalSettings: {
+        validator: userPortalSettingsValidator,
       },
       notificationEmailsDisabled: { validator: booleanValidator },
       avatar: {
@@ -5986,8 +5999,8 @@ export const schema: SchemaV1 = build_schema({
       enduserAttendeeLimit: { validator: numberValidator },
       bufferEndMinutes: { validator: numberValidator },
       bufferStartMinutes: { validator: numberValidator },
-      canvasCoding: { validator: canvasCodingValidator },
-      canvasReasonCoding: { validator: canvasCodingValidator },
+      canvasCoding: { validator: canvasCodingValidatorOptional },
+      canvasReasonCoding: { validator: canvasCodingValidatorOptional },
       canvasLocationId: { validator: stringValidator100 },
       references: { validator: listOfRelatedRecordsValidator, updatesDisabled: true },
       completedAt: { validator: dateValidatorOptional },
@@ -6105,8 +6118,8 @@ export const schema: SchemaV1 = build_schema({
       enduserAttendeeLimit: { validator: numberValidator },
       bufferEndMinutes: { validator: numberValidator },
       bufferStartMinutes: { validator: numberValidator },
-      canvasCoding: { validator: canvasCodingValidator },
-      canvasReasonCoding: { validator: canvasCodingValidator },
+      canvasCoding: { validator: canvasCodingValidatorOptional },
+      canvasReasonCoding: { validator: canvasCodingValidatorOptional },
       tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       matchToHealthieTemplate: { validator: booleanValidator },
       healthieInsuranceBillingEnabled: { validator: booleanValidator },
@@ -7344,6 +7357,7 @@ export const schema: SchemaV1 = build_schema({
       },
       belugaAutomationMappings: {
         validator: listValidatorOptionalOrEmptyOk(objectValidator<BelugaAutomationMappingEntry>({
+          title: stringValidator5000OptionalEmptyOkay,
           enduserCondition: optionalAnyObjectValidator,
           patientPreferences: listValidator(objectValidator<BelugaUpdateVisitPatientPreferenceItem>({
             name: stringValidator,
@@ -9860,7 +9874,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
         path: '/ai-conversations/send-message',
         description: "Sends a message to the AI conversation. Use 'messages' for multi-turn conversations, or 'message' for a single user message. At least one of 'message' or 'messages' must be provided.",
         parameters: {
-          message: { validator: stringValidator25000 }, // optional when messages is provided
+          message: { validator: stringValidator100000 }, // optional when messages is provided
           messages: { validator: listValidator(AIMessageInputValidator) }, // when provided and non-empty, takes precedent over message
           type: { validator: stringValidator100 }, // only used on creation
           maxTokens: { validator: positiveNumberValidator },
