@@ -7004,7 +7004,7 @@ export const schema: SchemaV1 = build_schema({
           explanation: 'Subscription date, period, and AI enablement cannot be updated',
           evaluate: (updated, lookup, session, type, options) => {
             if (type !== 'update') return // not updating
-            if (!(options.updates?.bedrockAIAllowed || options.updates?.subscriptionExpiresAt || options.updates?.subscriptionPeriod || options.updates?.allowCreateSuborganizations || options.updates?.customPortalURLs || options.updates?.subdomains)) return // not changing
+            if (!(options.updates?.bedrockAIAllowed || options.updates?.subscriptionExpiresAt || options.updates?.subscriptionPeriod || options.updates?.allowCreateSuborganizations || options.updates?.customPortalURLs || options.updates?.subdomains || options.updates?.plan)) return // not changing
 
             if (session.type === 'enduser') return "User only"
             if (!session.isa) return "Not allowed"
@@ -7192,6 +7192,12 @@ export const schema: SchemaV1 = build_schema({
       inboxThreadsBuiltTo: { validator: dateOptionalOrEmptyStringValidator },
       outOfOfficeHours: { validator: outOfOfficeBlocksValidator },
       bedrockAIAllowed: { validator: booleanValidator }, // restricted to Telescope super admin only
+      plan: { // restricted to Telescope super admin only (enforced via relationship constraint below)
+        validator: objectValidator<{ type?: string }>({
+          type: stringValidatorOptional,
+        }),
+      },
+      onboardingStatus: { validator: stringValidator100 }, // read/write for org admins (not super-admin restricted)
       creditCount: { validator: numberValidator, readonly: true },
       stripeKeyDetails: {
         validator: listValidatorOptionalOrEmptyOk(objectValidator<StripeKeyDetail>({

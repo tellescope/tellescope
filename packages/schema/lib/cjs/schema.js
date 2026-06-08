@@ -4776,10 +4776,10 @@ exports.schema = (0, exports.build_schema)({
                 {
                     explanation: 'Subscription date, period, and AI enablement cannot be updated',
                     evaluate: function (updated, lookup, session, type, options) {
-                        var _a, _b, _c, _d, _e, _f;
+                        var _a, _b, _c, _d, _e, _f, _g;
                         if (type !== 'update')
                             return; // not updating
-                        if (!(((_a = options.updates) === null || _a === void 0 ? void 0 : _a.bedrockAIAllowed) || ((_b = options.updates) === null || _b === void 0 ? void 0 : _b.subscriptionExpiresAt) || ((_c = options.updates) === null || _c === void 0 ? void 0 : _c.subscriptionPeriod) || ((_d = options.updates) === null || _d === void 0 ? void 0 : _d.allowCreateSuborganizations) || ((_e = options.updates) === null || _e === void 0 ? void 0 : _e.customPortalURLs) || ((_f = options.updates) === null || _f === void 0 ? void 0 : _f.subdomains)))
+                        if (!(((_a = options.updates) === null || _a === void 0 ? void 0 : _a.bedrockAIAllowed) || ((_b = options.updates) === null || _b === void 0 ? void 0 : _b.subscriptionExpiresAt) || ((_c = options.updates) === null || _c === void 0 ? void 0 : _c.subscriptionPeriod) || ((_d = options.updates) === null || _d === void 0 ? void 0 : _d.allowCreateSuborganizations) || ((_e = options.updates) === null || _e === void 0 ? void 0 : _e.customPortalURLs) || ((_f = options.updates) === null || _f === void 0 ? void 0 : _f.subdomains) || ((_g = options.updates) === null || _g === void 0 ? void 0 : _g.plan)))
                             return; // not changing
                         if (session.type === 'enduser')
                             return "User only";
@@ -4970,7 +4970,11 @@ exports.schema = (0, exports.build_schema)({
                 }
             },
         },
-        fields: __assign(__assign({}, BuiltInFields), { inboxThreadsBuiltFrom: { validator: validation_1.dateOptionalOrEmptyStringValidator }, inboxThreadsBuiltTo: { validator: validation_1.dateOptionalOrEmptyStringValidator }, outOfOfficeHours: { validator: validation_1.outOfOfficeBlocksValidator }, bedrockAIAllowed: { validator: validation_1.booleanValidator }, creditCount: { validator: validation_1.numberValidator, readonly: true }, stripeKeyDetails: {
+        fields: __assign(__assign({}, BuiltInFields), { inboxThreadsBuiltFrom: { validator: validation_1.dateOptionalOrEmptyStringValidator }, inboxThreadsBuiltTo: { validator: validation_1.dateOptionalOrEmptyStringValidator }, outOfOfficeHours: { validator: validation_1.outOfOfficeBlocksValidator }, bedrockAIAllowed: { validator: validation_1.booleanValidator }, plan: {
+                validator: (0, validation_1.objectValidator)({
+                    type: validation_1.stringValidatorOptional,
+                }),
+            }, onboardingStatus: { validator: validation_1.stringValidator100 }, creditCount: { validator: validation_1.numberValidator, readonly: true }, stripeKeyDetails: {
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     key: validation_1.stringValidator5000EmptyOkay,
                     title: validation_1.stringValidator5000EmptyOkay,

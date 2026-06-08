@@ -434,10 +434,15 @@ export interface Organization_required {
 export interface Organization_updatesDisabled {
   subdomain: string;
 }
+export interface OrganizationPlan {
+  type?: string, // unique identifier of the account's plan; future: feature-flag siblings
+}
 export interface Organization extends Organization_readonly, Organization_required, Organization_updatesDisabled {
   inboxThreadsBuiltFrom?: Date | '',
   inboxThreadsBuiltTo?: Date | '',
   bedrockAIAllowed?: boolean,
+  plan?: OrganizationPlan, // super-admin editable only (enforced via relationship constraint); readable by all
+  onboardingStatus?: string,
   subdomains?: string[],
   owner?: string,
   timezone?: Timezone,

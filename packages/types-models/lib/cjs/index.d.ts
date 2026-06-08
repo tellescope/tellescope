@@ -402,10 +402,15 @@ export interface Organization_required {
 export interface Organization_updatesDisabled {
     subdomain: string;
 }
+export interface OrganizationPlan {
+    type?: string;
+}
 export interface Organization extends Organization_readonly, Organization_required, Organization_updatesDisabled {
     inboxThreadsBuiltFrom?: Date | '';
     inboxThreadsBuiltTo?: Date | '';
     bedrockAIAllowed?: boolean;
+    plan?: OrganizationPlan;
+    onboardingStatus?: string;
     subdomains?: string[];
     owner?: string;
     timezone?: Timezone;
