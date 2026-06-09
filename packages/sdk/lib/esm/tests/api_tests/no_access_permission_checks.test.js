@@ -69,7 +69,7 @@ var _a = [process.env.NON_ADMIN_EMAIL, process.env.NON_ADMIN_PASSWORD], nonAdmin
 export var no_access_permission_checks_tests = function (_a) {
     var sdk = _a.sdk, sdkNonAdmin = _a.sdkNonAdmin;
     return __awaiter(void 0, void 0, void 0, function () {
-        var testEnduser, noAccessTestRole, rbap, originalRoles, templatesOnlyRole, rbapTemplatesOnly, testJourney, waitlistEntry_1, assignedEnduserRole, rbapAssigned, resultAssigned_1;
+        var testEnduser, noAccessTestRole, rbap, originalRoles, healthieIntegration, e_1, templatesOnlyRole, rbapTemplatesOnly, testJourney, waitlistEntry_1, assignedEnduserRole, rbapAssigned, resultAssigned_1;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -122,21 +122,67 @@ export var no_access_permission_checks_tests = function (_a) {
                     originalRoles = sdkNonAdmin.userInfo.roles;
                     _b.label = 3;
                 case 3:
-                    _b.trys.push([3, , 46, 52]);
-                    // Assign the restricted role to non-admin user
-                    return [4 /*yield*/, sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: [noAccessTestRole] }, { replaceObjectFields: true })];
+                    _b.trys.push([3, , 57, 63]);
+                    // ========================================
+                    // Test 0: Healthie proxy_read endpoints are admin-only
+                    // ========================================
+                    // These run before any role manipulation, while sdkNonAdmin has its default non-admin role.
+                    // The admin check is inline with the Healthie dispatch branches (after integration resolution),
+                    // so a throwaway Healthie integration record must exist for requests to reach it.
+                    log_header("Test 0: Healthie proxy_read endpoints reject non-admins");
+                    return [4 /*yield*/, sdk.api.integrations.createOne({
+                            title: 'Healthie',
+                            authentication: { type: 'apiKey', info: { access_token: 'dummy-healthie-key-for-admin-only-test', refresh_token: 'unused', scope: '', token_type: 'Bearer', expiry_date: new Date().getTime() } },
+                        })];
                 case 4:
+                    healthieIntegration = _b.sent();
+                    _b.label = 5;
+                case 5:
+                    _b.trys.push([5, , 12, 14]);
+                    return [4 /*yield*/, async_test("proxy_read healthie patients - should block non-admin user", function () { return sdkNonAdmin.api.integrations.proxy_read({ integration: 'Healthie', type: 'patients' }); }, { shouldError: true, onError: function (e) { return e.message === "Admin access required"; } })];
+                case 6:
+                    _b.sent();
+                    return [4 /*yield*/, async_test("proxy_read healthie appointment-types - should block non-admin user", function () { return sdkNonAdmin.api.integrations.proxy_read({ integration: 'Healthie', type: 'appointment-types' }); }, { shouldError: true, onError: function (e) { return e.message === "Admin access required"; } })
+                        // Admin is not blocked by the role check (the dummy credentials fail upstream in Healthie's API,
+                        // but never with the 403 role rejection)
+                    ];
+                case 7:
+                    _b.sent();
+                    _b.label = 8;
+                case 8:
+                    _b.trys.push([8, 10, , 11]);
+                    return [4 /*yield*/, sdk.api.integrations.proxy_read({ integration: 'Healthie', type: 'patients', query: JSON.stringify({ pageSize: 1 }) })];
+                case 9:
+                    _b.sent();
+                    console.log("✅ proxy_read healthie patients - admin allowed");
+                    return [3 /*break*/, 11];
+                case 10:
+                    e_1 = _b.sent();
+                    if (e_1.message === "Admin access required") {
+                        throw new Error("proxy_read healthie patients - admin was incorrectly blocked by the role check");
+                    }
+                    console.log("✅ proxy_read healthie patients - admin passes role check (dummy Healthie credentials rejected upstream)");
+                    return [3 /*break*/, 11];
+                case 11: return [3 /*break*/, 14];
+                case 12: return [4 /*yield*/, sdk.api.integrations.deleteOne(healthieIntegration.id)];
+                case 13:
+                    _b.sent();
+                    return [7 /*endfinally*/];
+                case 14: 
+                // Assign the restricted role to non-admin user
+                return [4 /*yield*/, sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: [noAccessTestRole] }, { replaceObjectFields: true })];
+                case 15:
                     // Assign the restricted role to non-admin user
                     _b.sent();
                     return [4 /*yield*/, wait(undefined, 1500)]; // wait for role change to propagate
-                case 5:
+                case 16:
                     _b.sent(); // wait for role change to propagate
                     return [4 /*yield*/, sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)
                         // ========================================
                         // Test 1: /bulk-actions/read (HIGH PRIORITY)
                         // ========================================
                     ];
-                case 6:
+                case 17:
                     _b.sent();
                     // ========================================
                     // Test 1: /bulk-actions/read (HIGH PRIORITY)
@@ -165,7 +211,7 @@ export var no_access_permission_checks_tests = function (_a) {
                         // Test 2: inbox_threads/build_threads
                         // ========================================
                     ];
-                case 7:
+                case 18:
                     _b.sent();
                     // ========================================
                     // Test 2: inbox_threads/build_threads
@@ -179,7 +225,7 @@ export var no_access_permission_checks_tests = function (_a) {
                         // Test 2b: inbox_threads/load_threads with NO_ACCESS
                         // ========================================
                     ];
-                case 8:
+                case 19:
                     _b.sent();
                     // ========================================
                     // Test 2b: inbox_threads/load_threads with NO_ACCESS
@@ -190,7 +236,7 @@ export var no_access_permission_checks_tests = function (_a) {
                         // Test 3a: get_templated_message - NO_ACCESS to templates
                         // ========================================
                     ];
-                case 9:
+                case 20:
                     _b.sent();
                     // ========================================
                     // Test 3a: get_templated_message - NO_ACCESS to templates
@@ -206,7 +252,7 @@ export var no_access_permission_checks_tests = function (_a) {
                         // Test 3b: get_templated_message - NO_ACCESS to endusers (PHI leak prevention)
                         // ========================================
                     ];
-                case 10:
+                case 21:
                     _b.sent();
                     // ========================================
                     // Test 3b: get_templated_message - NO_ACCESS to endusers (PHI leak prevention)
@@ -231,21 +277,21 @@ export var no_access_permission_checks_tests = function (_a) {
                                     delete: null,
                                 } }),
                         })];
-                case 11:
+                case 22:
                     rbapTemplatesOnly = _b.sent();
-                    _b.label = 12;
-                case 12:
-                    _b.trys.push([12, , 17, 22]);
+                    _b.label = 23;
+                case 23:
+                    _b.trys.push([23, , 28, 33]);
                     // Temporarily assign the templates-only role
                     return [4 /*yield*/, sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: [templatesOnlyRole] }, { replaceObjectFields: true })];
-                case 13:
+                case 24:
                     // Temporarily assign the templates-only role
                     _b.sent();
                     return [4 /*yield*/, wait(undefined, 1500)];
-                case 14:
+                case 25:
                     _b.sent();
                     return [4 /*yield*/, sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)];
-                case 15:
+                case 26:
                     _b.sent();
                     return [4 /*yield*/, async_test("get_templated_message - should block user with NO_ACCESS to endusers (prevents PHI leak)", function () { return sdkNonAdmin.api.templates.get_templated_message({
                             message: "Hello {{enduser.fname}} {{enduser.lname}} {{enduser.email}}!",
@@ -253,30 +299,30 @@ export var no_access_permission_checks_tests = function (_a) {
                             enduserId: testEnduser.id,
                             channel: 'Email',
                         }); }, { shouldError: true, onError: function (e) { return e.message === "You do not have access to this resource"; } })];
-                case 16:
+                case 27:
                     _b.sent();
-                    return [3 /*break*/, 22];
-                case 17: 
+                    return [3 /*break*/, 33];
+                case 28: 
                 // Restore the original test role
                 return [4 /*yield*/, sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: [noAccessTestRole] }, { replaceObjectFields: true })];
-                case 18:
+                case 29:
                     // Restore the original test role
                     _b.sent();
                     return [4 /*yield*/, wait(undefined, 1000)];
-                case 19:
+                case 30:
                     _b.sent();
                     return [4 /*yield*/, sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)
                         // Cleanup the templates-only role
                     ];
-                case 20:
+                case 31:
                     _b.sent();
                     // Cleanup the templates-only role
                     return [4 /*yield*/, sdk.api.role_based_access_permissions.deleteOne(rbapTemplatesOnly.id)];
-                case 21:
+                case 32:
                     // Cleanup the templates-only role
                     _b.sent();
                     return [7 /*endfinally*/];
-                case 22:
+                case 33:
                     // ========================================
                     // Test 4: waitlists/grant_access_from_waitlist
                     // ========================================
@@ -284,36 +330,36 @@ export var no_access_permission_checks_tests = function (_a) {
                     return [4 /*yield*/, sdk.api.journeys.createOne({
                             title: 'Waitlist Test Journey',
                         })];
-                case 23:
+                case 34:
                     testJourney = _b.sent();
                     return [4 /*yield*/, sdk.api.waitlists.createOne({
                             title: 'Test Waitlist',
                             journeyId: testJourney.id,
                             enduserIds: [],
                         })];
-                case 24:
+                case 35:
                     waitlistEntry_1 = _b.sent();
-                    _b.label = 25;
-                case 25:
-                    _b.trys.push([25, , 27, 30]);
+                    _b.label = 36;
+                case 36:
+                    _b.trys.push([36, , 38, 41]);
                     return [4 /*yield*/, async_test("grant_access_from_waitlist - should block NO_ACCESS user", function () { return sdkNonAdmin.api.waitlists.grant_access_from_waitlist({
                             id: waitlistEntry_1.id,
                             count: 1,
                         }); }, { shouldError: true, onError: function (e) { return e.message === "You do not have access to this resource"; } })];
-                case 26:
+                case 37:
                     _b.sent();
-                    return [3 /*break*/, 30];
-                case 27: 
+                    return [3 /*break*/, 41];
+                case 38: 
                 // Cleanup
                 return [4 /*yield*/, sdk.api.waitlists.deleteOne(waitlistEntry_1.id)];
-                case 28:
+                case 39:
                     // Cleanup
                     _b.sent();
                     return [4 /*yield*/, sdk.api.journeys.deleteOne(testJourney.id)];
-                case 29:
+                case 40:
                     _b.sent();
                     return [7 /*endfinally*/];
-                case 30:
+                case 41:
                     // ========================================
                     // Test 5: background_errors/mark_read
                     // ========================================
@@ -323,7 +369,7 @@ export var no_access_permission_checks_tests = function (_a) {
                         // Test 6: load_threads searchKeywords redaction
                         // ========================================
                     ];
-                case 31:
+                case 42:
                     _b.sent();
                     // ========================================
                     // Test 6: load_threads searchKeywords redaction
@@ -334,24 +380,24 @@ export var no_access_permission_checks_tests = function (_a) {
                             role: assignedEnduserRole,
                             permissions: __assign(__assign({}, PROVIDER_PERMISSIONS), { endusers: { create: 'All', read: 'Assigned', update: 'Assigned', delete: 'Assigned' }, emails: { create: 'All', read: 'All', update: 'All', delete: 'All' }, sms_messages: { create: 'All', read: 'All', update: 'All', delete: 'All' }, inbox_threads: { create: 'All', read: 'All', update: 'All', delete: 'All' } }),
                         })];
-                case 32:
+                case 43:
                     rbapAssigned = _b.sent();
-                    _b.label = 33;
-                case 33:
-                    _b.trys.push([33, , 39, 44]);
+                    _b.label = 44;
+                case 44:
+                    _b.trys.push([44, , 50, 55]);
                     return [4 /*yield*/, sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: [assignedEnduserRole] }, { replaceObjectFields: true })];
-                case 34:
+                case 45:
                     _b.sent();
                     return [4 /*yield*/, wait(undefined, 1500)];
-                case 35:
+                case 46:
                     _b.sent();
                     return [4 /*yield*/, sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)
                         // Load threads and verify searchKeywords is redacted for Assigned enduser access
                     ];
-                case 36:
+                case 47:
                     _b.sent();
                     return [4 /*yield*/, sdkNonAdmin.api.inbox_threads.load_threads({ limit: 10 })];
-                case 37:
+                case 48:
                     resultAssigned_1 = _b.sent();
                     return [4 /*yield*/, async_test("load_threads - searchKeywords redacted for Assigned enduser access", function () { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
                             return [2 /*return*/, resultAssigned_1];
@@ -368,30 +414,30 @@ export var no_access_permission_checks_tests = function (_a) {
                                 return allRedacted;
                             }
                         })];
-                case 38:
+                case 49:
                     _b.sent();
-                    return [3 /*break*/, 44];
-                case 39: 
+                    return [3 /*break*/, 55];
+                case 50: 
                 // Restore the original test role
                 return [4 /*yield*/, sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: [noAccessTestRole] }, { replaceObjectFields: true })];
-                case 40:
+                case 51:
                     // Restore the original test role
                     _b.sent();
                     return [4 /*yield*/, wait(undefined, 1000)];
-                case 41:
+                case 52:
                     _b.sent();
                     return [4 /*yield*/, sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)
                         // Cleanup the assigned role
                     ];
-                case 42:
+                case 53:
                     _b.sent();
                     // Cleanup the assigned role
                     return [4 /*yield*/, sdk.api.role_based_access_permissions.deleteOne(rbapAssigned.id)];
-                case 43:
+                case 54:
                     // Cleanup the assigned role
                     _b.sent();
                     return [7 /*endfinally*/];
-                case 44: 
+                case 55: 
                 // Test that admin/full access users CAN see searchKeywords
                 return [4 /*yield*/, async_test("load_threads - searchKeywords visible for admin/full enduser access", function () { return sdk.api.inbox_threads.load_threads({ limit: 10 }); }, {
                         onResult: function (r) {
@@ -411,37 +457,37 @@ export var no_access_permission_checks_tests = function (_a) {
                             return true; // Don't fail if keywords don't exist yet
                         }
                     })];
-                case 45:
+                case 56:
                     // Test that admin/full access users CAN see searchKeywords
                     _b.sent();
                     console.log("\n" + "=".repeat(60));
                     console.log("NO_ACCESS Permission Checks Tests Complete");
                     console.log("=".repeat(60));
-                    return [3 /*break*/, 52];
-                case 46: 
+                    return [3 /*break*/, 63];
+                case 57: 
                 // Restore original role
                 return [4 /*yield*/, sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: originalRoles }, { replaceObjectFields: true })];
-                case 47:
+                case 58:
                     // Restore original role
                     _b.sent();
                     return [4 /*yield*/, wait(undefined, 1000)];
-                case 48:
+                case 59:
                     _b.sent();
                     return [4 /*yield*/, sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)
                         // Cleanup
                     ];
-                case 49:
+                case 60:
                     _b.sent();
                     // Cleanup
                     return [4 /*yield*/, sdk.api.role_based_access_permissions.deleteOne(rbap.id)];
-                case 50:
+                case 61:
                     // Cleanup
                     _b.sent();
                     return [4 /*yield*/, sdk.api.endusers.deleteOne(testEnduser.id)];
-                case 51:
+                case 62:
                     _b.sent();
                     return [7 /*endfinally*/];
-                case 52: return [2 /*return*/];
+                case 63: return [2 /*return*/];
             }
         });
     });

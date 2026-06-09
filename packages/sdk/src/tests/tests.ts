@@ -114,6 +114,7 @@ import { organization_settings_duplicates_tests } from "./api_tests/organization
 import { calendar_events_bulk_update_tests } from "./api_tests/calendar_events_bulk_update.test";
 import { openloop_webhooks_tests } from "./api_tests/openloop_webhooks.test";
 import { beluga_pharmacy_mappings_tests } from "./api_tests/beluga_pharmacy_mappings.test";
+import { mdi_webhooks_tests } from "./api_tests/mdi_webhooks.test";
 import { account_switcher_tests } from "./api_tests/account_switcher.test";
 import { set_fields_order_templates_tests } from "./api_tests/set_fields_order_templates.test";
 import { date_string_validation_tests } from "./api_tests/date_string_validation.test";
@@ -14357,6 +14358,7 @@ const ip_address_form_tests = async () => {
     await form_submitted_trigger_tests({ sdk, sdkNonAdmin })
     await date_string_validation_tests({ sdk, sdkNonAdmin })
     await openloop_webhooks_tests({ sdk, sdkNonAdmin })
+    await mdi_webhooks_tests({ sdk, sdkNonAdmin })
     await integrations_redacted_tests({ sdk, sdkNonAdmin })
     await mdb_sort_tests({ sdk, sdkNonAdmin })
     await search_tests()

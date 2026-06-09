@@ -984,7 +984,7 @@ export type CustomActions = {
     generate_google_auth_url: CustomAction<{ calendarOnly?: boolean }, { authUrl: string, }>, 
     disconnect_google_integration: CustomAction<{}, {}>,
     generate_oauth2_auth_url: CustomAction<{ integration: IntegrationsTitleType }, { authUrl: string, state: string }>, 
-    add_api_key_integration: CustomAction<{ API_KEY: string, integration: string, externalId?: string, webhooksSecret?: string, environment?: string, fields?: Record<string, string>, scope?: string }, { integration: Integration }>, 
+    add_api_key_integration: CustomAction<{ API_KEY: string, integration: string, externalId?: string, webhooksSecret?: string, environment?: string, fields?: Record<string, string>, scope?: string }, { integration: Integration }>,
     remove_api_key_integration: CustomAction<{ integration: string, externalId?: string }, { }>, 
     disconnect_oauth2_integration: CustomAction<{ integration: IntegrationsTitleType }, {}>,
     refresh_oauth2_session: CustomAction<{ title: string }, { access_token: string, expiry_date: number }>, 
@@ -2312,7 +2312,7 @@ export const schema: SchemaV1 = build_schema({
       createEndusersForUnrecognizedSenders: { validator: booleanValidator },
       calendars: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       environment: { validator: stringValidator100 },
-      webhooksSecret: { validator: stringValidator },
+      webhooksSecret: { validator: stringValidator, redactions: ['all'] },
       shouldCreateNotifications: { validator: booleanValidator },
       disableEnduserAutoSync: { validator: booleanValidator },
       disableTicketAutoSync: { validator: booleanValidator },
@@ -5106,6 +5106,7 @@ export const schema: SchemaV1 = build_schema({
       canvasEncounterId: { validator: stringValidator100 },
       pushedToPortalAt: { validator: dateValidatorOptional },
       belugaScheduleLink: { validator: stringValidator1000 },
+      mdiStatus: { validator: stringValidator },
       fieldViews: {
         validator: listValidatorOptionalOrEmptyOk(objectValidator<{ fieldId: string, fieldTitle: string, timestamp: Date }>({
           fieldId: mongoIdStringRequired,
@@ -6122,6 +6123,7 @@ export const schema: SchemaV1 = build_schema({
       canvasReasonCoding: { validator: canvasCodingValidatorOptional },
       tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       matchToHealthieTemplate: { validator: booleanValidator },
+      healthieTemplateId: { validator: stringValidator },
       healthieInsuranceBillingEnabled: { validator: booleanValidator },
       useUserURL: { validator: booleanValidator },
       instructions: { validator: stringValidator5000EmptyOkay },

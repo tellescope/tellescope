@@ -80,6 +80,44 @@ export const no_access_permission_checks_tests = async ({ sdk, sdkNonAdmin } : {
   const originalRoles = sdkNonAdmin.userInfo.roles
 
   try {
+    // ========================================
+    // Test 0: Healthie proxy_read endpoints are admin-only
+    // ========================================
+    // These run before any role manipulation, while sdkNonAdmin has its default non-admin role.
+    // The admin check is inline with the Healthie dispatch branches (after integration resolution),
+    // so a throwaway Healthie integration record must exist for requests to reach it.
+    log_header("Test 0: Healthie proxy_read endpoints reject non-admins")
+
+    const healthieIntegration = await sdk.api.integrations.createOne({
+      title: 'Healthie',
+      authentication: { type: 'apiKey', info: { access_token: 'dummy-healthie-key-for-admin-only-test', refresh_token: 'unused', scope: '', token_type: 'Bearer', expiry_date: new Date().getTime() } },
+    })
+    try {
+      await async_test(
+        "proxy_read healthie patients - should block non-admin user",
+        () => sdkNonAdmin.api.integrations.proxy_read({ integration: 'Healthie', type: 'patients' }),
+        { shouldError: true, onError: (e: any) => e.message === "Admin access required" }
+      )
+      await async_test(
+        "proxy_read healthie appointment-types - should block non-admin user",
+        () => sdkNonAdmin.api.integrations.proxy_read({ integration: 'Healthie', type: 'appointment-types' }),
+        { shouldError: true, onError: (e: any) => e.message === "Admin access required" }
+      )
+      // Admin is not blocked by the role check (the dummy credentials fail upstream in Healthie's API,
+      // but never with the 403 role rejection)
+      try {
+        await sdk.api.integrations.proxy_read({ integration: 'Healthie', type: 'patients', query: JSON.stringify({ pageSize: 1 }) })
+        console.log("✅ proxy_read healthie patients - admin allowed")
+      } catch (e: any) {
+        if (e.message === "Admin access required") {
+          throw new Error("proxy_read healthie patients - admin was incorrectly blocked by the role check")
+        }
+        console.log("✅ proxy_read healthie patients - admin passes role check (dummy Healthie credentials rejected upstream)")
+      }
+    } finally {
+      await sdk.api.integrations.deleteOne(healthieIntegration.id)
+    }
+
     // Assign the restricted role to non-admin user
     await sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: [noAccessTestRole] }, { replaceObjectFields: true })
     await wait(undefined, 1500) // wait for role change to propagate

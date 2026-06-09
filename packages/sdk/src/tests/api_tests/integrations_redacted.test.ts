@@ -53,11 +53,13 @@ export const integrations_redacted_tests = async ({ sdk, sdkNonAdmin } : { sdk: 
       }}
     )
 
-    // Standard load endpoints enforce CREATOR_ONLY — creator gets full object, non-creator gets nothing
+    // Standard load endpoints enforce CREATOR_ONLY — creator gets full object, non-creator gets nothing.
+    // webhooksSecret has schema-level redactions: ['all'] (added with MDI webhooks support),
+    // so it never goes over the wire on any read — even for the creator.
     await async_test(
-      "getOne as creator returns full integration including sensitive fields",
+      "getOne as creator returns integration with authentication, webhooksSecret always redacted",
       () => sdk.api.integrations.getOne(integrationId),
-      { onResult: i => !!i && 'authentication' in i && 'webhooksSecret' in i }
+      { onResult: i => !!i && 'authentication' in i && !('webhooksSecret' in i) }
     )
 
     await async_test(

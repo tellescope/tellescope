@@ -2563,6 +2563,7 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
     pushedToPortalAt?: Date;
     belugaStatus?: string;
     belugaScheduleLink?: string;
+    mdiStatus?: string;
     fieldViews?: {
         fieldId: string;
         fieldTitle: string;
@@ -2895,6 +2896,7 @@ export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, C
     canvasReasonCoding?: CanvasCoding;
     tags?: string[];
     matchToHealthieTemplate?: boolean;
+    healthieTemplateId?: string;
     useUserURL?: boolean;
     instructions?: string;
     dontAutoSyncPatientToHealthie?: boolean;

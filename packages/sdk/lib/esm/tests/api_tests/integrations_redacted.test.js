@@ -85,15 +85,21 @@ export var integrations_redacted_tests = function (_a) {
                                 var found = r.integrations.find(function (i) { return i.id === integrationId; });
                                 return !!found && hasNoSensitiveFields(found) && found.title === 'Test Redacted Integration';
                             } })
-                        // Standard load endpoints enforce CREATOR_ONLY — creator gets full object, non-creator gets nothing
+                        // Standard load endpoints enforce CREATOR_ONLY — creator gets full object, non-creator gets nothing.
+                        // webhooksSecret has schema-level redactions: ['all'] (added with MDI webhooks support),
+                        // so it never goes over the wire on any read — even for the creator.
                     ];
                 case 4:
                     // load_redacted as non-creator — verify same integration visible and redacted
                     _b.sent();
-                    // Standard load endpoints enforce CREATOR_ONLY — creator gets full object, non-creator gets nothing
-                    return [4 /*yield*/, async_test("getOne as creator returns full integration including sensitive fields", function () { return sdk.api.integrations.getOne(integrationId); }, { onResult: function (i) { return !!i && 'authentication' in i && 'webhooksSecret' in i; } })];
+                    // Standard load endpoints enforce CREATOR_ONLY — creator gets full object, non-creator gets nothing.
+                    // webhooksSecret has schema-level redactions: ['all'] (added with MDI webhooks support),
+                    // so it never goes over the wire on any read — even for the creator.
+                    return [4 /*yield*/, async_test("getOne as creator returns integration with authentication, webhooksSecret always redacted", function () { return sdk.api.integrations.getOne(integrationId); }, { onResult: function (i) { return !!i && 'authentication' in i && !('webhooksSecret' in i); } })];
                 case 5:
-                    // Standard load endpoints enforce CREATOR_ONLY — creator gets full object, non-creator gets nothing
+                    // Standard load endpoints enforce CREATOR_ONLY — creator gets full object, non-creator gets nothing.
+                    // webhooksSecret has schema-level redactions: ['all'] (added with MDI webhooks support),
+                    // so it never goes over the wire on any read — even for the creator.
                     _b.sent();
                     return [4 /*yield*/, async_test("getOne as non-creator returns 404 (CREATOR_ONLY access control)", function () { return sdkNonAdmin.api.integrations.getOne(integrationId); }, { shouldError: true, onError: function () { return true; } })];
                 case 6:

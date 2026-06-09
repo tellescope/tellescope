@@ -293,6 +293,7 @@ export interface OktaSSOConfiguration extends InternalBusinessRecord {
   clientId: string,
   clientSecret: string,
   oktaBaseUrl: string, // e.g., https://dev-12345678.okta.com
+  jitRole?: string,    // when set, JIT-provisions users on first SSO login with this (non-admin) role as roles[0]
 }
 
 export interface InternalSecret extends InternalBusinessRecord {
