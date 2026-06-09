@@ -4606,7 +4606,7 @@ export const schema: SchemaV1 = build_schema({
         parameters: { 
           id: { validator: mongoIdStringValidator },
         },
-        returns: 'meeting' as any,
+        returns: 'meetings' as any,
       },
       start_meeting: {
         op: "custom", access: 'create', method: "post",
