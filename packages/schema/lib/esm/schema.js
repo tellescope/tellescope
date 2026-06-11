@@ -2889,7 +2889,7 @@ export var schema = build_schema({
                 parameters: {
                     id: { validator: mongoIdStringValidator },
                 },
-                returns: 'meeting',
+                returns: 'meetings',
             },
             start_meeting: {
                 op: "custom", access: 'create', method: "post",
@@ -6645,7 +6645,7 @@ export var schema = build_schema({
             }, userId: { validator: mongoIdStringValidator }, title: { validator: stringValidator, required: true, examples: ['title'] }, status: { validator: stringValidator, required: true, examples: ['status'] }, description: { validator: stringValidator1000 }, frequency: { validator: stringValidator100 }, items: { validator: listValidatorOptionalOrEmptyOk(objectValidator({
                     title: stringValidator,
                     tracking: stringValidatorOptional,
-                })) }, tracking: { validator: stringValidatorOptional }, carrier: { validator: stringValidatorOptional }, fill: { validator: stringValidatorOptional }, sku: { validator: stringValidatorOptional }, bookingLink: { validator: stringValidatorOptional }, pharmacy: { validator: stringValidatorOptional }, pharmacyOrderId: { validator: stringValidatorOptional }, cancelledDate: { validator: stringValidatorOptional }, cancellationReason: { validator: stringValidatorOptional }, medication: { validator: stringValidatorOptional }, medicationSku: { validator: stringValidatorOptional }, protocol: { validator: stringValidator1000 } })
+                })) }, tracking: { validator: stringValidatorOptional }, carrier: { validator: stringValidatorOptional }, shippedDate: { validator: stringValidatorOptional }, deliveredDate: { validator: stringValidatorOptional }, fill: { validator: stringValidatorOptional }, sku: { validator: stringValidatorOptional }, bookingLink: { validator: stringValidatorOptional }, pharmacy: { validator: stringValidatorOptional }, pharmacyOrderId: { validator: stringValidatorOptional }, cancelledDate: { validator: stringValidatorOptional }, cancellationReason: { validator: stringValidatorOptional }, medication: { validator: stringValidatorOptional }, medicationSku: { validator: stringValidatorOptional }, protocol: { validator: stringValidator1000 } })
     },
     vital_configurations: {
         info: {},

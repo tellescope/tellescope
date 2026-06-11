@@ -2,6 +2,7 @@ export {
   TwilioVideoProvider,
   useTwilioVideo,
   SCREEN_SHARE_TRACK_NAME,
+  SCREEN_SHARE_AUDIO_TRACK_NAME,
   type TwilioVideoState,
   type TwilioVideoActions,
   type TwilioVideoContextType,

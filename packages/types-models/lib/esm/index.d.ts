@@ -2379,8 +2379,9 @@ export type FormResponseAnswerBridgeEligibility = FormResponseValueAnswerBuilder
 export type FormResponseAnswerCandidEligibility = FormResponseValueAnswerBuilder<'Candid Eligibility', {
     payerId?: string;
     status?: string;
-    coverageId?: string;
+    eligibilityStatus?: string;
     benefits?: object;
+    planMetadata?: object;
 }>;
 export type FormResponseAnswerHeight = FormResponseValueAnswerBuilder<'Height', {
     feet: number;
@@ -5291,6 +5292,7 @@ export interface EnduserOrder extends EnduserOrder_readonly, EnduserOrder_requir
     carrier?: string;
     instructions?: string;
     shippedDate?: string;
+    deliveredDate?: string;
     frequency?: string;
     activateBy?: string;
     fill?: string;

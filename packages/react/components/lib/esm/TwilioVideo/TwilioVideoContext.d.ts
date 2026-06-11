@@ -1,6 +1,7 @@
 import React from 'react';
 import { Room, LocalVideoTrack, LocalAudioTrack, RemoteParticipant } from 'twilio-video';
 export declare const SCREEN_SHARE_TRACK_NAME = "screen-share";
+export declare const SCREEN_SHARE_AUDIO_TRACK_NAME = "screen-share-audio";
 export declare const BLUR_BACKGROUND_STORAGE_KEY = "tellescope.twilio.blurBackground";
 export declare const BLUR_BACKGROUND_ASSETS_PATH = "/twilio-video-processors";
 export declare const loadTwilioVideoProcessorsModule: () => Promise<typeof import("@twilio/video-processors")>;
@@ -27,7 +28,9 @@ export interface TwilioVideoActions {
     disconnect: () => void;
     toggleVideo: () => Promise<void>;
     toggleAudio: () => void;
-    toggleScreenShare: () => Promise<void>;
+    toggleScreenShare: (options?: {
+        shareAudio?: boolean;
+    }) => Promise<void>;
     toggleBlur: () => void;
     setIsHost: (isHost: boolean) => void;
 }

@@ -13,6 +13,12 @@ export declare const user_is_admin: (u: {
 } | {
     type: 'enduser';
 })) => boolean;
+export declare const user_is_locked_out: (u: {
+    lockedOutUntil?: number;
+    failedLoginAttempts?: number;
+}, options?: {
+    includeFailedLoginAttempts?: boolean;
+}) => boolean;
 export declare const first_letter_capitalized: (s?: string) => string;
 export declare const first_letter_lowercase: (s?: string) => string;
 export declare const object_is_empty: (o: object) => boolean;

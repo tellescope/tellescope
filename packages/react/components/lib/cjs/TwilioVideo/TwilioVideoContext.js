@@ -79,11 +79,12 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TwilioVideoProvider = exports.useTwilioVideo = exports.loadTwilioVideoProcessorsModule = exports.BLUR_BACKGROUND_ASSETS_PATH = exports.BLUR_BACKGROUND_STORAGE_KEY = exports.SCREEN_SHARE_TRACK_NAME = void 0;
+exports.TwilioVideoProvider = exports.useTwilioVideo = exports.loadTwilioVideoProcessorsModule = exports.BLUR_BACKGROUND_ASSETS_PATH = exports.BLUR_BACKGROUND_STORAGE_KEY = exports.SCREEN_SHARE_AUDIO_TRACK_NAME = exports.SCREEN_SHARE_TRACK_NAME = void 0;
 var jsx_runtime_1 = require("react/jsx-runtime");
 var react_1 = require("react");
 var twilio_video_1 = __importStar(require("twilio-video"));
 exports.SCREEN_SHARE_TRACK_NAME = 'screen-share';
+exports.SCREEN_SHARE_AUDIO_TRACK_NAME = 'screen-share-audio';
 exports.BLUR_BACKGROUND_STORAGE_KEY = 'tellescope.twilio.blurBackground';
 exports.BLUR_BACKGROUND_ASSETS_PATH = '/twilio-video-processors';
 var videoProcessorsModulePromise = null;
@@ -138,6 +139,7 @@ var TwilioVideoProvider = function (_a) {
     var _q = (0, react_1.useState)(readBlurPreference), isBlurEnabled = _q[0], setIsBlurEnabled = _q[1];
     var _r = (0, react_1.useState)(false), isBlurLoading = _r[0], setIsBlurLoading = _r[1];
     var localTracksRef = (0, react_1.useRef)([]);
+    var screenAudioTrackRef = (0, react_1.useRef)(null);
     var blurProcessorRef = (0, react_1.useRef)(null);
     var blurAttachedTrackRef = (0, react_1.useRef)(null);
     var connect = (0, react_1.useCallback)(function (token, roomName) { return __awaiter(void 0, void 0, void 0, function () {
@@ -201,6 +203,7 @@ var TwilioVideoProvider = function (_a) {
                             track.stop();
                         });
                         localTracksRef.current = [];
+                        screenAudioTrackRef.current = null;
                         setRoom(null);
                         setLocalVideoTrack(null);
                         setLocalAudioTrack(null);
@@ -231,6 +234,7 @@ var TwilioVideoProvider = function (_a) {
             track.stop();
         });
         localTracksRef.current = [];
+        screenAudioTrackRef.current = null;
         setRoom(null);
         setLocalVideoTrack(null);
         setLocalAudioTrack(null);
@@ -274,9 +278,19 @@ var TwilioVideoProvider = function (_a) {
             setLocalScreenTrack(null);
             setIsScreenSharing(false);
         }
+        // Tear down the accompanying screen-share audio track, if any
+        if (screenAudioTrackRef.current) {
+            var audioTrack_1 = screenAudioTrackRef.current;
+            if (room) {
+                room.localParticipant.unpublishTrack(audioTrack_1);
+            }
+            audioTrack_1.stop();
+            localTracksRef.current = localTracksRef.current.filter(function (t) { return t !== audioTrack_1; });
+            screenAudioTrackRef.current = null;
+        }
     }, [localScreenTrack, room]);
-    var toggleScreenShare = (0, react_1.useCallback)(function () { return __awaiter(void 0, void 0, void 0, function () {
-        var stream, mediaStreamTrack, screenTrack_1, err_2;
+    var toggleScreenShare = (0, react_1.useCallback)(function (options) { return __awaiter(void 0, void 0, void 0, function () {
+        var stream, mediaStreamTrack, screenTrack_1, audioMediaStreamTrack, screenAudioTrack_1, err_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -286,8 +300,8 @@ var TwilioVideoProvider = function (_a) {
                     }
                     _a.label = 1;
                 case 1:
-                    _a.trys.push([1, 5, , 6]);
-                    return [4 /*yield*/, navigator.mediaDevices.getDisplayMedia({ video: true })];
+                    _a.trys.push([1, 8, , 9]);
+                    return [4 /*yield*/, navigator.mediaDevices.getDisplayMedia({ video: true, audio: !!(options === null || options === void 0 ? void 0 : options.shareAudio) })];
                 case 2:
                     stream = _a.sent();
                     mediaStreamTrack = stream.getVideoTracks()[0];
@@ -301,6 +315,20 @@ var TwilioVideoProvider = function (_a) {
                     localTracksRef.current.push(screenTrack_1);
                     setLocalScreenTrack(screenTrack_1);
                     setIsScreenSharing(true);
+                    audioMediaStreamTrack = stream.getAudioTracks()[0];
+                    screenAudioTrack_1 = null;
+                    if (!audioMediaStreamTrack) return [3 /*break*/, 7];
+                    screenAudioTrack_1 = new twilio_video_1.LocalAudioTrack(audioMediaStreamTrack, { name: exports.SCREEN_SHARE_AUDIO_TRACK_NAME });
+                    if (!room) return [3 /*break*/, 6];
+                    return [4 /*yield*/, room.localParticipant.publishTrack(screenAudioTrack_1)];
+                case 5:
+                    _a.sent();
+                    _a.label = 6;
+                case 6:
+                    localTracksRef.current.push(screenAudioTrack_1);
+                    screenAudioTrackRef.current = screenAudioTrack_1;
+                    _a.label = 7;
+                case 7:
                     // Handle browser "Stop sharing" button
                     mediaStreamTrack.onended = function () {
                         if (room) {
@@ -310,14 +338,22 @@ var TwilioVideoProvider = function (_a) {
                         localTracksRef.current = localTracksRef.current.filter(function (t) { return t !== screenTrack_1; });
                         setLocalScreenTrack(null);
                         setIsScreenSharing(false);
+                        if (screenAudioTrack_1) {
+                            if (room) {
+                                room.localParticipant.unpublishTrack(screenAudioTrack_1);
+                            }
+                            screenAudioTrack_1.stop();
+                            localTracksRef.current = localTracksRef.current.filter(function (t) { return t !== screenAudioTrack_1; });
+                            screenAudioTrackRef.current = null;
+                        }
                     };
-                    return [3 /*break*/, 6];
-                case 5:
+                    return [3 /*break*/, 9];
+                case 8:
                     err_2 = _a.sent();
                     // User cancelled the screen share picker — not an error
                     console.log('Screen share cancelled or failed:', err_2);
-                    return [3 /*break*/, 6];
-                case 6: return [2 /*return*/];
+                    return [3 /*break*/, 9];
+                case 9: return [2 /*return*/];
             }
         });
     }); }, [isScreenSharing, stopScreenShare, room]);

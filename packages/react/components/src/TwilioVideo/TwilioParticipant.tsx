@@ -4,6 +4,7 @@ import {
   LocalParticipant,
   VideoTrack,
   AudioTrack,
+  RemoteAudioTrack,
   RemoteTrackPublication,
   LocalTrackPublication,
 } from 'twilio-video'
@@ -20,6 +21,23 @@ export interface TwilioParticipantProps {
   showScreenShare?: boolean
 }
 
+/** Renders a single remote audio track into its own <audio> element. */
+const RemoteAudioTrackElement: React.FC<{ track: AudioTrack }> = ({ track }) => {
+  const audioRef = useRef<HTMLAudioElement>(null)
+
+  useEffect(() => {
+    if (audioRef.current) {
+      const el = audioRef.current
+      track.attach(el)
+      return () => {
+        track.detach(el)
+      }
+    }
+  }, [track])
+
+  return <audio ref={audioRef} autoPlay />
+}
+
 export const TwilioParticipant: React.FC<TwilioParticipantProps> = ({
   participant,
   isLocal = false,
@@ -28,10 +46,9 @@ export const TwilioParticipant: React.FC<TwilioParticipantProps> = ({
   showScreenShare = false,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null)
-  const audioRef = useRef<HTMLAudioElement>(null)
   const [cameraTrack, setCameraTrack] = useState<VideoTrack | null>(null)
   const [screenTrack, setScreenTrack] = useState<VideoTrack | null>(null)
-  const [audioTrack, setAudioTrack] = useState<AudioTrack | null>(null)
+  const [audioTracks, setAudioTracks] = useState<AudioTrack[]>([])
 
   useEffect(() => {
     const handleTrackSubscribed = (track: VideoTrack | AudioTrack) => {
@@ -42,7 +59,9 @@ export const TwilioParticipant: React.FC<TwilioParticipantProps> = ({
           setCameraTrack(track as VideoTrack)
         }
       } else if (track.kind === 'audio') {
-        setAudioTrack(track as AudioTrack)
+        // Support multiple simultaneous audio tracks (e.g. microphone + screen-share audio).
+        // Add by identity, deduping so the same track isn't attached twice.
+        setAudioTracks(prev => (prev.includes(track as AudioTrack) ? prev : [...prev, track as AudioTrack]))
       }
     }
 
@@ -54,7 +73,7 @@ export const TwilioParticipant: React.FC<TwilioParticipantProps> = ({
           setCameraTrack(null)
         }
       } else if (track.kind === 'audio') {
-        setAudioTrack(null)
+        setAudioTracks(prev => prev.filter(t => t !== (track as AudioTrack)))
       }
     }
 
@@ -107,17 +126,6 @@ export const TwilioParticipant: React.FC<TwilioParticipantProps> = ({
     }
   }, [activeVideoTrack])
 
-  // Attach audio track (not for local participant to avoid echo)
-  useEffect(() => {
-    if (audioTrack && audioRef.current && !isLocal) {
-      const el = audioRef.current
-      audioTrack.attach(el)
-      return () => {
-        audioTrack.detach(el)
-      }
-    }
-  }, [audioTrack, isLocal])
-
   const shouldMirror = isLocal && !showScreenShare
 
   return (
@@ -144,7 +152,10 @@ export const TwilioParticipant: React.FC<TwilioParticipantProps> = ({
           transform: shouldMirror ? 'scaleX(-1)' : 'none',
         }}
       />
-      {!isLocal && <audio ref={audioRef} autoPlay />}
+      {/* Render one audio element per track so simultaneous tracks (mic + screen-share audio) all play */}
+      {!isLocal && audioTracks.map(track => (
+        <RemoteAudioTrackElement key={(track as RemoteAudioTrack).sid} track={track} />
+      ))}
       {(() => {
         const label = resolveIdentity(participant.identity)
         if (!label && !isLocal) return null

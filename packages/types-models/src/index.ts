@@ -2446,9 +2446,10 @@ export type FormResponseAnswerBridgeEligibility = FormResponseValueAnswerBuilder
 }>
 export type FormResponseAnswerCandidEligibility = FormResponseValueAnswerBuilder<'Candid Eligibility', {
   payerId?: string, // Payer ID used for this eligibility check
-  status?: string, // Eligibility check status (COMPLETED/FAILED/PENDING)
-  coverageId?: string, // Candid coverage ID for polling
+  status?: string, // Candid eligibility_status: ACTIVE | INACTIVE | UNKNOWN
+  eligibilityStatus?: string, // explicit alias for clarity (optional, can fold into status)
   benefits?: object, // Benefits data from eligibility check
+  planMetadata?: object, // Plan metadata from eligibility check
 }>
 export type FormResponseAnswerHeight = FormResponseValueAnswerBuilder<'Height', { feet: number, inches: number }>
 export type FormResponseAnswerRedirect = FormResponseValueAnswerBuilder<'Redirect', string>
@@ -5231,6 +5232,7 @@ export interface EnduserOrder extends EnduserOrder_readonly, EnduserOrder_requir
   carrier?: string,
   instructions?: string,
   shippedDate?: string,
+  deliveredDate?: string,
   frequency?: string,
   activateBy?: string,
   fill?: string,

@@ -1604,8 +1604,9 @@ export var formResponseAnswerValidator = orValidator({
         value: objectValidator({
             payerId: stringValidatorOptional,
             status: stringValidatorOptional,
-            coverageId: stringValidatorOptional,
-            benefits: optionalEmptyObjectValidator, // Benefits data from eligibility check
+            eligibilityStatus: stringValidatorOptional,
+            benefits: optionalEmptyObjectValidator,
+            planMetadata: optionalEmptyObjectValidator, // Plan metadata from eligibility check
         }, { isOptional: true, emptyOk: true }),
     }),
     "Question Group": objectValidator({

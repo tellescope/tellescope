@@ -2894,7 +2894,7 @@ exports.schema = (0, exports.build_schema)({
                 parameters: {
                     id: { validator: validation_1.mongoIdStringRequired },
                 },
-                returns: 'meeting',
+                returns: 'meetings',
             },
             start_meeting: {
                 op: "custom", access: 'create', method: "post",
@@ -6650,7 +6650,7 @@ exports.schema = (0, exports.build_schema)({
             }, userId: { validator: validation_1.mongoIdStringRequired }, title: { validator: validation_1.stringValidator, required: true, examples: ['title'] }, status: { validator: validation_1.stringValidator, required: true, examples: ['status'] }, description: { validator: validation_1.stringValidator1000 }, frequency: { validator: validation_1.stringValidator100 }, items: { validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     title: validation_1.stringValidator,
                     tracking: validation_1.stringValidatorOptional,
-                })) }, tracking: { validator: validation_1.stringValidatorOptional }, carrier: { validator: validation_1.stringValidatorOptional }, fill: { validator: validation_1.stringValidatorOptional }, sku: { validator: validation_1.stringValidatorOptional }, bookingLink: { validator: validation_1.stringValidatorOptional }, pharmacy: { validator: validation_1.stringValidatorOptional }, pharmacyOrderId: { validator: validation_1.stringValidatorOptional }, cancelledDate: { validator: validation_1.stringValidatorOptional }, cancellationReason: { validator: validation_1.stringValidatorOptional }, medication: { validator: validation_1.stringValidatorOptional }, medicationSku: { validator: validation_1.stringValidatorOptional }, protocol: { validator: validation_1.stringValidator1000 } })
+                })) }, tracking: { validator: validation_1.stringValidatorOptional }, carrier: { validator: validation_1.stringValidatorOptional }, shippedDate: { validator: validation_1.stringValidatorOptional }, deliveredDate: { validator: validation_1.stringValidatorOptional }, fill: { validator: validation_1.stringValidatorOptional }, sku: { validator: validation_1.stringValidatorOptional }, bookingLink: { validator: validation_1.stringValidatorOptional }, pharmacy: { validator: validation_1.stringValidatorOptional }, pharmacyOrderId: { validator: validation_1.stringValidatorOptional }, cancelledDate: { validator: validation_1.stringValidatorOptional }, cancellationReason: { validator: validation_1.stringValidatorOptional }, medication: { validator: validation_1.stringValidatorOptional }, medicationSku: { validator: validation_1.stringValidatorOptional }, protocol: { validator: validation_1.stringValidator1000 } })
     },
     vital_configurations: {
         info: {},

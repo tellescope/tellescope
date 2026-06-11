@@ -1,5 +1,16 @@
-import React from 'react'
-import { Box, IconButton, Button, CircularProgress } from '@mui/material'
+import React, { useState } from 'react'
+import {
+  Box,
+  IconButton,
+  Button,
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  FormControlLabel,
+  Checkbox,
+} from '@mui/material'
 import {
   Mic as MicIcon,
   MicOff as MicOffIcon,
@@ -43,6 +54,24 @@ export const TwilioControlBar: React.FC<TwilioControlBarProps> = ({
     room,
   } = useTwilioVideo()
 
+  const [shareDialogOpen, setShareDialogOpen] = useState(false)
+  const [shareAudio, setShareAudio] = useState(true)
+
+  const handleScreenShareClick = () => {
+    if (isScreenSharing) {
+      // Already sharing — stop immediately, no dialog
+      toggleScreenShare()
+    } else {
+      setShareDialogOpen(true)
+    }
+  }
+
+  const handleConfirmShare = () => {
+    // This click is a user gesture, so getDisplayMedia is allowed
+    toggleScreenShare({ shareAudio })
+    setShareDialogOpen(false)
+  }
+
   const handleLeave = () => {
     disconnect()
     onLeave?.()
@@ -58,6 +87,7 @@ export const TwilioControlBar: React.FC<TwilioControlBarProps> = ({
     && typeof navigator.mediaDevices.getDisplayMedia === 'function'
 
   return (
+    <>
     <Box
       sx={{
         display: 'flex',
@@ -115,7 +145,7 @@ export const TwilioControlBar: React.FC<TwilioControlBarProps> = ({
 
       {showScreenShareProp && supportsScreenShare && (
         <IconButton
-          onClick={toggleScreenShare}
+          onClick={handleScreenShareClick}
           disabled={!room}
           sx={{
             color: isScreenSharing ? '#4caf50' : 'white',
@@ -162,5 +192,25 @@ export const TwilioControlBar: React.FC<TwilioControlBarProps> = ({
         </Button>
       )}
     </Box>
+
+    <Dialog open={shareDialogOpen} onClose={() => setShareDialogOpen(false)}>
+      <DialogTitle>Share your screen</DialogTitle>
+      <DialogContent>
+        <FormControlLabel
+          control={(
+            <Checkbox
+              checked={shareAudio}
+              onChange={e => setShareAudio(e.target.checked)}
+            />
+          )}
+          label="Also share audio"
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => setShareDialogOpen(false)}>Cancel</Button>
+        <Button variant="contained" onClick={handleConfirmShare}>Share</Button>
+      </DialogActions>
+    </Dialog>
+    </>
   )
 }

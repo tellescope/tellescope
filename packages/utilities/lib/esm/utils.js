@@ -36,6 +36,11 @@ import { DateTime } from "luxon";
 import { ObjectId } from "./ObjectId/objectid";
 export { ObjectId };
 export var user_is_admin = function (u) { var _a; return u.type === 'enduser' ? false : !!((_a = u === null || u === void 0 ? void 0 : u.roles) === null || _a === void 0 ? void 0 : _a.includes(ADMIN_ROLE)); };
+// lockedOutUntil: -1 => not locked, 0 => locked indefinitely, > 0 => locked until unix time in MS
+// by default only explicit locks count, mirroring billable-user logic in the /usage endpoint
+// pass includeFailedLoginAttempts to also count automatic lockout (10+ failed logins), mirroring isAccountAccessible in the API
+export var user_is_locked_out = function (u, options) { return ((typeof u.lockedOutUntil === 'number' && (u.lockedOutUntil === 0 || u.lockedOutUntil > Date.now()))
+    || (!!(options === null || options === void 0 ? void 0 : options.includeFailedLoginAttempts) && typeof u.failedLoginAttempts === 'number' && u.failedLoginAttempts >= 10)); };
 export var first_letter_capitalized = function (s) {
     if (s === void 0) { s = ''; }
     return s.charAt(0).toUpperCase() + s.slice(1);

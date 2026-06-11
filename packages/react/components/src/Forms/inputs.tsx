@@ -1439,18 +1439,9 @@ export const CandidEligibilityInput = ({ field, value, onChange, responses, endu
 }) => {
   const session = useResolvedSession()
   const [loading, setLoading] = useState(false)
-  const [polling, setPolling] = useState(false)
   const [error, setError] = useState<string>()
 
   const isEnduserSession = session.type === 'enduser'
-  const pollTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
-
-  // Clean up polling timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current)
-    }
-  }, [])
 
   // Extract payerId from Insurance question response
   const [payerId, memberId, payerName] = useMemo(() => {
@@ -1470,7 +1461,7 @@ export const CandidEligibilityInput = ({ field, value, onChange, responses, endu
     setError(undefined)
 
     try {
-      // Step 1: Initiate eligibility check (creates patient → coverage → check)
+      // Single synchronous eligibility check
       const { data } = await session.api.integrations.proxy_read({
         id: enduserId,
         integration: CANDID_TITLE,
@@ -1484,76 +1475,17 @@ export const CandidEligibilityInput = ({ field, value, onChange, responses, endu
         }),
       })
 
-      const coverageId = data?.coverageId
-      const checkId = data?.checkId
-      const initialStatus = data?.status
-
-      if (!coverageId || !checkId) {
-        throw new Error('No coverage ID or check ID returned from eligibility check')
-      }
-
-      // If already completed, update answer immediately
-      if (initialStatus === 'COMPLETED' || initialStatus === 'FAILED' || initialStatus === 'UNKNOWN') {
-        onChange({
-          payerId,
-          status: initialStatus,
-          coverageId,
-        }, field.id)
-        setLoading(false)
-        return
-      }
-
-      // Step 2: Poll for results
+      onChange({
+        payerId,
+        status: data?.status,
+        benefits: data?.benefits,
+        planMetadata: data?.planMetadata,
+      }, field.id)
       setLoading(false)
-      setPolling(true)
-
-      const maxAttempts = 60 // 2 minutes at 2s intervals
-      let attempts = 0
-
-      const pollForResult = async (): Promise<void> => {
-        if (attempts >= maxAttempts) {
-          setError('Eligibility check timed out. Please try again.')
-          setPolling(false)
-          return
-        }
-
-        attempts++
-
-        try {
-          const { data: pollData } = await session.api.integrations.proxy_read({
-            id: coverageId,
-            integration: CANDID_TITLE,
-            type: 'candid-eligibility-poll',
-            query: JSON.stringify({ checkId }),
-          })
-
-          const status = pollData?.status
-          // Terminal statuses: COMPLETED, FAILED, or UNKNOWN (Candid returns UNKNOWN when eligibility cannot be determined)
-          if (status === 'COMPLETED' || status === 'FAILED' || status === 'UNKNOWN') {
-            onChange({
-              payerId,
-              status,
-              coverageId,
-              benefits: pollData?.benefits,
-            }, field.id)
-            setPolling(false)
-            return
-          }
-
-          // Still pending, poll again
-          pollTimeoutRef.current = setTimeout(pollForResult, 2000)
-        } catch (err: any) {
-          setError(err?.message || 'Failed to check eligibility status')
-          setPolling(false)
-        }
-      }
-
-      pollForResult()
     } catch (err: any) {
       setError(err?.message || 'Failed to check eligibility')
       console.error('Candid eligibility check failed:', err)
       setLoading(false)
-      setPolling(false)
     }
   }, [session, field, payerId, memberId, payerName, onChange, enduserId])
 
@@ -1608,43 +1540,40 @@ export const CandidEligibilityInput = ({ field, value, onChange, responses, endu
       </Grid>
       <Grid item>
         <Typography variant="body1">
-          {polling ? 'Verifying eligibility with insurance...' : 'Checking eligibility...'}
+          Checking eligibility...
         </Typography>
       </Grid>
       <Grid item>
         <Typography variant="body2" color="textSecondary">
-          {polling ? 'This usually takes 15-30 seconds' : 'This may take a few moments'}
+          This may take a few moments
         </Typography>
       </Grid>
     </Grid>
-  ), [polling])
+  ), [])
 
   const resultsComponent = useMemo(() => {
-    const isCompleted = value?.status === 'COMPLETED'
-    const isFailed = value?.status === 'FAILED'
+    const isActive = value?.status === 'ACTIVE'
     return (
       <Grid container spacing={2} direction="column">
         <Grid item>
           <Paper style={{
             padding: 16,
-            backgroundColor: isCompleted ? '#e8f5e9' : '#ffebee',
-            border: `2px solid ${isCompleted ? '#4caf50' : '#f44336'}`
+            backgroundColor: isActive ? '#e8f5e9' : '#fff8e1',
+            border: `2px solid ${isActive ? '#4caf50' : '#ffa000'}`
           }}>
             <Grid container spacing={2} direction="column" alignItems="center">
               <Grid item>
-                {isCompleted ? (
+                {isActive ? (
                   <CheckCircleOutline style={{ fontSize: 48, color: '#4caf50' }} />
                 ) : (
-                  <Typography variant="h2" style={{ color: '#f44336' }}>!</Typography>
+                  <Typography variant="h2" style={{ color: '#ffa000' }}>!</Typography>
                 )}
               </Grid>
               <Grid item>
                 <Typography variant="h6" align="center">
-                  {isCompleted
+                  {isActive
                     ? `${payerName || 'Insurance'} eligibility verified`
-                    : isFailed
-                      ? 'Eligibility check failed'
-                      : 'Eligibility Status: ' + first_letter_capitalized((value?.status || 'Unknown').toLowerCase())
+                    : 'Eligibility Status: ' + first_letter_capitalized((value?.status || 'Unknown').toLowerCase())
                   }
                 </Typography>
               </Grid>
@@ -1655,9 +1584,9 @@ export const CandidEligibilityInput = ({ field, value, onChange, responses, endu
     )
   }, [value, payerName])
 
-  // Loading/polling state for enduser sessions
+  // Loading state for enduser sessions
   if (isEnduserSession) {
-    if (loading || polling) { return checkingEligibilityComponent }
+    if (loading) { return checkingEligibilityComponent }
     if (error) {
       return errorComponent
     }
@@ -1687,23 +1616,15 @@ export const CandidEligibilityInput = ({ field, value, onChange, responses, endu
         </Grid>
       )}
 
-      {polling && (
-        <Grid item>
-          <Typography variant="body2" color="primary">
-            {form_display_text_for_language(form, "Polling for results... (this may take 15-30 seconds)")}
-          </Typography>
-        </Grid>
-      )}
-
       <Grid item container spacing={2}>
         <Grid item>
           <LoadingButton
             variant="outlined"
             onClick={checkEligibility}
             submitText={form_display_text_for_language(form, "Check Eligibility")}
-            submittingText={polling ? form_display_text_for_language(form, "Polling...") : form_display_text_for_language(form, "Checking...")}
-            submitting={loading || polling}
-            disabled={loading || polling}
+            submittingText={form_display_text_for_language(form, "Checking...")}
+            submitting={loading}
+            disabled={loading}
           />
         </Grid>
       </Grid>

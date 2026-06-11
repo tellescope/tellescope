@@ -11,6 +11,7 @@ import Video, {
 import type { GaussianBlurBackgroundProcessor as GaussianBlurBackgroundProcessorType } from '@twilio/video-processors'
 
 export const SCREEN_SHARE_TRACK_NAME = 'screen-share'
+export const SCREEN_SHARE_AUDIO_TRACK_NAME = 'screen-share-audio'
 
 export const BLUR_BACKGROUND_STORAGE_KEY = 'tellescope.twilio.blurBackground'
 export const BLUR_BACKGROUND_ASSETS_PATH = '/twilio-video-processors'
@@ -64,7 +65,7 @@ export interface TwilioVideoActions {
   disconnect: () => void
   toggleVideo: () => Promise<void>
   toggleAudio: () => void
-  toggleScreenShare: () => Promise<void>
+  toggleScreenShare: (options?: { shareAudio?: boolean }) => Promise<void>
   toggleBlur: () => void
   setIsHost: (isHost: boolean) => void
 }
@@ -103,6 +104,7 @@ export const TwilioVideoProvider: React.FC<TwilioVideoProviderProps> = ({ childr
   const [isBlurLoading, setIsBlurLoading] = useState(false)
 
   const localTracksRef = useRef<(LocalVideoTrack | LocalAudioTrack)[]>([])
+  const screenAudioTrackRef = useRef<LocalAudioTrack | null>(null)
   const blurProcessorRef = useRef<GaussianBlurBackgroundProcessorType | null>(null)
   const blurAttachedTrackRef = useRef<LocalVideoTrack | null>(null)
 
@@ -170,6 +172,7 @@ export const TwilioVideoProvider: React.FC<TwilioVideoProviderProps> = ({ childr
           track.stop()
         })
         localTracksRef.current = []
+        screenAudioTrackRef.current = null
         setRoom(null)
         setLocalVideoTrack(null)
         setLocalAudioTrack(null)
@@ -197,6 +200,7 @@ export const TwilioVideoProvider: React.FC<TwilioVideoProviderProps> = ({ childr
       track.stop()
     })
     localTracksRef.current = []
+    screenAudioTrackRef.current = null
 
     setRoom(null)
     setLocalVideoTrack(null)
@@ -239,16 +243,27 @@ export const TwilioVideoProvider: React.FC<TwilioVideoProviderProps> = ({ childr
       setLocalScreenTrack(null)
       setIsScreenSharing(false)
     }
+
+    // Tear down the accompanying screen-share audio track, if any
+    if (screenAudioTrackRef.current) {
+      const audioTrack = screenAudioTrackRef.current
+      if (room) {
+        room.localParticipant.unpublishTrack(audioTrack)
+      }
+      audioTrack.stop()
+      localTracksRef.current = localTracksRef.current.filter(t => t !== audioTrack)
+      screenAudioTrackRef.current = null
+    }
   }, [localScreenTrack, room])
 
-  const toggleScreenShare = useCallback(async () => {
+  const toggleScreenShare = useCallback(async (options?: { shareAudio?: boolean }) => {
     if (isScreenSharing) {
       stopScreenShare()
       return
     }
 
     try {
-      const stream = await navigator.mediaDevices.getDisplayMedia({ video: true })
+      const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: !!options?.shareAudio })
       const mediaStreamTrack = stream.getVideoTracks()[0]
       const screenTrack = new LocalVideoTrack(mediaStreamTrack, { name: SCREEN_SHARE_TRACK_NAME })
 
@@ -260,6 +275,18 @@ export const TwilioVideoProvider: React.FC<TwilioVideoProviderProps> = ({ childr
       setLocalScreenTrack(screenTrack)
       setIsScreenSharing(true)
 
+      // Capture & publish screen/tab audio if the browser provided an audio track
+      const audioMediaStreamTrack = stream.getAudioTracks()[0]
+      let screenAudioTrack: LocalAudioTrack | null = null
+      if (audioMediaStreamTrack) {
+        screenAudioTrack = new LocalAudioTrack(audioMediaStreamTrack, { name: SCREEN_SHARE_AUDIO_TRACK_NAME })
+        if (room) {
+          await room.localParticipant.publishTrack(screenAudioTrack)
+        }
+        localTracksRef.current.push(screenAudioTrack)
+        screenAudioTrackRef.current = screenAudioTrack
+      }
+
       // Handle browser "Stop sharing" button
       mediaStreamTrack.onended = () => {
         if (room) {
@@ -269,6 +296,15 @@ export const TwilioVideoProvider: React.FC<TwilioVideoProviderProps> = ({ childr
         localTracksRef.current = localTracksRef.current.filter(t => t !== screenTrack)
         setLocalScreenTrack(null)
         setIsScreenSharing(false)
+
+        if (screenAudioTrack) {
+          if (room) {
+            room.localParticipant.unpublishTrack(screenAudioTrack)
+          }
+          screenAudioTrack.stop()
+          localTracksRef.current = localTracksRef.current.filter(t => t !== screenAudioTrack)
+          screenAudioTrackRef.current = null
+        }
       }
     } catch (err) {
       // User cancelled the screen share picker — not an error

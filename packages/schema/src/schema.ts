@@ -4606,7 +4606,7 @@ export const schema: SchemaV1 = build_schema({
         parameters: { 
           id: { validator: mongoIdStringValidator },
         },
-        returns: 'meeting' as any,
+        returns: 'meetings' as any,
       },
       start_meeting: {
         op: "custom", access: 'create', method: "post",
@@ -9418,6 +9418,8 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       }))},
       tracking: { validator: stringValidatorOptional },
       carrier: { validator: stringValidatorOptional },
+      shippedDate: { validator: stringValidatorOptional },
+      deliveredDate: { validator: stringValidatorOptional },
       fill: { validator: stringValidatorOptional },
       sku: { validator: stringValidatorOptional },
       bookingLink: { validator: stringValidatorOptional },

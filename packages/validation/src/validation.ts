@@ -2088,9 +2088,10 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
     type: exactMatchValidator(['Candid Eligibility']),
     value: objectValidator<FormResponseAnswerCandidEligibility['value']>({
       payerId: stringValidatorOptional, // Payer ID used for this eligibility check
-      status: stringValidatorOptional, // Eligibility check status (COMPLETED/FAILED/PENDING)
-      coverageId: stringValidatorOptional, // Candid coverage ID for polling
+      status: stringValidatorOptional, // Candid eligibility_status: ACTIVE | INACTIVE | UNKNOWN
+      eligibilityStatus: stringValidatorOptional, // explicit alias for status
       benefits: optionalEmptyObjectValidator, // Benefits data from eligibility check
+      planMetadata: optionalEmptyObjectValidator, // Plan metadata from eligibility check
     }, { isOptional: true, emptyOk: true }),
   }),
   "Question Group": objectValidator<FormResponseAnswerGroup>({

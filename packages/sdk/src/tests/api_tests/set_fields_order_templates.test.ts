@@ -228,12 +228,134 @@ const beluga_webhook_block = async ({ sdk }: { sdk: Session }) => {
   }
 }
 
+// Block C: Beluga tracking status update events (PACKAGE_*)
+const beluga_tracking_status_block = async ({ sdk }: { sdk: Session }) => {
+  log_header("Block C: Beluga tracking status updates (PACKAGE_* events)")
+
+  const webhookUrl = `${host}/v1/webhooks/beluga`
+  const externalOrderId = `EXT-C-${Date.now()}`
+  const trackingUrl = 'https://tools.usps.com/go/TrackConfirmAction?tLabels=9400-CCC'
+
+  const enduser = await sdk.api.endusers.createOne({})
+  const form = await sdk.api.forms.createOne({ title: 'Tracking Status Beluga Form' })
+  const formResponse = await sdk.api.form_responses.createOne({
+    formId: form.id,
+    enduserId: enduser.id,
+    formTitle: form.title,
+  })
+
+  const inTransitTrigger = await sdk.api.automation_triggers.createOne({
+    title: `${TRIGGER_TITLE_BLOCK_B} (In Transit)`,
+    status: 'Active',
+    event: { type: 'Order Status Equals', info: { source: 'Beluga', status: 'In Transit' } },
+    action: buildSetFieldsAction('pharmacy'),
+  })
+
+  const postEvent = async (event: string, info?: object) => {
+    const res = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        masterId: `tellescope_${formResponse.id}`,
+        event,
+        orderId: externalOrderId,
+        ...info ? { info } : {},
+      }),
+    })
+    assert(res.status === 200, `Beluga webhook (${event}) expected 200, got ${res.status}`)
+    await wait(undefined, 250) // webhook upsert + trigger + Set Fields
+  }
+
+  const getOrder = async () => {
+    const orders = await sdk.api.enduser_orders.getSome({
+      filter: { source: 'Beluga', externalId: externalOrderId } as any,
+    })
+    return orders[0]
+  }
+
+  try {
+    // Order ships first, then tracking updates arrive
+    await postEvent('PHARMACY_ORDER_SHIPPED', { carrier: 'USPS', tracking: '9400-CCC' })
+
+    await postEvent('PACKAGE_IN_TRANSIT', {
+      trackerStatus: 'in_transit',
+      trackerId: 'trk_123',
+      trackingUrl,
+      tracking: '9400-CCC',
+      carrier: 'USPS',
+    })
+
+    await async_test(
+      "Block C: PACKAGE_IN_TRANSIT fires 'In Transit' trigger with trackingUrl preferred over tracking",
+      () => sdk.api.endusers.getOne(enduser.id),
+      { onResult: e => !!(
+           e.fields?.pharmacy_status === 'In Transit'
+        && e.fields?.pharmacy_tracking === trackingUrl
+        && e.fields?.pharmacy_carrier === 'USPS'
+        && e.fields?.pharmacy_externalId === externalOrderId
+      )}
+    )
+
+    await postEvent('PACKAGE_OUT_FOR_DELIVERY', {
+      trackerStatus: 'out_for_delivery',
+      trackingUrl,
+      carrier: 'USPS',
+    })
+    await async_test(
+      "Block C: PACKAGE_OUT_FOR_DELIVERY sets order status 'Out for Delivery'",
+      getOrder,
+      { onResult: o => o?.status === 'Out for Delivery' }
+    )
+
+    const deliveredDate = new Date().toISOString()
+    await postEvent('PACKAGE_DELIVERED', {
+      trackerStatus: 'delivered',
+      trackingUrl,
+      carrier: 'USPS',
+      deliveredDate,
+    })
+    await async_test(
+      "Block C: PACKAGE_DELIVERED sets status 'Delivered' and stores deliveredDate",
+      getOrder,
+      { onResult: o => !!(
+           o?.status === 'Delivered'
+        && o?.deliveredDate === deliveredDate
+      )}
+    )
+
+    await postEvent('PACKAGE_DELIVERY_FAILED', { trackerStatus: 'failure' })
+    await async_test(
+      "Block C: PACKAGE_DELIVERY_FAILED sets order status 'Delivery Failed'",
+      getOrder,
+      { onResult: o => o?.status === 'Delivery Failed' }
+    )
+  } finally {
+    // Clean up the order created by the webhook
+    try {
+      const orders = await sdk.api.enduser_orders.getSome({
+        filter: { source: 'Beluga', externalId: externalOrderId } as any,
+      })
+      for (const o of orders) {
+        await sdk.api.enduser_orders.deleteOne(o.id).catch(console.error)
+      }
+    } catch (err) {
+      console.error(err)
+    }
+
+    await sdk.api.automation_triggers.deleteOne(inTransitTrigger.id).catch(console.error)
+    await sdk.api.form_responses.deleteOne(formResponse.id).catch(console.error)
+    await sdk.api.forms.deleteOne(form.id).catch(console.error)
+    await sdk.api.endusers.deleteOne(enduser.id).catch(console.error)
+  }
+}
+
 export const set_fields_order_templates_tests = async (
   { sdk, sdkNonAdmin }: { sdk: Session, sdkNonAdmin: Session }
 ) => {
   log_header("Set Fields: {{order.*}} template resolution")
   await direct_order_creation_block({ sdk })
   await beluga_webhook_block({ sdk })
+  await beluga_tracking_status_block({ sdk })
 }
 
 if (require.main === module) {

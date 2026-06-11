@@ -8,8 +8,19 @@ export { ObjectId }
 
 export type Indexable<T=any> = { [index: string]: T }
 
-export const user_is_admin = (u: { id: string, roles?: string[] } & ({ type: 'user' } | { type: 'enduser' })) => 
+export const user_is_admin = (u: { id: string, roles?: string[] } & ({ type: 'user' } | { type: 'enduser' })) =>
   u.type === 'enduser' ? false :  !!u?.roles?.includes(ADMIN_ROLE)
+
+// lockedOutUntil: -1 => not locked, 0 => locked indefinitely, > 0 => locked until unix time in MS
+// by default only explicit locks count, mirroring billable-user logic in the /usage endpoint
+// pass includeFailedLoginAttempts to also count automatic lockout (10+ failed logins), mirroring isAccountAccessible in the API
+export const user_is_locked_out = (
+  u: { lockedOutUntil?: number, failedLoginAttempts?: number },
+  options?: { includeFailedLoginAttempts?: boolean },
+) => (
+  (typeof u.lockedOutUntil === 'number' && (u.lockedOutUntil === 0 || u.lockedOutUntil > Date.now()))
+  || (!!options?.includeFailedLoginAttempts && typeof u.failedLoginAttempts === 'number' && u.failedLoginAttempts >= 10)
+)
 
 export const first_letter_capitalized = (s='') => s.charAt(0).toUpperCase() + s.slice(1)
 export const first_letter_lowercase = (s='') => s.charAt(0).toLowerCase() + s.slice(1)
