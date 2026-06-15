@@ -305,6 +305,7 @@ export type OrganizationSettings = {
     };
     timeTracking?: {
         enabled?: boolean;
+        inactivityThresholdInSeconds?: number;
     };
 };
 export type OrganizationLimits = {
@@ -410,7 +411,9 @@ export interface Organization extends Organization_readonly, Organization_requir
     inboxThreadsBuiltTo?: Date | '';
     bedrockAIAllowed?: boolean;
     plan?: OrganizationPlan;
-    onboardingStatus?: string;
+    onboardingStatus?: {
+        [key: string]: string | boolean;
+    };
     subdomains?: string[];
     owner?: string;
     timezone?: Timezone;
@@ -1565,6 +1568,7 @@ export interface File_updatesDisabled {
 }
 export interface File extends File_readonly, File_required, File_updatesDisabled, EnduserPortalVisibility {
     enduserId?: string;
+    formResponseId?: string;
     pushedToClientPortal?: boolean;
     hiddenFromEnduser?: boolean;
     source?: string;
@@ -4668,6 +4672,7 @@ export type AutomationTriggerActions = {
         tags: ListOfStringsWithQualifier;
         limitToOneUser?: boolean;
         setAsPrimary?: boolean;
+        restrictByState?: boolean;
     }>;
     "Canvas: Add Patient": AutomationTriggerActionBuilder<'Canvas: Add Patient', {}>;
     "Zus: Delete Enrollment": AutomationTriggerActionBuilder<'Zus: Delete Enrollment', {

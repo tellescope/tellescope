@@ -47,7 +47,7 @@ var businessId = '60398b1131a295e64f084ff6';
 var user_portal_settings_tests = function (_a) {
     var sdk = _a.sdk, sdkNonAdmin = _a.sdkNonAdmin;
     return __awaiter(void 0, void 0, void 0, function () {
-        var testUser, testEnduserId, enduserSDK;
+        var testUser, testEnduserId, enduserSDK, orgId, originalOnboardingStatus;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -59,9 +59,13 @@ var user_portal_settings_tests = function (_a) {
                     ];
                 case 1:
                     testUser = _b.sent();
-                    _b.label = 2;
+                    orgId = sdk.userInfo.businessId;
+                    return [4 /*yield*/, sdk.api.organizations.getOne(orgId)];
                 case 2:
-                    _b.trys.push([2, , 13, 21]);
+                    originalOnboardingStatus = (_b.sent()).onboardingStatus;
+                    _b.label = 3;
+                case 3:
+                    _b.trys.push([3, , 18, 29]);
                     // ===== Valid: string values =====
                     return [4 /*yield*/, (0, testing_1.async_test)('portalSettings - string values accepted', function () { return __awaiter(void 0, void 0, void 0, function () {
                             var updated;
@@ -80,7 +84,7 @@ var user_portal_settings_tests = function (_a) {
                         }); }, { onResult: function (r) { return r === 'dark'; } })
                         // ===== Valid: boolean values + round-trip as real booleans =====
                     ];
-                case 3:
+                case 4:
                     // ===== Valid: string values =====
                     _b.sent();
                     // ===== Valid: boolean values + round-trip as real booleans =====
@@ -108,7 +112,7 @@ var user_portal_settings_tests = function (_a) {
                         })
                         // ===== Valid: mixed string + boolean values, strings stay strings =====
                     ];
-                case 4:
+                case 5:
                     // ===== Valid: boolean values + round-trip as real booleans =====
                     _b.sent();
                     // ===== Valid: mixed string + boolean values, strings stay strings =====
@@ -135,7 +139,7 @@ var user_portal_settings_tests = function (_a) {
                         })
                         // ===== Valid: empty object (zero-iteration loop passes) =====
                     ];
-                case 5:
+                case 6:
                     // ===== Valid: mixed string + boolean values, strings stay strings =====
                     _b.sent();
                     // ===== Valid: empty object (zero-iteration loop passes) =====
@@ -155,14 +159,14 @@ var user_portal_settings_tests = function (_a) {
                         }); }, { onResult: function (r) { return !!r && typeof r === 'object' && Object.keys(r).length === 0; } })
                         // ===== Invalid: value string > 250 chars =====
                     ];
-                case 6:
+                case 7:
                     // ===== Valid: empty object (zero-iteration loop passes) =====
                     _b.sent();
                     // ===== Invalid: value string > 250 chars =====
                     return [4 /*yield*/, (0, testing_1.async_test)('portalSettings - value string > 250 chars rejected', function () { return sdk.api.users.updateOne(testUser.id, { portalSettings: { tooLong: 'a'.repeat(251) } }, { replaceObjectFields: true }); }, testing_1.handleAnyError)
                         // ===== Invalid: key > 250 chars =====
                     ];
-                case 7:
+                case 8:
                     // ===== Invalid: value string > 250 chars =====
                     _b.sent();
                     // ===== Invalid: key > 250 chars =====
@@ -172,14 +176,14 @@ var user_portal_settings_tests = function (_a) {
                         }, testing_1.handleAnyError)
                         // ===== Invalid: nested object value (disallowed type) =====
                     ];
-                case 8:
+                case 9:
                     // ===== Invalid: key > 250 chars =====
                     _b.sent();
                     // ===== Invalid: nested object value (disallowed type) =====
                     return [4 /*yield*/, (0, testing_1.async_test)('portalSettings - nested object value rejected', function () { return sdk.api.users.updateOne(testUser.id, { portalSettings: { k: { nested: 1 } } }, { replaceObjectFields: true }); }, testing_1.handleAnyError)
                         // ===== Invalid: array value (disallowed type) =====
                     ];
-                case 9:
+                case 10:
                     // ===== Invalid: nested object value (disallowed type) =====
                     _b.sent();
                     // ===== Invalid: array value (disallowed type) =====
@@ -188,7 +192,7 @@ var user_portal_settings_tests = function (_a) {
                         // stringValidator250's escapeString throws on non-strings, so a number is
                         // rejected by both branches => API validation error. =====
                     ];
-                case 10:
+                case 11:
                     // ===== Invalid: array value (disallowed type) =====
                     _b.sent();
                     // ===== Number value (secondary): orValidator tries boolean then string;
@@ -197,7 +201,7 @@ var user_portal_settings_tests = function (_a) {
                     return [4 /*yield*/, (0, testing_1.async_test)('portalSettings - number value rejected', function () { return sdk.api.users.updateOne(testUser.id, { portalSettings: { k: 1 } }, { replaceObjectFields: true }); }, testing_1.handleAnyError)
                         // ===== Enduser visibility: portalSettings readable by endusers, un-redacted =====
                     ];
-                case 11:
+                case 12:
                     // ===== Number value (secondary): orValidator tries boolean then string;
                     // stringValidator250's escapeString throws on non-strings, so a number is
                     // rejected by both branches => API validation error. =====
@@ -239,32 +243,104 @@ var user_portal_settings_tests = function (_a) {
                                 // field is present and un-redacted for endusers
                                 return (r === null || r === void 0 ? void 0 : r.showNameInSecureMessaging) === true && (r === null || r === void 0 ? void 0 : r.theme) === 'dark';
                             },
-                        })];
-                case 12:
+                        })
+                        // ===== Organization.onboardingStatus: same key-value shape as portalSettings =====
+                    ];
+                case 13:
                     // ===== Enduser visibility: portalSettings readable by endusers, un-redacted =====
                     _b.sent();
-                    console.log("✅ All User portalSettings tests passed!");
-                    return [3 /*break*/, 21];
-                case 13:
-                    _b.trys.push([13, , 18, 20]);
-                    if (!enduserSDK) return [3 /*break*/, 15];
-                    return [4 /*yield*/, enduserSDK.api.endusers.logout().catch(function () { })];
+                    // ===== Organization.onboardingStatus: same key-value shape as portalSettings =====
+                    return [4 /*yield*/, (0, testing_1.async_test)('onboardingStatus - mixed string and boolean values round-trip', function () { return __awaiter(void 0, void 0, void 0, function () {
+                            var updated;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0: return [4 /*yield*/, sdk.api.organizations.updateOne(orgId, { onboardingStatus: { completedIntro: true, currentStep: 'billing', skippedTour: false } }, { replaceObjectFields: true })];
+                                    case 1:
+                                        _a.sent();
+                                        return [4 /*yield*/, sdk.api.organizations.getOne(orgId)];
+                                    case 2:
+                                        updated = _a.sent();
+                                        return [2 /*return*/, updated.onboardingStatus];
+                                }
+                            });
+                        }); }, {
+                            onResult: function (r) {
+                                return (r === null || r === void 0 ? void 0 : r.completedIntro) === true &&
+                                    typeof (r === null || r === void 0 ? void 0 : r.completedIntro) === 'boolean' &&
+                                    (r === null || r === void 0 ? void 0 : r.currentStep) === 'billing' &&
+                                    typeof (r === null || r === void 0 ? void 0 : r.currentStep) === 'string' &&
+                                    (r === null || r === void 0 ? void 0 : r.skippedTour) === false &&
+                                    typeof (r === null || r === void 0 ? void 0 : r.skippedTour) === 'boolean';
+                            },
+                        })];
                 case 14:
+                    // ===== Organization.onboardingStatus: same key-value shape as portalSettings =====
                     _b.sent();
-                    _b.label = 15;
+                    return [4 /*yield*/, (0, testing_1.async_test)('onboardingStatus - empty object accepted', function () { return __awaiter(void 0, void 0, void 0, function () {
+                            var updated;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0: return [4 /*yield*/, sdk.api.organizations.updateOne(orgId, { onboardingStatus: {} }, { replaceObjectFields: true })];
+                                    case 1:
+                                        _a.sent();
+                                        return [4 /*yield*/, sdk.api.organizations.getOne(orgId)];
+                                    case 2:
+                                        updated = _a.sent();
+                                        return [2 /*return*/, updated.onboardingStatus];
+                                }
+                            });
+                        }); }, { onResult: function (r) { return !!r && typeof r === 'object' && Object.keys(r).length === 0; } })
+                        // breaking change: the previous string shape must no longer be accepted
+                    ];
                 case 15:
-                    if (!testEnduserId) return [3 /*break*/, 17];
-                    return [4 /*yield*/, sdk.api.endusers.deleteOne(testEnduserId)];
-                case 16:
                     _b.sent();
-                    _b.label = 17;
-                case 17: return [3 /*break*/, 20];
-                case 18: return [4 /*yield*/, sdk.api.users.deleteOne(testUser.id)];
+                    // breaking change: the previous string shape must no longer be accepted
+                    return [4 /*yield*/, (0, testing_1.async_test)('onboardingStatus - plain string (old shape) rejected', function () { return sdk.api.organizations.updateOne(orgId, { onboardingStatus: 'started' }, { replaceObjectFields: true }); }, testing_1.handleAnyError)
+                        // representative validator rejection, confirming the indexable validator is
+                        // enforced on the organizations route (full coverage lives in the
+                        // portalSettings cases above, which use the same validator)
+                    ];
+                case 16:
+                    // breaking change: the previous string shape must no longer be accepted
+                    _b.sent();
+                    // representative validator rejection, confirming the indexable validator is
+                    // enforced on the organizations route (full coverage lives in the
+                    // portalSettings cases above, which use the same validator)
+                    return [4 /*yield*/, (0, testing_1.async_test)('onboardingStatus - number value rejected', function () { return sdk.api.organizations.updateOne(orgId, { onboardingStatus: { k: 1 } }, { replaceObjectFields: true }); }, testing_1.handleAnyError)];
+                case 17:
+                    // representative validator rejection, confirming the indexable validator is
+                    // enforced on the organizations route (full coverage lives in the
+                    // portalSettings cases above, which use the same validator)
+                    _b.sent();
+                    console.log("✅ All User portalSettings tests passed!");
+                    return [3 /*break*/, 29];
+                case 18:
+                    _b.trys.push([18, , 23, 28]);
+                    if (!enduserSDK) return [3 /*break*/, 20];
+                    return [4 /*yield*/, enduserSDK.api.endusers.logout().catch(function () { })];
                 case 19:
                     _b.sent();
+                    _b.label = 20;
+                case 20:
+                    if (!testEnduserId) return [3 /*break*/, 22];
+                    return [4 /*yield*/, sdk.api.endusers.deleteOne(testEnduserId)];
+                case 21:
+                    _b.sent();
+                    _b.label = 22;
+                case 22: return [3 /*break*/, 28];
+                case 23:
+                    _b.trys.push([23, , 25, 27]);
+                    return [4 /*yield*/, sdk.api.organizations.updateOne(orgId, { onboardingStatus: originalOnboardingStatus !== null && originalOnboardingStatus !== void 0 ? originalOnboardingStatus : {} }, { replaceObjectFields: true })];
+                case 24:
+                    _b.sent();
+                    return [3 /*break*/, 27];
+                case 25: return [4 /*yield*/, sdk.api.users.deleteOne(testUser.id)];
+                case 26:
+                    _b.sent();
                     return [7 /*endfinally*/];
-                case 20: return [7 /*endfinally*/];
-                case 21: return [2 /*return*/];
+                case 27: return [7 /*endfinally*/];
+                case 28: return [7 /*endfinally*/];
+                case 29: return [2 /*return*/];
             }
         });
     });

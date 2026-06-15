@@ -25,6 +25,11 @@ export const user_portal_settings_tests = async ({ sdk, sdkNonAdmin }: { sdk: Se
   let testEnduserId: string | undefined
   let enduserSDK: EnduserSession | undefined
 
+  // Organization.onboardingStatus shares userPortalSettingsValidator — save the
+  // current value so we can restore it after exercising the field below.
+  const orgId = sdk.userInfo.businessId
+  const originalOnboardingStatus = (await sdk.api.organizations.getOne(orgId)).onboardingStatus
+
   try {
     // ===== Valid: string values =====
     await async_test(
@@ -179,6 +184,63 @@ export const user_portal_settings_tests = async ({ sdk, sdkNonAdmin }: { sdk: Se
       }
     )
 
+    // ===== Organization.onboardingStatus: same key-value shape as portalSettings =====
+    await async_test(
+      'onboardingStatus - mixed string and boolean values round-trip',
+      async () => {
+        await sdk.api.organizations.updateOne(
+          orgId,
+          { onboardingStatus: { completedIntro: true, currentStep: 'billing', skippedTour: false } },
+          { replaceObjectFields: true }
+        )
+        const updated = await sdk.api.organizations.getOne(orgId)
+        return updated.onboardingStatus
+      },
+      {
+        onResult: (r) =>
+          r?.completedIntro === true &&
+          typeof r?.completedIntro === 'boolean' &&
+          r?.currentStep === 'billing' &&
+          typeof r?.currentStep === 'string' &&
+          r?.skippedTour === false &&
+          typeof r?.skippedTour === 'boolean',
+      }
+    )
+
+    await async_test(
+      'onboardingStatus - empty object accepted',
+      async () => {
+        await sdk.api.organizations.updateOne(orgId, { onboardingStatus: {} }, { replaceObjectFields: true })
+        const updated = await sdk.api.organizations.getOne(orgId)
+        return updated.onboardingStatus
+      },
+      { onResult: (r) => !!r && typeof r === 'object' && Object.keys(r).length === 0 }
+    )
+
+    // breaking change: the previous string shape must no longer be accepted
+    await async_test(
+      'onboardingStatus - plain string (old shape) rejected',
+      () => sdk.api.organizations.updateOne(
+        orgId,
+        { onboardingStatus: 'started' as any },
+        { replaceObjectFields: true }
+      ),
+      handleAnyError
+    )
+
+    // representative validator rejection, confirming the indexable validator is
+    // enforced on the organizations route (full coverage lives in the
+    // portalSettings cases above, which use the same validator)
+    await async_test(
+      'onboardingStatus - number value rejected',
+      () => sdk.api.organizations.updateOne(
+        orgId,
+        { onboardingStatus: { k: 1 as any } },
+        { replaceObjectFields: true }
+      ),
+      handleAnyError
+    )
+
     console.log("✅ All User portalSettings tests passed!")
   } finally {
     try {
@@ -189,7 +251,15 @@ export const user_portal_settings_tests = async ({ sdk, sdkNonAdmin }: { sdk: Se
         await sdk.api.endusers.deleteOne(testEnduserId)
       }
     } finally {
-      await sdk.api.users.deleteOne(testUser.id)
+      try {
+        await sdk.api.organizations.updateOne(
+          orgId,
+          { onboardingStatus: originalOnboardingStatus ?? {} },
+          { replaceObjectFields: true }
+        )
+      } finally {
+        await sdk.api.users.deleteOne(testUser.id)
+      }
     }
   }
 }

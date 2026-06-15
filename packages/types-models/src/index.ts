@@ -326,6 +326,7 @@ export type OrganizationSettings = {
   },
   timeTracking?: {
     enabled?: boolean,
+    inactivityThresholdInSeconds?: number, // when > 0: prompts on inactivity, auto-pauses (excluding idle time), and guards tab close
   }
 }
 
@@ -442,7 +443,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   inboxThreadsBuiltTo?: Date | '',
   bedrockAIAllowed?: boolean,
   plan?: OrganizationPlan, // super-admin editable only (enforced via relationship constraint); readable by all
-  onboardingStatus?: string,
+  onboardingStatus?: { [key: string]: string | boolean },
   subdomains?: string[],
   owner?: string,
   timezone?: Timezone,
@@ -1642,6 +1643,7 @@ export interface File_required {
 export interface File_updatesDisabled {}
 export interface File extends File_readonly, File_required, File_updatesDisabled, EnduserPortalVisibility {
   enduserId?: string;
+  formResponseId?: string,
   pushedToClientPortal?: boolean,
   hiddenFromEnduser?: boolean,
   source?: string,
@@ -4722,11 +4724,12 @@ export type AutomationTriggerActions = {
   "Add Access Tags": AutomationTriggerActionBuilder<'Add Access Tags', { tags: string[] }>,
   "Set Fields": AutomationTriggerActionBuilder<'Set Fields', { fields: EnduserFieldSetter[] }>,
   "Move To Step": AutomationTriggerActionBuilder<'Move To Step', { }>, // journeyId and automationStepId stored as part of trigger for better dependency deletion
-  "Assign Care Team": AutomationTriggerActionBuilder<'Assign Care Team', { 
+  "Assign Care Team": AutomationTriggerActionBuilder<'Assign Care Team', {
     tags: ListOfStringsWithQualifier,
     limitToOneUser?: boolean,
     setAsPrimary?: boolean,
-  }>, 
+    restrictByState?: boolean,
+  }>,
   "Canvas: Add Patient": AutomationTriggerActionBuilder<'Canvas: Add Patient', { }>, 
   "Zus: Delete Enrollment": AutomationTriggerActionBuilder<'Zus: Delete Enrollment', { packageId: string }>, 
   "Remove Care Team": AutomationTriggerActionBuilder<'Remove Care Team', { 

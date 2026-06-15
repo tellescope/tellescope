@@ -1787,6 +1787,7 @@ export declare const automationTriggerActionValidator: ValidatorDefinition<impor
     tags: ListOfStringsWithQualifier;
     limitToOneUser?: boolean | undefined;
     setAsPrimary?: boolean | undefined;
+    restrictByState?: boolean | undefined;
 }> | import("@tellescope/types-models").AutomationTriggerActionBuilder<"Remove Care Team", {
     tags: ListOfStringsWithQualifier;
 }> | import("@tellescope/types-models").AutomationTriggerActionBuilder<"Add To Journey", {

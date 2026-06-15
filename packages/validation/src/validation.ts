@@ -3476,10 +3476,11 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
   assignCareTeam: objectValidator<AssignCareTeamAutomationAction>({
     ...sharedAutomationActionValidators,
     type: exactMatchValidator(['assignCareTeam']),
-    info: objectValidator<AssignCareTeamAutomationAction['info']>({ 
+    info: objectValidator<AssignCareTeamAutomationAction['info']>({
       tags: listOfStringsWithQualifierValidator,
       limitToOneUser: booleanValidatorOptional,
       setAsPrimary: booleanValidatorOptional,
+      restrictByState: booleanValidatorOptional,
     }, { emptyOk: false }) // at least tags is required
   }),
   removeCareTeam: objectValidator<RemoveCareTeamAutomationAction>({
@@ -4774,6 +4775,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
   }, { isOptional: true, emptyOk: true, }),
   timeTracking: objectValidator<OrganizationSettings['timeTracking']>({
     enabled: booleanValidatorOptional,
+    inactivityThresholdInSeconds: numberValidatorOptional,
   }, { isOptional: true, emptyOk: true, }),
 })
 
@@ -5282,6 +5284,7 @@ export const automationTriggerActionValidator = orValidator<{ [K in AutomationTr
       tags: listOfStringsWithQualifierValidator,
       limitToOneUser: booleanValidatorOptional,
       setAsPrimary: booleanValidatorOptional,
+      restrictByState: booleanValidatorOptional,
     }),
   }), 
   "Remove Care Team": objectValidator<AutomationTriggerActions["Remove Care Team"]>({

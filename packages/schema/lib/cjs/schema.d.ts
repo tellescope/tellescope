@@ -65,6 +65,7 @@ export type ModelFieldInfo<T, R> = {
     readonly?: boolean;
     required?: boolean;
     updatesDisabled?: boolean;
+    enduserUpdatesDisabled?: boolean;
     examples?: JSONType[];
     initializer?: Initializer<Partial<T>, R>;
     dependencies?: Dependency<Partial<T>>[];

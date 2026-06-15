@@ -91,6 +91,7 @@ import { chats_analytics_tests } from "./api_tests/chats_analytics.test";
 import { no_access_permission_checks_tests } from "./api_tests/no_access_permission_checks.test";
 import { field_redaction_tests } from "./api_tests/field_redaction.test";
 import { data_sync_redaction_bypass_tests } from "./api_tests/security/F-0001-data-sync-redaction-bypass.test";
+import { enduser_write_restrictions_tests } from "./api_tests/security/F-0106-F-0110-enduser-write-restrictions.test";
 import { ai_conversations_rbac_tests } from "./api_tests/security/F-0005-ai-conversations-rbac.test";
 import { cascade_role_rename_cross_tenant_tests } from "./api_tests/security/F-0053-cascade-role-rename-cross-tenant.test";
 import { self_admin_role_assignment_tests } from "./api_tests/security/F-0076-self-admin-role-assignment.test";
@@ -114,6 +115,7 @@ import { organization_settings_duplicates_tests } from "./api_tests/organization
 import { calendar_events_bulk_update_tests } from "./api_tests/calendar_events_bulk_update.test";
 import { openloop_webhooks_tests } from "./api_tests/openloop_webhooks.test";
 import { beluga_pharmacy_mappings_tests } from "./api_tests/beluga_pharmacy_mappings.test";
+import { beluga_manual_sync_tests } from "./api_tests/beluga_manual_sync.test";
 import { mdi_webhooks_tests } from "./api_tests/mdi_webhooks.test";
 import { account_switcher_tests } from "./api_tests/account_switcher.test";
 import { set_fields_order_templates_tests } from "./api_tests/set_fields_order_templates.test";
@@ -4296,12 +4298,208 @@ const assign_care_team_tests = async () => {
     { onResult: e => e.assignedTo?.length === 1 && e.primaryAssignee === e.assignedTo[0] }
   )
 
+  // restrictByState (state credentialing) tests
+  await sdk.api.users.updateOne(sdk.userInfo.id, { credentialedStates: [{ state: 'CA' }] }, { replaceObjectFields: true })
+
+  const t4 = await sdk.api.automation_triggers.createOne({
+    title: 't4',
+    event: { type: 'Tag Added', info: { tag: 'Trigger State' } },
+    action: {
+      type: "Assign Care Team",
+      info: {
+        tags: { qualifier: 'One Of', values: ["Assignment"] },
+        restrictByState: true,
+      },
+    },
+    status: 'Active',
+  })
+  const e2 = await sdk.api.endusers.createOne({ state: 'CA' })
+  const e3 = await sdk.api.endusers.createOne({ state: 'NY' })
+  const e4 = await sdk.api.endusers.createOne({ })
+
   await Promise.all([
-    sdk.api.users.updateOne(sdk.userInfo.id, { tags: [] }, { replaceObjectFields: true }),
+    sdk.api.endusers.updateOne(e2.id, { tags: ['Trigger State'] }),
+    sdk.api.endusers.updateOne(e3.id, { tags: ['Trigger State'] }),
+    sdk.api.endusers.updateOne(e4.id, { tags: ['Trigger State'] }),
+  ])
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Care team added for enduser in credentialed state",
+    () => sdk.api.endusers.getOne(e2.id),
+    { onResult: e => e.assignedTo?.length === 1 }
+  )
+  await async_test(
+    "No care team added for enduser in non-credentialed state",
+    () => sdk.api.endusers.getOne(e3.id),
+    { onResult: e => !e.assignedTo?.length }
+  )
+  await async_test(
+    "No care team added for enduser with unknown state",
+    () => sdk.api.endusers.getOne(e4.id),
+    { onResult: e => !e.assignedTo?.length }
+  )
+
+  // creating multiple appointments in a single request routes through bulk_handle_actions_for_triggers
+  // (unlike Tag Added above, which uses the per-enduser handler), covering the bulk Assign Care Team
+  // path with mixed enduser states in one batch
+  const t5 = await sdk.api.automation_triggers.createOne({
+    title: 't5',
+    event: { type: 'Appointment Created', info: { titles: ['Bulk Assign State'] } },
+    action: {
+      type: "Assign Care Team",
+      info: {
+        tags: { qualifier: 'One Of', values: ["Assignment"] },
+        restrictByState: true,
+        setAsPrimary: true, // not yet supported in the bulk handler — see canary assertion below
+      },
+    },
+    status: 'Active',
+  })
+  const e5 = await sdk.api.endusers.createOne({ state: 'CA' })
+  const e6 = await sdk.api.endusers.createOne({ state: 'NY' })
+  const e7 = await sdk.api.endusers.createOne({ })
+
+  const bulkEvents = (await sdk.api.calendar_events.createSome([
+    { title: 'Bulk Assign State', durationInMinutes: 30, startTimeInMS: Date.now(), attendees: [{ type: 'enduser', id: e5.id }] },
+    { title: 'Bulk Assign State', durationInMinutes: 30, startTimeInMS: Date.now(), attendees: [{ type: 'enduser', id: e6.id }] },
+    { title: 'Bulk Assign State', durationInMinutes: 30, startTimeInMS: Date.now(), attendees: [{ type: 'enduser', id: e7.id }] },
+  ])).created
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "(Bulk) Care team added for enduser in credentialed state",
+    () => sdk.api.endusers.getOne(e5.id),
+    { onResult: e => e.assignedTo?.length === 1 }
+  )
+  // canary: the bulk handler doesn't implement setAsPrimary (the per-enduser handler does), so a set
+  // primaryAssignee here means multi-event creates no longer route through the bulk handler (or
+  // setAsPrimary was implemented there — update this test if so)
+  await async_test(
+    "(Bulk) Primary not set (bulk handler routing canary)",
+    () => sdk.api.endusers.getOne(e5.id),
+    { onResult: e => !e.primaryAssignee }
+  )
+  await async_test(
+    "(Bulk) No care team added for enduser in non-credentialed state",
+    () => sdk.api.endusers.getOne(e6.id),
+    { onResult: e => !e.assignedTo?.length }
+  )
+  await async_test(
+    "(Bulk) No care team added for enduser with unknown state",
+    () => sdk.api.endusers.getOne(e7.id),
+    { onResult: e => !e.assignedTo?.length }
+  )
+
+  // bulk path with restrictByState off: state should not matter (default behavior unchanged)
+  const t6 = await sdk.api.automation_triggers.createOne({
+    title: 't6',
+    event: { type: 'Appointment Created', info: { titles: ['Bulk Assign Any'] } },
+    action: {
+      type: "Assign Care Team",
+      info: {
+        tags: { qualifier: 'One Of', values: ["Assignment"] },
+      },
+    },
+    status: 'Active',
+  })
+  const bulkEventsAny = (await sdk.api.calendar_events.createSome([
+    { title: 'Bulk Assign Any', durationInMinutes: 30, startTimeInMS: Date.now(), attendees: [{ type: 'enduser', id: e6.id }] },
+    { title: 'Bulk Assign Any', durationInMinutes: 30, startTimeInMS: Date.now(), attendees: [{ type: 'enduser', id: e7.id }] },
+  ])).created
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "(Bulk, no restriction) Care team added for enduser in non-credentialed state",
+    () => sdk.api.endusers.getOne(e6.id),
+    { onResult: e => e.assignedTo?.length === 1 }
+  )
+  await async_test(
+    "(Bulk, no restriction) Care team added for enduser with unknown state",
+    () => sdk.api.endusers.getOne(e7.id),
+    { onResult: e => e.assignedTo?.length === 1 }
+  )
+
+  // limitToOneUser on both handler branches: with two matching users, exactly one is assigned
+  const u2 = await sdk.api.users.createOne({
+    email: `assign-care-team-limit-${Date.now()}@tellescope.example`, fname: 'Throwaway', lname: 'Assignment',
+  } as any)
+  await sdk.api.users.updateOne(u2.id, { tags: ['Assignment'], credentialedStates: [{ state: 'CA' }] }, { replaceObjectFields: true })
+
+  const t7 = await sdk.api.automation_triggers.createOne({
+    title: 't7',
+    event: { type: 'Tag Added', info: { tag: 'Trigger One' } },
+    action: {
+      type: "Assign Care Team",
+      info: {
+        tags: { qualifier: 'One Of', values: ["Assignment"] },
+        restrictByState: true,
+        limitToOneUser: true,
+      },
+    },
+    status: 'Active',
+  })
+  const e8 = await sdk.api.endusers.createOne({ state: 'CA' })
+  await sdk.api.endusers.updateOne(e8.id, { tags: ['Trigger One'] })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "(limitToOneUser) Exactly one of multiple matching users assigned",
+    () => sdk.api.endusers.getOne(e8.id),
+    { onResult: e => e.assignedTo?.length === 1 }
+  )
+
+  const t8 = await sdk.api.automation_triggers.createOne({
+    title: 't8',
+    event: { type: 'Appointment Created', info: { titles: ['Bulk Assign One'] } },
+    action: {
+      type: "Assign Care Team",
+      info: {
+        tags: { qualifier: 'One Of', values: ["Assignment"] },
+        restrictByState: true,
+        limitToOneUser: true,
+      },
+    },
+    status: 'Active',
+  })
+  const e9 = await sdk.api.endusers.createOne({ state: 'CA' })
+  const e10 = await sdk.api.endusers.createOne({ state: 'CA' })
+  const bulkEventsOne = (await sdk.api.calendar_events.createSome([
+    { title: 'Bulk Assign One', durationInMinutes: 30, startTimeInMS: Date.now(), attendees: [{ type: 'enduser', id: e9.id }] },
+    { title: 'Bulk Assign One', durationInMinutes: 30, startTimeInMS: Date.now(), attendees: [{ type: 'enduser', id: e10.id }] },
+  ])).created
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "(Bulk, limitToOneUser) Exactly one of multiple matching users assigned",
+    () => sdk.api.endusers.getOne(e9.id),
+    { onResult: e => e.assignedTo?.length === 1 }
+  )
+  await async_test(
+    "(Bulk, limitToOneUser) Exactly one of multiple matching users assigned (second enduser)",
+    () => sdk.api.endusers.getOne(e10.id),
+    { onResult: e => e.assignedTo?.length === 1 }
+  )
+
+  await Promise.all([
+    sdk.api.users.updateOne(sdk.userInfo.id, { tags: [], credentialedStates: [] }, { replaceObjectFields: true }),
     sdk.api.endusers.deleteOne(e1.id),
+    sdk.api.endusers.deleteOne(e2.id),
+    sdk.api.endusers.deleteOne(e3.id),
+    sdk.api.endusers.deleteOne(e4.id),
+    sdk.api.endusers.deleteOne(e5.id),
+    sdk.api.endusers.deleteOne(e6.id),
+    sdk.api.endusers.deleteOne(e7.id),
     sdk.api.automation_triggers.deleteOne(t1.id),
     sdk.api.automation_triggers.deleteOne(t2.id),
     sdk.api.automation_triggers.deleteOne(t3.id),
+    sdk.api.endusers.deleteOne(e8.id),
+    sdk.api.endusers.deleteOne(e9.id),
+    sdk.api.endusers.deleteOne(e10.id),
+    sdk.api.users.deleteOne(u2.id),
+    sdk.api.automation_triggers.deleteOne(t4.id),
+    sdk.api.automation_triggers.deleteOne(t5.id),
+    sdk.api.automation_triggers.deleteOne(t6.id),
+    sdk.api.automation_triggers.deleteOne(t7.id),
+    sdk.api.automation_triggers.deleteOne(t8.id),
+    ...bulkEvents.map(e => sdk.api.calendar_events.deleteOne(e.id)),
+    ...bulkEventsAny.map(e => sdk.api.calendar_events.deleteOne(e.id)),
+    ...bulkEventsOne.map(e => sdk.api.calendar_events.deleteOne(e.id)),
   ])
 }
 
@@ -5104,6 +5302,7 @@ const trigger_events_api_tests = async () => {
 const automation_trigger_tests = async () => {
   log_header("Automation Trigger Tests")
 
+  await assign_care_team_tests()
   await push_forms_to_portal_group_completion_tests({ sdk, sdkNonAdmin })
   await order_status_equals_tests()
   await set_fields_order_templates_tests({ sdk, sdkNonAdmin })
@@ -5118,7 +5317,6 @@ const automation_trigger_tests = async () => {
   await trigger_events_api_tests()
   await fields_changed_tests()
   await field_equals_trigger_tests()
-  await assign_care_team_tests()
   await contact_created_tests()
   await appointment_created_tests()
   await tag_added_tests()
@@ -11147,7 +11345,23 @@ const register_as_enduser_tests = async () => {
   )
   await async_test(
     "Enduser register (rate limited)",
-    () => enduserSDK.register({ email: 'test@tellescope.com', password: 'testpassWord12345!' }),
+    // The register limiter records its throttle event at request start with a 1s expiry
+    // (countPerInterval: 1, intervalInMS: 1000), so back-to-back registers are only
+    // rate limited when they land within 1s of each other. A slow register (bcrypt on a
+    // cold/loaded server) can exceed the window and flake — retry the pair instead of
+    // failing on a timing miss. Any "Too many requests" from either call is the expected error.
+    async () => {
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const windowStart = Date.now()
+        await enduserSDK.register({ email: 'test@tellescope.com', password: 'testpassWord12345!' })
+        await enduserSDK.register({ email: 'test@tellescope.com', password: 'testpassWord12345!' })
+        if (Date.now() - windowStart < 900) {
+          return 'two registers within the same 1s window were not rate limited'
+        }
+        await wait(undefined, 1100) // let the throttle window expire before retrying the pair
+      }
+      return 'rate-limit timing window missed on every attempt'
+    },
     { shouldError: true, onError: e => e.message === "Too many requests" }
   )
   await wait(undefined, 1000)
@@ -14333,6 +14547,11 @@ const ip_address_form_tests = async () => {
     await replace_form_field_template_values_tests()
     await mfa_tests()
     await setup_tests(sdk, sdkNonAdmin)
+    await beluga_manual_sync_tests({ sdk, sdkNonAdmin })
+    await beluga_pharmacy_mappings_tests({ sdk, sdkNonAdmin })
+    await enduser_write_restrictions_tests({ sdk, sdkNonAdmin })
+    await user_portal_settings_tests({ sdk, sdkNonAdmin })
+    await automation_trigger_tests()
     await invite_user_enumeration_tests({ sdk, sdkNonAdmin })
     await handle_incoming_communication_cross_tenant_tests({ sdk, sdkNonAdmin })
     await calendar_event_webhook_template_tests({ sdk, sdkNonAdmin })
@@ -14344,7 +14563,6 @@ const ip_address_form_tests = async () => {
     await self_admin_role_assignment_tests({ sdk, sdkNonAdmin })
     await sanitize_user_html_xss_tests()
     await prototype_pollution_tests()
-    await automation_trigger_tests()
     await account_switcher_tests({ sdk, sdkNonAdmin })
     await enduser_login_tests({ sdk, sdkNonAdmin })
     await outbound_chat_sent_trigger_tests({ sdk })
@@ -14384,7 +14602,6 @@ const ip_address_form_tests = async () => {
     await load_threads_autobuild_tests({ sdk, sdkNonAdmin })
     await inbox_threads_new_fields_tests()
     await auto_merge_form_submission_tests({ sdk, sdkNonAdmin })
-    await beluga_pharmacy_mappings_tests({ sdk, sdkNonAdmin })
     await threadKeyTests()
     await managed_content_enduser_access_tests({ sdk, sdkNonAdmin })
     await managed_content_file_access_tests({ sdk, sdkNonAdmin })
@@ -14400,7 +14617,6 @@ const ip_address_form_tests = async () => {
     await inbox_threads_loading_tests()
     await load_inbox_data_tests({ sdk, sdkNonAdmin })
     await enduser_observations_acknowledge_tests({ sdk, sdkNonAdmin })
-    await user_portal_settings_tests({ sdk, sdkNonAdmin })
     await create_user_notifications_trigger_tests({ sdk })
     await group_mms_active_tests()
     await auto_reply_tests()

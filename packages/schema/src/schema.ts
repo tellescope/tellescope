@@ -460,6 +460,7 @@ export type ModelFieldInfo <T, R> = {
   readonly?:  boolean,
   required?:  boolean,
   updatesDisabled?: boolean,
+  enduserUpdatesDisabled?: boolean, // enduser sessions cannot update this field; user sessions still can
   examples?:  JSONType[],
   initializer?: Initializer<Partial<T>, R>, // should include the required fields of T, not just partial
   dependencies?: Dependency<Partial<T>>[],
@@ -1506,13 +1507,15 @@ export const schema: SchemaV1 = build_schema({
       unsubscribe: {},
     },
     fields: {
-      ...BuiltInFields,   
+      ...BuiltInFields,
+      sharedWithOrganizations: { ...BuiltInFields.sharedWithOrganizations, enduserUpdatesDisabled: true },
       recentViewers: { validator: recentViewersValidator },
-      healthie_dietitian_id: { validator: stringValidator100 },
+      healthie_dietitian_id: { validator: stringValidator100, enduserUpdatesDisabled: true },
       mergedIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk, readonly: true, redactions: ['enduser'] },
       externalId: {
         validator: stringValidator250,
         examples: ['addfed3e-ddea-415b-b52b-df820c944dbb'],
+        enduserUpdatesDisabled: true,
       },
       email: { 
         validator: emailValidatorEmptyOkay,
@@ -1566,9 +1569,10 @@ export const schema: SchemaV1 = build_schema({
         validator: stringValidator250,
         redactions: ['enduser'],
       },
-      journeys: { 
+      journeys: {
         validator: journeysValidator,
         redactions: ['enduser'],
+        enduserUpdatesDisabled: true, // endusers may still use the add_to_journey / remove_from_journey custom actions
         dependencies: [
           {
             dependsOn: ['journeys'],
@@ -1584,13 +1588,15 @@ export const schema: SchemaV1 = build_schema({
         ]
       },
       scheduledJourneys: { validator: scheduledJourneysValidator },
-      tags: { 
+      tags: {
         redactions: ['enduser'],
         validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay,
+        enduserUpdatesDisabled: true,
       },
-      accessTags: { 
+      accessTags: {
         redactions: ['enduser'],
         validator: listOfStringsValidatorEmptyOk,
+        enduserUpdatesDisabled: true,
       },
       unredactedTags: {
         validator: listOfStringsValidatorEmptyOk,
@@ -1598,6 +1604,7 @@ export const schema: SchemaV1 = build_schema({
       fields: {
         redactions: ['enduser'],
         validator: fieldsValidator,
+        enduserUpdatesDisabled: true, // intake forms write fields server-side; direct enduser PATCH is not a supported path
       },
       unredactedFields: {
         validator: fieldsValidator,
@@ -1606,17 +1613,20 @@ export const schema: SchemaV1 = build_schema({
         redactions: ['enduser'],
         validator: preferenceValidator,
       },
-      assignedTo: { 
+      assignedTo: {
         redactions: ['enduser'],
         validator: listOfUniqueStringsValidatorEmptyOk,
+        enduserUpdatesDisabled: true,
       },
-      primaryAssignee: { 
+      primaryAssignee: {
         validator: mongoIdStringValidator,
         redactions: ['enduser'],
+        enduserUpdatesDisabled: true,
       },
-      unread: { 
+      unread: {
         redactions: ['enduser'],
         validator: booleanValidator,
+        enduserUpdatesDisabled: true,
       },
       lastActive: { 
         validator: dateValidator,
@@ -1651,7 +1661,7 @@ export const schema: SchemaV1 = build_schema({
       pronouns: { validator: stringValidator100, redactions: ['enduser'] },
       height: { validator: genericUnitWithQuantityValidator, redactions: ['enduser'] },
       weight: { validator: genericUnitWithQuantityValidator, redactions: ['enduser'] },
-      source: { validator: stringValidator1000Optional },
+      source: { validator: stringValidator1000Optional, enduserUpdatesDisabled: true },
       addressLineOne: { validator: stringValidator5000EmptyOkay, redactions: ['enduser'] },
       addressLineTwo: { validator: stringValidator5000EmptyOkay, redactions: ['enduser'] },
       city: { validator: stringValidator5000EmptyOkay, redactions: ['enduser'] },
@@ -1663,7 +1673,7 @@ export const schema: SchemaV1 = build_schema({
       displayName: { validator: stringValidator250 }, // intentionally not redacted for other endusers
       unsubscribedFromPortalChatNotifications: { validator: booleanValidator },
       triggeredEvents: { validator: objectAnyFieldsValidator(numberValidator) },
-      customTypeId: { validator: mongoIdStringValidator },
+      customTypeId: { validator: mongoIdStringValidator, enduserUpdatesDisabled: true },
       language: { validator: languageValidator },
       relationships: {
         validator: listValidatorOptionalOrEmptyOk(objectValidator<EnduserRelationship>({
@@ -1673,10 +1683,10 @@ export const schema: SchemaV1 = build_schema({
       },
       markedReadAt: { validator: dateOptionalOrEmptyStringValidator },
       markedUnreadAt: { validator: dateOptionalOrEmptyStringValidator },
-      note: { validator: stringValidator25000EmptyOkay, redactions: ['enduser'] },
+      note: { validator: stringValidator25000EmptyOkay, redactions: ['enduser'], enduserUpdatesDisabled: true },
       noteIsFlagged: { validator: booleanValidator },
-      insurance: { validator: insuranceOptionalValidator, redactions: ['enduser'] },
-      insuranceSecondary: { validator: insuranceOptionalValidator, redactions: ['enduser'] },
+      insurance: { validator: insuranceOptionalValidator, redactions: ['enduser'], enduserUpdatesDisabled: true }, // patient insurance entry is supported via intake forms (server-side write)
+      insuranceSecondary: { validator: insuranceOptionalValidator, redactions: ['enduser'], enduserUpdatesDisabled: true },
       bookingNotes: {
         validator: listValidatorOptionalOrEmptyOk(objectValidator<{ bookingPageId: string, note: string }>({
           bookingPageId: mongoIdStringRequired,
@@ -1694,24 +1704,25 @@ export const schema: SchemaV1 = build_schema({
         })),
         redactions: ['enduser'],
       },
-      references: { validator: listOfRelatedRecordsValidator, redactions: ['enduser'] },
-      athenaDepartmentId: { validator: stringValidator100, redactions: ['enduser'] },
-      athenaPracticeId: { validator: stringValidator100, redactions: ['enduser'] },
-      salesforceId: { validator: stringValidator100, redactions: ['enduser'] },
+      references: { validator: listOfRelatedRecordsValidator, redactions: ['enduser'], enduserUpdatesDisabled: true },
+      athenaDepartmentId: { validator: stringValidator100, redactions: ['enduser'], enduserUpdatesDisabled: true },
+      athenaPracticeId: { validator: stringValidator100, redactions: ['enduser'], enduserUpdatesDisabled: true },
+      salesforceId: { validator: stringValidator100, redactions: ['enduser'], enduserUpdatesDisabled: true },
       vitalTriggersDisabled: { validator: booleanValidator },
       defaultFromPhone: { validator: phoneValidator, redactions: ['enduser'] },
       defaultFromEmail: { validator: emailValidator, redactions: ['enduser'] },
       useDefaultFromEmailInAutomations: { validator: booleanValidator },
       useDefaultFromPhoneInAutomations: { validator: booleanValidator },
-      stripeCustomerId: { validator: stringValidator100, redactions: ['enduser'] },
-      stripeKey: { validator: stringValidator250, redactions: ['enduser'] },
+      stripeCustomerId: { validator: stringValidator100, redactions: ['enduser'], enduserUpdatesDisabled: true },
+      stripeKey: { validator: stringValidator250, redactions: ['enduser'], enduserUpdatesDisabled: true },
       diagnoses: {
         validator: listValidatorOptionalOrEmptyOk(enduserDiagnosisValidator),
-        redactions: ['enduser']
+        redactions: ['enduser'],
+        enduserUpdatesDisabled: true,
       },
       unsubscribedFromPhones: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay, redactions: ['enduser'] },
-      lockedFromPortal: { validator: booleanValidator },
-      eligibleForAutoMerge: { validator: booleanValidator },
+      lockedFromPortal: { validator: booleanValidator, enduserUpdatesDisabled: true },
+      eligibleForAutoMerge: { validator: booleanValidator, enduserUpdatesDisabled: true },
       preferredPharmacy: { validator: pharmacyValidator, redactions: ['enduser'] },
       // recentMessagePreview: {
       //   validator: stringValidator,
@@ -4237,6 +4248,9 @@ export const schema: SchemaV1 = build_schema({
       enduserId: { // deleted as side effect of enduser delete
         validator: mongoIdStringValidator,
       },
+      formResponseId: { // link to the form response a file was uploaded for (used for Beluga sync)
+        validator: mongoIdStringValidator,
+      },
       secureName: {
         validator: stringValidator250,
         readonly: true,
@@ -5025,8 +5039,8 @@ export const schema: SchemaV1 = build_schema({
     fields: {
       ...BuiltInFields, 
       discussionRoomId: { validator: mongoIdStringValidator },
-      hiddenFromTimeline: { validator: booleanValidator },
-      lockedAt: { validator: dateValidator },
+      hiddenFromTimeline: { validator: booleanValidator, enduserUpdatesDisabled: true },
+      lockedAt: { validator: dateValidator, enduserUpdatesDisabled: true },
       formId: {
         validator: stringValidator100, // allow other external id types here too, not just mongoid
         required: true,
@@ -5059,42 +5073,43 @@ export const schema: SchemaV1 = build_schema({
       copiedFrom: { validator: mongoIdStringOptional },
       copiedFromEnduserId: { validator: mongoIdStringOptional },
       publicSubmit: { validator: booleanValidator },
-      submittedBy: { validator: stringValidator250 },
-      submittedByIsPlaceholder: { validator: booleanValidator },
-      markedAsSubmitted: { validator: booleanValidator },
+      submittedBy: { validator: stringValidator250, enduserUpdatesDisabled: true },
+      submittedByIsPlaceholder: { validator: booleanValidator, enduserUpdatesDisabled: true },
+      markedAsSubmitted: { validator: booleanValidator, enduserUpdatesDisabled: true }, // endusers submit via the submit_form_response custom action
       accessCode: { validator: stringValidator250 },
-      userEmail: { validator: emailValidator },
-      submittedAt: { validator: dateValidator },
-      formTitle: { validator: stringValidator250 },  
+      userEmail: { validator: emailValidator, enduserUpdatesDisabled: true },
+      submittedAt: { validator: dateValidator, enduserUpdatesDisabled: true },
+      formTitle: { validator: stringValidator250, enduserUpdatesDisabled: true },
       responses: { validator: formResponsesValidator },
       draftSavedAt: { validator: dateValidator },
       draftSavedBy: { validator: mongoIdStringValidator },
       hideFromEnduserPortal: { validator: booleanValidator },
       sharedVia: { validator: communicationsChannelValidator },
-      isInternalNote: { validator: booleanValidator },
-      pinnedAt: { validator: dateOptionalOrEmptyStringValidator },
+      isInternalNote: { validator: booleanValidator, enduserUpdatesDisabled: true },
+      pinnedAt: { validator: dateOptionalOrEmptyStringValidator, enduserUpdatesDisabled: true },
       publicIdentifier: { validator: stringValidator250 },
       source: { validator: stringValidator250 },
       externalId: { validator: stringValidator250 },
       rootResponseId: { validator: mongoIdStringValidator },
       parentResponseId: { validator: mongoIdStringValidator },
-      tags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+      tags: { validator: listOfStringsValidatorOptionalOrEmptyOk, enduserUpdatesDisabled: true },
       carePlanId: { validator: mongoIdStringValidator },
       context: { validator: stringValidator1000 },
-      logoURL: { validator: stringValidator5000 },
-      logoHeight: { validator: numberValidator },
+      logoURL: { validator: stringValidator5000, enduserUpdatesDisabled: true },
+      logoHeight: { validator: numberValidator, enduserUpdatesDisabled: true },
       calendarEventId: { validator: mongoIdStringValidator },
       references: { validator: listOfRelatedRecordsValidator, readonly: true },
       groupId: { validator: mongoIdStringValidator },
       groupInstance: { validator: stringValidator100 },
       groupPosition: { validator: nonNegNumberValidator },
       hideAfterUnsubmittedInMS: { validator: numberValidator },
-      addenda: { 
-        validator: listValidatorOptionalOrEmptyOk(objectValidator<Addendum>({ 
+      addenda: {
+        validator: listValidatorOptionalOrEmptyOk(objectValidator<Addendum>({
           text: stringValidator25000EmptyOkay,
           timestamp: dateValidator,
           userId: mongoIdStringRequired,
-        }))
+        })),
+        enduserUpdatesDisabled: true,
       },
       followups: { 
         validator: listValidatorOptionalOrEmptyOk(objectValidator<FormResponseFollowup>({ 
@@ -5115,9 +5130,9 @@ export const schema: SchemaV1 = build_schema({
         }))
       },
       startedViaPinnedForm: { validator: booleanValidator },
-      enduserAISummary: { validator: stringValidator25000 },
-      procedureCodes: { validator: procedureCodesValidator },
-      diagnosisCodes: { validator: diagnosisCodesValidator },
+      enduserAISummary: { validator: stringValidator25000, enduserUpdatesDisabled: true },
+      procedureCodes: { validator: procedureCodesValidator, enduserUpdatesDisabled: true },
+      diagnosisCodes: { validator: diagnosisCodesValidator, enduserUpdatesDisabled: true },
     },
     defaultActions: DEFAULT_OPERATIONS,
     enduserActions: {
@@ -7199,7 +7214,7 @@ export const schema: SchemaV1 = build_schema({
           type: stringValidatorOptional,
         }),
       },
-      onboardingStatus: { validator: stringValidator100 }, // read/write for org admins (not super-admin restricted)
+      onboardingStatus: { validator: userPortalSettingsValidator }, // key-value store, same shape as User.portalSettings; read/write for org admins (not super-admin restricted)
       creditCount: { validator: numberValidator, readonly: true },
       stripeKeyDetails: {
         validator: listValidatorOptionalOrEmptyOk(objectValidator<StripeKeyDetail>({

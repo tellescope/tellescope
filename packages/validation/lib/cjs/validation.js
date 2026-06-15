@@ -2709,6 +2709,7 @@ exports.automationActionValidator = (0, exports.orValidator)({
             tags: exports.listOfStringsWithQualifierValidator,
             limitToOneUser: exports.booleanValidatorOptional,
             setAsPrimary: exports.booleanValidatorOptional,
+            restrictByState: exports.booleanValidatorOptional,
         }, { emptyOk: false }) // at least tags is required
      })),
     removeCareTeam: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['removeCareTeam']), info: (0, exports.objectValidator)({
@@ -3901,6 +3902,7 @@ exports.organizationSettingsValidator = (0, exports.objectValidator)({
     }, { isOptional: true, emptyOk: true, }),
     timeTracking: (0, exports.objectValidator)({
         enabled: exports.booleanValidatorOptional,
+        inactivityThresholdInSeconds: exports.numberValidatorOptional,
     }, { isOptional: true, emptyOk: true, }),
 });
 exports.calendarEventPortalSettingsValidator = (0, exports.objectValidator)({
@@ -4398,6 +4400,7 @@ exports.automationTriggerActionValidator = (0, exports.orValidator)({
             tags: exports.listOfStringsWithQualifierValidator,
             limitToOneUser: exports.booleanValidatorOptional,
             setAsPrimary: exports.booleanValidatorOptional,
+            restrictByState: exports.booleanValidatorOptional,
         }),
     }),
     "Remove Care Team": (0, exports.objectValidator)({
