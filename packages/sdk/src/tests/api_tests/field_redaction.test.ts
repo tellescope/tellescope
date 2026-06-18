@@ -56,13 +56,26 @@ export const field_redaction_tests = async ({ sdk, sdkNonAdmin } : { sdk: Sessio
   const FULL_ACCESS = { create: 'All' as const, read: 'All' as const, update: 'All' as const, delete: 'All' as const }
 
   const fullRedactionRole = 'full-redaction-test-role'
+  const ROLE_COLOR = '#FF8800'
+  const ROLE_DESCRIPTION = 'Role used by field redaction tests'
   const rbapFull = await sdk.api.role_based_access_permissions.createOne({
     role: fullRedactionRole,
     permissions: { ...PROVIDER_PERMISSIONS, phone_calls: FULL_ACCESS, endusers: FULL_ACCESS },
     fieldRedactions: {
       phone_calls: [...ALL_REDACTABLE_FIELDS],
     },
+    color: ROLE_COLOR,
+    description: ROLE_DESCRIPTION,
   })
+
+  // Verify color/description persist and round-trip via getOne
+  await async_test(
+    "role_based_access_permissions - color and description persist on create/read",
+    () => sdk.api.role_based_access_permissions.getOne(rbapFull.id),
+    {
+      onResult: (r: any) => r.color === ROLE_COLOR && r.description === ROLE_DESCRIPTION,
+    }
+  )
 
   const originalRoles = sdkNonAdmin.userInfo.roles
 

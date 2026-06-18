@@ -126,3 +126,4 @@ export type ProjectedObservation = (
 )
 
 export type TimeTrackTimestamp = models.TimeTrackTimestamp
+export type TimeTrackReviewHistoryItem = models.TimeTrackReviewHistoryItem

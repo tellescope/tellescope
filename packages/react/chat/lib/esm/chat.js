@@ -31,7 +31,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 };
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { DisplayPicture, IN_REACT_WEB, List, Flex, Badge, Typography, LoadingLinear, value_is_loaded, useSession, useEnduserSession, useResolvedSession, useChatRooms, useChats, useChatRoomDisplayInfo, SecureImage, SecureVideo, useUsers, useEndusers, useUserAndEnduserDisplayInfo, UserAndEnduserSelector, TextField, useFileForSecureName, } from "@tellescope/react-components";
+import { DisplayPicture, IN_REACT_WEB, List, Flex, Badge, Typography, LoadingLinear, value_is_loaded, useSession, useEnduserSession, useResolvedSession, useChatRooms, useChats, useChatRoomDisplayInfo, SecureImage, SecureVideo, useUsers, useEndusers, useUserAndEnduserDisplayInfo, UserAndEnduserSelector, TextField, useFileForSecureName, Tooltip, } from "@tellescope/react-components";
 import { formatted_date, truncate_string, user_display_name, user_is_active, } from "@tellescope/utilities";
 import { PRIMARY_HEX, } from "@tellescope/constants";
 import { HTMLMessage, SendMessage } from "./components";
@@ -107,7 +107,10 @@ export var Message = function (_a) {
     var userOrEnduser = ((isSender ? session.userInfo : undefined)
         || (value_is_loaded(usersLoading) ? usersLoading.value.find(function (u) { return u.id === message.senderId; }) : undefined)
         || (value_is_loaded(endusersLoading) ? endusersLoading.value.find(function (e) { return e.id === message.senderId; }) : undefined));
-    var displayPicture = (_jsx(DisplayPicture, { style: { maxWidth: '10%' }, user: userOrEnduser, size: iconSize }));
+    var senderName = (userOrEnduser === null || userOrEnduser === void 0 ? void 0 : userOrEnduser.displayName) || user_display_name(userOrEnduser);
+    var displayPicture = senderName
+        ? (_jsx(Tooltip, __assign({ label: senderName, placement: "top", enterDelay: 300, style: { display: 'inline-flex', flexShrink: 0, maxWidth: '10%' } }, { children: _jsx(DisplayPicture, { user: userOrEnduser, size: iconSize }) })))
+        : (_jsx(DisplayPicture, { style: { maxWidth: '10%' }, user: userOrEnduser, size: iconSize }));
     return (_jsxs(Flex, __assign({ column: true }, { children: [showDate && (_jsx(Flex, __assign({ alignSelf: "center", style: IN_REACT_WEB
                     ? {}
                     : {
@@ -117,7 +120,7 @@ export var Message = function (_a) {
                     marginRight: isSender ? "".concat(iconSize + 12, "px") : 0,
                     marginLeft: isSender ? 'auto' : "".concat(iconSize + 12, "px"),
                     marginTop: 0, marginBottom: 0,
-                } }, { children: (userOrEnduser === null || userOrEnduser === void 0 ? void 0 : userOrEnduser.displayName) || user_display_name(userOrEnduser) }))), _jsxs(Flex, __assign({ style: __assign({ margin: 5, marginTop: showName ? 0 : 5, flexWrap: 'nowrap' }, style) }, { children: [message.senderId !== chatUserId && displayPicture, messageComponent, message.senderId === chatUserId && displayPicture] }))] })));
+                } }, { children: senderName }))), _jsxs(Flex, __assign({ style: __assign({ margin: 5, marginTop: showName ? 0 : 5, flexWrap: 'nowrap' }, style) }, { children: [message.senderId !== chatUserId && displayPicture, messageComponent, message.senderId === chatUserId && displayPicture] }))] })));
 };
 export var SecureLinkText = function (_a) {
     var secureName = _a.secureName;

@@ -1,4 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -35,6 +46,17 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
         if (ar || !(i in from)) {
@@ -45,7 +67,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.time_tracks_edge_case_tests = exports.time_tracks_lock_tests = exports.time_tracks_review_tests = exports.time_tracks_correction_tests = exports.time_tracks_historical_tests = exports.time_tracks_tests = void 0;
+exports.time_tracks_appointment_duration_tests = exports.time_tracks_resubmit_tests = exports.time_tracks_edge_case_tests = exports.time_tracks_lock_tests = exports.time_tracks_review_tests = exports.time_tracks_correction_tests = exports.time_tracks_historical_tests = exports.time_tracks_tests = void 0;
 require('source-map-support').install();
 var sdk_1 = require("../../sdk");
 var testing_1 = require("@tellescope/testing");
@@ -952,6 +974,615 @@ var time_tracks_edge_case_tests = function (_a) {
     });
 };
 exports.time_tracks_edge_case_tests = time_tracks_edge_case_tests;
+// ============================================================
+// Group F: Rejection Notification + Correct & Resubmit
+// ============================================================
+var time_tracks_resubmit_tests = function (_a) {
+    var sdk = _a.sdk, sdkNonAdmin = _a.sdkNonAdmin;
+    return __awaiter(void 0, void 0, void 0, function () {
+        var trackIds, nonAdminTrackIds, notificationIds, resubmit_payload, now_2, oneHourAgo_1, twoHoursAgo_2, create_historical, track_2, rejectionNote, notifications, rejectionNotification, resubmitted, refetched, track3_1, _b, _omitted, payloadWithoutClear_1, track5_1, nonAdminTrack_1, rejectedAgain, afterSecondResubmit, pendingMatches, rejectedMatches, _i, trackIds_6, id, e_9, _c, nonAdminTrackIds_1, id, e_10, _d, notificationIds_1, id, e_11, remaining, _e, remaining_1, n, e_12, e_13;
+        var _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
+        return __generator(this, function (_r) {
+            switch (_r.label) {
+                case 0:
+                    (0, testing_1.log_header)("Time Tracks - Rejection Notification + Resubmit Tests");
+                    trackIds = [];
+                    nonAdminTrackIds = [];
+                    notificationIds = [];
+                    resubmit_payload = function (track, byUserId, newDurationMS) { return ({
+                        correctedAt: new Date(),
+                        correctedByUserId: byUserId,
+                        correctionNote: "Corrected after rejection",
+                        originalTotalDurationInMS: track.totalDurationInMS || 0,
+                        totalDurationInMS: newDurationMS,
+                        lockedAt: new Date(),
+                        lockedByUserId: byUserId,
+                        reviewedAt: '',
+                        reviewedByUserId: '',
+                        reviewNote: '',
+                    }); };
+                    _r.label = 1;
+                case 1:
+                    _r.trys.push([1, , 23, 51]);
+                    now_2 = new Date();
+                    oneHourAgo_1 = new Date(now_2.getTime() - 3600000);
+                    twoHoursAgo_2 = new Date(now_2.getTime() - 7200000);
+                    create_historical = function (title) { return sdk.api.time_tracks.createOne({
+                        title: title,
+                        isHistorical: true,
+                        closedAt: now_2,
+                        lockedAt: now_2,
+                        lockedByUserId: sdk.userInfo.id,
+                        totalDurationInMS: 3600000,
+                        timestamps: [
+                            { type: 'start', timestamp: twoHoursAgo_2 },
+                            { type: 'pause', timestamp: oneHourAgo_1 },
+                        ],
+                    }); };
+                    // F1: Rejection creates a notification for the owner
+                    log("F1: Rejection creates timeTrackRejected notification for owner...");
+                    return [4 /*yield*/, create_historical("Track for Rejection Notification")];
+                case 2:
+                    track_2 = _r.sent();
+                    trackIds.push(track_2.id);
+                    rejectionNote = "Duration looks wrong, please correct";
+                    return [4 /*yield*/, sdk.api.time_tracks.updateOne(track_2.id, {
+                            reviewedAt: new Date(),
+                            reviewedByUserId: sdkNonAdmin.userInfo.id,
+                            reviewApproved: false,
+                            reviewNote: rejectionNote,
+                        })];
+                case 3:
+                    _r.sent();
+                    return [4 /*yield*/, (0, testing_1.wait)(undefined, 2000)]; // allow side-effect handler to run
+                case 4:
+                    _r.sent(); // allow side-effect handler to run
+                    return [4 /*yield*/, sdk.api.user_notifications.getSome({
+                            filter: { userId: sdk.userInfo.id, type: 'timeTrackRejected' }
+                        })];
+                case 5:
+                    notifications = _r.sent();
+                    rejectionNotification = notifications.find(function (n) { var _a; return (_a = n.relatedRecords) === null || _a === void 0 ? void 0 : _a.find(function (r) { return r.type === 'time_track' && r.id === track_2.id; }); });
+                    (0, testing_1.assert)(!!rejectionNotification, "F1: timeTrackRejected notification should exist for owner");
+                    (0, testing_1.assert)(rejectionNotification.message.includes(rejectionNote), "F1: notification message should include rejection note");
+                    notificationIds.push(rejectionNotification.id);
+                    log("F1: Rejection notification created for owner");
+                    // F2: Resubmit happy path
+                    log("F2: Owner resubmits rejected entry...");
+                    return [4 /*yield*/, sdk.api.time_tracks.updateOne(track_2.id, resubmit_payload(track_2, sdk.userInfo.id, 1800000))];
+                case 6:
+                    resubmitted = _r.sent();
+                    (0, testing_1.assert)(!resubmitted.reviewedAt, "F2: reviewedAt should be cleared after resubmit");
+                    return [4 /*yield*/, sdk.api.time_tracks.getOne(track_2.id)];
+                case 7:
+                    refetched = _r.sent();
+                    (0, testing_1.assert)(!refetched.reviewedAt, "F2: reviewedAt should be falsy on refetch");
+                    (0, testing_1.assert)(((_f = refetched.reviewHistory) === null || _f === void 0 ? void 0 : _f.length) === 1, "F2: reviewHistory should have 1 entry, got ".concat((_g = refetched.reviewHistory) === null || _g === void 0 ? void 0 : _g.length));
+                    (0, testing_1.assert)(((_h = refetched.reviewHistory) === null || _h === void 0 ? void 0 : _h[0].reviewApproved) === false, "F2: reviewHistory should preserve reviewApproved false");
+                    (0, testing_1.assert)(((_j = refetched.reviewHistory) === null || _j === void 0 ? void 0 : _j[0].reviewNote) === rejectionNote, "F2: reviewHistory should preserve original reviewNote");
+                    (0, testing_1.assert)(((_k = refetched.reviewHistory) === null || _k === void 0 ? void 0 : _k[0].reviewedByUserId) === sdkNonAdmin.userInfo.id, "F2: reviewHistory should preserve reviewedByUserId");
+                    (0, testing_1.assert)(!!((_l = refetched.reviewHistory) === null || _l === void 0 ? void 0 : _l[0].resubmittedAt), "F2: reviewHistory should record resubmittedAt");
+                    (0, testing_1.assert)(((_m = refetched.reviewHistory) === null || _m === void 0 ? void 0 : _m[0].resubmittedByUserId) === sdk.userInfo.id, "F2: reviewHistory should record resubmittedByUserId");
+                    log("F2: Resubmit succeeded with reviewHistory audit trail");
+                    // F3: Resubmit without clearing reviewedAt - expect 400
+                    log("F3: Resubmit without reviewedAt: '' (should fail)...");
+                    return [4 /*yield*/, create_historical("Track for F3")];
+                case 8:
+                    track3_1 = _r.sent();
+                    trackIds.push(track3_1.id);
+                    return [4 /*yield*/, sdk.api.time_tracks.updateOne(track3_1.id, {
+                            reviewedAt: new Date(),
+                            reviewedByUserId: sdkNonAdmin.userInfo.id,
+                            reviewApproved: false,
+                        })];
+                case 9:
+                    _r.sent();
+                    _b = resubmit_payload(track3_1, sdk.userInfo.id, 1800000), _omitted = _b.reviewedAt, payloadWithoutClear_1 = __rest(_b, ["reviewedAt"]);
+                    return [4 /*yield*/, assert_throws(function () { return sdk.api.time_tracks.updateOne(track3_1.id, payloadWithoutClear_1); }, "F3: resubmit without clearing reviewedAt")];
+                case 10:
+                    _r.sent();
+                    log("F3: Correctly rejected resubmit without reviewedAt: ''");
+                    // F4: Resubmit with self-approval - expect 400
+                    log("F4: Resubmit with reviewApproved: true (should fail)...");
+                    return [4 /*yield*/, assert_throws(function () { return sdk.api.time_tracks.updateOne(track3_1.id, __assign(__assign({}, resubmit_payload(track3_1, sdk.userInfo.id, 1800000)), { reviewApproved: true })); }, "F4: resubmit with self-approval")];
+                case 11:
+                    _r.sent();
+                    log("F4: Correctly rejected self-approval during resubmit");
+                    // F5: Correction payload on locked, non-rejected entry - expect 400
+                    log("F5: Correction payload on locked non-rejected entry (should fail)...");
+                    return [4 /*yield*/, create_historical("Track for F5")];
+                case 12:
+                    track5_1 = _r.sent();
+                    trackIds.push(track5_1.id);
+                    return [4 /*yield*/, assert_throws(function () { return sdk.api.time_tracks.updateOne(track5_1.id, resubmit_payload(track5_1, sdk.userInfo.id, 1800000)); }, "F5: correction on locked non-rejected entry")];
+                case 13:
+                    _r.sent();
+                    log("F5: Correctly rejected correction on locked non-rejected entry");
+                    // F6: Non-owner resubmit attempt - expect 400
+                    log("F6: Non-owner resubmit attempt (should fail)...");
+                    return [4 /*yield*/, sdkNonAdmin.api.time_tracks.createOne({
+                            title: "Non-Admin Track for F6",
+                            isHistorical: true,
+                            closedAt: now_2,
+                            lockedAt: now_2,
+                            lockedByUserId: sdkNonAdmin.userInfo.id,
+                            totalDurationInMS: 3600000,
+                            timestamps: [
+                                { type: 'start', timestamp: twoHoursAgo_2 },
+                                { type: 'pause', timestamp: oneHourAgo_1 },
+                            ],
+                        })];
+                case 14:
+                    nonAdminTrack_1 = _r.sent();
+                    nonAdminTrackIds.push(nonAdminTrack_1.id);
+                    return [4 /*yield*/, sdk.api.time_tracks.updateOne(nonAdminTrack_1.id, {
+                            reviewedAt: new Date(),
+                            reviewedByUserId: sdk.userInfo.id,
+                            reviewApproved: false,
+                            reviewNote: "Rejected for F6",
+                        })];
+                case 15:
+                    _r.sent();
+                    return [4 /*yield*/, assert_throws(function () { return sdk.api.time_tracks.updateOne(nonAdminTrack_1.id, resubmit_payload(nonAdminTrack_1, sdk.userInfo.id, 1800000)); }, "F6: non-owner resubmit")];
+                case 16:
+                    _r.sent();
+                    log("F6: Correctly rejected non-owner resubmit");
+                    // F7: Second rejection + resubmit appends to reviewHistory
+                    log("F7: Reject again after resubmit, resubmit again...");
+                    return [4 /*yield*/, sdk.api.time_tracks.updateOne(track_2.id, {
+                            reviewedAt: new Date(),
+                            reviewedByUserId: sdkNonAdmin.userInfo.id,
+                            reviewApproved: false,
+                            reviewNote: "Still not right",
+                        })];
+                case 17:
+                    _r.sent();
+                    return [4 /*yield*/, sdk.api.time_tracks.getOne(track_2.id)];
+                case 18:
+                    rejectedAgain = _r.sent();
+                    return [4 /*yield*/, sdk.api.time_tracks.updateOne(track_2.id, resubmit_payload(rejectedAgain, sdk.userInfo.id, 2700000))];
+                case 19:
+                    _r.sent();
+                    return [4 /*yield*/, sdk.api.time_tracks.getOne(track_2.id)];
+                case 20:
+                    afterSecondResubmit = _r.sent();
+                    (0, testing_1.assert)(((_o = afterSecondResubmit.reviewHistory) === null || _o === void 0 ? void 0 : _o.length) === 2, "F7: reviewHistory should have 2 entries, got ".concat((_p = afterSecondResubmit.reviewHistory) === null || _p === void 0 ? void 0 : _p.length));
+                    (0, testing_1.assert)(((_q = afterSecondResubmit.reviewHistory) === null || _q === void 0 ? void 0 : _q[1].reviewNote) === "Still not right", "F7: second reviewHistory entry should preserve second rejection note");
+                    log("F7: Second rejection/resubmit cycle appended to reviewHistory");
+                    // F8: Status filters treat reviewedAt: '' as Pending
+                    log("F8: Status mdbFilters handle reviewedAt: ''...");
+                    return [4 /*yield*/, sdk.api.time_tracks.getSome({
+                            mdbFilter: { $or: [{ reviewedAt: { $exists: false } }, { reviewedAt: '' }] }
+                        })];
+                case 21:
+                    pendingMatches = _r.sent();
+                    (0, testing_1.assert)(!!pendingMatches.find(function (t) { return t.id === track_2.id; }), "F8: Pending filter should match resubmitted track");
+                    return [4 /*yield*/, sdk.api.time_tracks.getSome({
+                            mdbFilter: { reviewedAt: { $exists: true, $ne: '' }, reviewApproved: false }
+                        })];
+                case 22:
+                    rejectedMatches = _r.sent();
+                    (0, testing_1.assert)(!rejectedMatches.find(function (t) { return t.id === track_2.id; }), "F8: Rejected filter should exclude resubmitted track");
+                    log("F8: Status filters behave correctly with cleared reviewedAt");
+                    log("All rejection notification + resubmit tests passed!");
+                    return [3 /*break*/, 51];
+                case 23:
+                    _i = 0, trackIds_6 = trackIds;
+                    _r.label = 24;
+                case 24:
+                    if (!(_i < trackIds_6.length)) return [3 /*break*/, 29];
+                    id = trackIds_6[_i];
+                    _r.label = 25;
+                case 25:
+                    _r.trys.push([25, 27, , 28]);
+                    return [4 /*yield*/, sdk.api.time_tracks.deleteOne(id)];
+                case 26:
+                    _r.sent();
+                    return [3 /*break*/, 28];
+                case 27:
+                    e_9 = _r.sent();
+                    return [3 /*break*/, 28];
+                case 28:
+                    _i++;
+                    return [3 /*break*/, 24];
+                case 29:
+                    _c = 0, nonAdminTrackIds_1 = nonAdminTrackIds;
+                    _r.label = 30;
+                case 30:
+                    if (!(_c < nonAdminTrackIds_1.length)) return [3 /*break*/, 35];
+                    id = nonAdminTrackIds_1[_c];
+                    _r.label = 31;
+                case 31:
+                    _r.trys.push([31, 33, , 34]);
+                    return [4 /*yield*/, sdkNonAdmin.api.time_tracks.deleteOne(id)];
+                case 32:
+                    _r.sent();
+                    return [3 /*break*/, 34];
+                case 33:
+                    e_10 = _r.sent();
+                    return [3 /*break*/, 34];
+                case 34:
+                    _c++;
+                    return [3 /*break*/, 30];
+                case 35:
+                    _d = 0, notificationIds_1 = notificationIds;
+                    _r.label = 36;
+                case 36:
+                    if (!(_d < notificationIds_1.length)) return [3 /*break*/, 41];
+                    id = notificationIds_1[_d];
+                    _r.label = 37;
+                case 37:
+                    _r.trys.push([37, 39, , 40]);
+                    return [4 /*yield*/, sdk.api.user_notifications.deleteOne(id)];
+                case 38:
+                    _r.sent();
+                    return [3 /*break*/, 40];
+                case 39:
+                    e_11 = _r.sent();
+                    return [3 /*break*/, 40];
+                case 40:
+                    _d++;
+                    return [3 /*break*/, 36];
+                case 41:
+                    _r.trys.push([41, 49, , 50]);
+                    return [4 /*yield*/, sdk.api.user_notifications.getSome({
+                            filter: { userId: sdk.userInfo.id, type: 'timeTrackRejected' }
+                        })];
+                case 42:
+                    remaining = _r.sent();
+                    _e = 0, remaining_1 = remaining;
+                    _r.label = 43;
+                case 43:
+                    if (!(_e < remaining_1.length)) return [3 /*break*/, 48];
+                    n = remaining_1[_e];
+                    _r.label = 44;
+                case 44:
+                    _r.trys.push([44, 46, , 47]);
+                    return [4 /*yield*/, sdk.api.user_notifications.deleteOne(n.id)];
+                case 45:
+                    _r.sent();
+                    return [3 /*break*/, 47];
+                case 46:
+                    e_12 = _r.sent();
+                    return [3 /*break*/, 47];
+                case 47:
+                    _e++;
+                    return [3 /*break*/, 43];
+                case 48: return [3 /*break*/, 50];
+                case 49:
+                    e_13 = _r.sent();
+                    return [3 /*break*/, 50];
+                case 50: return [7 /*endfinally*/];
+                case 51: return [2 /*return*/];
+            }
+        });
+    });
+};
+exports.time_tracks_resubmit_tests = time_tracks_resubmit_tests;
+// ============================================================
+// Group F: Appointment Duration from Tracked Time
+// ============================================================
+var time_tracks_appointment_duration_tests = function (_a) {
+    var sdk = _a.sdk, sdkNonAdmin = _a.sdkNonAdmin;
+    return __awaiter(void 0, void 0, void 0, function () {
+        var businessId, trackIds, formResponseIds, eventIds, formId, enduserId, enduser, form, event_1, response1, track1, eventAfterClose, response2, track2, eventAfterSecond, response3, track3, eventBeforeLink, eventAfterLink, eventAfterCorrection, event2, response4, track4, event2AfterClose, _i, trackIds_7, id, e_14, _b, formResponseIds_1, id, e_15, _c, eventIds_1, id, e_16, e_17, e_18, e_19;
+        return __generator(this, function (_d) {
+            switch (_d.label) {
+                case 0:
+                    (0, testing_1.log_header)("Time Tracks - Appointment Duration from Tracked Time Tests");
+                    businessId = sdk.userInfo.businessId;
+                    trackIds = [];
+                    formResponseIds = [];
+                    eventIds = [];
+                    _d.label = 1;
+                case 1:
+                    _d.trys.push([1, , 35, 65]);
+                    // Enable time tracking + appointment duration setting
+                    log("F0: Enabling timeTracking.setAppointmentDurationOnTimeTrackClose...");
+                    return [4 /*yield*/, sdk.api.organizations.updateOne(businessId, {
+                            settings: { timeTracking: { enabled: true, setAppointmentDurationOnTimeTrackClose: true } }
+                        })
+                        // Shared records
+                    ];
+                case 2:
+                    _d.sent();
+                    return [4 /*yield*/, sdk.api.endusers.createOne({ email: "tt-duration-".concat(Date.now(), "@test.com") })];
+                case 3:
+                    enduser = _d.sent();
+                    enduserId = enduser.id;
+                    return [4 /*yield*/, sdk.api.forms.createOne({ title: 'Appointment Duration Form' })];
+                case 4:
+                    form = _d.sent();
+                    formId = form.id;
+                    return [4 /*yield*/, sdk.api.calendar_events.createOne({
+                            title: 'Appointment for Tracked Time',
+                            durationInMinutes: 30,
+                            startTimeInMS: Date.now(),
+                            attendees: [{ type: 'enduser', id: enduser.id }],
+                        })];
+                case 5:
+                    event_1 = _d.sent();
+                    eventIds.push(event_1.id);
+                    return [4 /*yield*/, sdk.api.form_responses.createOne({
+                            formId: form.id,
+                            enduserId: enduser.id,
+                            formTitle: form.title,
+                            calendarEventId: event_1.id,
+                        })];
+                case 6:
+                    response1 = _d.sent();
+                    formResponseIds.push(response1.id);
+                    // Test F1: Close a linked time track -> actualDuration set from tracked time
+                    log("F1: Closing linked time track sets appointment actualDuration...");
+                    return [4 /*yield*/, sdk.api.time_tracks.createOne({
+                            title: "Tracked Form Completion",
+                            activity: { type: 'form_response', id: response1.id },
+                        })];
+                case 7:
+                    track1 = _d.sent();
+                    trackIds.push(track1.id);
+                    return [4 /*yield*/, (0, testing_1.wait)(undefined, 2000)];
+                case 8:
+                    _d.sent();
+                    return [4 /*yield*/, sdk.api.time_tracks.updateOne(track1.id, {
+                            closedAt: new Date(),
+                            totalDurationInMS: 1800000, // 30 minutes
+                        })];
+                case 9:
+                    _d.sent();
+                    return [4 /*yield*/, (0, testing_1.wait)(undefined, 1500)]; // allow side effects to run
+                case 10:
+                    _d.sent(); // allow side effects to run
+                    return [4 /*yield*/, sdk.api.calendar_events.getOne(event_1.id)];
+                case 11:
+                    eventAfterClose = _d.sent();
+                    (0, testing_1.assert)(eventAfterClose.actualDuration === 30, "F1: actualDuration should be 30, got ".concat(eventAfterClose.actualDuration));
+                    log("F1: actualDuration set from closed time track");
+                    // Test F2: Second closed track on same appointment -> durations are summed
+                    log("F2: Second closed track sums durations...");
+                    return [4 /*yield*/, sdk.api.form_responses.createOne({
+                            formId: form.id,
+                            enduserId: enduser.id,
+                            formTitle: form.title,
+                            calendarEventId: event_1.id,
+                        })];
+                case 12:
+                    response2 = _d.sent();
+                    formResponseIds.push(response2.id);
+                    return [4 /*yield*/, sdk.api.time_tracks.createOne({
+                            title: "Second Tracked Form Completion",
+                            activity: { type: 'form_response', id: response2.id },
+                        })];
+                case 13:
+                    track2 = _d.sent();
+                    trackIds.push(track2.id);
+                    return [4 /*yield*/, sdk.api.time_tracks.updateOne(track2.id, {
+                            closedAt: new Date(),
+                            totalDurationInMS: 600000, // 10 minutes
+                        })];
+                case 14:
+                    _d.sent();
+                    return [4 /*yield*/, (0, testing_1.wait)(undefined, 1500)];
+                case 15:
+                    _d.sent();
+                    return [4 /*yield*/, sdk.api.calendar_events.getOne(event_1.id)];
+                case 16:
+                    eventAfterSecond = _d.sent();
+                    (0, testing_1.assert)(eventAfterSecond.actualDuration === 40, "F2: actualDuration should be 40 (30 + 10), got ".concat(eventAfterSecond.actualDuration));
+                    log("F2: actualDuration correctly summed across tracks");
+                    // Test F3: Linking activity after close triggers recompute
+                    log("F3: Post-close activity link triggers recompute...");
+                    return [4 /*yield*/, sdk.api.form_responses.createOne({
+                            formId: form.id,
+                            enduserId: enduser.id,
+                            formTitle: form.title,
+                            calendarEventId: event_1.id,
+                        })];
+                case 17:
+                    response3 = _d.sent();
+                    formResponseIds.push(response3.id);
+                    return [4 /*yield*/, sdk.api.time_tracks.createOne({
+                            title: "Track Linked After Close",
+                        })];
+                case 18:
+                    track3 = _d.sent();
+                    trackIds.push(track3.id);
+                    return [4 /*yield*/, sdk.api.time_tracks.updateOne(track3.id, {
+                            closedAt: new Date(),
+                            totalDurationInMS: 300000, // 5 minutes
+                        })];
+                case 19:
+                    _d.sent();
+                    return [4 /*yield*/, (0, testing_1.wait)(undefined, 1500)
+                        // no activity yet -> actualDuration unchanged
+                    ];
+                case 20:
+                    _d.sent();
+                    return [4 /*yield*/, sdk.api.calendar_events.getOne(event_1.id)];
+                case 21:
+                    eventBeforeLink = _d.sent();
+                    (0, testing_1.assert)(eventBeforeLink.actualDuration === 40, "F3: actualDuration should still be 40 before activity link, got ".concat(eventBeforeLink.actualDuration));
+                    return [4 /*yield*/, sdk.api.time_tracks.updateOne(track3.id, {
+                            activity: { type: 'form_response', id: response3.id },
+                        })];
+                case 22:
+                    _d.sent();
+                    return [4 /*yield*/, (0, testing_1.wait)(undefined, 1500)];
+                case 23:
+                    _d.sent();
+                    return [4 /*yield*/, sdk.api.calendar_events.getOne(event_1.id)];
+                case 24:
+                    eventAfterLink = _d.sent();
+                    (0, testing_1.assert)(eventAfterLink.actualDuration === 45, "F3: actualDuration should be 45 (30 + 10 + 5) after post-close link, got ".concat(eventAfterLink.actualDuration));
+                    log("F3: Post-close activity link recomputed actualDuration");
+                    // Test F4: Correction recomputes actualDuration
+                    log("F4: Correction recomputes actualDuration...");
+                    return [4 /*yield*/, sdk.api.time_tracks.updateOne(track2.id, {
+                            correctedAt: new Date(),
+                            correctedByUserId: sdk.userInfo.id,
+                            correctionNote: "Adjusting tracked time",
+                            originalTotalDurationInMS: 600000,
+                            totalDurationInMS: 1200000,
+                            lockedAt: new Date(),
+                            lockedByUserId: sdk.userInfo.id,
+                        })];
+                case 25:
+                    _d.sent();
+                    return [4 /*yield*/, (0, testing_1.wait)(undefined, 1500)];
+                case 26:
+                    _d.sent();
+                    return [4 /*yield*/, sdk.api.calendar_events.getOne(event_1.id)];
+                case 27:
+                    eventAfterCorrection = _d.sent();
+                    (0, testing_1.assert)(eventAfterCorrection.actualDuration === 55, "F4: actualDuration should be 55 (30 + 20 + 5) after correction, got ".concat(eventAfterCorrection.actualDuration));
+                    log("F4: Correction recomputed actualDuration");
+                    // Test F5: Setting disabled -> actualDuration not set
+                    log("F5: Setting disabled leaves actualDuration unset...");
+                    return [4 /*yield*/, sdk.api.organizations.updateOne(businessId, {
+                            settings: { timeTracking: { enabled: true, setAppointmentDurationOnTimeTrackClose: false } }
+                        })];
+                case 28:
+                    _d.sent();
+                    return [4 /*yield*/, sdk.api.calendar_events.createOne({
+                            title: 'Appointment Without Duration Sync',
+                            durationInMinutes: 30,
+                            startTimeInMS: Date.now(),
+                            attendees: [{ type: 'enduser', id: enduser.id }],
+                        })];
+                case 29:
+                    event2 = _d.sent();
+                    eventIds.push(event2.id);
+                    return [4 /*yield*/, sdk.api.form_responses.createOne({
+                            formId: form.id,
+                            enduserId: enduser.id,
+                            formTitle: form.title,
+                            calendarEventId: event2.id,
+                        })];
+                case 30:
+                    response4 = _d.sent();
+                    formResponseIds.push(response4.id);
+                    return [4 /*yield*/, sdk.api.time_tracks.createOne({
+                            title: "Track With Setting Disabled",
+                            activity: { type: 'form_response', id: response4.id },
+                        })];
+                case 31:
+                    track4 = _d.sent();
+                    trackIds.push(track4.id);
+                    return [4 /*yield*/, sdk.api.time_tracks.updateOne(track4.id, {
+                            closedAt: new Date(),
+                            totalDurationInMS: 1800000,
+                        })];
+                case 32:
+                    _d.sent();
+                    return [4 /*yield*/, (0, testing_1.wait)(undefined, 1500)];
+                case 33:
+                    _d.sent();
+                    return [4 /*yield*/, sdk.api.calendar_events.getOne(event2.id)];
+                case 34:
+                    event2AfterClose = _d.sent();
+                    (0, testing_1.assert)(!event2AfterClose.actualDuration, "F5: actualDuration should stay unset when setting is disabled, got ".concat(event2AfterClose.actualDuration));
+                    log("F5: actualDuration correctly unset with setting disabled");
+                    log("All appointment duration tests passed!");
+                    return [3 /*break*/, 65];
+                case 35:
+                    _i = 0, trackIds_7 = trackIds;
+                    _d.label = 36;
+                case 36:
+                    if (!(_i < trackIds_7.length)) return [3 /*break*/, 41];
+                    id = trackIds_7[_i];
+                    _d.label = 37;
+                case 37:
+                    _d.trys.push([37, 39, , 40]);
+                    return [4 /*yield*/, sdk.api.time_tracks.deleteOne(id)];
+                case 38:
+                    _d.sent();
+                    return [3 /*break*/, 40];
+                case 39:
+                    e_14 = _d.sent();
+                    return [3 /*break*/, 40];
+                case 40:
+                    _i++;
+                    return [3 /*break*/, 36];
+                case 41:
+                    _b = 0, formResponseIds_1 = formResponseIds;
+                    _d.label = 42;
+                case 42:
+                    if (!(_b < formResponseIds_1.length)) return [3 /*break*/, 47];
+                    id = formResponseIds_1[_b];
+                    _d.label = 43;
+                case 43:
+                    _d.trys.push([43, 45, , 46]);
+                    return [4 /*yield*/, sdk.api.form_responses.deleteOne(id)];
+                case 44:
+                    _d.sent();
+                    return [3 /*break*/, 46];
+                case 45:
+                    e_15 = _d.sent();
+                    return [3 /*break*/, 46];
+                case 46:
+                    _b++;
+                    return [3 /*break*/, 42];
+                case 47:
+                    _c = 0, eventIds_1 = eventIds;
+                    _d.label = 48;
+                case 48:
+                    if (!(_c < eventIds_1.length)) return [3 /*break*/, 53];
+                    id = eventIds_1[_c];
+                    _d.label = 49;
+                case 49:
+                    _d.trys.push([49, 51, , 52]);
+                    return [4 /*yield*/, sdk.api.calendar_events.deleteOne(id)];
+                case 50:
+                    _d.sent();
+                    return [3 /*break*/, 52];
+                case 51:
+                    e_16 = _d.sent();
+                    return [3 /*break*/, 52];
+                case 52:
+                    _c++;
+                    return [3 /*break*/, 48];
+                case 53:
+                    if (!formId) return [3 /*break*/, 57];
+                    _d.label = 54;
+                case 54:
+                    _d.trys.push([54, 56, , 57]);
+                    return [4 /*yield*/, sdk.api.forms.deleteOne(formId)];
+                case 55:
+                    _d.sent();
+                    return [3 /*break*/, 57];
+                case 56:
+                    e_17 = _d.sent();
+                    return [3 /*break*/, 57];
+                case 57:
+                    if (!enduserId) return [3 /*break*/, 61];
+                    _d.label = 58;
+                case 58:
+                    _d.trys.push([58, 60, , 61]);
+                    return [4 /*yield*/, sdk.api.endusers.deleteOne(enduserId)];
+                case 59:
+                    _d.sent();
+                    return [3 /*break*/, 61];
+                case 60:
+                    e_18 = _d.sent();
+                    return [3 /*break*/, 61];
+                case 61:
+                    _d.trys.push([61, 63, , 64]);
+                    return [4 /*yield*/, sdk.api.organizations.updateOne(businessId, {
+                            settings: { timeTracking: { setAppointmentDurationOnTimeTrackClose: false } }
+                        })];
+                case 62:
+                    _d.sent();
+                    return [3 /*break*/, 64];
+                case 63:
+                    e_19 = _d.sent();
+                    return [3 /*break*/, 64];
+                case 64: return [7 /*endfinally*/];
+                case 65: return [2 /*return*/];
+            }
+        });
+    });
+};
+exports.time_tracks_appointment_duration_tests = time_tracks_appointment_duration_tests;
 // Allow running this test file independently
 if (require.main === module) {
     var sdk_2 = new sdk_1.Session({ host: host });
@@ -984,6 +1615,12 @@ if (require.main === module) {
                     _a.sent();
                     return [4 /*yield*/, (0, exports.time_tracks_edge_case_tests)({ sdk: sdk_2, sdkNonAdmin: sdkNonAdmin_1 })];
                 case 7:
+                    _a.sent();
+                    return [4 /*yield*/, (0, exports.time_tracks_resubmit_tests)({ sdk: sdk_2, sdkNonAdmin: sdkNonAdmin_1 })];
+                case 8:
+                    _a.sent();
+                    return [4 /*yield*/, (0, exports.time_tracks_appointment_duration_tests)({ sdk: sdk_2, sdkNonAdmin: sdkNonAdmin_1 })];
+                case 9:
                     _a.sent();
                     return [2 /*return*/];
             }

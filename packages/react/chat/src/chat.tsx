@@ -27,6 +27,7 @@ import {
   TextField,
   useFileForSecureName,
   LoadedFile,
+  Tooltip,
 } from "@tellescope/react-components"
 
 import {
@@ -251,13 +252,23 @@ export const Message = ({
     || (value_is_loaded(endusersLoading) ? endusersLoading.value.find(e => e.id === message.senderId) : undefined) 
   )
 
-  const displayPicture = (
-    <DisplayPicture 
-      style={{ maxWidth: '10%' }}
-      user={userOrEnduser}
-      size={iconSize}
-    />
-  )
+  const senderName = userOrEnduser?.displayName || user_display_name(userOrEnduser)
+
+  const displayPicture = senderName
+    ? (
+      <Tooltip label={senderName} placement="top" enterDelay={300}
+        style={{ display: 'inline-flex', flexShrink: 0, maxWidth: '10%' }}
+      >
+        <DisplayPicture user={userOrEnduser} size={iconSize} />
+      </Tooltip>
+    )
+    : (
+      <DisplayPicture
+        style={{ maxWidth: '10%' }}
+        user={userOrEnduser}
+        size={iconSize}
+      />
+    )
 
   return (
     <Flex column>
@@ -284,7 +295,7 @@ export const Message = ({
           marginLeft: isSender ? 'auto' : `${iconSize + 12}px`,
           marginTop: 0, marginBottom: 0,
         }}>
-          {userOrEnduser?.displayName || user_display_name(userOrEnduser)}
+          {senderName}
         </Typography>
       )}
       <Flex style={{ margin: 5, marginTop: showName ? 0 : 5, flexWrap: 'nowrap', ...style }}> 

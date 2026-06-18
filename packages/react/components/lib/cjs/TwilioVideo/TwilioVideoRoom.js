@@ -49,7 +49,10 @@ var TwilioVideoRoom = function (_a) {
     ], participants, true);
     if (isScreenShareActive) {
         // Presentation layout: screen share large on top, camera strip on bottom
-        return ((0, jsx_runtime_1.jsxs)(material_1.Box, __assign({ sx: __assign({ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', backgroundColor: '#1a1a1a' }, style) }, { children: [(0, jsx_runtime_1.jsx)(material_1.Box, __assign({ sx: {
+        return ((0, jsx_runtime_1.jsxs)(material_1.Box, __assign({ sx: __assign(__assign({ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', backgroundColor: '#1a1a1a' }, style), { 
+                // keep the enlarged room within the viewport so it can't push the
+                // DraggableWindow's topbar controls off-screen
+                maxWidth: '95vw', maxHeight: '90vh', boxSizing: 'border-box', overflow: 'hidden' }) }, { children: [(0, jsx_runtime_1.jsx)(material_1.Box, __assign({ sx: {
                         flex: 1,
                         overflow: 'hidden',
                         minHeight: 0,
@@ -70,7 +73,10 @@ var TwilioVideoRoom = function (_a) {
                         } }, { children: (0, jsx_runtime_1.jsx)(TwilioParticipant_1.TwilioParticipant, { participant: p, isLocal: p === localParticipant, showScreenShare: false, resolveIdentity: resolveIdentity }) }), p.sid)); }) })), (0, jsx_runtime_1.jsx)(TwilioControls_1.TwilioControlBar, { onLeave: onLeave, onEndForAll: onEndForAll, showScreenShare: showScreenShareProp })] })));
     }
     // Normal layout (no screen share active)
-    return ((0, jsx_runtime_1.jsxs)(material_1.Box, __assign({ sx: __assign({ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', backgroundColor: '#1a1a1a' }, style) }, { children: [(0, jsx_runtime_1.jsxs)(material_1.Box, __assign({ sx: {
+    return ((0, jsx_runtime_1.jsxs)(material_1.Box, __assign({ sx: __assign(__assign({ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', backgroundColor: '#1a1a1a' }, style), { 
+            // keep the enlarged room within the viewport so it can't push the
+            // DraggableWindow's topbar controls off-screen
+            maxWidth: '95vw', maxHeight: '90vh', boxSizing: 'border-box', overflow: 'hidden' }) }, { children: [(0, jsx_runtime_1.jsxs)(material_1.Box, __assign({ sx: {
                     flex: 1,
                     position: 'relative',
                     overflow: 'hidden',

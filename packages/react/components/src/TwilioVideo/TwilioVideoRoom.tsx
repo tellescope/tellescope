@@ -57,6 +57,12 @@ export const TwilioVideoRoom: React.FC<TwilioVideoRoomProps> = ({
           width: '100%',
           backgroundColor: '#1a1a1a',
           ...style,
+          // keep the enlarged room within the viewport so it can't push the
+          // DraggableWindow's topbar controls off-screen
+          maxWidth: '95vw',
+          maxHeight: '90vh',
+          boxSizing: 'border-box',
+          overflow: 'hidden',
         }}
       >
         {/* Screen share - main area */}
@@ -124,6 +130,12 @@ export const TwilioVideoRoom: React.FC<TwilioVideoRoomProps> = ({
         width: '100%',
         backgroundColor: '#1a1a1a',
         ...style,
+        // keep the enlarged room within the viewport so it can't push the
+        // DraggableWindow's topbar controls off-screen
+        maxWidth: '95vw',
+        maxHeight: '90vh',
+        boxSizing: 'border-box',
+        overflow: 'hidden',
       }}
     >
       {/* Video grid */}

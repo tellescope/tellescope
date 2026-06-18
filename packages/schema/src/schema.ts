@@ -90,6 +90,7 @@ import {
   AIDecisionAutomationAction,
   AutomationAction,
   TimeTrackTimestamp,
+  TimeTrackReviewHistoryItem,
   BelugaPharmacyMapping,
   BelugaAutomationMappingEntry,
   BelugaUpdateVisitPatientPreferenceItem,
@@ -172,6 +173,7 @@ import {
   fileSizeValidator,
   meetingStatusValidator,
   listOfAttendeesValidator,
+  listOfVideoCallParticipantEventsValidator,
   meetingInfoValidator,
   listOfUserIndentitiesValidator,
   meetingsListValidator,
@@ -287,6 +289,7 @@ import {
   userCallRoutingBehaviorValidator,
   userUIRestrictionsValidator,
   userFieldRedactionsValidator,
+  portalSchemaRestrictionsValidator,
   externalChatGPTMessagesValidator,
   enduserProfileViewBlocksValidator,
   customDashboardBlocksValidator,
@@ -2644,6 +2647,7 @@ export const schema: SchemaV1 = build_schema({
     info: {},
     fields: {
       ...BuiltInFields,
+      accessTags: { redactions: ['enduser'], validator: listOfStringsValidatorEmptyOk },
       archivedAt: { validator: dateOptionalOrEmptyStringValidator },
       title: {
         validator: stringValidator100,
@@ -3486,7 +3490,9 @@ export const schema: SchemaV1 = build_schema({
         {
           explanation: "Only admin users can update tags when accessTags is enabled",
           evaluate: ({ _id }, _, session, method, { updates } ) => {
-            if (session.type === 'user' && !session.eat) return // accessTags is not enabled
+            // editing a user's tags is a privilege-escalation vector whenever tags gate visibility:
+            // enduser access tags (eat) OR resource access tags (erat). Skip only when neither is enabled.
+            if (session.type === 'user' && !session.eat && !(session as UserSession)?.erat) return // neither access-tags feature enabled
             if ((session as UserSession)?.roles?.includes('Admin')) return
             if (method === 'create') return
             if (!updates?.tags) return
@@ -4182,7 +4188,8 @@ export const schema: SchemaV1 = build_schema({
       },
     },
     fields: {
-      ...BuiltInFields, 
+      ...BuiltInFields,
+      accessTags: { redactions: ['enduser'], validator: listOfStringsValidatorEmptyOk },
       archivedAt: { validator: dateOptionalOrEmptyStringValidator },
       mmsAttachmentURLs: { validator: listOfUniqueStringsValidatorEmptyOk }, 
       title: {
@@ -4230,7 +4237,8 @@ export const schema: SchemaV1 = build_schema({
     defaultActions: { read: {}, readMany: {}, update: {}, delete: {} },
     enduserActions: { prepare_file_upload: {}, confirm_file_upload: {}, file_download_URL: {}, read: {}, readMany: {}, delete: {}, update: { } /* allow to hide from client side */ },
     fields: {
-      ...BuiltInFields, 
+      ...BuiltInFields,
+      accessTags: { redactions: ['enduser'], validator: listOfStringsValidatorEmptyOk },
       source: { validator: stringValidator100 },
       tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, 
       name: {
@@ -4499,7 +4507,7 @@ export const schema: SchemaV1 = build_schema({
     },
     enduserActions: { create: {}, read: {}, readMany: {} },
     fields: {
-      ...BuiltInFields, 
+      ...BuiltInFields,
       title: {
         validator: stringValidator1000,
         required: true,
@@ -4824,6 +4832,7 @@ export const schema: SchemaV1 = build_schema({
     },
     fields: {
       ...BuiltInFields,
+      accessTags: { redactions: ['enduser'], validator: listOfStringsValidatorEmptyOk },
       showByUserTags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       belugaVisitType: { validator: stringValidator },
       belugaVerificationId: { validator: stringValidator },
@@ -5945,6 +5954,7 @@ export const schema: SchemaV1 = build_schema({
       meetingId: { validator: mongoIdStringValidator, readonly: true },
       bookingPageId: { validator: mongoIdStringValidator }, // allows rescheduling via booking page
       meetingStatus: { validator: meetingStatusValidator },
+      videoCallAttendance: { validator: listOfVideoCallParticipantEventsValidator, readonly: true },
       attachments: { validator: listOfGenericAttachmentsValidator },
       cancelledAt: { validator: dateOptionalOrEmptyStringValidator },
       rescheduledAt: { validator: dateOptionalOrEmptyStringValidator },
@@ -6079,7 +6089,8 @@ export const schema: SchemaV1 = build_schema({
     customActions: {},
     enduserActions: { read: {}, readMany: {} },
     fields: {
-      ...BuiltInFields, 
+      ...BuiltInFields,
+      accessTags: { redactions: ['enduser'], validator: listOfStringsValidatorEmptyOk },
       dontSyncToElation: { validator: booleanValidator },
       sendIcsEmail: { validator: booleanValidator },
       createAndBookAthenaSlot: { validator: booleanValidator },
@@ -6607,7 +6618,8 @@ export const schema: SchemaV1 = build_schema({
       search: {},
     },
     fields: {
-      ...BuiltInFields, 
+      ...BuiltInFields,
+      accessTags: { redactions: ['enduser'], validator: listOfStringsValidatorEmptyOk },
       slug: { validator: stringValidator250 },
       title: {
         validator: stringValidator1000,
@@ -7623,6 +7635,12 @@ export const schema: SchemaV1 = build_schema({
       },
       uiRestrictions: { validator: userUIRestrictionsValidator },
       fieldRedactions: { validator: userFieldRedactionsValidator },
+      portalSchemaRestrictions: {
+        validator: portalSchemaRestrictionsValidator,
+        initializer: () => ({ disableEditContent: true, disableEditTheming: true, disableEditSnippets: true }),
+      },
+      color: { validator: stringValidator1000 },
+      description: { validator: stringValidator1000Optional },
     }
   },
   appointment_booking_pages: {
@@ -7666,7 +7684,8 @@ export const schema: SchemaV1 = build_schema({
       read: {}, readMany: {}, validate_access_token: {},
     },
     fields: {
-      ...BuiltInFields, 
+      ...BuiltInFields,
+      accessTags: { redactions: ['enduser'], validator: listOfStringsValidatorEmptyOk },
       dontRestrictRescheduleToOriginalHost: { validator: booleanValidator },
       gtmTag: { validator: stringValidator100EscapeHTML },
       archivedAt: { validator: dateOptionalOrEmptyStringValidator },
@@ -8503,7 +8522,8 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
     },
     enduserActions: {},
     fields: {
-      ...BuiltInFields, 
+      ...BuiltInFields,
+      accessTags: { redactions: ['enduser'], validator: listOfStringsValidatorEmptyOk },
       title: {
         validator: stringValidator100,
         required: true,
@@ -8858,7 +8878,8 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
     customActions: {},
     enduserActions: {},
     fields: {
-      ...BuiltInFields, 
+      ...BuiltInFields,
+      accessTags: { redactions: ['enduser'], validator: listOfStringsValidatorEmptyOk },
       title: {
         validator: stringValidator,
         required: true,
@@ -9040,14 +9061,33 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           }
         },
         {
-          explanation: "Locked time tracks only allow review field updates",
-          evaluate: (_v, _deps, _session, method, { original, updates }) => {
+          explanation: "Locked time tracks only allow review field updates, or owner resubmission of rejected entries",
+          evaluate: (_v, _deps, session, method, { original, updates }) => {
             if (method !== 'update') return
             const orig = original as any as TimeTrack | undefined
             if (!orig?.lockedAt) return
+
+            const u = updates as any as Partial<TimeTrack> | undefined
             const reviewFields = ['reviewedAt', 'reviewedByUserId', 'reviewApproved', 'reviewNote']
             const nonReviewFields = Object.keys(updates || {}).filter(k => !reviewFields.includes(k))
-            if (nonReviewFields.length > 0) return `Time track is locked. Only review fields (${reviewFields.join(', ')}) can be updated.`
+            if (nonReviewFields.length === 0) return // pure review update — unchanged behavior
+
+            const isRejected = !!orig.reviewedAt && orig.reviewApproved === false
+            const resubmitFields = [
+              ...reviewFields,
+              'correctedAt', 'correctedByUserId', 'correctionNote',
+              'originalTotalDurationInMS', 'totalDurationInMS',
+              'lockedAt', 'lockedByUserId',
+            ]
+            const disallowed = Object.keys(updates || {}).filter(k => !resubmitFields.includes(k))
+
+            if (isRejected && session.id === orig.userId && disallowed.length === 0) {
+              if (u?.reviewedAt !== '') return "Resubmitting a rejected time track requires clearing reviewedAt (set to '')"
+              if (u?.reviewApproved === true) return "Cannot approve your own time track during resubmission"
+              return // valid resubmit — entry returns to Pending
+            }
+
+            return `Time track is locked. Only review fields (${reviewFields.join(', ')}) can be updated.`
           }
         },
         {
@@ -9132,6 +9172,19 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       reviewNote: { validator: stringValidator1000Optional },
       lockedAt: { validator: dateValidatorOptional },
       lockedByUserId: { validator: mongoIdStringOptional },
+      // server-appended on resubmission of a rejected entry (see routing.ts update handler)
+      // note: reviewApproved remains false after resubmit (booleans can't be cleared to '') — status logic must key off reviewedAt
+      reviewHistory: {
+        validator: listValidatorOptionalOrEmptyOk(objectValidator<TimeTrackReviewHistoryItem>({
+          reviewedAt: dateValidator,
+          reviewedByUserId: mongoIdStringOptional,
+          reviewApproved: booleanValidatorOptional,
+          reviewNote: stringValidator1000Optional,
+          resubmittedAt: dateValidatorOptional,
+          resubmittedByUserId: mongoIdStringOptional,
+        })),
+        readonly: true, // server-appended only — clients can read, never write
+      },
     },
   },
   ticket_queues: {
@@ -9744,7 +9797,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
     fields: {
       ...BuiltInFields,
       integration: { validator: stringValidator, readonly: true, examples: ['Canvas'] },
-      status: { validator: exactMatchValidator(['Success', 'Error']), readonly: true, examples: ['Error'] },
+      status: { validator: exactMatchValidator(['Success', 'Error', 'Info']), readonly: true, examples: ['Error'] },
       type: { validator: stringValidator, readonly: true, examples: ['Patient Create'] },
       payload: { validator: stringValidator, readonly: true, examples: ['{}'] },
       response: { validator: stringValidator, readonly: true, examples: ['{}'] },

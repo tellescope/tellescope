@@ -312,6 +312,7 @@ export type OrganizationSettings = {
   },
   users?: {
     sessionDurationInHours?: number,
+    enableResourceAccessTags?: boolean,
   },
   integrations?: {
     vitalLabOrderPhysicianOptional?: boolean,
@@ -326,6 +327,7 @@ export type OrganizationSettings = {
   },
   timeTracking?: {
     enabled?: boolean,
+    setAppointmentDurationOnTimeTrackClose?: boolean,
     inactivityThresholdInSeconds?: number, // when > 0: prompts on inactivity, auto-pauses (excluding idle time), and guards tab close
   }
 }
@@ -671,12 +673,14 @@ export interface UserSession extends Session, OrganizationLimits { // User joine
   fromEmail?: string,
   verifiedEmail: boolean;
   wasAutomated: boolean;
-  limits?: OrganizationLimits, 
+  limits?: OrganizationLimits,
   uiRestrictions?: UserUIRestrictions,
   fieldRedactions?: UserFieldRedactions,
+  portalSchemaRestrictions?: PortalSchemaRestrictions,
   dashboardView?: CustomDashboardView,
   hasTicketQueues?: boolean,
   eat?: boolean, // enableAccessTags
+  erat?: boolean, // enableResourceAccessTags
   lockedOutUntil?: number,
   duration?: number,
   doseSpotUserId?: string,
@@ -1355,6 +1359,7 @@ export interface Journey_required {
   title: string;
 }
 export interface Journey extends Journey_readonly, Journey_required, Journey_updatesDisabled {
+  accessTags?: string[],
   defaultState: string;
   states: JourneyState[];
   description?: string;
@@ -1600,6 +1605,7 @@ export interface MessageTemplate_required {
 }
 export interface MessageTemplate_updatesDisabled {}
 export interface MessageTemplate extends MessageTemplate_readonly, MessageTemplate_required, MessageTemplate_updatesDisabled {
+  accessTags?: string[],
   html: string;
   type?: MessageTemplateType;
   editorState?: string
@@ -1642,6 +1648,7 @@ export interface File_required {
 }
 export interface File_updatesDisabled {}
 export interface File extends File_readonly, File_required, File_updatesDisabled, EnduserPortalVisibility {
+  accessTags?: string[],
   enduserId?: string;
   formResponseId?: string,
   pushedToClientPortal?: boolean,
@@ -2093,6 +2100,7 @@ export type FormCustomization = {
   publicFormSubmitHTMLDescription?: string,
   logoURL?: string, // Custom logo URL to override organization logo on this form
   logoHeight?: number,
+  logoAlignment?: 'left' | 'center' | 'right', // V2 forms: logo horizontal alignment, default left
   publicLabelPrefix?: string,
   publicFnameLabel?: string,
   publicLnameLabel?: string,
@@ -2121,6 +2129,7 @@ export interface Form_required {
 }
 export interface Form_updatesDisabled {}
 export interface Form extends Form_readonly, Form_required, Form_updatesDisabled {
+  accessTags?: string[],
   gtmTag?: string, // for Google Tag Manager
   ipAddressCustomField: string,
   archivedAt?: Date | '',
@@ -2761,10 +2770,20 @@ export interface CalendarEventPortalSettings {
   hideUsers?: boolean,
 }
 
-export interface CalendarEvent_readonly extends ClientRecord { 
-  meetingId?: string 
+export type VideoCallParticipantEvent = {
+  id: string,                 // attendee id (Twilio ParticipantIdentity); '' if unmatched
+  type: 'connected' | 'disconnected',
+  timestamp: Date,            // from Twilio Timestamp, fallback new Date()
+  meetingId: string,          // the Meeting this event belongs to (combined-history tag)
+  participantSid?: string,    // Twilio ParticipantSid
+  durationSeconds?: number,   // Twilio ParticipantDuration, present on 'disconnected'
+}
+
+export interface CalendarEvent_readonly extends ClientRecord {
+  meetingId?: string
   meetingStatus?: MeetingStatus,
   references?: RelatedRecord[]
+  videoCallAttendance?: VideoCallParticipantEvent[], // server-written join/leave log for video calls
 }
 export interface CalendarEvent_required {
   title: string,
@@ -2955,6 +2974,7 @@ export interface CalendarEventTemplate_required {
 }
 export interface CalendarEventTemplate_updatesDisabled {}
 export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, CalendarEventTemplate_required, CalendarEventTemplate_updatesDisabled {
+  accessTags?: string[],
   dontSyncToElation?: boolean,
   sendIcsEmail?: boolean,
   createAndBookAthenaSlot?: boolean,
@@ -3059,6 +3079,7 @@ export interface AppointmentBookingPage_required {
 }
 export interface AppointmentBookingPage_updatesDisabled {}
 export interface AppointmentBookingPage extends AppointmentBookingPage_readonly, AppointmentBookingPage_required, AppointmentBookingPage_updatesDisabled {
+  accessTags?: string[],
   startDate?: Date,
   endDate?: Date,
   primaryColor?: string,
@@ -3802,6 +3823,7 @@ export interface ManagedContentRecord_updatesDisabled {
   type?: ManagedContentRecordType,
 }
 export interface ManagedContentRecord extends ManagedContentRecord_readonly, ManagedContentRecord_required, ManagedContentRecord_updatesDisabled {
+  accessTags?: string[],
   index?: number,
   headerPhoto?: string,
   publicRead?: boolean,
@@ -4066,6 +4088,12 @@ export interface CarePlan extends CarePlan_readonly, CarePlan_required, CarePlan
 export type TypedField = { type?: string, field?: string, }
 export type UserFieldRedactions = { [modelName: string]: string[] }
 
+export type PortalSchemaRestrictions = {
+  disableEditContent?: boolean,
+  disableEditTheming?: boolean,
+  disableEditSnippets?: boolean,
+}
+
 export type UserUIRestrictions = {
   hideDashboard?: boolean,
   hideInbox?: boolean,
@@ -4097,6 +4125,9 @@ export interface RoleBasedAccessPermission_required {
   permissions: Partial<AccessPermissions>,
   uiRestrictions?: UserUIRestrictions,
   fieldRedactions?: UserFieldRedactions,
+  portalSchemaRestrictions?: PortalSchemaRestrictions,
+  color?: string,
+  description?: string,
 }
 export interface RoleBasedAccessPermission_updatesDisabled {}
 export interface RoleBasedAccessPermission extends RoleBasedAccessPermission_readonly, RoleBasedAccessPermission_required, RoleBasedAccessPermission_updatesDisabled {}
@@ -4824,7 +4855,7 @@ export type AutomationTriggerEvents = {
   'SMS Reply': AutomationTriggerEventBuilder<"SMS Reply", { templateIds: string[], replyKeywords?: string[] }, {}>,
   'Order Status Equals': AutomationTriggerEventBuilder<"Order Status Equals", {
     source: string,
-    status: string,
+    status?: string,
     fills?: string[],
     skus?: string[],
     skuPartials?: string[],
@@ -4887,6 +4918,7 @@ export interface AutomationTrigger_required {
 }
 export interface AutomationTrigger_updatesDisabled {}
 export interface AutomationTrigger extends AutomationTrigger_readonly, AutomationTrigger_required, AutomationTrigger_updatesDisabled {
+  accessTags?: string[],
   enduserCondition?: Record<string, any>,
   journeyId?: string,
   oncePerEnduser?: boolean,
@@ -5014,7 +5046,13 @@ export type PhoneTreeActions = {
     playback?: Partial<PhonePlayback>,
     playbackVoicemail?: Partial<PhonePlayback>,
   }>,
-  'Forward Call': PhoneTreeActionBuilder<"Forward Call", { to: string, playback?: Partial<PhonePlayback> }>
+  'Forward Call': PhoneTreeActionBuilder<"Forward Call", {
+    to?: string,                // phone number (now optional — one of two modes)
+    sipUrl?: string,            // when set, forward via SIP instead of phone number
+    sipUsername?: string,       // optional SIP auth
+    sipPassword?: string,       // optional SIP auth
+    playback?: Partial<PhonePlayback>,
+  }>
   'Conditional Split': PhoneTreeActionBuilder<"Conditional Split", { 
     timezone?: Timezone,
     weeklyAvailabilities?: WeeklyAvailability[],
@@ -5078,6 +5116,7 @@ export interface TableView_required {
 }
 export interface TableView_updatesDisabled {}
 export interface TableView extends TableView_readonly, TableView_required, TableView_updatesDisabled {
+  accessTags?: string[],
   defaultForRoles?: string[],
   defaultForUserIds?: string[],
   filter?: Indexable,
@@ -5166,6 +5205,15 @@ export type TimeTrackTimestamp = {
   timestamp: Date,
 }
 
+export type TimeTrackReviewHistoryItem = {
+  reviewedAt: Date,
+  reviewedByUserId?: string,
+  reviewApproved?: boolean,
+  reviewNote?: string,
+  resubmittedAt?: Date,
+  resubmittedByUserId?: string,
+}
+
 export interface TimeTrack_readonly extends ClientRecord {}
 export interface TimeTrack_updatesDisabled {
   isHistorical?: boolean,
@@ -5194,6 +5242,7 @@ export interface TimeTrack extends TimeTrack_readonly, TimeTrack_required, TimeT
   reviewNote?: string,
   lockedAt?: Date | '',
   lockedByUserId?: string,
+  reviewHistory?: TimeTrackReviewHistoryItem[],
 }
 
 export interface TicketQueue_readonly extends ClientRecord {
@@ -5502,7 +5551,7 @@ export interface AllergyCode extends AllergyCode_readonly, AllergyCode_required,
 
 export interface IntegrationLog_readonly extends ClientRecord {
   integration: string,
-  status: "Success" | "Error",
+  status: "Success" | "Error" | "Info",
   type: string, // e.g. Create Patient
   url?: string, // for logging endpoint
   payload?: string, // for logging payload sent (if not too space-intensive)

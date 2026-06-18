@@ -428,7 +428,11 @@ const pollForErrorHandling = async <T>(
   evaluateFn: (result: T) => boolean,
   description: string,
   intervalMs = 500,
-  maxIterations = 20
+  // Default window must exceed two worker poll cycles. Automated actions are processed every
+  // >= 8s (worker pollingDelaySeconds = Math.max(NUM_THREADS, 8)), and the onError flow needs
+  // two cycles (cycle 1: action fails + onError action created; cycle 2: onError tag added),
+  // so ~16s worst case. 60 * 500ms = 30s gives buffer. Do not lower below ~30s.
+  maxIterations = 60
 ): Promise<void> => {
   let lastResult: T | undefined
 

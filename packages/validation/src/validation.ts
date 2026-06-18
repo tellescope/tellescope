@@ -23,6 +23,7 @@ import {
   SessionType,
   AttendeeInfo,
   MeetingInfo,
+  VideoCallParticipantEvent,
   CUDSubscription,
   FormField,
   AutomationEventType,
@@ -193,6 +194,7 @@ import {
   EmbeddingType,
   UserCallRoutingBehavior,
   UserUIRestrictions,
+  PortalSchemaRestrictions,
   ExternalChatGPTMessage,
   FormResponseAnswerTime,
   EnduserProfileViewBlocks,
@@ -962,7 +964,14 @@ export const stringValidator5000OptionalEmptyOkay: ValidatorDefinition<string> =
 }
 export const stringValidator100: ValidatorDefinition<string> = {
   validate: (o={}) => build_validator(
-    escapeString(o), { ...o, maxLength: 100, listOf: false  } 
+    escapeString(o), { ...o, maxLength: 100, listOf: false  }
+  ),
+  getExample: getExampleString,
+  getType: getTypeString
+}
+export const stringValidator100Optional: ValidatorDefinition<string> = {
+  validate: (o={}) => build_validator(
+    escapeString(o), { ...o, maxLength: 100, listOf: false, isOptional: true, emptyStringOk: true }
   ),
   getExample: getExampleString,
   getType: getTypeString
@@ -1523,6 +1532,38 @@ export const urlValidator: ValidatorDefinition<string> = {
     { ...options, listOf: false }
   ),
   getExample: () => '"https://www.tellescope.com"',
+  getType: getTypeString,
+}
+
+// requires a SIP URI like sip:agent@pbx.example.com (or sips:), with a user@host portion
+const validate_sip_url = (s: any) => {
+  if (typeof s !== 'string') throw new Error("SIP URL must be a string")
+
+  const match = /^sips?:(.+)$/i.exec(s.trim())
+  if (!match) throw new Error(`${s} is not a valid SIP URL (must start with sip: or sips:)`)
+
+  const remainder = match[1]
+  const atIndex = remainder.indexOf('@')
+  if (atIndex <= 0 || atIndex >= remainder.length - 1) {
+    throw new Error(`${s} is not a valid SIP URL (must contain a user@host portion)`)
+  }
+
+  return s.trim()
+}
+export const sipUrlValidator: ValidatorDefinition<string> = {
+  validate: (options={}) => build_validator(
+    validate_sip_url,
+    { ...options, maxLength: 256, listOf: false }
+  ),
+  getExample: () => "sip:agent@pbx.example.com",
+  getType: getTypeString,
+}
+export const sipUrlValidatorOptional: ValidatorDefinition<string> = {
+  validate: (options={}) => build_validator(
+    validate_sip_url,
+    { ...options, maxLength: 256, listOf: false, isOptional: true, emptyStringOk: true }
+  ),
+  getExample: () => "sip:agent@pbx.example.com",
   getType: getTypeString,
 }
 
@@ -2460,6 +2501,16 @@ export const attendeeValidator = objectValidator<{
   info: attendeeInfoValidator,
 }) 
 export const listOfAttendeesValidator = listValidator(attendeeValidator)
+
+export const videoCallParticipantEventValidator = objectValidator<VideoCallParticipantEvent>({
+  id: stringValidator250,
+  type: exactMatchValidator<'connected' | 'disconnected'>(['connected', 'disconnected']),
+  timestamp: dateValidator,
+  meetingId: mongoIdStringRequired,
+  participantSid: stringValidatorOptional,
+  durationSeconds: nonNegNumberValidatorOptional,
+})
+export const listOfVideoCallParticipantEventsValidator = listValidator(videoCallParticipantEventValidator)
 export const meetingInfoValidator = objectValidator<{ Meeting: MeetingInfo }>({ 
   Meeting: objectAnyFieldsAnyValuesValidator,
 }) 
@@ -4761,6 +4812,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
   }, { isOptional: true, emptyOk: true, }),
   users: objectValidator<OrganizationSettings['users']>({
     sessionDurationInHours: numberValidatorOptional,
+    enableResourceAccessTags: booleanValidatorOptional,
   }, { isOptional: true, emptyOk: true, }),
   integrations: objectValidator<OrganizationSettings['integrations']>({
     vitalLabOrderPhysicianOptional: booleanValidatorOptional,
@@ -4775,6 +4827,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
   }, { isOptional: true, emptyOk: true, }),
   timeTracking: objectValidator<OrganizationSettings['timeTracking']>({
     enabled: booleanValidatorOptional,
+    setAppointmentDurationOnTimeTrackClose: booleanValidatorOptional,
     inactivityThresholdInSeconds: numberValidatorOptional,
   }, { isOptional: true, emptyOk: true, }),
 })
@@ -5080,7 +5133,7 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     type: exactMatchValidator(['Order Status Equals']),
     info: objectValidator<AutomationTriggerEvents['Order Status Equals']['info']>({
       source: stringValidator100,
-      status: stringValidator100,
+      status: stringValidator100Optional,
       fills: listOfStringsValidatorOptionalOrEmptyOk,
       skus: listOfStringsValidatorOptionalOrEmptyOk,
       skuPartials: listOfStringsValidatorOptionalOrEmptyOk,
@@ -6353,6 +6406,12 @@ export const userUIRestrictionsValidator = objectValidator<UserUIRestrictions>({
   hideCalendarFilters: booleanValidatorOptional,
 }, { emptyOk: true })
 
+export const portalSchemaRestrictionsValidator = objectValidator<PortalSchemaRestrictions>({
+  disableEditContent: booleanValidatorOptional,
+  disableEditTheming: booleanValidatorOptional,
+  disableEditSnippets: booleanValidatorOptional,
+}, { emptyOk: true })
+
 const externalChatGPTMessageValidator = objectValidator<ExternalChatGPTMessage>({
   role: exactMatchValidator<ExternalChatGPTMessage['role']>(['assistant', 'user']),
   content: stringValidator5000,
@@ -6617,8 +6676,18 @@ export const phoneTreeActionValidator = orValidator<{ [K in PhoneTreeActionType]
   "Forward Call": objectValidator<PhoneTreeActions["Forward Call"]>({
     type: exactMatchValidator(['Forward Call']),
     info: objectValidator<PhoneTreeActions["Forward Call"]['info']>({
-      to: phoneValidator,
+      to: phoneValidatorOptional,
+      sipUrl: sipUrlValidatorOptional,
+      sipUsername: stringValidatorOptional,
+      sipPassword: stringValidatorOptional,
       playback: phonePlaybackValidatorOptional,
+    }, {
+      inputModifier: (o) => {
+        if (!o?.to && !o?.sipUrl) {
+          throw new Error('Forward Call requires either a phone number (to) or a SIP URL (sipUrl)')
+        }
+        return o
+      },
     }),
   }),
   "Conditional Split": objectValidator<PhoneTreeActions["Conditional Split"]>({
@@ -6701,6 +6770,7 @@ export const formCustomizationValidator = objectValidator<Form['customization']>
   primaryColor: stringValidatorOptionalEmptyOkay, // Custom primary/accent color
   secondaryColor: stringValidatorOptionalEmptyOkay, // Custom secondary color
   showLogoOnIntakePage: booleanValidatorOptional,
+  logoAlignment: exactMatchValidatorOptional(['left', 'center', 'right']),
 })
 
 export const AI_SUMMARY_DATA_SOURCES: AISummaryDataSource[] = [

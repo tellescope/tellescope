@@ -83,12 +83,13 @@ import { cross_org_api_key_tests } from "./api_tests/cross_org_api_key.test";
 import { custom_dashboards_tests } from "./api_tests/custom_dashboards.test";
 import { message_assignment_trigger_tests } from "./api_tests/message_assignment_trigger.test";
 import { outbound_chat_sent_trigger_tests } from "./api_tests/outbound_chat_sent_trigger.test";
-import { time_tracks_tests, time_tracks_historical_tests, time_tracks_correction_tests, time_tracks_review_tests, time_tracks_lock_tests, time_tracks_edge_case_tests } from "./api_tests/time_tracks.test";
+import { time_tracks_tests, time_tracks_historical_tests, time_tracks_correction_tests, time_tracks_review_tests, time_tracks_lock_tests, time_tracks_edge_case_tests, time_tracks_resubmit_tests, time_tracks_appointment_duration_tests } from "./api_tests/time_tracks.test";
 import { monthly_availability_restrictions_tests } from "./api_tests/monthly_availability_restrictions.test";
 import { calendar_event_limits_tests } from "./api_tests/calendar_event_limits.test";
 import { custom_aggregation_tests } from "./api_tests/custom_aggregation.test";
 import { chats_analytics_tests } from "./api_tests/chats_analytics.test";
 import { no_access_permission_checks_tests } from "./api_tests/no_access_permission_checks.test";
+import { resource_access_tags_tests } from "./api_tests/resource_access_tags.test";
 import { field_redaction_tests } from "./api_tests/field_redaction.test";
 import { data_sync_redaction_bypass_tests } from "./api_tests/security/F-0001-data-sync-redaction-bypass.test";
 import { enduser_write_restrictions_tests } from "./api_tests/security/F-0106-F-0110-enduser-write-restrictions.test";
@@ -3713,6 +3714,290 @@ const order_status_equals_tests = async () => {
   ])
 }
 
+// Covers the "blank status matches any order status" behavior (Order Status Equals acting as "Order Status Changed").
+// Kept separate from order_status_equals_tests because a blank-status trigger would break that test's exact tag-count assertions.
+const order_status_blank_tests = async () => {
+  log_header("Automation Trigger Tests (Order Status Equals - blank status)")
+
+  // A and A2 both fire on any status for BlankSource; the only difference is omitted vs. empty-string status.
+  const A = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Order Status Equals', info: { source: 'BlankSource' } }, // status omitted entirely
+    action: { type: 'Add Tags', info: { tags: ['AnyOmit'] }},
+    status: 'Active',
+    title: "Blank status (omitted)"
+  })
+  const A2 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Order Status Equals', info: { source: 'BlankSource', status: '' } }, // explicit empty string
+    action: { type: 'Add Tags', info: { tags: ['AnyEmpty'] }},
+    status: 'Active',
+    title: "Blank status (empty string)"
+  })
+  const B = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Order Status Equals', info: { source: 'BlankSource', status: '', skus: ['MATCH-SKU'] } },
+    action: { type: 'Add Tags', info: { tags: ['BlankWithSku'] }},
+    status: 'Active',
+    title: "Blank status with SKU filter"
+  })
+  const C = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Order Status Equals', info: { source: 'OtherSource' } }, // blank status, different source
+    action: { type: 'Add Tags', info: { tags: ['WrongSource'] }},
+    status: 'Active',
+    title: "Blank status, other source"
+  })
+  const D = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Order Status Equals', info: { source: 'BlankSource', status: 'Shipped' } }, // status-specific (regression)
+    action: { type: 'Add Tags', info: { tags: ['ShippedOnly'] }},
+    status: 'Active',
+    title: "Status-specific (regression)"
+  })
+  // BA/BD exercise the separate bulk-create code path (createSome of 2+); kept on their own source so the
+  // pre-existing "bulk ignores sku/protocol filters" divergence doesn't affect these assertions.
+  const BA = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Order Status Equals', info: { source: 'BulkSource' } }, // blank status
+    action: { type: 'Add Tags', info: { tags: ['BulkAny'] }},
+    status: 'Active',
+    title: "Bulk blank status"
+  })
+  const BD = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Order Status Equals', info: { source: 'BulkSource', status: 'Shipped' } }, // status-specific
+    action: { type: 'Add Tags', info: { tags: ['BulkShipped'] }},
+    status: 'Active',
+    title: "Bulk status-specific"
+  })
+  // BD2's status matches NO order in the bulk batch below; backwards-compat: it must never fire (the query's $in
+  // branch excludes it entirely, exactly as before the blank-status change).
+  const BD2 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Order Status Equals', info: { source: 'BulkSource', status: 'NeverInBatch' } },
+    action: { type: 'Add Tags', info: { tags: ['BulkNever'] }},
+    status: 'Active',
+    title: "Bulk status-specific (absent from batch)"
+  })
+  // P: blank status composed with a protocol filter (proves blank works with non-SKU filters + the no-protocol branch)
+  const P = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Order Status Equals', info: { source: 'BlankSource', status: '', protocols: ['Protocol-A'] } },
+    action: { type: 'Add Tags', info: { tags: ['BlankProtocol'] }},
+    status: 'Active',
+    title: "Blank status with protocol filter"
+  })
+
+  // Case 1: validation accepts triggers with no status / empty status (A and A2 created above without error)
+  await async_test(
+    "Trigger with omitted status was created",
+    () => Promise.resolve(A),
+    { onResult: t => !!t.id && t.event.type === 'Order Status Equals' && !t.event.info.status }
+  )
+  await async_test(
+    "Trigger with empty-string status was created",
+    () => Promise.resolve(A2),
+    { onResult: t => !!t.id && t.event.type === 'Order Status Equals' && t.event.info.status === '' }
+  )
+
+  // Case 2: blank status fires on an arbitrary status
+  const e2 = await sdk.api.endusers.createOne({})
+  await sdk.api.enduser_orders.createOne({ status: 'StatusOne', source: 'BlankSource', title: 'Title', externalId: 'blank-1', enduserId: e2.id })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Blank status fires on arbitrary status (no other tags)",
+    () => sdk.api.endusers.getOne(e2.id),
+    { onResult: e => !!(
+       e.tags?.includes('AnyOmit')
+    && e.tags?.includes('AnyEmpty')
+    && !e.tags?.includes('BlankWithSku')
+    && !e.tags?.includes('WrongSource')
+    && !e.tags?.includes('ShippedOnly')
+    ) }
+  )
+
+  // Case 3: blank status fires on a totally different status value (status-value-independent)
+  const e3 = await sdk.api.endusers.createOne({})
+  await sdk.api.enduser_orders.createOne({ status: 'totally-arbitrary-xyz', source: 'BlankSource', title: 'Title', externalId: 'blank-2', enduserId: e3.id })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Blank status fires on a different arbitrary status",
+    () => sdk.api.endusers.getOne(e3.id),
+    { onResult: e => !!(
+       e.tags?.includes('AnyOmit')
+    && e.tags?.includes('AnyEmpty')
+    ) }
+  )
+
+  // Case 4: source isolation - blank trigger does not fire for a different source
+  const e4 = await sdk.api.endusers.createOne({})
+  await sdk.api.enduser_orders.createOne({ status: 'StatusOne', source: 'DifferentSource', title: 'Title', externalId: 'blank-3', enduserId: e4.id })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Blank status is still scoped to its source",
+    () => sdk.api.endusers.getOne(e4.id),
+    { onResult: e => !!(
+       !e.tags?.includes('AnyOmit')
+    && !e.tags?.includes('AnyEmpty')
+    && !e.tags?.includes('WrongSource') // C only matches OtherSource
+    ) }
+  )
+
+  // Case 5a: other filters still enforced with blank status (sku mismatch)
+  const e5 = await sdk.api.endusers.createOne({})
+  await sdk.api.enduser_orders.createOne({ status: 'whatever', source: 'BlankSource', title: 'Title', externalId: 'blank-4', enduserId: e5.id, sku: 'NOPE' })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Blank status + SKU filter does not fire on SKU mismatch",
+    () => sdk.api.endusers.getOne(e5.id),
+    { onResult: e => !!(
+       e.tags?.includes('AnyOmit')
+    && e.tags?.includes('AnyEmpty')
+    && !e.tags?.includes('BlankWithSku')
+    ) }
+  )
+
+  // Case 5b: other filters still enforced with blank status (sku match)
+  const e6 = await sdk.api.endusers.createOne({})
+  await sdk.api.enduser_orders.createOne({ status: 'whatever', source: 'BlankSource', title: 'Title', externalId: 'blank-5', enduserId: e6.id, sku: 'MATCH-SKU' })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Blank status + SKU filter fires on SKU match",
+    () => sdk.api.endusers.getOne(e6.id),
+    { onResult: e => !!(
+       e.tags?.includes('AnyOmit')
+    && e.tags?.includes('AnyEmpty')
+    && e.tags?.includes('BlankWithSku')
+    ) }
+  )
+
+  // Case 6: update path + regression coexistence with a status-specific trigger
+  const e7 = await sdk.api.endusers.createOne({})
+  const o7 = await sdk.api.enduser_orders.createOne({ status: 'Created', source: 'BlankSource', title: 'Title', externalId: 'blank-6', enduserId: e7.id })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Blank fires on create; status-specific (Shipped) does not yet",
+    () => sdk.api.endusers.getOne(e7.id),
+    { onResult: e => !!(
+       e.tags?.includes('AnyOmit')
+    && e.tags?.includes('AnyEmpty')
+    && !e.tags?.includes('ShippedOnly')
+    ) }
+  )
+  // update to a NON-matching status: blank fires again, but the status-specific trigger must stay un-fired
+  await sdk.api.enduser_orders.updateOne(o7.id, { status: 'Delivered', externalId: 'blank-6-delivered' })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Update to non-matching status: blank fires, status-specific (Shipped) does NOT fire",
+    () => sdk.api.endusers.getOne(e7.id),
+    { onResult: e => !!(
+       e.tags?.includes('AnyOmit') // proves the update event was processed
+    && e.tags?.includes('AnyEmpty')
+    && !e.tags?.includes('ShippedOnly') // 'Delivered' must not trigger the 'Shipped' trigger
+    ) }
+  )
+  // now update to the matching status: status-specific trigger fires
+  await sdk.api.enduser_orders.updateOne(o7.id, { status: 'Shipped', externalId: 'blank-6-shipped' })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Blank fires on update too; status-specific (Shipped) now fires",
+    () => sdk.api.endusers.getOne(e7.id),
+    { onResult: e => !!(
+       e.tags?.includes('AnyOmit')
+    && e.tags?.includes('AnyEmpty')
+    && e.tags?.includes('ShippedOnly')
+    ) }
+  )
+
+  // Case 7: bulk create path (createSome of 2+) must honor blank status + status-specific selectivity.
+  // This exercises a SEPARATE matching code path (handle_orders_create bulk branch) from single creates.
+  const eb1 = await sdk.api.endusers.createOne({})
+  const eb2 = await sdk.api.endusers.createOne({})
+  const eb3 = await sdk.api.endusers.createOne({})
+  await sdk.api.enduser_orders.createSome([
+    { status: 'StatusA', source: 'BulkSource', title: 'Title', externalId: 'bulk-1', enduserId: eb1.id },
+    { status: 'Shipped',  source: 'BulkSource', title: 'Title', externalId: 'bulk-2', enduserId: eb2.id },
+    { status: 'StatusB', source: 'BulkSource', title: 'Title', externalId: 'bulk-3', enduserId: eb3.id },
+  ])
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Bulk create: blank fires on non-Shipped order; status-specific (matching + absent) do not",
+    () => sdk.api.endusers.getOne(eb1.id),
+    { onResult: e => !!(e.tags?.includes('BulkAny') && !e.tags?.includes('BulkShipped') && !e.tags?.includes('BulkNever')) }
+  )
+  await async_test(
+    "Bulk create: blank + matching status-specific fire on the Shipped order; absent-status one does not",
+    () => sdk.api.endusers.getOne(eb2.id),
+    { onResult: e => !!(e.tags?.includes('BulkAny') && e.tags?.includes('BulkShipped') && !e.tags?.includes('BulkNever')) }
+  )
+  await async_test(
+    "Bulk create: blank fires on the other non-Shipped order; status-specific (matching + absent) do not",
+    () => sdk.api.endusers.getOne(eb3.id),
+    { onResult: e => !!(e.tags?.includes('BulkAny') && !e.tags?.includes('BulkShipped') && !e.tags?.includes('BulkNever')) }
+  )
+
+  // Case 8: an order update that does NOT change status must not run the handler (true "status changed" semantic).
+  const e8 = await sdk.api.endusers.createOne({})
+  const o8 = await sdk.api.enduser_orders.createOne({ status: 'Shipped', source: 'BlankSource', title: 'Title', externalId: 'noChange-1', enduserId: e8.id })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Setup: status-specific (Shipped) fired on create",
+    () => sdk.api.endusers.getOne(e8.id),
+    { onResult: e => !!(e.tags?.includes('AnyOmit') && e.tags?.includes('ShippedOnly')) }
+  )
+  // clear tags (replaceObjectFields forces the empty array to actually replace)
+  await sdk.api.endusers.updateOne(e8.id, { tags: [] }, { replaceObjectFields: true })
+  // sanity-check the clear actually took, so a later failure points at re-firing rather than a broken clear
+  await async_test(
+    "Setup: tags cleared before non-status update",
+    () => sdk.api.endusers.getOne(e8.id),
+    { onResult: e => !e.tags?.length }
+  )
+  // update a non-status field (status stays 'Shipped'); handler should early-return and re-add nothing.
+  // If it wrongly fired, the blank triggers A/A2 would re-add AnyOmit/AnyEmpty, so empty tags proves non-firing.
+  await sdk.api.enduser_orders.updateOne(o8.id, { tracking: 'tracking-123', externalId: 'noChange-1b' })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Update with unchanged status does not fire any trigger",
+    () => sdk.api.endusers.getOne(e8.id),
+    { onResult: e => !e.tags?.length }
+  )
+
+  // Case 9: protocol filter with blank status - order without a protocol must not fire (the order.protocol ? : false branch)
+  const e9 = await sdk.api.endusers.createOne({})
+  await sdk.api.enduser_orders.createOne({ status: 'whatever', source: 'BlankSource', title: 'Title', externalId: 'proto-1', enduserId: e9.id })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Blank + protocol filter does not fire when order has no protocol",
+    () => sdk.api.endusers.getOne(e9.id),
+    { onResult: e => !!(e.tags?.includes('AnyOmit') && !e.tags?.includes('BlankProtocol')) }
+  )
+  const e10 = await sdk.api.endusers.createOne({})
+  await sdk.api.enduser_orders.createOne({ status: 'whatever', source: 'BlankSource', title: 'Title', externalId: 'proto-2', enduserId: e10.id, protocol: 'Protocol-A' })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Blank + protocol filter fires when order protocol matches",
+    () => sdk.api.endusers.getOne(e10.id),
+    { onResult: e => !!(e.tags?.includes('AnyOmit') && e.tags?.includes('BlankProtocol')) }
+  )
+
+  await Promise.all([
+    sdk.api.automation_triggers.deleteOne(A.id),
+    sdk.api.automation_triggers.deleteOne(A2.id),
+    sdk.api.automation_triggers.deleteOne(B.id),
+    sdk.api.automation_triggers.deleteOne(C.id),
+    sdk.api.automation_triggers.deleteOne(D.id),
+    sdk.api.automation_triggers.deleteOne(BA.id),
+    sdk.api.automation_triggers.deleteOne(BD.id),
+    sdk.api.automation_triggers.deleteOne(BD2.id),
+    sdk.api.automation_triggers.deleteOne(P.id),
+    sdk.api.endusers.deleteOne(e2.id),
+    sdk.api.endusers.deleteOne(e3.id),
+    sdk.api.endusers.deleteOne(e4.id),
+    sdk.api.endusers.deleteOne(e5.id),
+    sdk.api.endusers.deleteOne(e6.id),
+    sdk.api.endusers.deleteOne(e7.id),
+    sdk.api.endusers.deleteOne(eb1.id),
+    sdk.api.endusers.deleteOne(eb2.id),
+    sdk.api.endusers.deleteOne(eb3.id),
+    sdk.api.endusers.deleteOne(e8.id),
+    sdk.api.endusers.deleteOne(e9.id),
+    sdk.api.endusers.deleteOne(e10.id),
+  ])
+}
+
 const tag_added_tests = async () => {
   log_header("Automation Trigger Tests (Tag Added)")
 
@@ -5305,6 +5590,7 @@ const automation_trigger_tests = async () => {
   await assign_care_team_tests()
   await push_forms_to_portal_group_completion_tests({ sdk, sdkNonAdmin })
   await order_status_equals_tests()
+  await order_status_blank_tests()
   await set_fields_order_templates_tests({ sdk, sdkNonAdmin })
   await medication_added_trigger_tests({ sdk, sdkNonAdmin })
   await appointment_cancelled_tests()
@@ -8862,8 +9148,11 @@ export const switch_to_related_contacts_tests = async () => {
     () => pollForResults(
       () => sdk.api.endusers.getOne(parent.id),
       e => !!e.tags?.includes('Success'),
-      50,
-      200,
+      // switchToRelatedContact (cycle 1) then the afterAction addEnduserTags (cycle 2) each wait a
+      // full worker poll cycle (>= 8s, see worker pollingDelaySeconds), so ~16s worst case. Poll for
+      // 30s (500ms x 60) to cover two cycles plus buffer; the old 10s window timed out flakily.
+      500,
+      60,
     ),
     passOnAnyResult
   )
@@ -14395,7 +14684,7 @@ const ip_address_form_tests = async () => {
   })
 
   await wait(undefined, 500) // wait for IP to be set
-  async_test(
+  await async_test(
     'IP Set on Enduser creation',
     () => sdk.api.endusers.getOne(enduserId),
     { onResult: result => !!result.fields?.IP }
@@ -14414,7 +14703,8 @@ const ip_address_form_tests = async () => {
     lname: 'test',
   })
 
-  async_test(
+  await wait(undefined, 500) // wait for IP to be re-set
+  await async_test(
     'IP Set on update',
     () => sdk.api.endusers.getOne(enduserId),
     { onResult: result => !!result.fields?.IP && result.fields?.otherField === 'Set' && result.id === enduserId }
@@ -14547,6 +14837,7 @@ const ip_address_form_tests = async () => {
     await replace_form_field_template_values_tests()
     await mfa_tests()
     await setup_tests(sdk, sdkNonAdmin)
+    await resource_access_tags_tests({ sdk, sdkNonAdmin })
     await beluga_manual_sync_tests({ sdk, sdkNonAdmin })
     await beluga_pharmacy_mappings_tests({ sdk, sdkNonAdmin })
     await enduser_write_restrictions_tests({ sdk, sdkNonAdmin })
@@ -14586,6 +14877,8 @@ const ip_address_form_tests = async () => {
     await time_tracks_review_tests({ sdk, sdkNonAdmin })
     await time_tracks_lock_tests({ sdk, sdkNonAdmin })
     await time_tracks_edge_case_tests({ sdk, sdkNonAdmin })
+    await time_tracks_resubmit_tests({ sdk, sdkNonAdmin })
+    await time_tracks_appointment_duration_tests({ sdk, sdkNonAdmin })
     await calendar_event_limits_tests({ sdk, sdkNonAdmin })
     await get_some_projection_tests({ sdk, sdkNonAdmin })
     await elation_user_id_tests({ sdk, sdkNonAdmin })

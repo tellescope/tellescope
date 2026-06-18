@@ -747,6 +747,424 @@ export const time_tracks_edge_case_tests = async ({ sdk, sdkNonAdmin }: { sdk: S
   }
 }
 
+// ============================================================
+// Group F: Rejection Notification + Correct & Resubmit
+// ============================================================
+export const time_tracks_resubmit_tests = async ({ sdk, sdkNonAdmin }: { sdk: Session, sdkNonAdmin: Session }) => {
+  log_header("Time Tracks - Rejection Notification + Resubmit Tests")
+
+  const trackIds: string[] = []
+  const nonAdminTrackIds: string[] = []
+  const notificationIds: string[] = []
+
+  // matches the webapp's Correct & Resubmit payload
+  const resubmit_payload = (track: { totalDurationInMS?: number }, byUserId: string, newDurationMS: number) => ({
+    correctedAt: new Date(),
+    correctedByUserId: byUserId,
+    correctionNote: "Corrected after rejection",
+    originalTotalDurationInMS: track.totalDurationInMS || 0,
+    totalDurationInMS: newDurationMS,
+    lockedAt: new Date(),
+    lockedByUserId: byUserId,
+    reviewedAt: '',
+    reviewedByUserId: '',
+    reviewNote: '',
+  })
+
+  try {
+    const now = new Date()
+    const oneHourAgo = new Date(now.getTime() - 3600000)
+    const twoHoursAgo = new Date(now.getTime() - 7200000)
+
+    const create_historical = (title: string) => sdk.api.time_tracks.createOne({
+      title,
+      isHistorical: true,
+      closedAt: now,
+      lockedAt: now,
+      lockedByUserId: sdk.userInfo.id,
+      totalDurationInMS: 3600000,
+      timestamps: [
+        { type: 'start', timestamp: twoHoursAgo },
+        { type: 'pause', timestamp: oneHourAgo },
+      ],
+    } as any)
+
+    // F1: Rejection creates a notification for the owner
+    log("F1: Rejection creates timeTrackRejected notification for owner...")
+    const track = await create_historical("Track for Rejection Notification")
+    trackIds.push(track.id)
+
+    const rejectionNote = "Duration looks wrong, please correct"
+    await sdk.api.time_tracks.updateOne(track.id, {
+      reviewedAt: new Date(),
+      reviewedByUserId: sdkNonAdmin.userInfo.id,
+      reviewApproved: false,
+      reviewNote: rejectionNote,
+    } as any)
+
+    await wait(undefined, 2000) // allow side-effect handler to run
+
+    const notifications = await sdk.api.user_notifications.getSome({
+      filter: { userId: sdk.userInfo.id, type: 'timeTrackRejected' }
+    })
+    const rejectionNotification = notifications.find(n =>
+      n.relatedRecords?.find(r => r.type === 'time_track' && r.id === track.id)
+    )
+    assert(!!rejectionNotification, "F1: timeTrackRejected notification should exist for owner")
+    assert(rejectionNotification!.message.includes(rejectionNote), "F1: notification message should include rejection note")
+    notificationIds.push(rejectionNotification!.id)
+    log("F1: Rejection notification created for owner")
+
+    // F2: Resubmit happy path
+    log("F2: Owner resubmits rejected entry...")
+    const resubmitted = await sdk.api.time_tracks.updateOne(track.id,
+      resubmit_payload(track, sdk.userInfo.id, 1800000) as any
+    )
+    assert(!resubmitted.reviewedAt, "F2: reviewedAt should be cleared after resubmit")
+
+    const refetched = await sdk.api.time_tracks.getOne(track.id)
+    assert(!refetched.reviewedAt, "F2: reviewedAt should be falsy on refetch")
+    assert(refetched.reviewHistory?.length === 1, `F2: reviewHistory should have 1 entry, got ${refetched.reviewHistory?.length}`)
+    assert(refetched.reviewHistory?.[0].reviewApproved === false, "F2: reviewHistory should preserve reviewApproved false")
+    assert(refetched.reviewHistory?.[0].reviewNote === rejectionNote, "F2: reviewHistory should preserve original reviewNote")
+    assert(refetched.reviewHistory?.[0].reviewedByUserId === sdkNonAdmin.userInfo.id, "F2: reviewHistory should preserve reviewedByUserId")
+    assert(!!refetched.reviewHistory?.[0].resubmittedAt, "F2: reviewHistory should record resubmittedAt")
+    assert(refetched.reviewHistory?.[0].resubmittedByUserId === sdk.userInfo.id, "F2: reviewHistory should record resubmittedByUserId")
+    log("F2: Resubmit succeeded with reviewHistory audit trail")
+
+    // F3: Resubmit without clearing reviewedAt - expect 400
+    log("F3: Resubmit without reviewedAt: '' (should fail)...")
+    const track3 = await create_historical("Track for F3")
+    trackIds.push(track3.id)
+    await sdk.api.time_tracks.updateOne(track3.id, {
+      reviewedAt: new Date(),
+      reviewedByUserId: sdkNonAdmin.userInfo.id,
+      reviewApproved: false,
+    } as any)
+
+    const { reviewedAt: _omitted, ...payloadWithoutClear } = resubmit_payload(track3, sdk.userInfo.id, 1800000)
+    await assert_throws(
+      () => sdk.api.time_tracks.updateOne(track3.id, payloadWithoutClear as any),
+      "F3: resubmit without clearing reviewedAt"
+    )
+    log("F3: Correctly rejected resubmit without reviewedAt: ''")
+
+    // F4: Resubmit with self-approval - expect 400
+    log("F4: Resubmit with reviewApproved: true (should fail)...")
+    await assert_throws(
+      () => sdk.api.time_tracks.updateOne(track3.id, {
+        ...resubmit_payload(track3, sdk.userInfo.id, 1800000),
+        reviewApproved: true,
+      } as any),
+      "F4: resubmit with self-approval"
+    )
+    log("F4: Correctly rejected self-approval during resubmit")
+
+    // F5: Correction payload on locked, non-rejected entry - expect 400
+    log("F5: Correction payload on locked non-rejected entry (should fail)...")
+    const track5 = await create_historical("Track for F5")
+    trackIds.push(track5.id)
+    await assert_throws(
+      () => sdk.api.time_tracks.updateOne(track5.id, resubmit_payload(track5, sdk.userInfo.id, 1800000) as any),
+      "F5: correction on locked non-rejected entry"
+    )
+    log("F5: Correctly rejected correction on locked non-rejected entry")
+
+    // F6: Non-owner resubmit attempt - expect 400
+    log("F6: Non-owner resubmit attempt (should fail)...")
+    const nonAdminTrack = await sdkNonAdmin.api.time_tracks.createOne({
+      title: "Non-Admin Track for F6",
+      isHistorical: true,
+      closedAt: now,
+      lockedAt: now,
+      lockedByUserId: sdkNonAdmin.userInfo.id,
+      totalDurationInMS: 3600000,
+      timestamps: [
+        { type: 'start', timestamp: twoHoursAgo },
+        { type: 'pause', timestamp: oneHourAgo },
+      ],
+    } as any)
+    nonAdminTrackIds.push(nonAdminTrack.id)
+
+    await sdk.api.time_tracks.updateOne(nonAdminTrack.id, {
+      reviewedAt: new Date(),
+      reviewedByUserId: sdk.userInfo.id,
+      reviewApproved: false,
+      reviewNote: "Rejected for F6",
+    } as any)
+
+    await assert_throws(
+      () => sdk.api.time_tracks.updateOne(nonAdminTrack.id, resubmit_payload(nonAdminTrack, sdk.userInfo.id, 1800000) as any),
+      "F6: non-owner resubmit"
+    )
+    log("F6: Correctly rejected non-owner resubmit")
+
+    // F7: Second rejection + resubmit appends to reviewHistory
+    log("F7: Reject again after resubmit, resubmit again...")
+    await sdk.api.time_tracks.updateOne(track.id, {
+      reviewedAt: new Date(),
+      reviewedByUserId: sdkNonAdmin.userInfo.id,
+      reviewApproved: false,
+      reviewNote: "Still not right",
+    } as any)
+
+    const rejectedAgain = await sdk.api.time_tracks.getOne(track.id)
+    await sdk.api.time_tracks.updateOne(track.id,
+      resubmit_payload(rejectedAgain, sdk.userInfo.id, 2700000) as any
+    )
+
+    const afterSecondResubmit = await sdk.api.time_tracks.getOne(track.id)
+    assert(afterSecondResubmit.reviewHistory?.length === 2,
+      `F7: reviewHistory should have 2 entries, got ${afterSecondResubmit.reviewHistory?.length}`)
+    assert(afterSecondResubmit.reviewHistory?.[1].reviewNote === "Still not right",
+      "F7: second reviewHistory entry should preserve second rejection note")
+    log("F7: Second rejection/resubmit cycle appended to reviewHistory")
+
+    // F8: Status filters treat reviewedAt: '' as Pending
+    log("F8: Status mdbFilters handle reviewedAt: ''...")
+    const pendingMatches = await sdk.api.time_tracks.getSome({
+      mdbFilter: { $or: [{ reviewedAt: { $exists: false } }, { reviewedAt: '' }] }
+    })
+    assert(!!pendingMatches.find(t => t.id === track.id), "F8: Pending filter should match resubmitted track")
+
+    const rejectedMatches = await sdk.api.time_tracks.getSome({
+      mdbFilter: { reviewedAt: { $exists: true, $ne: '' }, reviewApproved: false }
+    })
+    assert(!rejectedMatches.find(t => t.id === track.id), "F8: Rejected filter should exclude resubmitted track")
+    log("F8: Status filters behave correctly with cleared reviewedAt")
+
+    log("All rejection notification + resubmit tests passed!")
+
+  } finally {
+    for (const id of trackIds) {
+      try { await sdk.api.time_tracks.deleteOne(id) } catch (e) {}
+    }
+    for (const id of nonAdminTrackIds) {
+      try { await sdkNonAdmin.api.time_tracks.deleteOne(id) } catch (e) {}
+    }
+    for (const id of notificationIds) {
+      try { await sdk.api.user_notifications.deleteOne(id) } catch (e) {}
+    }
+    // clean up any remaining timeTrackRejected notifications created by these tests
+    try {
+      const remaining = await sdk.api.user_notifications.getSome({
+        filter: { userId: sdk.userInfo.id, type: 'timeTrackRejected' }
+      })
+      for (const n of remaining) {
+        try { await sdk.api.user_notifications.deleteOne(n.id) } catch (e) {}
+      }
+    } catch (e) {}
+  }
+}
+
+// ============================================================
+// Group F: Appointment Duration from Tracked Time
+// ============================================================
+export const time_tracks_appointment_duration_tests = async ({ sdk, sdkNonAdmin }: { sdk: Session, sdkNonAdmin: Session }) => {
+  log_header("Time Tracks - Appointment Duration from Tracked Time Tests")
+
+  const businessId = sdk.userInfo.businessId
+  const trackIds: string[] = []
+  const formResponseIds: string[] = []
+  const eventIds: string[] = []
+  let formId: string | undefined
+  let enduserId: string | undefined
+
+  try {
+    // Enable time tracking + appointment duration setting
+    log("F0: Enabling timeTracking.setAppointmentDurationOnTimeTrackClose...")
+    await sdk.api.organizations.updateOne(businessId, {
+      settings: { timeTracking: { enabled: true, setAppointmentDurationOnTimeTrackClose: true } }
+    })
+
+    // Shared records
+    const enduser = await sdk.api.endusers.createOne({ email: `tt-duration-${Date.now()}@test.com` })
+    enduserId = enduser.id
+    const form = await sdk.api.forms.createOne({ title: 'Appointment Duration Form' })
+    formId = form.id
+
+    const event = await sdk.api.calendar_events.createOne({
+      title: 'Appointment for Tracked Time',
+      durationInMinutes: 30,
+      startTimeInMS: Date.now(),
+      attendees: [{ type: 'enduser', id: enduser.id }],
+    })
+    eventIds.push(event.id)
+
+    const response1 = await sdk.api.form_responses.createOne({
+      formId: form.id,
+      enduserId: enduser.id,
+      formTitle: form.title,
+      calendarEventId: event.id,
+    })
+    formResponseIds.push(response1.id)
+
+    // Test F1: Close a linked time track -> actualDuration set from tracked time
+    log("F1: Closing linked time track sets appointment actualDuration...")
+    const track1 = await sdk.api.time_tracks.createOne({
+      title: "Tracked Form Completion",
+      activity: { type: 'form_response', id: response1.id },
+    } as any)
+    trackIds.push(track1.id)
+
+    await wait(undefined, 2000)
+    await sdk.api.time_tracks.updateOne(track1.id, {
+      closedAt: new Date(),
+      totalDurationInMS: 1800000, // 30 minutes
+    } as any)
+    await wait(undefined, 1500) // allow side effects to run
+
+    const eventAfterClose = await sdk.api.calendar_events.getOne(event.id)
+    assert(eventAfterClose.actualDuration === 30,
+      `F1: actualDuration should be 30, got ${eventAfterClose.actualDuration}`)
+    log("F1: actualDuration set from closed time track")
+
+    // Test F2: Second closed track on same appointment -> durations are summed
+    log("F2: Second closed track sums durations...")
+    const response2 = await sdk.api.form_responses.createOne({
+      formId: form.id,
+      enduserId: enduser.id,
+      formTitle: form.title,
+      calendarEventId: event.id,
+    })
+    formResponseIds.push(response2.id)
+
+    const track2 = await sdk.api.time_tracks.createOne({
+      title: "Second Tracked Form Completion",
+      activity: { type: 'form_response', id: response2.id },
+    } as any)
+    trackIds.push(track2.id)
+
+    await sdk.api.time_tracks.updateOne(track2.id, {
+      closedAt: new Date(),
+      totalDurationInMS: 600000, // 10 minutes
+    } as any)
+    await wait(undefined, 1500)
+
+    const eventAfterSecond = await sdk.api.calendar_events.getOne(event.id)
+    assert(eventAfterSecond.actualDuration === 40,
+      `F2: actualDuration should be 40 (30 + 10), got ${eventAfterSecond.actualDuration}`)
+    log("F2: actualDuration correctly summed across tracks")
+
+    // Test F3: Linking activity after close triggers recompute
+    log("F3: Post-close activity link triggers recompute...")
+    const response3 = await sdk.api.form_responses.createOne({
+      formId: form.id,
+      enduserId: enduser.id,
+      formTitle: form.title,
+      calendarEventId: event.id,
+    })
+    formResponseIds.push(response3.id)
+
+    const track3 = await sdk.api.time_tracks.createOne({
+      title: "Track Linked After Close",
+    } as any)
+    trackIds.push(track3.id)
+
+    await sdk.api.time_tracks.updateOne(track3.id, {
+      closedAt: new Date(),
+      totalDurationInMS: 300000, // 5 minutes
+    } as any)
+    await wait(undefined, 1500)
+
+    // no activity yet -> actualDuration unchanged
+    const eventBeforeLink = await sdk.api.calendar_events.getOne(event.id)
+    assert(eventBeforeLink.actualDuration === 40,
+      `F3: actualDuration should still be 40 before activity link, got ${eventBeforeLink.actualDuration}`)
+
+    await sdk.api.time_tracks.updateOne(track3.id, {
+      activity: { type: 'form_response', id: response3.id },
+    } as any)
+    await wait(undefined, 1500)
+
+    const eventAfterLink = await sdk.api.calendar_events.getOne(event.id)
+    assert(eventAfterLink.actualDuration === 45,
+      `F3: actualDuration should be 45 (30 + 10 + 5) after post-close link, got ${eventAfterLink.actualDuration}`)
+    log("F3: Post-close activity link recomputed actualDuration")
+
+    // Test F4: Correction recomputes actualDuration
+    log("F4: Correction recomputes actualDuration...")
+    await sdk.api.time_tracks.updateOne(track2.id, {
+      correctedAt: new Date(),
+      correctedByUserId: sdk.userInfo.id,
+      correctionNote: "Adjusting tracked time",
+      originalTotalDurationInMS: 600000,
+      totalDurationInMS: 1200000, // corrected to 20 minutes
+      lockedAt: new Date(),
+      lockedByUserId: sdk.userInfo.id,
+    } as any)
+    await wait(undefined, 1500)
+
+    const eventAfterCorrection = await sdk.api.calendar_events.getOne(event.id)
+    assert(eventAfterCorrection.actualDuration === 55,
+      `F4: actualDuration should be 55 (30 + 20 + 5) after correction, got ${eventAfterCorrection.actualDuration}`)
+    log("F4: Correction recomputed actualDuration")
+
+    // Test F5: Setting disabled -> actualDuration not set
+    log("F5: Setting disabled leaves actualDuration unset...")
+    await sdk.api.organizations.updateOne(businessId, {
+      settings: { timeTracking: { enabled: true, setAppointmentDurationOnTimeTrackClose: false } }
+    })
+
+    const event2 = await sdk.api.calendar_events.createOne({
+      title: 'Appointment Without Duration Sync',
+      durationInMinutes: 30,
+      startTimeInMS: Date.now(),
+      attendees: [{ type: 'enduser', id: enduser.id }],
+    })
+    eventIds.push(event2.id)
+
+    const response4 = await sdk.api.form_responses.createOne({
+      formId: form.id,
+      enduserId: enduser.id,
+      formTitle: form.title,
+      calendarEventId: event2.id,
+    })
+    formResponseIds.push(response4.id)
+
+    const track4 = await sdk.api.time_tracks.createOne({
+      title: "Track With Setting Disabled",
+      activity: { type: 'form_response', id: response4.id },
+    } as any)
+    trackIds.push(track4.id)
+
+    await sdk.api.time_tracks.updateOne(track4.id, {
+      closedAt: new Date(),
+      totalDurationInMS: 1800000,
+    } as any)
+    await wait(undefined, 1500)
+
+    const event2AfterClose = await sdk.api.calendar_events.getOne(event2.id)
+    assert(!event2AfterClose.actualDuration,
+      `F5: actualDuration should stay unset when setting is disabled, got ${event2AfterClose.actualDuration}`)
+    log("F5: actualDuration correctly unset with setting disabled")
+
+    log("All appointment duration tests passed!")
+
+  } finally {
+    for (const id of trackIds) {
+      try { await sdk.api.time_tracks.deleteOne(id) } catch (e) {}
+    }
+    for (const id of formResponseIds) {
+      try { await sdk.api.form_responses.deleteOne(id) } catch (e) {}
+    }
+    for (const id of eventIds) {
+      try { await sdk.api.calendar_events.deleteOne(id) } catch (e) {}
+    }
+    if (formId) {
+      try { await sdk.api.forms.deleteOne(formId) } catch (e) {}
+    }
+    if (enduserId) {
+      try { await sdk.api.endusers.deleteOne(enduserId) } catch (e) {}
+    }
+    try {
+      await sdk.api.organizations.updateOne(businessId, {
+        settings: { timeTracking: { setAppointmentDurationOnTimeTrackClose: false } }
+      })
+    } catch (e) {}
+  }
+}
+
 // Allow running this test file independently
 if (require.main === module) {
   const sdk = new Session({ host })
@@ -764,6 +1182,8 @@ if (require.main === module) {
     await time_tracks_review_tests({ sdk, sdkNonAdmin })
     await time_tracks_lock_tests({ sdk, sdkNonAdmin })
     await time_tracks_edge_case_tests({ sdk, sdkNonAdmin })
+    await time_tracks_resubmit_tests({ sdk, sdkNonAdmin })
+    await time_tracks_appointment_duration_tests({ sdk, sdkNonAdmin })
   }
 
   runTests()

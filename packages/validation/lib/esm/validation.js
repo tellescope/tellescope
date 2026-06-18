@@ -524,6 +524,14 @@ export var stringValidator100 = {
     getExample: getExampleString,
     getType: getTypeString
 };
+export var stringValidator100Optional = {
+    validate: function (o) {
+        if (o === void 0) { o = {}; }
+        return build_validator(escapeString(o), __assign(__assign({}, o), { maxLength: 100, listOf: false, isOptional: true, emptyStringOk: true }));
+    },
+    getExample: getExampleString,
+    getType: getTypeString
+};
 export var stringValidator100EscapeHTML = {
     validate: function (o) {
         if (o === void 0) { o = {}; }
@@ -1084,6 +1092,36 @@ export var urlValidator = {
         }, __assign(__assign({}, options), { listOf: false }));
     },
     getExample: function () { return '"https://www.tellescope.com"'; },
+    getType: getTypeString,
+};
+// requires a SIP URI like sip:agent@pbx.example.com (or sips:), with a user@host portion
+var validate_sip_url = function (s) {
+    if (typeof s !== 'string')
+        throw new Error("SIP URL must be a string");
+    var match = /^sips?:(.+)$/i.exec(s.trim());
+    if (!match)
+        throw new Error("".concat(s, " is not a valid SIP URL (must start with sip: or sips:)"));
+    var remainder = match[1];
+    var atIndex = remainder.indexOf('@');
+    if (atIndex <= 0 || atIndex >= remainder.length - 1) {
+        throw new Error("".concat(s, " is not a valid SIP URL (must contain a user@host portion)"));
+    }
+    return s.trim();
+};
+export var sipUrlValidator = {
+    validate: function (options) {
+        if (options === void 0) { options = {}; }
+        return build_validator(validate_sip_url, __assign(__assign({}, options), { maxLength: 256, listOf: false }));
+    },
+    getExample: function () { return "sip:agent@pbx.example.com"; },
+    getType: getTypeString,
+};
+export var sipUrlValidatorOptional = {
+    validate: function (options) {
+        if (options === void 0) { options = {}; }
+        return build_validator(validate_sip_url, __assign(__assign({}, options), { maxLength: 256, listOf: false, isOptional: true, emptyStringOk: true }));
+    },
+    getExample: function () { return "sip:agent@pbx.example.com"; },
     getType: getTypeString,
 };
 export var safeBase64Validator = {
@@ -1939,6 +1977,15 @@ export var attendeeValidator = objectValidator({
     info: attendeeInfoValidator,
 });
 export var listOfAttendeesValidator = listValidator(attendeeValidator);
+export var videoCallParticipantEventValidator = objectValidator({
+    id: stringValidator250,
+    type: exactMatchValidator(['connected', 'disconnected']),
+    timestamp: dateValidator,
+    meetingId: mongoIdStringRequired,
+    participantSid: stringValidatorOptional,
+    durationSeconds: nonNegNumberValidatorOptional,
+});
+export var listOfVideoCallParticipantEventsValidator = listValidator(videoCallParticipantEventValidator);
 export var meetingInfoValidator = objectValidator({
     Meeting: objectAnyFieldsAnyValuesValidator,
 });
@@ -3835,6 +3882,7 @@ export var organizationSettingsValidator = objectValidator({
     }, { isOptional: true, emptyOk: true, }),
     users: objectValidator({
         sessionDurationInHours: numberValidatorOptional,
+        enableResourceAccessTags: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true, }),
     integrations: objectValidator({
         vitalLabOrderPhysicianOptional: booleanValidatorOptional,
@@ -3849,6 +3897,7 @@ export var organizationSettingsValidator = objectValidator({
     }, { isOptional: true, emptyOk: true, }),
     timeTracking: objectValidator({
         enabled: booleanValidatorOptional,
+        setAppointmentDurationOnTimeTrackClose: booleanValidatorOptional,
         inactivityThresholdInSeconds: numberValidatorOptional,
     }, { isOptional: true, emptyOk: true, }),
 });
@@ -4145,7 +4194,7 @@ export var automationTriggerEventValidator = orValidator({
         type: exactMatchValidator(['Order Status Equals']),
         info: objectValidator({
             source: stringValidator100,
-            status: stringValidator100,
+            status: stringValidator100Optional,
             fills: listOfStringsValidatorOptionalOrEmptyOk,
             skus: listOfStringsValidatorOptionalOrEmptyOk,
             skuPartials: listOfStringsValidatorOptionalOrEmptyOk,
@@ -5357,6 +5406,11 @@ export var userUIRestrictionsValidator = objectValidator({
     hideCalendarSavedViews: booleanValidatorOptional,
     hideCalendarFilters: booleanValidatorOptional,
 }, { emptyOk: true });
+export var portalSchemaRestrictionsValidator = objectValidator({
+    disableEditContent: booleanValidatorOptional,
+    disableEditTheming: booleanValidatorOptional,
+    disableEditSnippets: booleanValidatorOptional,
+}, { emptyOk: true });
 var externalChatGPTMessageValidator = objectValidator({
     role: exactMatchValidator(['assistant', 'user']),
     content: stringValidator5000,
@@ -5562,8 +5616,18 @@ export var phoneTreeActionValidator = orValidator({
     "Forward Call": objectValidator({
         type: exactMatchValidator(['Forward Call']),
         info: objectValidator({
-            to: phoneValidator,
+            to: phoneValidatorOptional,
+            sipUrl: sipUrlValidatorOptional,
+            sipUsername: stringValidatorOptional,
+            sipPassword: stringValidatorOptional,
             playback: phonePlaybackValidatorOptional,
+        }, {
+            inputModifier: function (o) {
+                if (!(o === null || o === void 0 ? void 0 : o.to) && !(o === null || o === void 0 ? void 0 : o.sipUrl)) {
+                    throw new Error('Forward Call requires either a phone number (to) or a SIP URL (sipUrl)');
+                }
+                return o;
+            },
         }),
     }),
     "Conditional Split": objectValidator({
@@ -5643,6 +5707,7 @@ export var formCustomizationValidator = objectValidator({
     primaryColor: stringValidatorOptionalEmptyOkay,
     secondaryColor: stringValidatorOptionalEmptyOkay,
     showLogoOnIntakePage: booleanValidatorOptional,
+    logoAlignment: exactMatchValidatorOptional(['left', 'center', 'right']),
 });
 export var AI_SUMMARY_DATA_SOURCES = [
     'enduser_observations', 'form_responses', 'chats', 'phone_calls',

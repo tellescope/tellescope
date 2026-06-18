@@ -79,7 +79,7 @@ var lacksFields = function (record, fields) {
 export var field_redaction_tests = function (_a) {
     var sdk = _a.sdk, sdkNonAdmin = _a.sdkNonAdmin;
     return __awaiter(void 0, void 0, void 0, function () {
-        var testEnduser, testPhoneCall, FULL_ACCESS, fullRedactionRole, rbapFull, originalRoles, partialRedactionRole, rbapPartial, createdPhoneCallId_1, e_1, adminCreatedPhoneCallId_1, e_2, noRedactionRole, rbapNoRedaction, syncFrom_1, e_3, e_4, e_5;
+        var testEnduser, testPhoneCall, FULL_ACCESS, fullRedactionRole, ROLE_COLOR, ROLE_DESCRIPTION, rbapFull, originalRoles, partialRedactionRole, rbapPartial, createdPhoneCallId_1, e_1, adminCreatedPhoneCallId_1, e_2, noRedactionRole, rbapNoRedaction, syncFrom_1, e_3, e_4, e_5;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -110,33 +110,46 @@ export var field_redaction_tests = function (_a) {
                     testPhoneCall = _b.sent();
                     FULL_ACCESS = { create: 'All', read: 'All', update: 'All', delete: 'All' };
                     fullRedactionRole = 'full-redaction-test-role';
+                    ROLE_COLOR = '#FF8800';
+                    ROLE_DESCRIPTION = 'Role used by field redaction tests';
                     return [4 /*yield*/, sdk.api.role_based_access_permissions.createOne({
                             role: fullRedactionRole,
                             permissions: __assign(__assign({}, PROVIDER_PERMISSIONS), { phone_calls: FULL_ACCESS, endusers: FULL_ACCESS }),
                             fieldRedactions: {
                                 phone_calls: __spreadArray([], ALL_REDACTABLE_FIELDS, true),
                             },
-                        })];
+                            color: ROLE_COLOR,
+                            description: ROLE_DESCRIPTION,
+                        })
+                        // Verify color/description persist and round-trip via getOne
+                    ];
                 case 3:
                     rbapFull = _b.sent();
-                    originalRoles = sdkNonAdmin.userInfo.roles;
-                    _b.label = 4;
+                    // Verify color/description persist and round-trip via getOne
+                    return [4 /*yield*/, async_test("role_based_access_permissions - color and description persist on create/read", function () { return sdk.api.role_based_access_permissions.getOne(rbapFull.id); }, {
+                            onResult: function (r) { return r.color === ROLE_COLOR && r.description === ROLE_DESCRIPTION; },
+                        })];
                 case 4:
-                    _b.trys.push([4, , 57, 71]);
+                    // Verify color/description persist and round-trip via getOne
+                    _b.sent();
+                    originalRoles = sdkNonAdmin.userInfo.roles;
+                    _b.label = 5;
+                case 5:
+                    _b.trys.push([5, , 58, 72]);
                     // Assign full-redaction role to non-admin
                     return [4 /*yield*/, sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: [fullRedactionRole] }, { replaceObjectFields: true })];
-                case 5:
+                case 6:
                     // Assign full-redaction role to non-admin
                     _b.sent();
                     return [4 /*yield*/, wait(undefined, 1500)];
-                case 6:
+                case 7:
                     _b.sent();
                     return [4 /*yield*/, sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)
                         // ========================================
                         // Test 1: Full redaction on getOne
                         // ========================================
                     ];
-                case 7:
+                case 8:
                     _b.sent();
                     // ========================================
                     // Test 1: Full redaction on getOne
@@ -163,7 +176,7 @@ export var field_redaction_tests = function (_a) {
                         // Test 2: Admin sees all fields
                         // ========================================
                     ];
-                case 8:
+                case 9:
                     _b.sent();
                     // ========================================
                     // Test 2: Admin sees all fields
@@ -186,7 +199,7 @@ export var field_redaction_tests = function (_a) {
                         // Test 3: Partial redaction (recordings only)
                         // ========================================
                     ];
-                case 9:
+                case 10:
                     _b.sent();
                     // ========================================
                     // Test 3: Partial redaction (recordings only)
@@ -200,19 +213,19 @@ export var field_redaction_tests = function (_a) {
                                 phone_calls: __spreadArray([], RECORDING_FIELDS, true),
                             },
                         })];
-                case 10:
-                    rbapPartial = _b.sent();
-                    _b.label = 11;
                 case 11:
-                    _b.trys.push([11, , 16, 21]);
-                    return [4 /*yield*/, sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: [partialRedactionRole] }, { replaceObjectFields: true })];
+                    rbapPartial = _b.sent();
+                    _b.label = 12;
                 case 12:
-                    _b.sent();
-                    return [4 /*yield*/, wait(undefined, 1500)];
+                    _b.trys.push([12, , 17, 22]);
+                    return [4 /*yield*/, sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: [partialRedactionRole] }, { replaceObjectFields: true })];
                 case 13:
                     _b.sent();
-                    return [4 /*yield*/, sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)];
+                    return [4 /*yield*/, wait(undefined, 1500)];
                 case 14:
+                    _b.sent();
+                    return [4 /*yield*/, sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)];
+                case 15:
                     _b.sent();
                     return [4 /*yield*/, async_test("getOne - only recording fields should be redacted, transcription/summary visible", function () { return sdkNonAdmin.api.phone_calls.getOne(testPhoneCall.id); }, {
                             onResult: function (r) {
@@ -232,26 +245,26 @@ export var field_redaction_tests = function (_a) {
                                 return recordingRedacted && nonRecordingPresent;
                             }
                         })];
-                case 15:
+                case 16:
                     _b.sent();
-                    return [3 /*break*/, 21];
-                case 16: 
+                    return [3 /*break*/, 22];
+                case 17: 
                 // Restore full-redaction role and clean up partial role
                 return [4 /*yield*/, sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: [fullRedactionRole] }, { replaceObjectFields: true })];
-                case 17:
+                case 18:
                     // Restore full-redaction role and clean up partial role
                     _b.sent();
                     return [4 /*yield*/, wait(undefined, 1500)];
-                case 18:
-                    _b.sent();
-                    return [4 /*yield*/, sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)];
                 case 19:
                     _b.sent();
-                    return [4 /*yield*/, sdk.api.role_based_access_permissions.deleteOne(rbapPartial.id)];
+                    return [4 /*yield*/, sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)];
                 case 20:
                     _b.sent();
-                    return [7 /*endfinally*/];
+                    return [4 /*yield*/, sdk.api.role_based_access_permissions.deleteOne(rbapPartial.id)];
                 case 21:
+                    _b.sent();
+                    return [7 /*endfinally*/];
+                case 22:
                     // ========================================
                     // Test 4: getSome/readMany consistency
                     // ========================================
@@ -275,7 +288,7 @@ export var field_redaction_tests = function (_a) {
                                 return redacted;
                             }
                         })];
-                case 22:
+                case 23:
                     _b.sent();
                     return [4 /*yield*/, async_test("getSome (admin) - all fields should be visible", function () { return sdk.api.phone_calls.getSome(); }, {
                             onResult: function (r) {
@@ -299,7 +312,7 @@ export var field_redaction_tests = function (_a) {
                         // Test 5: Update response doesn't leak
                         // ========================================
                     ];
-                case 23:
+                case 24:
                     _b.sent();
                     // ========================================
                     // Test 5: Update response doesn't leak
@@ -318,7 +331,7 @@ export var field_redaction_tests = function (_a) {
                                 return redacted;
                             }
                         })];
-                case 24:
+                case 25:
                     _b.sent();
                     return [4 /*yield*/, async_test("updateOne (admin) - all fields should be visible in response", function () { return sdk.api.phone_calls.updateOne(testPhoneCall.id, { note: 'admin update test' }); }, {
                             onResult: function (r) {
@@ -337,7 +350,7 @@ export var field_redaction_tests = function (_a) {
                         // Test 6: Create response doesn't leak
                         // ========================================
                     ];
-                case 25:
+                case 26:
                     _b.sent();
                     // ========================================
                     // Test 6: Create response doesn't leak
@@ -370,20 +383,20 @@ export var field_redaction_tests = function (_a) {
                         })
                         // Cleanup the created phone call
                     ];
-                case 26:
-                    _b.sent();
-                    if (!createdPhoneCallId_1) return [3 /*break*/, 30];
-                    _b.label = 27;
                 case 27:
-                    _b.trys.push([27, 29, , 30]);
-                    return [4 /*yield*/, sdk.api.phone_calls.deleteOne(createdPhoneCallId_1)];
-                case 28:
                     _b.sent();
-                    return [3 /*break*/, 30];
+                    if (!createdPhoneCallId_1) return [3 /*break*/, 31];
+                    _b.label = 28;
+                case 28:
+                    _b.trys.push([28, 30, , 31]);
+                    return [4 /*yield*/, sdk.api.phone_calls.deleteOne(createdPhoneCallId_1)];
                 case 29:
+                    _b.sent();
+                    return [3 /*break*/, 31];
+                case 30:
                     e_1 = _b.sent();
-                    return [3 /*break*/, 30];
-                case 30: return [4 /*yield*/, async_test("createOne (admin) - all fields should be visible in response", function () { return sdk.api.phone_calls.createOne({
+                    return [3 /*break*/, 31];
+                case 31: return [4 /*yield*/, async_test("createOne (admin) - all fields should be visible in response", function () { return sdk.api.phone_calls.createOne({
                         enduserId: testEnduser.id,
                         inbound: false,
                         from: '+15553333333',
@@ -408,20 +421,20 @@ export var field_redaction_tests = function (_a) {
                             return allPresent;
                         }
                     })];
-                case 31:
-                    _b.sent();
-                    if (!adminCreatedPhoneCallId_1) return [3 /*break*/, 35];
-                    _b.label = 32;
                 case 32:
-                    _b.trys.push([32, 34, , 35]);
-                    return [4 /*yield*/, sdk.api.phone_calls.deleteOne(adminCreatedPhoneCallId_1)];
-                case 33:
                     _b.sent();
-                    return [3 /*break*/, 35];
+                    if (!adminCreatedPhoneCallId_1) return [3 /*break*/, 36];
+                    _b.label = 33;
+                case 33:
+                    _b.trys.push([33, 35, , 36]);
+                    return [4 /*yield*/, sdk.api.phone_calls.deleteOne(adminCreatedPhoneCallId_1)];
                 case 34:
-                    e_2 = _b.sent();
-                    return [3 /*break*/, 35];
+                    _b.sent();
+                    return [3 /*break*/, 36];
                 case 35:
+                    e_2 = _b.sent();
+                    return [3 /*break*/, 36];
+                case 36:
                     // ========================================
                     // Test 7: bulk_load redaction
                     // ========================================
@@ -449,7 +462,7 @@ export var field_redaction_tests = function (_a) {
                                 return redacted;
                             }
                         })];
-                case 36:
+                case 37:
                     _b.sent();
                     return [4 /*yield*/, async_test("bulk_load (admin) - all fields should be visible", function () { return sdk.bulk_load({ load: [{ model: 'phone_calls', options: { limit: 100 } }] }); }, {
                             onResult: function (r) {
@@ -478,7 +491,7 @@ export var field_redaction_tests = function (_a) {
                         // Test 7b: bulk-read (getByIds) redaction
                         // ========================================
                     ];
-                case 37:
+                case 38:
                     _b.sent();
                     // ========================================
                     // Test 7b: bulk-read (getByIds) redaction
@@ -506,7 +519,7 @@ export var field_redaction_tests = function (_a) {
                                 return redacted;
                             }
                         })];
-                case 38:
+                case 39:
                     _b.sent();
                     return [4 /*yield*/, async_test("getByIds (admin) - all fields should be visible", function () { return sdk.api.phone_calls.getByIds({ ids: [testPhoneCall.id] }); }, {
                             onResult: function (r) {
@@ -534,7 +547,7 @@ export var field_redaction_tests = function (_a) {
                         // Test 8: load_inbox_data redaction
                         // ========================================
                     ];
-                case 39:
+                case 40:
                     _b.sent();
                     // ========================================
                     // Test 8: load_inbox_data redaction
@@ -562,7 +575,7 @@ export var field_redaction_tests = function (_a) {
                                 return redacted;
                             }
                         })];
-                case 40:
+                case 41:
                     _b.sent();
                     return [4 /*yield*/, async_test("load_inbox_data (admin) - all phone_call fields should be visible", function () { return sdk.api.endusers.load_inbox_data({ enduserIds: [testEnduser.id] }); }, {
                             onResult: function (r) {
@@ -590,7 +603,7 @@ export var field_redaction_tests = function (_a) {
                         // Test 9: No-redaction role sees all fields
                         // ========================================
                     ];
-                case 41:
+                case 42:
                     _b.sent();
                     // ========================================
                     // Test 9: No-redaction role sees all fields
@@ -602,19 +615,19 @@ export var field_redaction_tests = function (_a) {
                             permissions: __assign(__assign({}, PROVIDER_PERMISSIONS), { phone_calls: FULL_ACCESS, endusers: FULL_ACCESS }),
                             // No fieldRedactions
                         })];
-                case 42:
-                    rbapNoRedaction = _b.sent();
-                    _b.label = 43;
                 case 43:
-                    _b.trys.push([43, , 48, 53]);
-                    return [4 /*yield*/, sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: [noRedactionRole] }, { replaceObjectFields: true })];
+                    rbapNoRedaction = _b.sent();
+                    _b.label = 44;
                 case 44:
-                    _b.sent();
-                    return [4 /*yield*/, wait(undefined, 1500)];
+                    _b.trys.push([44, , 49, 54]);
+                    return [4 /*yield*/, sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: [noRedactionRole] }, { replaceObjectFields: true })];
                 case 45:
                     _b.sent();
-                    return [4 /*yield*/, sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)];
+                    return [4 /*yield*/, wait(undefined, 1500)];
                 case 46:
+                    _b.sent();
+                    return [4 /*yield*/, sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)];
+                case 47:
                     _b.sent();
                     return [4 /*yield*/, async_test("getOne - role without fieldRedactions should see all fields", function () { return sdkNonAdmin.api.phone_calls.getOne(testPhoneCall.id); }, {
                             onResult: function (r) {
@@ -629,23 +642,23 @@ export var field_redaction_tests = function (_a) {
                                 return allPresent;
                             }
                         })];
-                case 47:
+                case 48:
                     _b.sent();
-                    return [3 /*break*/, 53];
-                case 48: return [4 /*yield*/, sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: [fullRedactionRole] }, { replaceObjectFields: true })];
-                case 49:
-                    _b.sent();
-                    return [4 /*yield*/, wait(undefined, 1500)];
+                    return [3 /*break*/, 54];
+                case 49: return [4 /*yield*/, sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: [fullRedactionRole] }, { replaceObjectFields: true })];
                 case 50:
                     _b.sent();
-                    return [4 /*yield*/, sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)];
+                    return [4 /*yield*/, wait(undefined, 1500)];
                 case 51:
                     _b.sent();
-                    return [4 /*yield*/, sdk.api.role_based_access_permissions.deleteOne(rbapNoRedaction.id)];
+                    return [4 /*yield*/, sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)];
                 case 52:
                     _b.sent();
-                    return [7 /*endfinally*/];
+                    return [4 /*yield*/, sdk.api.role_based_access_permissions.deleteOne(rbapNoRedaction.id)];
                 case 53:
+                    _b.sent();
+                    return [7 /*endfinally*/];
+                case 54:
                     // ========================================
                     // Test 10: Redaction scoped to model
                     // ========================================
@@ -666,7 +679,7 @@ export var field_redaction_tests = function (_a) {
                         // Test 11: data-sync redaction
                         // ========================================
                     ];
-                case 54:
+                case 55:
                     _b.sent();
                     // ========================================
                     // Test 11: data-sync redaction
@@ -701,7 +714,7 @@ export var field_redaction_tests = function (_a) {
                                 return redacted && corePresent;
                             }
                         })];
-                case 55:
+                case 56:
                     _b.sent();
                     return [4 /*yield*/, async_test("data-sync (admin) - all fields should be visible in parsed data", function () { return sdk.sync({ from: syncFrom_1 }); }, {
                             onResult: function (r) {
@@ -726,59 +739,59 @@ export var field_redaction_tests = function (_a) {
                                 return allPresent;
                             }
                         })];
-                case 56:
+                case 57:
                     _b.sent();
                     console.log("\n" + "=".repeat(60));
                     console.log("Field Redaction Tests Complete");
                     console.log("=".repeat(60));
-                    return [3 /*break*/, 71];
-                case 57: 
+                    return [3 /*break*/, 72];
+                case 58: 
                 // Restore original roles
                 return [4 /*yield*/, sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: originalRoles }, { replaceObjectFields: true })];
-                case 58:
+                case 59:
                     // Restore original roles
                     _b.sent();
                     return [4 /*yield*/, wait(undefined, 1000)];
-                case 59:
+                case 60:
                     _b.sent();
                     return [4 /*yield*/, sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)
                         // Cleanup test data
                     ];
-                case 60:
-                    _b.sent();
-                    _b.label = 61;
                 case 61:
-                    _b.trys.push([61, 63, , 64]);
-                    return [4 /*yield*/, sdk.api.role_based_access_permissions.deleteOne(rbapFull.id)];
-                case 62:
                     _b.sent();
-                    return [3 /*break*/, 64];
+                    _b.label = 62;
+                case 62:
+                    _b.trys.push([62, 64, , 65]);
+                    return [4 /*yield*/, sdk.api.role_based_access_permissions.deleteOne(rbapFull.id)];
                 case 63:
+                    _b.sent();
+                    return [3 /*break*/, 65];
+                case 64:
                     e_3 = _b.sent();
                     console.error('Cleanup error (rbap):', e_3);
-                    return [3 /*break*/, 64];
-                case 64:
-                    _b.trys.push([64, 66, , 67]);
-                    return [4 /*yield*/, sdk.api.phone_calls.deleteOne(testPhoneCall.id)];
+                    return [3 /*break*/, 65];
                 case 65:
-                    _b.sent();
-                    return [3 /*break*/, 67];
+                    _b.trys.push([65, 67, , 68]);
+                    return [4 /*yield*/, sdk.api.phone_calls.deleteOne(testPhoneCall.id)];
                 case 66:
+                    _b.sent();
+                    return [3 /*break*/, 68];
+                case 67:
                     e_4 = _b.sent();
                     console.error('Cleanup error (phone_call):', e_4);
-                    return [3 /*break*/, 67];
-                case 67:
-                    _b.trys.push([67, 69, , 70]);
-                    return [4 /*yield*/, sdk.api.endusers.deleteOne(testEnduser.id)];
+                    return [3 /*break*/, 68];
                 case 68:
-                    _b.sent();
-                    return [3 /*break*/, 70];
+                    _b.trys.push([68, 70, , 71]);
+                    return [4 /*yield*/, sdk.api.endusers.deleteOne(testEnduser.id)];
                 case 69:
+                    _b.sent();
+                    return [3 /*break*/, 71];
+                case 70:
                     e_5 = _b.sent();
                     console.error('Cleanup error (enduser):', e_5);
-                    return [3 /*break*/, 70];
-                case 70: return [7 /*endfinally*/];
-                case 71: return [2 /*return*/];
+                    return [3 /*break*/, 71];
+                case 71: return [7 /*endfinally*/];
+                case 72: return [2 /*return*/];
             }
         });
     });

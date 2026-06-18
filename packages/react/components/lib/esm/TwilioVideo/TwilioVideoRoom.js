@@ -46,7 +46,10 @@ export var TwilioVideoRoom = function (_a) {
     ], participants, true);
     if (isScreenShareActive) {
         // Presentation layout: screen share large on top, camera strip on bottom
-        return (_jsxs(Box, __assign({ sx: __assign({ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', backgroundColor: '#1a1a1a' }, style) }, { children: [_jsx(Box, __assign({ sx: {
+        return (_jsxs(Box, __assign({ sx: __assign(__assign({ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', backgroundColor: '#1a1a1a' }, style), { 
+                // keep the enlarged room within the viewport so it can't push the
+                // DraggableWindow's topbar controls off-screen
+                maxWidth: '95vw', maxHeight: '90vh', boxSizing: 'border-box', overflow: 'hidden' }) }, { children: [_jsx(Box, __assign({ sx: {
                         flex: 1,
                         overflow: 'hidden',
                         minHeight: 0,
@@ -67,7 +70,10 @@ export var TwilioVideoRoom = function (_a) {
                         } }, { children: _jsx(TwilioParticipant, { participant: p, isLocal: p === localParticipant, showScreenShare: false, resolveIdentity: resolveIdentity }) }), p.sid)); }) })), _jsx(TwilioControlBar, { onLeave: onLeave, onEndForAll: onEndForAll, showScreenShare: showScreenShareProp })] })));
     }
     // Normal layout (no screen share active)
-    return (_jsxs(Box, __assign({ sx: __assign({ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', backgroundColor: '#1a1a1a' }, style) }, { children: [_jsxs(Box, __assign({ sx: {
+    return (_jsxs(Box, __assign({ sx: __assign(__assign({ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', backgroundColor: '#1a1a1a' }, style), { 
+            // keep the enlarged room within the viewport so it can't push the
+            // DraggableWindow's topbar controls off-screen
+            maxWidth: '95vw', maxHeight: '90vh', boxSizing: 'border-box', overflow: 'hidden' }) }, { children: [_jsxs(Box, __assign({ sx: {
                     flex: 1,
                     position: 'relative',
                     overflow: 'hidden',

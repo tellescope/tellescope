@@ -16,6 +16,7 @@ export declare const TellescopeFormContainerV2: ({ businessId, organizationIds, 
     showLogo?: boolean | undefined;
     logoURL?: string | undefined;
     logoHeight?: number | undefined;
+    logoAlignment?: "center" | "left" | "right" | undefined;
     language?: string | undefined;
     onChangeLanguage?: ((l: string) => void) | undefined;
     paperMinHeight?: React.CSSProperties['minHeight'];

@@ -20,6 +20,7 @@ export const TellescopeFormContainer = ({ businessId, organizationIds, ...props 
   showLogo?: boolean,
   logoURL?: string,
   logoHeight?: number,
+  logoAlignment?: 'left' | 'center' | 'right', // V1 ignores this (logo is already centered); declared so the shared FormContainer union type accepts it
   language?: string,
   onChangeLanguage?: (l: string) => void,
   paperMinHeight?: React.CSSProperties['minHeight'],

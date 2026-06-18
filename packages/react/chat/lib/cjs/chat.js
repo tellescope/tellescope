@@ -109,7 +109,10 @@ var Message = function (_a) {
     var userOrEnduser = ((isSender ? session.userInfo : undefined)
         || ((0, react_components_1.value_is_loaded)(usersLoading) ? usersLoading.value.find(function (u) { return u.id === message.senderId; }) : undefined)
         || ((0, react_components_1.value_is_loaded)(endusersLoading) ? endusersLoading.value.find(function (e) { return e.id === message.senderId; }) : undefined));
-    var displayPicture = ((0, jsx_runtime_1.jsx)(react_components_1.DisplayPicture, { style: { maxWidth: '10%' }, user: userOrEnduser, size: iconSize }));
+    var senderName = (userOrEnduser === null || userOrEnduser === void 0 ? void 0 : userOrEnduser.displayName) || (0, utilities_1.user_display_name)(userOrEnduser);
+    var displayPicture = senderName
+        ? ((0, jsx_runtime_1.jsx)(react_components_1.Tooltip, __assign({ label: senderName, placement: "top", enterDelay: 300, style: { display: 'inline-flex', flexShrink: 0, maxWidth: '10%' } }, { children: (0, jsx_runtime_1.jsx)(react_components_1.DisplayPicture, { user: userOrEnduser, size: iconSize }) })))
+        : ((0, jsx_runtime_1.jsx)(react_components_1.DisplayPicture, { style: { maxWidth: '10%' }, user: userOrEnduser, size: iconSize }));
     return ((0, jsx_runtime_1.jsxs)(react_components_1.Flex, __assign({ column: true }, { children: [showDate && ((0, jsx_runtime_1.jsx)(react_components_1.Flex, __assign({ alignSelf: "center", style: react_components_1.IN_REACT_WEB
                     ? {}
                     : {
@@ -119,7 +122,7 @@ var Message = function (_a) {
                     marginRight: isSender ? "".concat(iconSize + 12, "px") : 0,
                     marginLeft: isSender ? 'auto' : "".concat(iconSize + 12, "px"),
                     marginTop: 0, marginBottom: 0,
-                } }, { children: (userOrEnduser === null || userOrEnduser === void 0 ? void 0 : userOrEnduser.displayName) || (0, utilities_1.user_display_name)(userOrEnduser) }))), (0, jsx_runtime_1.jsxs)(react_components_1.Flex, __assign({ style: __assign({ margin: 5, marginTop: showName ? 0 : 5, flexWrap: 'nowrap' }, style) }, { children: [message.senderId !== chatUserId && displayPicture, messageComponent, message.senderId === chatUserId && displayPicture] }))] })));
+                } }, { children: senderName }))), (0, jsx_runtime_1.jsxs)(react_components_1.Flex, __assign({ style: __assign({ margin: 5, marginTop: showName ? 0 : 5, flexWrap: 'nowrap' }, style) }, { children: [message.senderId !== chatUserId && displayPicture, messageComponent, message.senderId === chatUserId && displayPicture] }))] })));
 };
 exports.Message = Message;
 var SecureLinkText = function (_a) {

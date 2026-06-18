@@ -4165,9 +4165,11 @@ export declare class Session extends SessionManager {
         limits?: OrganizationLimits | undefined;
         uiRestrictions?: UserUIRestrictions | undefined;
         fieldRedactions?: UserFieldRedactions | undefined;
+        portalSchemaRestrictions?: import("@tellescope/types-models").PortalSchemaRestrictions | undefined;
         dashboardView?: CustomDashboardView | undefined;
         hasTicketQueues?: boolean | undefined;
         eat?: boolean | undefined;
+        erat?: boolean | undefined;
         lockedOutUntil?: number | undefined;
         duration?: number | undefined;
         doseSpotUserId?: string | undefined;
@@ -4325,9 +4327,11 @@ export declare class Session extends SessionManager {
         limits?: OrganizationLimits | undefined;
         uiRestrictions?: UserUIRestrictions | undefined;
         fieldRedactions?: UserFieldRedactions | undefined;
+        portalSchemaRestrictions?: import("@tellescope/types-models").PortalSchemaRestrictions | undefined;
         dashboardView?: CustomDashboardView | undefined;
         hasTicketQueues?: boolean | undefined;
         eat?: boolean | undefined;
+        erat?: boolean | undefined;
         lockedOutUntil?: number | undefined;
         duration?: number | undefined;
         doseSpotUserId?: string | undefined;

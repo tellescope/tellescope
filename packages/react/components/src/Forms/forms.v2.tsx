@@ -20,6 +20,7 @@ export const TellescopeFormContainerV2 = ({ businessId, organizationIds, ...prop
   showLogo?: boolean,
   logoURL?: string,
   logoHeight?: number,
+  logoAlignment?: 'left' | 'center' | 'right',
   language?: string,
   onChangeLanguage?: (l: string) => void,
   paperMinHeight?: React.CSSProperties['minHeight'],
@@ -37,7 +38,7 @@ export const TellescopeFormContainerV2 = ({ businessId, organizationIds, ...prop
   )
 }
 
-const TellescopeFormContainerWithThemeV2: typeof TellescopeFormContainerV2 = ({ paperMinHeight=575, children, language, onChangeLanguage, style, hideBg, backgroundColor, hideLogo, showLogo, logoURL, logoHeight, maxWidth }) => {
+const TellescopeFormContainerWithThemeV2: typeof TellescopeFormContainerV2 = ({ paperMinHeight=575, children, language, onChangeLanguage, style, hideBg, backgroundColor, hideLogo, showLogo, logoURL, logoHeight, logoAlignment, maxWidth }) => {
   const theme = useOrganizationTheme()
 
   // V2: No paper background by default, cleaner layout with light blue background
@@ -75,13 +76,13 @@ const TellescopeFormContainerWithThemeV2: typeof TellescopeFormContainerV2 = ({ 
         {showLogo && !hideLogo && (
           resolvedLogoURL
             ? (
-              <Flex alignItems="flex-start" style={{ marginBottom: '20px', marginTop: '10px' }}>
+              <Flex style={{ justifyContent: LOGO_JUSTIFY[logoAlignment || 'left'], marginBottom: '20px', marginTop: '10px' }}>
                 <img src={resolvedLogoURL} alt={theme?.name} style={{ height: logoHeight || LOGO_HEIGHT, maxWidth: 225 }} />
               </Flex>
             )
             : theme?.name
               ? (
-                <Typography style={{ fontSize: 22, marginBottom: '20px', marginTop: '10px', textAlign: 'left', fontWeight: 600 }}>
+                <Typography style={{ fontSize: 22, marginBottom: '20px', marginTop: '10px', textAlign: logoAlignment || 'left', fontWeight: 600 }}>
                   {theme.name}
                 </Typography>
               )
@@ -115,6 +116,7 @@ export interface TellescopeFormProps extends ReturnType<typeof useTellescopeForm
 }
 
 const LOGO_HEIGHT = 40
+const LOGO_JUSTIFY = { left: 'flex-start', center: 'center', right: 'flex-end' } as const
 export const TellescopeFormV2 = (props : TellescopeFormProps & Styled & { hideBg?: boolean, theme?: OrganizationTheme, inputStyle?: React.CSSProperties }) => (
   <WithOrganizationTheme>
     <TellescopeFormWithContextV2 {...props} logoHeight={props?.logoHeight || props?.form?.customization?.logoHeight} />
@@ -676,16 +678,16 @@ export const TellescopeSingleQuestionFlowV2: typeof TellescopeFormV2 = ({
               />
             }
 
-            {/* V2: Logo below progress bar, left-aligned */}
+            {/* V2: Logo below progress bar, alignment controlled by customization (default left) */}
             {!customization?.hideLogo && (
               (customization?.logoURL || theme?.logoURL)
                 ? (
-                  <Flex alignItems="flex-start" style={{ marginBottom: '20px' }}>
+                  <Flex style={{ justifyContent: LOGO_JUSTIFY[customization?.logoAlignment || 'left'], marginBottom: '20px' }}>
                     <img src={customization?.logoURL || theme?.logoURL} alt={theme?.name} style={{ height: customization?.logoHeight || LOGO_HEIGHT, maxWidth: 225 }} />
                   </Flex>
                 )
                 : (
-                  <Typography style={{ fontSize: 22, marginBottom: '20px', textAlign: 'left', fontWeight: 600 }}>
+                  <Typography style={{ fontSize: 22, marginBottom: '20px', textAlign: customization?.logoAlignment || 'left', fontWeight: 600 }}>
                     {theme?.name}
                   </Typography>
                 )
@@ -876,6 +878,7 @@ const TellescopeFormWithContextV2: typeof TellescopeFormV2 = (props) => {
       <TellescopeFormContainerV2 style={props.style} dontAddContext
         hideBg={props.hideBg || props.form?.customization?.hideBg}
         logoHeight={props.logoHeight}
+        logoAlignment={props?.customization?.logoAlignment}
         backgroundColor={props.backgroundColor}
         hideLogo={props?.customization?.hideLogo}
         maxWidth={props.form?.customization?.maxWidth}

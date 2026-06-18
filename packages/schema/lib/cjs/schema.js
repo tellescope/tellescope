@@ -10,6 +10,15 @@ var __assign = (this && this.__assign) || function () {
     };
     return __assign.apply(this, arguments);
 };
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.schema = exports.build_schema = exports.UNIQUE_LIST_FIELDS = exports.get_next_reminder_timestamp_for_ticket = void 0;
 var types_models_1 = require("@tellescope/types-models");
@@ -1189,7 +1198,7 @@ exports.schema = (0, exports.build_schema)({
     },
     journeys: {
         info: {},
-        fields: __assign(__assign({}, BuiltInFields), { archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, title: {
+        fields: __assign(__assign({}, BuiltInFields), { accessTags: { redactions: ['enduser'], validator: validation_1.listOfStringsValidatorEmptyOk }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, title: {
                 validator: validation_1.stringValidator100,
                 required: true,
                 examples: ['Test']
@@ -1881,8 +1890,10 @@ exports.schema = (0, exports.build_schema)({
                         var _c;
                         var _id = _a._id;
                         var updates = _b.updates;
-                        if (session.type === 'user' && !session.eat)
-                            return; // accessTags is not enabled
+                        // editing a user's tags is a privilege-escalation vector whenever tags gate visibility:
+                        // enduser access tags (eat) OR resource access tags (erat). Skip only when neither is enabled.
+                        if (session.type === 'user' && !session.eat && !(session === null || session === void 0 ? void 0 : session.erat))
+                            return; // neither access-tags feature enabled
                         if ((_c = session === null || session === void 0 ? void 0 : session.roles) === null || _c === void 0 ? void 0 : _c.includes('Admin'))
                             return;
                         if (method === 'create')
@@ -2563,7 +2574,7 @@ exports.schema = (0, exports.build_schema)({
                 },
             },
         },
-        fields: __assign(__assign({}, BuiltInFields), { archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, mmsAttachmentURLs: { validator: validation_1.listOfUniqueStringsValidatorEmptyOk }, title: {
+        fields: __assign(__assign({}, BuiltInFields), { accessTags: { redactions: ['enduser'], validator: validation_1.listOfStringsValidatorEmptyOk }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, mmsAttachmentURLs: { validator: validation_1.listOfUniqueStringsValidatorEmptyOk }, title: {
                 validator: validation_1.stringValidator100,
                 required: true,
                 examples: ["Template Name"],
@@ -2593,7 +2604,7 @@ exports.schema = (0, exports.build_schema)({
         constraints: { unique: [], relationship: [] },
         defaultActions: { read: {}, readMany: {}, update: {}, delete: {} },
         enduserActions: { prepare_file_upload: {}, confirm_file_upload: {}, file_download_URL: {}, read: {}, readMany: {}, delete: {}, update: {} /* allow to hide from client side */ },
-        fields: __assign(__assign({}, BuiltInFields), { source: { validator: validation_1.stringValidator100 }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, name: {
+        fields: __assign(__assign({}, BuiltInFields), { accessTags: { redactions: ['enduser'], validator: validation_1.listOfStringsValidatorEmptyOk }, source: { validator: validation_1.stringValidator100 }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, name: {
                 validator: validation_1.stringValidator250,
                 required: true,
             }, size: {
@@ -3086,7 +3097,7 @@ exports.schema = (0, exports.build_schema)({
                 },
             },
         },
-        fields: __assign(__assign({}, BuiltInFields), { showByUserTags: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, belugaVisitType: { validator: validation_1.stringValidator }, belugaVerificationId: { validator: validation_1.stringValidator }, belugaPharmacyMappings: {
+        fields: __assign(__assign({}, BuiltInFields), { accessTags: { redactions: ['enduser'], validator: validation_1.listOfStringsValidatorEmptyOk }, showByUserTags: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, belugaVisitType: { validator: validation_1.stringValidator }, belugaVerificationId: { validator: validation_1.stringValidator }, belugaPharmacyMappings: {
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     title: validation_1.stringValidatorOptionalEmptyOkay,
                     pharmacyId: validation_1.stringValidator100,
@@ -3977,7 +3988,7 @@ exports.schema = (0, exports.build_schema)({
                 validator: validation_1.nonNegNumberValidator,
                 examples: [100],
                 required: true,
-            }, locationId: { validator: validation_1.mongoIdStringRequired }, locationIds: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, type: { validator: validation_1.stringValidator100 }, description: { validator: validation_1.stringValidator5000 }, agreedToTerms: { validator: validation_1.appointmentTermsValidator }, meetingId: { validator: validation_1.mongoIdStringRequired, readonly: true }, bookingPageId: { validator: validation_1.mongoIdStringRequired }, meetingStatus: { validator: validation_1.meetingStatusValidator }, attachments: { validator: validation_1.listOfGenericAttachmentsValidator }, cancelledAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, rescheduledAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, noShowedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, rescheduledTo: { validator: validation_1.mongoIdStringRequired }, chatRoomId: {
+            }, locationId: { validator: validation_1.mongoIdStringRequired }, locationIds: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, type: { validator: validation_1.stringValidator100 }, description: { validator: validation_1.stringValidator5000 }, agreedToTerms: { validator: validation_1.appointmentTermsValidator }, meetingId: { validator: validation_1.mongoIdStringRequired, readonly: true }, bookingPageId: { validator: validation_1.mongoIdStringRequired }, meetingStatus: { validator: validation_1.meetingStatusValidator }, videoCallAttendance: { validator: validation_1.listOfVideoCallParticipantEventsValidator, readonly: true }, attachments: { validator: validation_1.listOfGenericAttachmentsValidator }, cancelledAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, rescheduledAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, noShowedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, rescheduledTo: { validator: validation_1.mongoIdStringRequired }, chatRoomId: {
                 validator: validation_1.mongoIdStringRequired,
                 dependencies: [{
                         dependsOn: ['chat_rooms'],
@@ -4043,7 +4054,7 @@ exports.schema = (0, exports.build_schema)({
         defaultActions: constants_1.DEFAULT_OPERATIONS,
         customActions: {},
         enduserActions: { read: {}, readMany: {} },
-        fields: __assign(__assign({}, BuiltInFields), { dontSyncToElation: { validator: validation_1.booleanValidator }, sendIcsEmail: { validator: validation_1.booleanValidator }, createAndBookAthenaSlot: { validator: validation_1.booleanValidator }, athenaDepartmentId: { validator: validation_1.stringValidator1000 }, generateAthenaTelehealthLink: { validator: validation_1.booleanValidator }, athenaTypeId: { validator: validation_1.stringValidator1000 }, athenaBookingTypeId: { validator: validation_1.stringValidator1000 }, preventCancelMinutesInAdvance: { validator: validation_1.numberValidator }, preventRescheduleMinutesInAdvance: { validator: validation_1.numberValidator }, preventCancelInPortal: { validator: validation_1.booleanValidator }, preventRescheduleInPortal: { validator: validation_1.booleanValidator }, dontSyncToCanvas: { validator: validation_1.booleanValidator }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, allowGroupReschedule: { validator: validation_1.booleanValidator }, dontAutoSyncPatientToHealthie: { validator: validation_1.booleanValidator }, title: {
+        fields: __assign(__assign({}, BuiltInFields), { accessTags: { redactions: ['enduser'], validator: validation_1.listOfStringsValidatorEmptyOk }, dontSyncToElation: { validator: validation_1.booleanValidator }, sendIcsEmail: { validator: validation_1.booleanValidator }, createAndBookAthenaSlot: { validator: validation_1.booleanValidator }, athenaDepartmentId: { validator: validation_1.stringValidator1000 }, generateAthenaTelehealthLink: { validator: validation_1.booleanValidator }, athenaTypeId: { validator: validation_1.stringValidator1000 }, athenaBookingTypeId: { validator: validation_1.stringValidator1000 }, preventCancelMinutesInAdvance: { validator: validation_1.numberValidator }, preventRescheduleMinutesInAdvance: { validator: validation_1.numberValidator }, preventCancelInPortal: { validator: validation_1.booleanValidator }, preventRescheduleInPortal: { validator: validation_1.booleanValidator }, dontSyncToCanvas: { validator: validation_1.booleanValidator }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, allowGroupReschedule: { validator: validation_1.booleanValidator }, dontAutoSyncPatientToHealthie: { validator: validation_1.booleanValidator }, title: {
                 validator: validation_1.stringValidator250,
                 required: true,
                 examples: ["Text"],
@@ -4438,7 +4449,7 @@ exports.schema = (0, exports.build_schema)({
             create: {}, createMany: {}, read: {}, readMany: {},
             search: {},
         },
-        fields: __assign(__assign({}, BuiltInFields), { slug: { validator: validation_1.stringValidator250 }, title: {
+        fields: __assign(__assign({}, BuiltInFields), { accessTags: { redactions: ['enduser'], validator: validation_1.listOfStringsValidatorEmptyOk }, slug: { validator: validation_1.stringValidator250 }, title: {
                 validator: validation_1.stringValidator1000,
                 required: true,
                 examples: ["Template Name"],
@@ -5263,7 +5274,10 @@ exports.schema = (0, exports.build_schema)({
                         }
                     },
                 ]
-            }, uiRestrictions: { validator: validation_1.userUIRestrictionsValidator }, fieldRedactions: { validator: validation_1.userFieldRedactionsValidator } })
+            }, uiRestrictions: { validator: validation_1.userUIRestrictionsValidator }, fieldRedactions: { validator: validation_1.userFieldRedactionsValidator }, portalSchemaRestrictions: {
+                validator: validation_1.portalSchemaRestrictionsValidator,
+                initializer: function () { return ({ disableEditContent: true, disableEditTheming: true, disableEditSnippets: true }); },
+            }, color: { validator: validation_1.stringValidator1000 }, description: { validator: validation_1.stringValidator1000Optional } })
     },
     appointment_booking_pages: {
         info: {},
@@ -5305,7 +5319,7 @@ exports.schema = (0, exports.build_schema)({
         enduserActions: {
             read: {}, readMany: {}, validate_access_token: {},
         },
-        fields: __assign(__assign({}, BuiltInFields), { dontRestrictRescheduleToOriginalHost: { validator: validation_1.booleanValidator }, gtmTag: { validator: validation_1.stringValidator100EscapeHTML }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, title: {
+        fields: __assign(__assign({}, BuiltInFields), { accessTags: { redactions: ['enduser'], validator: validation_1.listOfStringsValidatorEmptyOk }, dontRestrictRescheduleToOriginalHost: { validator: validation_1.booleanValidator }, gtmTag: { validator: validation_1.stringValidator100EscapeHTML }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, title: {
                 validator: validation_1.stringValidator100,
                 required: true,
                 examples: ["Appointment Booking Title"]
@@ -5927,7 +5941,7 @@ exports.schema = (0, exports.build_schema)({
             },
         },
         enduserActions: {},
-        fields: __assign(__assign({}, BuiltInFields), { title: {
+        fields: __assign(__assign({}, BuiltInFields), { accessTags: { redactions: ['enduser'], validator: validation_1.listOfStringsValidatorEmptyOk }, title: {
                 validator: validation_1.stringValidator100,
                 required: true,
                 examples: ["Automation Trigger"]
@@ -6203,7 +6217,7 @@ exports.schema = (0, exports.build_schema)({
         defaultActions: constants_1.DEFAULT_OPERATIONS,
         customActions: {},
         enduserActions: {},
-        fields: __assign(__assign({}, BuiltInFields), { title: {
+        fields: __assign(__assign({}, BuiltInFields), { accessTags: { redactions: ['enduser'], validator: validation_1.listOfStringsValidatorEmptyOk }, title: {
                 validator: validation_1.stringValidator,
                 required: true,
                 examples: ["Title"]
@@ -6343,18 +6357,34 @@ exports.schema = (0, exports.build_schema)({
                     }
                 },
                 {
-                    explanation: "Locked time tracks only allow review field updates",
-                    evaluate: function (_v, _deps, _session, method, _a) {
+                    explanation: "Locked time tracks only allow review field updates, or owner resubmission of rejected entries",
+                    evaluate: function (_v, _deps, session, method, _a) {
                         var original = _a.original, updates = _a.updates;
                         if (method !== 'update')
                             return;
                         var orig = original;
                         if (!(orig === null || orig === void 0 ? void 0 : orig.lockedAt))
                             return;
+                        var u = updates;
                         var reviewFields = ['reviewedAt', 'reviewedByUserId', 'reviewApproved', 'reviewNote'];
                         var nonReviewFields = Object.keys(updates || {}).filter(function (k) { return !reviewFields.includes(k); });
-                        if (nonReviewFields.length > 0)
-                            return "Time track is locked. Only review fields (".concat(reviewFields.join(', '), ") can be updated.");
+                        if (nonReviewFields.length === 0)
+                            return; // pure review update — unchanged behavior
+                        var isRejected = !!orig.reviewedAt && orig.reviewApproved === false;
+                        var resubmitFields = __spreadArray(__spreadArray([], reviewFields, true), [
+                            'correctedAt', 'correctedByUserId', 'correctionNote',
+                            'originalTotalDurationInMS', 'totalDurationInMS',
+                            'lockedAt', 'lockedByUserId',
+                        ], false);
+                        var disallowed = Object.keys(updates || {}).filter(function (k) { return !resubmitFields.includes(k); });
+                        if (isRejected && session.id === orig.userId && disallowed.length === 0) {
+                            if ((u === null || u === void 0 ? void 0 : u.reviewedAt) !== '')
+                                return "Resubmitting a rejected time track requires clearing reviewedAt (set to '')";
+                            if ((u === null || u === void 0 ? void 0 : u.reviewApproved) === true)
+                                return "Cannot approve your own time track during resubmission";
+                            return; // valid resubmit — entry returns to Pending
+                        }
+                        return "Time track is locked. Only review fields (".concat(reviewFields.join(', '), ") can be updated.");
                     }
                 },
                 {
@@ -6429,7 +6459,20 @@ exports.schema = (0, exports.build_schema)({
                     type: validation_1.stringValidator,
                     id: validation_1.stringValidator,
                 }, { isOptional: true, emptyOk: true }),
-            }, isHistorical: { validator: validation_1.booleanValidatorOptional, updatesDisabled: true }, correctedAt: { validator: validation_1.dateValidatorOptional }, correctedByUserId: { validator: validation_1.mongoIdStringOptional }, correctionNote: { validator: validation_1.stringValidator1000Optional }, originalTotalDurationInMS: { validator: validation_1.numberValidatorOptional }, reviewedAt: { validator: validation_1.dateValidatorOptional }, reviewedByUserId: { validator: validation_1.mongoIdStringOptional }, reviewApproved: { validator: validation_1.booleanValidatorOptional }, reviewNote: { validator: validation_1.stringValidator1000Optional }, lockedAt: { validator: validation_1.dateValidatorOptional }, lockedByUserId: { validator: validation_1.mongoIdStringOptional } }),
+            }, isHistorical: { validator: validation_1.booleanValidatorOptional, updatesDisabled: true }, correctedAt: { validator: validation_1.dateValidatorOptional }, correctedByUserId: { validator: validation_1.mongoIdStringOptional }, correctionNote: { validator: validation_1.stringValidator1000Optional }, originalTotalDurationInMS: { validator: validation_1.numberValidatorOptional }, reviewedAt: { validator: validation_1.dateValidatorOptional }, reviewedByUserId: { validator: validation_1.mongoIdStringOptional }, reviewApproved: { validator: validation_1.booleanValidatorOptional }, reviewNote: { validator: validation_1.stringValidator1000Optional }, lockedAt: { validator: validation_1.dateValidatorOptional }, lockedByUserId: { validator: validation_1.mongoIdStringOptional }, 
+            // server-appended on resubmission of a rejected entry (see routing.ts update handler)
+            // note: reviewApproved remains false after resubmit (booleans can't be cleared to '') — status logic must key off reviewedAt
+            reviewHistory: {
+                validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
+                    reviewedAt: validation_1.dateValidator,
+                    reviewedByUserId: validation_1.mongoIdStringOptional,
+                    reviewApproved: validation_1.booleanValidatorOptional,
+                    reviewNote: validation_1.stringValidator1000Optional,
+                    resubmittedAt: validation_1.dateValidatorOptional,
+                    resubmittedByUserId: validation_1.mongoIdStringOptional,
+                })),
+                readonly: true, // server-appended only — clients can read, never write
+            } }),
     },
     ticket_queues: {
         info: {},
@@ -6857,7 +6900,7 @@ exports.schema = (0, exports.build_schema)({
         defaultActions: { read: {}, readMany: {} },
         customActions: {},
         enduserActions: {},
-        fields: __assign(__assign({}, BuiltInFields), { integration: { validator: validation_1.stringValidator, readonly: true, examples: ['Canvas'] }, status: { validator: (0, validation_1.exactMatchValidator)(['Success', 'Error']), readonly: true, examples: ['Error'] }, type: { validator: validation_1.stringValidator, readonly: true, examples: ['Patient Create'] }, payload: { validator: validation_1.stringValidator, readonly: true, examples: ['{}'] }, response: { validator: validation_1.stringValidator, readonly: true, examples: ['{}'] }, url: { validator: validation_1.stringValidator, readonly: true, examples: ['https://www.tellescope.com'] }, enduserId: { validator: validation_1.mongoIdStringRequired, readonly: true } })
+        fields: __assign(__assign({}, BuiltInFields), { integration: { validator: validation_1.stringValidator, readonly: true, examples: ['Canvas'] }, status: { validator: (0, validation_1.exactMatchValidator)(['Success', 'Error', 'Info']), readonly: true, examples: ['Error'] }, type: { validator: validation_1.stringValidator, readonly: true, examples: ['Patient Create'] }, payload: { validator: validation_1.stringValidator, readonly: true, examples: ['{}'] }, response: { validator: validation_1.stringValidator, readonly: true, examples: ['{}'] }, url: { validator: validation_1.stringValidator, readonly: true, examples: ['https://www.tellescope.com'] }, enduserId: { validator: validation_1.mongoIdStringRequired, readonly: true } })
     },
     organization_payments: {
         info: { description: 'Read Only - Organization Payment Transaction Logs' },
