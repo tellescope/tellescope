@@ -231,8 +231,27 @@ export var setup_tests = function (sdk, sdkNonAdmin) { return __awaiter(void 0, 
             case 40:
                 // may do some stuff in background after returning
                 _a.sent();
-                return [4 /*yield*/, wait(undefined, 250)];
+                return [4 /*yield*/, wait(undefined, 250)
+                    // Prevent test-triggered notifications (e.g. timeTrackRejected, inbound-message
+                    // notifications) from enqueuing real notification emails to SQS for the primary
+                    // test accounts. On-the-fly test users already set this flag individually.
+                    // Set after the final reset_db so it isn't wiped by the reset.
+                ];
             case 41:
+                _a.sent();
+                // Prevent test-triggered notifications (e.g. timeTrackRejected, inbound-message
+                // notifications) from enqueuing real notification emails to SQS for the primary
+                // test accounts. On-the-fly test users already set this flag individually.
+                // Set after the final reset_db so it isn't wiped by the reset.
+                return [4 /*yield*/, Promise.all([
+                        sdk.api.users.updateOne(sdk.userInfo.id, { notificationEmailsDisabled: true }),
+                        sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { notificationEmailsDisabled: true }),
+                    ]).catch(console.error)];
+            case 42:
+                // Prevent test-triggered notifications (e.g. timeTrackRejected, inbound-message
+                // notifications) from enqueuing real notification emails to SQS for the primary
+                // test accounts. On-the-fly test users already set this flag individually.
+                // Set after the final reset_db so it isn't wiped by the reset.
                 _a.sent();
                 return [2 /*return*/];
         }

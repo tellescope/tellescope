@@ -288,6 +288,7 @@ export type OrganizationSettings = {
         cancelReasons?: string[];
         copyRemindersByDefault?: boolean;
         showMakeRecurringOnProfile?: boolean;
+        hideProviderTab?: boolean;
     };
     users?: {
         sessionDurationInHours?: number;
@@ -2134,6 +2135,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
     version?: 'v1' | 'v2';
     mdiCaseOfferings?: {
         offering_id: string;
+        conditions?: CompoundFilter<string>;
     }[];
     autoMergeOnSubmission?: boolean;
     aiSummaryConfiguration?: AISummaryConfiguration;

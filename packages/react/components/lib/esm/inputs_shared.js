@@ -67,7 +67,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 };
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import React, { useEffect, useCallback, useMemo, useState, useRef } from "react";
-import { is_full_iso_string_heuristic, object_is_empty, objects_equivalent, read_local_storage, replace_keys_and_values_in_object, safeJSONParse, to_human_readable_phone_number, update_local_storage, user_display_name, value_for_dotted_key } from "@tellescope/utilities";
+import { is_full_iso_string_heuristic, object_is_empty, objects_equivalent, read_local_storage, replace_keys_and_values_in_object, safeJSONParse, to_human_readable_phone_number, update_local_storage, user_display_name, user_is_locked_out, value_for_dotted_key } from "@tellescope/utilities";
 import { ALL_ACCESS, HEALTHIE_TITLE, UNSEARCHABLE_FIELDS } from "@tellescope/constants";
 import { useSearchAPI } from "./hooks";
 import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, ScrollingList, SearchTextInput, Typography, useAgentRecords, useAllergyCodes, useAppointmentBookingPages, useAppointmentLocations, useAutomationTriggers, useCalendarEventTemplates, useCallHoldQueues, useChatRooms, useDatabaseRecords, useDatabases, useDiagnosisCodes, useEnduserCustomTypes, useEnduserOrders, useEndusers, useFaxLogs, useFiles, useFormGroups, useForms, useForums, useJourneys, useManagedContentRecords, useMessageTemplateSnippets, useNotifications, useOrganization, useOrganizations, usePrescriptionRoutes, useResolvedSession, useSession, useSuggestedContacts, useTemplates, useTicketQueues, useTickets, useUsers, useWaitlists, value_is_loaded } from ".";
@@ -1170,7 +1170,7 @@ export var UserAndEnduserSelector = function (_a) {
             : []);
     return (_jsx(LoadingData, { data: { endusers: endusersLoading }, render: function (_a) {
             var endusers = _a.endusers;
-            var itemsUnfiltered = __spreadArray(__spreadArray([], excludeUsers ? [] : users, true), excludeEndusers ? [] : endusers, true).filter(function (i) { return !(hiddenIds === null || hiddenIds === void 0 ? void 0 : hiddenIds.includes(i.id)); });
+            var itemsUnfiltered = __spreadArray(__spreadArray([], excludeUsers ? [] : users.filter(function (u) { return selected.includes(u.id) || !user_is_locked_out(u); }), true), excludeEndusers ? [] : endusers, true).filter(function (i) { return !(hiddenIds === null || hiddenIds === void 0 ? void 0 : hiddenIds.includes(i.id)); });
             var items = applyFilters(filter
                 ? itemsUnfiltered.filter(filter)
                 : itemsUnfiltered);

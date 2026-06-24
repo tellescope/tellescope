@@ -92,6 +92,7 @@ import {
   TimeTrackTimestamp,
   TimeTrackReviewHistoryItem,
   BelugaPharmacyMapping,
+  CompoundFilter,
   BelugaAutomationMappingEntry,
   BelugaUpdateVisitPatientPreferenceItem,
   TimeTrack,
@@ -3189,9 +3190,21 @@ export const schema: SchemaV1 = build_schema({
   },
   chat_rooms: {
     info: {},
-    constraints: { 
+    constraints: {
       unique: [{ array: 'userIds' }, { array: 'enduserIds' }],
-      relationship: [],
+      relationship: [
+        {
+          // Patient-initiated rooms targeting specific care-team staff (userIds) are an intended
+          // portal feature and are left unrestricted. An enduser may only add THEMSELVES to a room
+          // they create — they cannot add other patients (cross-patient PHI broadcast).
+          explanation: 'Endusers can only add their own id to enduserIds on chat rooms they create',
+          evaluate: (doc, _, session) => {
+            if (session.type !== ENDUSER_SESSION_TYPE) return
+            if ((doc.enduserIds ?? []).some(id => id !== session.id))
+              return "enduserIds may only contain your own id for enduser session"
+          }
+        },
+      ],
       access: [
         { type: 'filter', field: 'userIds' },
         { type: 'filter', field: 'enduserIds' },
@@ -4846,8 +4859,9 @@ export const schema: SchemaV1 = build_schema({
       },
       belugaCombineMatchingPharmacyMappings: { validator: booleanValidator },
       mdiCaseOfferings: {
-        validator: listValidatorOptionalOrEmptyOk(objectValidator<{ offering_id: string }>({
+        validator: listValidatorOptionalOrEmptyOk(objectValidator<{ offering_id: string, conditions?: CompoundFilter<string> }>({
           offering_id: stringValidator100,
+          conditions: compoundFilterValidator,
         }))
       },
       autoMergeOnSubmission: { validator: booleanValidator },
@@ -6457,8 +6471,16 @@ export const schema: SchemaV1 = build_schema({
   enduser_observations: {
     info: {},
     constraints: {
-      unique: [], 
-      relationship: [],
+      unique: [],
+      relationship: [
+        {
+          explanation: 'When created by an enduser, enduserId must match their id',
+          evaluate: ({ enduserId },_,session) => {
+          if (session.type === ENDUSER_SESSION_TYPE && session.id !== enduserId)
+            return "enduserId does not match creator id for enduser session"
+          }
+        },
+      ],
     },
     defaultActions: {
       ...DEFAULT_OPERATIONS,
@@ -6559,11 +6581,23 @@ export const schema: SchemaV1 = build_schema({
   managed_content_records: {
     info: {},
     constraints: {
-      unique: [], 
-      relationship: [],
+      unique: [],
+      relationship: [
+        {
+          explanation: 'Endusers cannot self-publish managed content or bind it to another enduser',
+          evaluate: (doc, _, session) => {
+            if (session.type !== ENDUSER_SESSION_TYPE) return
+            if (doc.publicRead) return "publicRead cannot be set by endusers"
+            if (doc.allowUnauthenticatedAccess) return "allowUnauthenticatedAccess cannot be set by endusers"
+            if (doc.forInternalUse) return "forInternalUse cannot be set by endusers"
+            if (doc.enduserId !== undefined && doc.enduserId !== session.id)
+              return "enduserId does not match creator id for enduser session"
+          }
+        },
+      ],
     },
     defaultActions: DEFAULT_OPERATIONS,
-    customActions: { 
+    customActions: {
       update_indexes: {
         op: "custom", access: 'update', method: "patch",
         name: 'Update Indexes',
@@ -9368,8 +9402,17 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
     info: {
       description: 'Lab, medication, and device orders'
     },
-    constraints: { 
-      unique: [], relationship: [], 
+    constraints: {
+      unique: [],
+      relationship: [
+        {
+          explanation: 'When created by an enduser, enduserId must match their id',
+          evaluate: ({ enduserId },_,session) => {
+          if (session.type === ENDUSER_SESSION_TYPE && session.id !== enduserId)
+            return "enduserId does not match creator id for enduser session"
+          }
+        },
+      ],
       access: [{ type: 'filter', field: 'userId' }]
     },
     defaultActions: DEFAULT_OPERATIONS,

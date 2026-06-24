@@ -1,6 +1,6 @@
 import React, { useEffect, useCallback, useMemo, useState, useRef } from "react"
 import { Indexable, ScoreFilter } from "@tellescope/types-utilities"
-import { is_full_iso_string_heuristic, object_is_empty, objects_equivalent, read_local_storage, replace_keys_and_values_in_object, safeJSONParse, to_human_readable_phone_number, update_local_storage, user_display_name, value_for_dotted_key } from "@tellescope/utilities"
+import { is_full_iso_string_heuristic, object_is_empty, objects_equivalent, read_local_storage, replace_keys_and_values_in_object, safeJSONParse, to_human_readable_phone_number, update_local_storage, user_display_name, user_is_locked_out, value_for_dotted_key } from "@tellescope/utilities"
 import { LoadFunction, LoadFunctionArguments, Session } from "@tellescope/sdk"
 import { ALL_ACCESS, HEALTHIE_TITLE, UNSEARCHABLE_FIELDS } from "@tellescope/constants"
 import { SearchAPIProps, useSearchAPI } from "./hooks"
@@ -1481,7 +1481,10 @@ export const UserAndEnduserSelector: React.JSXElementConstructor<UserAndEnduserS
   
   return (
     <LoadingData data={{ endusers: endusersLoading }} render={({ endusers }) => {
-      const itemsUnfiltered = [...excludeUsers ? [] : users, ... excludeEndusers ? [] : endusers].filter(i => !hiddenIds?.includes(i.id))
+      const itemsUnfiltered = [
+        ...excludeUsers ? [] : users.filter(u => selected.includes(u.id) || !user_is_locked_out(u as User)),
+        ...excludeEndusers ? [] : endusers,
+      ].filter(i => !hiddenIds?.includes(i.id))
       const items = applyFilters(
         filter
           ? itemsUnfiltered.filter(filter)

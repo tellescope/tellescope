@@ -1242,7 +1242,7 @@ var UserAndEnduserSelector = function (_a) {
             : []);
     return ((0, jsx_runtime_1.jsx)(_1.LoadingData, { data: { endusers: endusersLoading }, render: function (_a) {
             var endusers = _a.endusers;
-            var itemsUnfiltered = __spreadArray(__spreadArray([], excludeUsers ? [] : users, true), excludeEndusers ? [] : endusers, true).filter(function (i) { return !(hiddenIds === null || hiddenIds === void 0 ? void 0 : hiddenIds.includes(i.id)); });
+            var itemsUnfiltered = __spreadArray(__spreadArray([], excludeUsers ? [] : users.filter(function (u) { return selected.includes(u.id) || !(0, utilities_1.user_is_locked_out)(u); }), true), excludeEndusers ? [] : endusers, true).filter(function (i) { return !(hiddenIds === null || hiddenIds === void 0 ? void 0 : hiddenIds.includes(i.id)); });
             var items = applyFilters(filter
                 ? itemsUnfiltered.filter(filter)
                 : itemsUnfiltered);

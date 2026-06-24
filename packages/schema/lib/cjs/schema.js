@@ -1646,7 +1646,21 @@ exports.schema = (0, exports.build_schema)({
         info: {},
         constraints: {
             unique: [{ array: 'userIds' }, { array: 'enduserIds' }],
-            relationship: [],
+            relationship: [
+                {
+                    // Patient-initiated rooms targeting specific care-team staff (userIds) are an intended
+                    // portal feature and are left unrestricted. An enduser may only add THEMSELVES to a room
+                    // they create — they cannot add other patients (cross-patient PHI broadcast).
+                    explanation: 'Endusers can only add their own id to enduserIds on chat rooms they create',
+                    evaluate: function (doc, _, session) {
+                        var _a;
+                        if (session.type !== constants_1.ENDUSER_SESSION_TYPE)
+                            return;
+                        if (((_a = doc.enduserIds) !== null && _a !== void 0 ? _a : []).some(function (id) { return id !== session.id; }))
+                            return "enduserIds may only contain your own id for enduser session";
+                    }
+                },
+            ],
             access: [
                 { type: 'filter', field: 'userIds' },
                 { type: 'filter', field: 'enduserIds' },
@@ -3107,6 +3121,7 @@ exports.schema = (0, exports.build_schema)({
             }, belugaCombineMatchingPharmacyMappings: { validator: validation_1.booleanValidator }, mdiCaseOfferings: {
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     offering_id: validation_1.stringValidator100,
+                    conditions: validation_1.compoundFilterValidator,
                 }))
             }, autoMergeOnSubmission: { validator: validation_1.booleanValidator }, procedureCodes: { validator: procedureCodesValidator }, diagnosisCodes: { validator: diagnosisCodesValidator }, gtmTag: { validator: validation_1.stringValidator100EscapeHTML }, dontSyncToCanvasOnSubmission: { validator: validation_1.booleanValidator }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, title: {
                 validator: validation_1.stringValidator250,
@@ -4320,7 +4335,16 @@ exports.schema = (0, exports.build_schema)({
         info: {},
         constraints: {
             unique: [],
-            relationship: [],
+            relationship: [
+                {
+                    explanation: 'When created by an enduser, enduserId must match their id',
+                    evaluate: function (_a, _, session) {
+                        var enduserId = _a.enduserId;
+                        if (session.type === constants_1.ENDUSER_SESSION_TYPE && session.id !== enduserId)
+                            return "enduserId does not match creator id for enduser session";
+                    }
+                },
+            ],
         },
         defaultActions: __assign(__assign({}, constants_1.DEFAULT_OPERATIONS), { create: {
                 warnings: [
@@ -4392,7 +4416,23 @@ exports.schema = (0, exports.build_schema)({
         info: {},
         constraints: {
             unique: [],
-            relationship: [],
+            relationship: [
+                {
+                    explanation: 'Endusers cannot self-publish managed content or bind it to another enduser',
+                    evaluate: function (doc, _, session) {
+                        if (session.type !== constants_1.ENDUSER_SESSION_TYPE)
+                            return;
+                        if (doc.publicRead)
+                            return "publicRead cannot be set by endusers";
+                        if (doc.allowUnauthenticatedAccess)
+                            return "allowUnauthenticatedAccess cannot be set by endusers";
+                        if (doc.forInternalUse)
+                            return "forInternalUse cannot be set by endusers";
+                        if (doc.enduserId !== undefined && doc.enduserId !== session.id)
+                            return "enduserId does not match creator id for enduser session";
+                    }
+                },
+            ],
         },
         defaultActions: constants_1.DEFAULT_OPERATIONS,
         customActions: {
@@ -6601,7 +6641,17 @@ exports.schema = (0, exports.build_schema)({
             description: 'Lab, medication, and device orders'
         },
         constraints: {
-            unique: [], relationship: [],
+            unique: [],
+            relationship: [
+                {
+                    explanation: 'When created by an enduser, enduserId must match their id',
+                    evaluate: function (_a, _, session) {
+                        var enduserId = _a.enduserId;
+                        if (session.type === constants_1.ENDUSER_SESSION_TYPE && session.id !== enduserId)
+                            return "enduserId does not match creator id for enduser session";
+                    }
+                },
+            ],
             access: [{ type: 'filter', field: 'userId' }]
         },
         defaultActions: constants_1.DEFAULT_OPERATIONS,

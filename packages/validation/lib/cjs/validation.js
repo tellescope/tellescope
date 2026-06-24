@@ -3929,6 +3929,7 @@ exports.organizationSettingsValidator = (0, exports.objectValidator)({
         cancelReasons: exports.listOfStringsValidatorOptionalOrEmptyOk,
         copyRemindersByDefault: exports.booleanValidatorOptional,
         showMakeRecurringOnProfile: exports.booleanValidatorOptional,
+        hideProviderTab: exports.booleanValidatorOptional,
     }, { isOptional: true }),
     dashboard: (0, exports.objectValidator)({
         view: exports.customDashboardViewValidator,

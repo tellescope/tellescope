@@ -150,4 +150,13 @@ export const setup_tests = async (sdk: Session, sdkNonAdmin: Session) => {
   // may do some stuff in background after returning
   await async_test('reset_db', () => sdk.reset_db(), passOnVoid)
   await wait(undefined, 250)
+
+  // Prevent test-triggered notifications (e.g. timeTrackRejected, inbound-message
+  // notifications) from enqueuing real notification emails to SQS for the primary
+  // test accounts. On-the-fly test users already set this flag individually.
+  // Set after the final reset_db so it isn't wiped by the reset.
+  await Promise.all([
+    sdk.api.users.updateOne(sdk.userInfo.id, { notificationEmailsDisabled: true }),
+    sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { notificationEmailsDisabled: true }),
+  ]).catch(console.error)
 }

@@ -309,6 +309,7 @@ export type OrganizationSettings = {
     cancelReasons?: string[],
     copyRemindersByDefault?: boolean,
     showMakeRecurringOnProfile?: boolean,
+    hideProviderTab?: boolean, // org-wide: hide the "Provider Calendar" tab in the webapp calendar
   },
   users?: {
     sessionDurationInHours?: number,
@@ -2196,7 +2197,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
   belugaCombineMatchingPharmacyMappings?: boolean,
   showByUserTags?: string[],
   version?: 'v1' | 'v2',
-  mdiCaseOfferings?: { offering_id: string }[],
+  mdiCaseOfferings?: { offering_id: string, conditions?: CompoundFilter<string> }[],
   autoMergeOnSubmission?: boolean,
   aiSummaryConfiguration?: AISummaryConfiguration,
   procedureCodes?: FormResponseProcedureCode[],

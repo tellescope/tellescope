@@ -100,6 +100,10 @@ import { invite_user_enumeration_tests } from "./api_tests/security/F-0007-invit
 import { handle_incoming_communication_cross_tenant_tests } from "./api_tests/security/F-0008-handle-incoming-communication-cross-tenant.test";
 import { sanitize_user_html_xss_tests } from "./api_tests/security/F-0013-sanitize-user-html.test";
 import { prototype_pollution_tests } from "./api_tests/security/F-0016-prototype-pollution.test";
+import { enduser_cross_create_tests } from "./api_tests/security/F-0116-F-0119-enduser-cross-create.test";
+import { globalunique_leak_tests } from "./api_tests/security/F-0145-globalunique-leak.test";
+import { load_inbox_redaction_tests } from "./api_tests/security/F-0151-load-inbox-redaction.test";
+import { webhook_timeout_tests } from "./api_tests/security/F-0155-webhook-timeout.test";
 import { bulk_assignment_tests } from "./api_tests/bulk_assignment.test";
 import { managed_content_enduser_access_tests } from "./api_tests/managed_content_enduser_access.test";
 import { managed_content_file_access_tests } from "./api_tests/managed_content_file_access.test";
@@ -116,6 +120,7 @@ import { organization_settings_duplicates_tests } from "./api_tests/organization
 import { calendar_events_bulk_update_tests } from "./api_tests/calendar_events_bulk_update.test";
 import { openloop_webhooks_tests } from "./api_tests/openloop_webhooks.test";
 import { beluga_pharmacy_mappings_tests } from "./api_tests/beluga_pharmacy_mappings.test";
+import { mdi_case_offerings_tests } from "./api_tests/mdi_case_offerings.test";
 import { beluga_manual_sync_tests } from "./api_tests/beluga_manual_sync.test";
 import { mdi_webhooks_tests } from "./api_tests/mdi_webhooks.test";
 import { account_switcher_tests } from "./api_tests/account_switcher.test";
@@ -14840,7 +14845,12 @@ const ip_address_form_tests = async () => {
     await resource_access_tags_tests({ sdk, sdkNonAdmin })
     await beluga_manual_sync_tests({ sdk, sdkNonAdmin })
     await beluga_pharmacy_mappings_tests({ sdk, sdkNonAdmin })
+    await mdi_case_offerings_tests({ sdk, sdkNonAdmin })
     await enduser_write_restrictions_tests({ sdk, sdkNonAdmin })
+    await enduser_cross_create_tests({ sdk, sdkNonAdmin })
+    await globalunique_leak_tests({ sdk, sdkNonAdmin })
+    await load_inbox_redaction_tests({ sdk, sdkNonAdmin })
+    await webhook_timeout_tests({ sdk, sdkNonAdmin })
     await user_portal_settings_tests({ sdk, sdkNonAdmin })
     await automation_trigger_tests()
     await invite_user_enumeration_tests({ sdk, sdkNonAdmin })

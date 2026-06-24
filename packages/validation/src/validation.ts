@@ -4806,6 +4806,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     cancelReasons: listOfStringsValidatorOptionalOrEmptyOk,
     copyRemindersByDefault: booleanValidatorOptional,
     showMakeRecurringOnProfile: booleanValidatorOptional,
+    hideProviderTab: booleanValidatorOptional,
   }, { isOptional: true }),
   dashboard: objectValidator<OrganizationSettings['dashboard']>({
     view: customDashboardViewValidator,
