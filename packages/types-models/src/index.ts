@@ -387,6 +387,12 @@ export type MetriportIntegrationDetail = {
   environment?: string,
 }
 
+export type ChargebeeBusinessEntity = {
+  environment: string, // the matching Chargebee site URL from chargebeeEnvironments
+  businessEntityId: string, // Chargebee business-entity-id sent as the chargebee-business-entity-id header
+  name?: string, // optional friendly label for the dropdown
+}
+
 // for setting holiday/out of office hours with custom reply
 export type OutOfOfficeBlock = {
   from: Date,
@@ -567,6 +573,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   groups?: string[],
   observationInvalidationReasons?: string[],
   chargebeeEnvironments?: string[],
+  chargebeeBusinessEntities?: ChargebeeBusinessEntity[],
   customNotificationTypes?: string[],
   hasConnectedMedplum?: boolean,
   customPortalLoginEmailSubject?: string,
@@ -1122,6 +1129,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   lockedFromPortal?: boolean,
   chargebeeEnvironment?: string,
   chargebeeId?: string,
+  chargebeeBusinessEntityId?: string,
   healthieSyncError?: string,
   lastSuperdialEligibilityCheckAt?: Date,
   superdialEligibilityResponse?: string,
@@ -2001,6 +2009,7 @@ export type FormFieldOptions = FormFieldValidation & {
   observationUnit?: string,
   autoUploadFiles?: boolean,
   chargebeeEnvironment?: string,
+  chargebeeBusinessEntityId?: string,
   chargebeePlanId?: string,
   chargebeeItemId?: string,
   chargebeeCollectPaymentMethodOnly?: boolean,
@@ -3594,9 +3603,10 @@ export type AIContextSource = {
   limit: number,
 }
 export type AIDecisionAutomationAction = AutomationActionBuilder<'aiDecision', {
-  prompt: string,
-  sources: AIContextSource[]
   outcomes: string[],
+  prompt?: string,                                    // legacy, optional
+  sources?: AIContextSource[],                        // legacy, optional
+  aiSummaryConfiguration?: AISummaryConfiguration,    // new shared config
 }>
 export type AssignInboxItemAutomationAction = AutomationActionBuilder<'assignInboxItem', {
   tags: ListOfStringsWithQualifier,
@@ -4863,6 +4873,7 @@ export type AutomationTriggerEvents = {
     titlePartials?: string[],
     titlePartialsAnd?: string[],
     protocols?: string[],
+    frequencies?: string[],
   }, { }>,
   'Missed Call': AutomationTriggerEventBuilder<"Missed Call", { 
     phoneNumbers?: string[], 

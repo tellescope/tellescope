@@ -3769,6 +3769,10 @@ type Queries = {
         handle_incoming_communication: (args: extractFields<CustomActions['journeys']['handle_incoming_communication']['parameters']>) => (Promise<extractFields<CustomActions['journeys']['handle_incoming_communication']['returns']>>);
         get_journey_statistics: (args: extractFields<CustomActions['journeys']['get_journey_statistics']['parameters']>) => (Promise<extractFields<CustomActions['journeys']['get_journey_statistics']['returns']>>);
     };
+    api_keys: {
+        get_organization_api_keys: (args?: extractFields<CustomActions['api_keys']['get_organization_api_keys']['parameters']>) => (Promise<extractFields<CustomActions['api_keys']['get_organization_api_keys']['returns']>>);
+        delete_organization_api_key: (args: extractFields<CustomActions['api_keys']['delete_organization_api_key']['parameters']>) => (Promise<extractFields<CustomActions['api_keys']['delete_organization_api_key']['returns']>>);
+    };
     enduser_orders: {
         get_available_tests: (args: extractFields<CustomActions['enduser_orders']['get_available_tests']['parameters']>) => (Promise<extractFields<CustomActions['enduser_orders']['get_available_tests']['returns']>>);
         create_lab_order: (args: extractFields<CustomActions['enduser_orders']['create_lab_order']['parameters']>) => (Promise<extractFields<CustomActions['enduser_orders']['create_lab_order']['returns']>>);

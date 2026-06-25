@@ -414,6 +414,11 @@ var Session = /** @class */ (function (_super) {
         };
         queries.journeys.handle_incoming_communication = function (a) { return (_this._POST("/v1".concat(schema.journeys.customActions.handle_incoming_communication.path), a)); };
         queries.journeys.get_journey_statistics = function (a) { return _this._GET("/v1".concat(schema.journeys.customActions.get_journey_statistics.path), a); };
+        queries.api_keys.get_organization_api_keys = function () { return _this._GET("/v1".concat(schema.api_keys.customActions.get_organization_api_keys.path)); };
+        queries.api_keys.delete_organization_api_key = function (_a) {
+            var id = _a.id;
+            return _this._DELETE("/v1/organization-api-key/".concat(id));
+        };
         queries.enduser_orders.get_available_tests = function (a) { return _this._GET("/v1".concat(schema.enduser_orders.customActions.get_available_tests.path), a); };
         queries.enduser_orders.create_lab_order = function (a) { return _this._POST("/v1".concat(schema.enduser_orders.customActions.create_lab_order.path), a); };
         queries.enduser_orders.cancel_order = function (a) { return _this._POST("/v1".concat(schema.enduser_orders.customActions.cancel_order.path), a); };

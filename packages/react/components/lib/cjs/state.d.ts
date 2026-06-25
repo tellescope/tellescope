@@ -1480,10 +1480,10 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").CallHoldQueue & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").WebHook & {
+    }) | (import("@tellescope/types-models").APIKey & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").APIKey & {
+    }) | (import("@tellescope/types-models").WebHook & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").EnduserStatusUpdate & {
@@ -1758,10 +1758,10 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").CallHoldQueue & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").WebHook & {
+    }) | (import("@tellescope/types-models").APIKey & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").APIKey & {
+    }) | (import("@tellescope/types-models").WebHook & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").EnduserStatusUpdate & {
@@ -2044,10 +2044,10 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").CallHoldQueue & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").WebHook & {
+    }) | (import("@tellescope/types-models").APIKey & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").APIKey & {
+    }) | (import("@tellescope/types-models").WebHook & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").EnduserStatusUpdate & {
@@ -2322,10 +2322,10 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").CallHoldQueue & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").WebHook & {
+    }) | (import("@tellescope/types-models").APIKey & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").APIKey & {
+    }) | (import("@tellescope/types-models").WebHook & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").EnduserStatusUpdate & {

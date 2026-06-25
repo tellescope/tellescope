@@ -280,6 +280,17 @@ export type CustomActions = {
             id: string;
             key: string;
         }>;
+        get_organization_api_keys: CustomAction<{}, {
+            apiKeys: {
+                id: string;
+                creator: string;
+                businessId: string;
+                updatedAt: Date;
+            }[];
+        }>;
+        delete_organization_api_key: CustomAction<{
+            id: string;
+        }, {}>;
     };
     templates: {
         get_templated_message: CustomAction<{

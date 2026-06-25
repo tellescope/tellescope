@@ -80,6 +80,7 @@ import { enduser_login_tests } from "./api_tests/enduser_login.test";
 import { enduser_login_rate_limits_tests } from "./api_tests/enduser_login_rate_limits.test";
 import { eom_procedure_codes_tests } from "./api_tests/eom_procedure_codes.test";
 import { cross_org_api_key_tests } from "./api_tests/cross_org_api_key.test";
+import { organization_api_keys_tests } from "./api_tests/organization_api_keys.test";
 import { custom_dashboards_tests } from "./api_tests/custom_dashboards.test";
 import { message_assignment_trigger_tests } from "./api_tests/message_assignment_trigger.test";
 import { outbound_chat_sent_trigger_tests } from "./api_tests/outbound_chat_sent_trigger.test";
@@ -3493,6 +3494,39 @@ const order_status_equals_tests = async () => {
     title: "Protocol Condition"
   })
 
+  // Frequency filter triggers (exact-match array filter, mirrors fills/skus). All use a dedicated
+  // source/status so their assertions stay isolated from the t1-t9 incremental tag-count checks above.
+  const tf1 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Order Status Equals', info: { source: 'FreqSource', status: "FreqStatus" } }, // no frequencies -> fires for all
+    action: { type: 'Add Tags', info: { tags: ['Freq No Filter'] }},
+    status: 'Active',
+    title: "Frequency - no filter (backward compat)"
+  })
+  const tf2 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Order Status Equals', info: { source: 'FreqSource', status: "FreqStatus", frequencies: ['4', '12'] } },
+    action: { type: 'Add Tags', info: { tags: ['Freq Match'] }},
+    status: 'Active',
+    title: "Frequency - multi-value match"
+  })
+  const tf3 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Order Status Equals', info: { source: 'FreqSource', status: "FreqStatus", frequencies: [] } }, // empty array -> fires for all
+    action: { type: 'Add Tags', info: { tags: ['Freq Empty All'] }},
+    status: 'Active',
+    title: "Frequency - empty array means all"
+  })
+  const tf4 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Order Status Equals', info: { source: 'FreqSource', status: "FreqShipped", frequencies: ['4'] } },
+    action: { type: 'Add Tags', info: { tags: ['Freq Status Combo'] }},
+    status: 'Active',
+    title: "Frequency + status combination (AND semantics)"
+  })
+  const tf5 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Order Status Equals', info: { source: 'FreqSource', status: "FreqStatus", frequencies: ['12'] } },
+    action: { type: 'Add Tags', info: { tags: ['Freq Match 12'] }},
+    status: 'Active',
+    title: "Frequency - second listed value"
+  })
+
   const e = await sdk.api.endusers.createOne({})
 
   await sdk.api.enduser_orders.createOne({ status: 'Nooo', source: 'Source', title: 'nomatch', externalId: '1', enduserId: e.id })
@@ -3705,6 +3739,85 @@ const order_status_equals_tests = async () => {
     ) }
   )
 
+  // --- Frequency filter coverage (fresh enduser keeps tag-count assertions isolated) ---
+  const ef = await sdk.api.endusers.createOne({})
+
+  // Order with NO frequency: no-filter trigger (tf1) and empty-array trigger (tf3) both fire;
+  // populated-filter trigger (tf2) does NOT (missing frequency must never match a populated filter).
+  await sdk.api.enduser_orders.createOne({ status: 'FreqStatus', source: 'FreqSource', externalId: 'f1', enduserId: ef.id, title: "Freq No Frequency" })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Frequency: no-filter + empty-array fire for order with no frequency (backward compat)",
+    () => sdk.api.endusers.getOne(ef.id),
+    { onResult: e => !!(
+       e.tags?.length === 2
+    && e.tags?.includes('Freq No Filter')
+    && e.tags?.includes('Freq Empty All')
+    && !e.tags?.includes('Freq Match')
+    ) }
+  )
+
+  // Order with a frequency NOT in ['4','12'] -> populated-filter trigger still does not fire.
+  await sdk.api.enduser_orders.createOne({ status: 'FreqStatus', source: 'FreqSource', externalId: 'f2', enduserId: ef.id, title: "Freq 8", frequency: '8' })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Frequency: no match (order frequency '8' not in ['4','12'])",
+    () => sdk.api.endusers.getOne(ef.id),
+    { onResult: e => !!(
+       e.tags?.length === 2
+    && !e.tags?.includes('Freq Match')
+    ) }
+  )
+
+  // Order with frequency '4' -> ['4','12'] trigger fires.
+  await sdk.api.enduser_orders.createOne({ status: 'FreqStatus', source: 'FreqSource', externalId: 'f3', enduserId: ef.id, title: "Freq 4", frequency: '4' })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Frequency: match (order frequency '4' is in ['4','12'])",
+    () => sdk.api.endusers.getOne(ef.id),
+    { onResult: e => !!(
+       e.tags?.length === 3
+    && e.tags?.includes('Freq Match')
+    && !e.tags?.includes('Freq Match 12')
+    ) }
+  )
+
+  // Order with frequency '12' -> the second listed value also matches (tf5 frequencies: ['12']).
+  await sdk.api.enduser_orders.createOne({ status: 'FreqStatus', source: 'FreqSource', externalId: 'f4', enduserId: ef.id, title: "Freq 12", frequency: '12' })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Frequency: second listed value '12' also matches",
+    () => sdk.api.endusers.getOne(ef.id),
+    { onResult: e => !!(
+       e.tags?.length === 4
+    && e.tags?.includes('Freq Match 12')
+    ) }
+  )
+
+  // AND semantics: frequency + status must BOTH match. Right frequency, wrong status -> no fire.
+  await sdk.api.enduser_orders.createOne({ status: 'FreqShipped', source: 'FreqSource', externalId: 'f5', enduserId: ef.id, title: "Freq Combo Wrong Freq", frequency: '8' })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Frequency + status combo: status matches but frequency does not -> no fire",
+    () => sdk.api.endusers.getOne(ef.id),
+    { onResult: e => !!(
+       e.tags?.length === 4
+    && !e.tags?.includes('Freq Status Combo')
+    ) }
+  )
+
+  // AND semantics: right status AND right frequency -> fires.
+  await sdk.api.enduser_orders.createOne({ status: 'FreqShipped', source: 'FreqSource', externalId: 'f6', enduserId: ef.id, title: "Freq Combo Match", frequency: '4' })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Frequency + status combo: both match -> fires (AND semantics)",
+    () => sdk.api.endusers.getOne(ef.id),
+    { onResult: e => !!(
+       e.tags?.length === 5
+    && e.tags?.includes('Freq Status Combo')
+    ) }
+  )
+
   await Promise.all([
     sdk.api.automation_triggers.deleteOne(t1.id),
     sdk.api.automation_triggers.deleteOne(t2.id),
@@ -3715,7 +3828,13 @@ const order_status_equals_tests = async () => {
     sdk.api.automation_triggers.deleteOne(t7.id),
     sdk.api.automation_triggers.deleteOne(t8.id),
     sdk.api.automation_triggers.deleteOne(t9.id),
+    sdk.api.automation_triggers.deleteOne(tf1.id),
+    sdk.api.automation_triggers.deleteOne(tf2.id),
+    sdk.api.automation_triggers.deleteOne(tf3.id),
+    sdk.api.automation_triggers.deleteOne(tf4.id),
+    sdk.api.automation_triggers.deleteOne(tf5.id),
     sdk.api.endusers.deleteOne(e.id),
+    sdk.api.endusers.deleteOne(ef.id),
   ])
 }
 
@@ -6717,11 +6836,25 @@ export const self_serve_appointment_booking_tests = async () => {
     confirmationEmailDisabled: true,
     confirmationSMSDisabled: true,
   })
-  const event30minGroup = await sdk.api.calendar_event_templates.createOne({ 
+  const event30minGroup = await sdk.api.calendar_event_templates.createOne({
     title: 'test group', durationInMinutes: 30,
     confirmationEmailDisabled: true,
     confirmationSMSDisabled: true,
-    enduserAttendeeLimit: 2, 
+    enduserAttendeeLimit: 2,
+  })
+  const event30minTwilio = await sdk.api.calendar_event_templates.createOne({
+    title: 'test twilio', durationInMinutes: 30,
+    confirmationEmailDisabled: true,
+    confirmationSMSDisabled: true,
+    enableVideoCall: true,
+    videoIntegration: 'Twilio',
+  })
+  const event30minZoom = await sdk.api.calendar_event_templates.createOne({
+    title: 'test zoom', durationInMinutes: 30,
+    confirmationEmailDisabled: true,
+    confirmationSMSDisabled: true,
+    enableVideoCall: true,
+    videoIntegration: 'Zoom',
   })
 
   // ensure it doesn't match current day, to avoid errors on testing
@@ -7281,17 +7414,70 @@ export const self_serve_appointment_booking_tests = async () => {
     { onResult: event => !!event.rescheduledAt }
   )
 
+  // videoIntegration passthrough from template to booked event (Twilio fix + Zoom regression guard)
+  // set up fresh, dedicated availability so this doesn't interfere with the slot-accounting tests above
+  await sdk.api.users.updateOne(sdk.userInfo.id, {
+    weeklyAvailabilities: [
+      {
+        dayOfWeekStartingSundayIndexedByZero,
+        startTimeInMinutes: 60 * 9, // 9am,
+        endTimeInMinutes: 60 * 11, // 11am,
+      },
+    ],
+    timezone: 'America/New_York',
+  }, {
+    replaceObjectFields: true,
+  })
+
+  const twilioSlots = await enduserSDK.api.calendar_events.get_appointment_availability({
+    calendarEventTemplateId: event30minTwilio.id,
+    from: new Date(Date.now() - 10000),
+    to: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+    userIds: [sdk.userInfo.id],
+  })
+  const bookedTwilioAppointment = (await enduserSDK.api.calendar_events.book_appointment({
+    calendarEventTemplateId: event30minTwilio.id,
+    startTime: new Date(twilioSlots.availabilityBlocks[0].startTimeInMS),
+    userId: sdk.userInfo.id,
+  })).createdEvent
+  assert(
+    bookedTwilioAppointment.videoIntegration === 'Twilio',
+    'Twilio videoIntegration not propagated to booked event',
+    'Twilio videoIntegration propagated to booked event'
+  )
+
+  const zoomSlots = await enduserSDK.api.calendar_events.get_appointment_availability({
+    calendarEventTemplateId: event30minZoom.id,
+    from: new Date(Date.now() - 10000),
+    to: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+    userIds: [sdk.userInfo.id],
+  })
+  const bookedZoomAppointment = (await enduserSDK.api.calendar_events.book_appointment({
+    calendarEventTemplateId: event30minZoom.id,
+    startTime: new Date(zoomSlots.availabilityBlocks[0].startTimeInMS),
+    userId: sdk.userInfo.id,
+  })).createdEvent
+  assert(
+    bookedZoomAppointment.videoIntegration === 'Zoom',
+    'Zoom videoIntegration not propagated to booked event',
+    'Zoom videoIntegration propagated to booked event'
+  )
+
   await Promise.all([
     sdk.api.endusers.deleteOne(e1.id),
     sdk.api.endusers.deleteOne(e2.id),
     sdk.api.endusers.deleteOne(e3.id),
     sdk.api.calendar_event_templates.deleteOne(event30min.id),
     sdk.api.calendar_event_templates.deleteOne(event30minGroup.id),
+    sdk.api.calendar_event_templates.deleteOne(event30minTwilio.id),
+    sdk.api.calendar_event_templates.deleteOne(event30minZoom.id),
     sdk.api.calendar_event_templates.deleteOne(event15min.id),
     sdk.api.calendar_event_templates.deleteOne(templatePreserveHosts.id),
     sdk.api.calendar_event_templates.deleteOne(templateReplaceHosts.id),
     sdk.api.calendar_events.deleteOne(bookedAppointment.id),
     sdk.api.calendar_events.deleteOne(bookedMultiAppointment.id),
+    sdk.api.calendar_events.deleteOne(bookedTwilioAppointment.id),
+    sdk.api.calendar_events.deleteOne(bookedZoomAppointment.id),
     sdk.api.calendar_events.deleteOne(groupEvent.id),
     sdk.api.calendar_events.deleteOne(originalMultiHostAppt.id),
     sdk.api.calendar_events.deleteOne(rescheduledPreserveHosts.id),
@@ -14870,6 +15056,7 @@ const ip_address_form_tests = async () => {
     await enduser_cross_access_isolation_tests({ sdk, sdkNonAdmin })
     await eom_procedure_codes_tests({ sdk, sdkNonAdmin })
     await cross_org_api_key_tests({ sdk, sdkNonAdmin })
+    await organization_api_keys_tests({ sdk, sdkNonAdmin })
     await organization_settings_duplicates_tests({ sdk, sdkNonAdmin })
     await enduser_session_invalidation_tests({ sdk, sdkNonAdmin })
     await chats_analytics_tests({ sdk, sdkNonAdmin })

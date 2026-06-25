@@ -325,7 +325,11 @@ export var schema = build_schema({
                     archivedAt: dateValidatorOptional,
                 })),
                 redactions: ['enduser'],
-            }, references: { validator: listOfRelatedRecordsValidator, redactions: ['enduser'], enduserUpdatesDisabled: true }, athenaDepartmentId: { validator: stringValidator100, redactions: ['enduser'], enduserUpdatesDisabled: true }, athenaPracticeId: { validator: stringValidator100, redactions: ['enduser'], enduserUpdatesDisabled: true }, salesforceId: { validator: stringValidator100, redactions: ['enduser'], enduserUpdatesDisabled: true }, vitalTriggersDisabled: { validator: booleanValidator }, defaultFromPhone: { validator: phoneValidator, redactions: ['enduser'] }, defaultFromEmail: { validator: emailValidator, redactions: ['enduser'] }, useDefaultFromEmailInAutomations: { validator: booleanValidator }, useDefaultFromPhoneInAutomations: { validator: booleanValidator }, stripeCustomerId: { validator: stringValidator100, redactions: ['enduser'], enduserUpdatesDisabled: true }, stripeKey: { validator: stringValidator250, redactions: ['enduser'], enduserUpdatesDisabled: true }, diagnoses: {
+            }, references: { validator: listOfRelatedRecordsValidator, redactions: ['enduser'], enduserUpdatesDisabled: true }, athenaDepartmentId: { validator: stringValidator100, redactions: ['enduser'], enduserUpdatesDisabled: true }, athenaPracticeId: { validator: stringValidator100, redactions: ['enduser'], enduserUpdatesDisabled: true }, salesforceId: { validator: stringValidator100, redactions: ['enduser'], enduserUpdatesDisabled: true }, vitalTriggersDisabled: { validator: booleanValidator }, defaultFromPhone: { validator: phoneValidator, redactions: ['enduser'] }, defaultFromEmail: { validator: emailValidator, redactions: ['enduser'] }, useDefaultFromEmailInAutomations: { validator: booleanValidator }, useDefaultFromPhoneInAutomations: { validator: booleanValidator }, stripeCustomerId: { validator: stringValidator100, redactions: ['enduser'], enduserUpdatesDisabled: true }, stripeKey: { validator: stringValidator250, redactions: ['enduser'], enduserUpdatesDisabled: true }, 
+            // Chargebee linkage fields. Normally written server-side at customer creation, but exposed as
+            // staff-editable (enduserUpdatesDisabled) for manual correction — e.g. reflecting a Chargebee-side
+            // customer transfer between business entities, for which Chargebee emits no webhook. Empty clears.
+            chargebeeId: { validator: stringValidatorOptionalEmptyOkay, redactions: ['enduser'], enduserUpdatesDisabled: true }, chargebeeEnvironment: { validator: stringValidatorOptionalEmptyOkay, redactions: ['enduser'], enduserUpdatesDisabled: true }, chargebeeBusinessEntityId: { validator: stringValidatorOptionalEmptyOkay, redactions: ['enduser'], enduserUpdatesDisabled: true }, diagnoses: {
                 validator: listValidatorOptionalOrEmptyOk(enduserDiagnosisValidator),
                 redactions: ['enduser'],
                 enduserUpdatesDisabled: true,
@@ -876,7 +880,27 @@ export var schema = build_schema({
                         validator: stringValidator,
                     }
                 }
-            }
+            },
+            get_organization_api_keys: {
+                op: 'custom', access: 'read', method: 'get', adminOnly: true,
+                name: 'Get Organization ApiKeys',
+                path: '/organization-api-keys',
+                description: "Returns metadata (id, creator, businessId, updatedAt) for all ApiKeys in the admin's organization. Never returns the secret key.",
+                parameters: {},
+                returns: {
+                    apiKeys: { validator: listOfObjectAnyFieldsAnyValuesValidator, required: true },
+                },
+            },
+            delete_organization_api_key: {
+                op: 'custom', access: 'delete', method: 'delete', adminOnly: true,
+                name: 'Delete Organization ApiKey',
+                path: '/organization-api-key/:id',
+                description: "Deletes an ApiKey in the admin's organization by id, regardless of which user created it.",
+                parameters: {
+                    id: { validator: mongoIdStringValidator, required: true },
+                },
+                returns: {},
+            },
         }
     },
     integrations: {
@@ -5042,6 +5066,12 @@ export var schema = build_schema({
                     title: stringValidator5000EmptyOkay,
                     environment: stringValidator1000Optional,
                 }))
+            }, chargebeeBusinessEntities: {
+                validator: listValidatorOptionalOrEmptyOk(objectValidator({
+                    environment: stringValidator1000,
+                    businessEntityId: stringValidator1000,
+                    name: stringValidator1000Optional,
+                }))
             }, name: {
                 validator: stringValidator100,
                 required: true,
@@ -7080,8 +7110,9 @@ export var schema = build_schema({
                     enduserId: { validator: mongoIdStringValidator, required: true },
                     automationStepId: { validator: mongoIdStringValidator, required: true },
                     outcomes: { validator: listOfStringsValidator, required: true },
-                    prompt: { validator: stringValidator5000, required: true },
-                    sources: { validator: listValidator(AIDecisionSourceValidator), required: true },
+                    prompt: { validator: stringValidator5000OptionalEmptyOkay },
+                    sources: { validator: listValidator(AIDecisionSourceValidator) },
+                    aiSummaryConfiguration: { validator: aiSummaryConfigurationValidator },
                     journeyContext: { validator: journeyContextValidator },
                 },
                 returns: {},

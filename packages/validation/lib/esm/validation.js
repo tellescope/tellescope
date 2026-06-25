@@ -2422,6 +2422,24 @@ var sendWebhookInfoValidator = objectValidator({
     headers: labeledFieldsValidator,
     rawJSONBody: stringValidator25000OptionalEmptyOkay,
 }, { emptyOk: false });
+export var AI_SUMMARY_DATA_SOURCES = [
+    'enduser_observations', 'form_responses', 'chats', 'phone_calls',
+    'calendar_events', 'tickets', 'sms_messages', 'emails',
+    'enduser_orders', 'enduser_medications', 'purchases',
+];
+export var aiSummaryDataSourceTypeValidator = exactMatchValidator(AI_SUMMARY_DATA_SOURCES);
+export var aiSummaryDataSourceConfigValidator = objectValidator({
+    type: aiSummaryDataSourceTypeValidator,
+    limit: nonNegNumberValidatorOptional,
+    lookbackMS: nonNegNumberValidatorOptional,
+    filter: objectAnyFieldsAnyValuesValidator,
+});
+export var aiSummaryConfigurationValidator = objectValidator({
+    enabled: booleanValidatorOptional,
+    prompt: stringValidator5000OptionalEmptyOkay,
+    dataSources: listValidatorOptionalOrEmptyOk(aiSummaryDataSourceConfigValidator),
+    maxOutputTokens: nonNegNumberValidatorOptional,
+}, { isOptional: true, emptyOk: true });
 export var AIDecisionSourceValidator = objectValidator({
     limit: numberValidator,
     type: stringValidator,
@@ -2741,9 +2759,10 @@ export var automationActionValidator = orValidator({
         }, { emptyOk: false }) })),
     aiDecision: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['aiDecision']), info: objectValidator({
             outcomes: listOfStringsValidator,
-            prompt: stringValidator5000,
-            sources: listValidator(AIDecisionSourceValidator), // todo: make more restrictive
-        }, { emptyOk: false }) // at least tags is required
+            prompt: stringValidator5000OptionalEmptyOkay,
+            sources: listValidatorOptionalOrEmptyOk(AIDecisionSourceValidator),
+            aiSummaryConfiguration: aiSummaryConfigurationValidator, // new shared config (optional)
+        }, { emptyOk: false }) // at least outcomes is required
      })),
     assignInboxItem: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['assignInboxItem']), info: objectValidator({
             tags: listOfStringsWithQualifierValidator,
@@ -3107,6 +3126,7 @@ export var formFieldOptionsValidator = objectValidator({
     observationUnit: stringValidatorOptionalEmptyOkay,
     autoUploadFiles: booleanValidatorOptional,
     chargebeeEnvironment: stringValidatorOptional,
+    chargebeeBusinessEntityId: stringValidatorOptional,
     chargebeePlanId: stringValidatorOptional,
     chargebeeItemId: stringValidatorOptional,
     chargebeeCollectPaymentMethodOnly: booleanValidatorOptional,
@@ -4202,6 +4222,7 @@ export var automationTriggerEventValidator = orValidator({
             titlePartials: listOfStringsValidatorOptionalOrEmptyOk,
             titlePartialsAnd: listOfStringsValidatorOptionalOrEmptyOk,
             protocols: listOfStringsValidatorOptionalOrEmptyOk,
+            frequencies: listOfStringsValidatorOptionalOrEmptyOk,
         }),
         conditions: optionalEmptyObjectValidator,
     }),
@@ -5709,24 +5730,6 @@ export var formCustomizationValidator = objectValidator({
     secondaryColor: stringValidatorOptionalEmptyOkay,
     showLogoOnIntakePage: booleanValidatorOptional,
     logoAlignment: exactMatchValidatorOptional(['left', 'center', 'right']),
-});
-export var AI_SUMMARY_DATA_SOURCES = [
-    'enduser_observations', 'form_responses', 'chats', 'phone_calls',
-    'calendar_events', 'tickets', 'sms_messages', 'emails',
-    'enduser_orders', 'enduser_medications', 'purchases',
-];
-export var aiSummaryDataSourceTypeValidator = exactMatchValidator(AI_SUMMARY_DATA_SOURCES);
-export var aiSummaryDataSourceConfigValidator = objectValidator({
-    type: aiSummaryDataSourceTypeValidator,
-    limit: nonNegNumberValidatorOptional,
-    lookbackMS: nonNegNumberValidatorOptional,
-    filter: objectAnyFieldsAnyValuesValidator,
-});
-export var aiSummaryConfigurationValidator = objectValidator({
-    enabled: booleanValidatorOptional,
-    prompt: stringValidator5000OptionalEmptyOkay,
-    dataSources: listValidatorOptionalOrEmptyOk(aiSummaryDataSourceConfigValidator),
-    maxOutputTokens: nonNegNumberValidatorOptional,
 });
 export var languageValidator = objectValidator({
     displayName: stringValidator100,

@@ -6,6 +6,8 @@ import { DateTime } from "luxon"
 import { ObjectId } from "./ObjectId/objectid";
 export { ObjectId }
 
+export * from "./ai_summary"
+
 export type Indexable<T=any> = { [index: string]: T }
 
 export const user_is_admin = (u: { id: string, roles?: string[] } & ({ type: 'user' } | { type: 'enduser' })) =>

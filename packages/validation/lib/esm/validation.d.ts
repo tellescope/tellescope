@@ -862,6 +862,10 @@ export declare const developHealthMockResultValidator: ValidatorDefinition<{
 }>;
 export declare const canvasCodingValidator: ValidatorDefinition<CanvasCoding>;
 export declare const canvasCodingValidatorOptional: ValidatorDefinition<CanvasCoding>;
+export declare const AI_SUMMARY_DATA_SOURCES: AISummaryDataSource[];
+export declare const aiSummaryDataSourceTypeValidator: ValidatorDefinition<AISummaryDataSource>;
+export declare const aiSummaryDataSourceConfigValidator: ValidatorDefinition<AISummaryDataSourceConfig>;
+export declare const aiSummaryConfigurationValidator: ValidatorDefinition<AISummaryConfiguration>;
 export declare const AIDecisionSourceValidator: ValidatorDefinition<AIContextSource>;
 export declare const AIMessageInputValidator: ValidatorDefinition<{
     role: 'user' | 'assistant';
@@ -1745,6 +1749,7 @@ export declare const automationTriggerEventValidator: ValidatorDefinition<import
     titlePartials?: string[] | undefined;
     titlePartialsAnd?: string[] | undefined;
     protocols?: string[] | undefined;
+    frequencies?: string[] | undefined;
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Missed Call", {
     phoneNumbers?: string[] | undefined;
     inputs?: string[] | undefined;
@@ -2611,10 +2616,6 @@ export declare const phoneTreeNodesValidator: ValidatorDefinition<PhoneTreeNode[
 export declare const PHONE_TREE_ENDUSER_CONDITIONS: PhoneTreeEnduserCondition[];
 export declare const phoneTreeEnduserConditionValidator: ValidatorDefinition<PhoneTreeEnduserCondition>;
 export declare const formCustomizationValidator: ValidatorDefinition<import("@tellescope/types-models").FormCustomization | undefined>;
-export declare const AI_SUMMARY_DATA_SOURCES: AISummaryDataSource[];
-export declare const aiSummaryDataSourceTypeValidator: ValidatorDefinition<AISummaryDataSource>;
-export declare const aiSummaryDataSourceConfigValidator: ValidatorDefinition<AISummaryDataSourceConfig>;
-export declare const aiSummaryConfigurationValidator: ValidatorDefinition<AISummaryConfiguration>;
 export declare const languageValidator: ValidatorDefinition<Language>;
 export declare const tableViewColumnsValidator: ValidatorDefinition<TableViewColumn[]>;
 export declare const formFieldCalloutConditionsValidator: ValidatorDefinition<FormFieldCalloutCondition[]>;

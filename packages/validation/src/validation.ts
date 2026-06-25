@@ -3030,6 +3030,28 @@ const sendWebhookInfoValidator = objectValidator<AutomationForWebhook>({
   rawJSONBody: stringValidator25000OptionalEmptyOkay,
 }, { emptyOk: false })
 
+export const AI_SUMMARY_DATA_SOURCES: AISummaryDataSource[] = [
+  'enduser_observations','form_responses','chats','phone_calls',
+  'calendar_events','tickets','sms_messages','emails',
+  'enduser_orders','enduser_medications','purchases',
+]
+
+export const aiSummaryDataSourceTypeValidator = exactMatchValidator<AISummaryDataSource>(AI_SUMMARY_DATA_SOURCES)
+
+export const aiSummaryDataSourceConfigValidator = objectValidator<AISummaryDataSourceConfig>({
+  type: aiSummaryDataSourceTypeValidator,
+  limit: nonNegNumberValidatorOptional,
+  lookbackMS: nonNegNumberValidatorOptional,
+  filter: objectAnyFieldsAnyValuesValidator,
+})
+
+export const aiSummaryConfigurationValidator = objectValidator<AISummaryConfiguration>({
+  enabled: booleanValidatorOptional,
+  prompt: stringValidator5000OptionalEmptyOkay,
+  dataSources: listValidatorOptionalOrEmptyOk(aiSummaryDataSourceConfigValidator),
+  maxOutputTokens: nonNegNumberValidatorOptional,
+}, { isOptional: true, emptyOk: true })
+
 export const AIDecisionSourceValidator = objectValidator<AIContextSource>({
   limit: numberValidator,
   type: stringValidator,
@@ -3586,11 +3608,12 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
   aiDecision: objectValidator<AIDecisionAutomationAction>({
     ...sharedAutomationActionValidators,
     type: exactMatchValidator(['aiDecision']),
-    info: objectValidator<AIDecisionAutomationAction['info']>({ 
+    info: objectValidator<AIDecisionAutomationAction['info']>({
       outcomes: listOfStringsValidator,
-      prompt: stringValidator5000,
-      sources: listValidator(AIDecisionSourceValidator), // todo: make more restrictive
-    }, { emptyOk: false }) // at least tags is required
+      prompt: stringValidator5000OptionalEmptyOkay,                        // legacy, now optional
+      sources: listValidatorOptionalOrEmptyOk(AIDecisionSourceValidator),  // legacy, now optional
+      aiSummaryConfiguration: aiSummaryConfigurationValidator,             // new shared config (optional)
+    }, { emptyOk: false }) // at least outcomes is required
   }),
   assignInboxItem: objectValidator<AssignInboxItemAutomationAction>({
     ...sharedAutomationActionValidators,
@@ -4000,6 +4023,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   observationUnit: stringValidatorOptionalEmptyOkay,
   autoUploadFiles: booleanValidatorOptional,
   chargebeeEnvironment: stringValidatorOptional,
+  chargebeeBusinessEntityId: stringValidatorOptional,
   chargebeePlanId: stringValidatorOptional,
   chargebeeItemId: stringValidatorOptional,
   chargebeeCollectPaymentMethodOnly: booleanValidatorOptional,
@@ -5141,9 +5165,10 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
       titlePartials: listOfStringsValidatorOptionalOrEmptyOk,
       titlePartialsAnd: listOfStringsValidatorOptionalOrEmptyOk,
       protocols: listOfStringsValidatorOptionalOrEmptyOk,
+      frequencies: listOfStringsValidatorOptionalOrEmptyOk,
     }),
     conditions: optionalEmptyObjectValidator,
-  }), 
+  }),
   "Missed Call": objectValidator<AutomationTriggerEvents["Missed Call"]>({
     type: exactMatchValidator(['Missed Call']),
     info: objectValidator<AutomationTriggerEvents['Missed Call']['info']>({
@@ -6772,28 +6797,6 @@ export const formCustomizationValidator = objectValidator<Form['customization']>
   secondaryColor: stringValidatorOptionalEmptyOkay, // Custom secondary color
   showLogoOnIntakePage: booleanValidatorOptional,
   logoAlignment: exactMatchValidatorOptional(['left', 'center', 'right']),
-})
-
-export const AI_SUMMARY_DATA_SOURCES: AISummaryDataSource[] = [
-  'enduser_observations','form_responses','chats','phone_calls',
-  'calendar_events','tickets','sms_messages','emails',
-  'enduser_orders','enduser_medications','purchases',
-]
-
-export const aiSummaryDataSourceTypeValidator = exactMatchValidator<AISummaryDataSource>(AI_SUMMARY_DATA_SOURCES)
-
-export const aiSummaryDataSourceConfigValidator = objectValidator<AISummaryDataSourceConfig>({
-  type: aiSummaryDataSourceTypeValidator,
-  limit: nonNegNumberValidatorOptional,
-  lookbackMS: nonNegNumberValidatorOptional,
-  filter: objectAnyFieldsAnyValuesValidator,
-})
-
-export const aiSummaryConfigurationValidator = objectValidator<AISummaryConfiguration>({
-  enabled: booleanValidatorOptional,
-  prompt: stringValidator5000OptionalEmptyOkay,
-  dataSources: listValidatorOptionalOrEmptyOk(aiSummaryDataSourceConfigValidator),
-  maxOutputTokens: nonNegNumberValidatorOptional,
 })
 
 export const languageValidator = objectValidator<Language>({

@@ -263,6 +263,14 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
       Promise<extractFields<CustomActions['journeys']['get_journey_statistics']['returns']>>
     ),
   },
+  api_keys: {
+    get_organization_api_keys: (args?: extractFields<CustomActions['api_keys']['get_organization_api_keys']['parameters']>) => (
+      Promise<extractFields<CustomActions['api_keys']['get_organization_api_keys']['returns']>>
+    ),
+    delete_organization_api_key: (args: extractFields<CustomActions['api_keys']['delete_organization_api_key']['parameters']>) => (
+      Promise<extractFields<CustomActions['api_keys']['delete_organization_api_key']['returns']>>
+    ),
+  },
   enduser_orders: {
     get_available_tests: (args: extractFields<CustomActions['enduser_orders']['get_available_tests']['parameters']>) => (
       Promise<extractFields<CustomActions['enduser_orders']['get_available_tests']['returns']>>
@@ -963,6 +971,9 @@ export class Session extends SessionManager {
       this._POST(`/v1${schema.journeys.customActions.handle_incoming_communication.path}`, a)
     )
     queries.journeys.get_journey_statistics = a => this._GET(`/v1${schema.journeys.customActions.get_journey_statistics.path}`, a)
+
+    queries.api_keys.get_organization_api_keys = () => this._GET(`/v1${schema.api_keys.customActions.get_organization_api_keys.path}`)
+    queries.api_keys.delete_organization_api_key = ({ id }) => this._DELETE(`/v1/organization-api-key/${id}`)
 
     queries.enduser_orders.get_available_tests = a => this._GET(`/v1${schema.enduser_orders.customActions.get_available_tests.path}`, a)
     queries.enduser_orders.create_lab_order = a => this._POST(`/v1${schema.enduser_orders.customActions.create_lab_order.path}`, a)

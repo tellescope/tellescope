@@ -82,6 +82,7 @@ import {
   CanvasCoding,
   StripeKeyDetail,
   MetriportIntegrationDetail,
+  ChargebeeBusinessEntity,
   EnduserDevice,
   AIConversationMessage,
   AICOnversationMessageContent,
@@ -686,6 +687,8 @@ export type CustomActions = {
   },
   api_keys: {
     create: CustomAction<{}, { id: string, key: string}>,
+    get_organization_api_keys: CustomAction<{}, { apiKeys: { id: string, creator: string, businessId: string, updatedAt: Date }[] }>,
+    delete_organization_api_key: CustomAction<{ id: string }, { }>,
   },
   templates: {
     get_templated_message: CustomAction<
@@ -1719,6 +1722,12 @@ export const schema: SchemaV1 = build_schema({
       useDefaultFromPhoneInAutomations: { validator: booleanValidator },
       stripeCustomerId: { validator: stringValidator100, redactions: ['enduser'], enduserUpdatesDisabled: true },
       stripeKey: { validator: stringValidator250, redactions: ['enduser'], enduserUpdatesDisabled: true },
+      // Chargebee linkage fields. Normally written server-side at customer creation, but exposed as
+      // staff-editable (enduserUpdatesDisabled) for manual correction — e.g. reflecting a Chargebee-side
+      // customer transfer between business entities, for which Chargebee emits no webhook. Empty clears.
+      chargebeeId: { validator: stringValidatorOptionalEmptyOkay, redactions: ['enduser'], enduserUpdatesDisabled: true },
+      chargebeeEnvironment: { validator: stringValidatorOptionalEmptyOkay, redactions: ['enduser'], enduserUpdatesDisabled: true },
+      chargebeeBusinessEntityId: { validator: stringValidatorOptionalEmptyOkay, redactions: ['enduser'], enduserUpdatesDisabled: true },
       diagnoses: {
         validator: listValidatorOptionalOrEmptyOk(enduserDiagnosisValidator),
         redactions: ['enduser'],
@@ -2286,10 +2295,30 @@ export const schema: SchemaV1 = build_schema({
             validator: mongoIdStringValidator,
           },
           key: {
-            validator: stringValidator, 
+            validator: stringValidator,
           }
         }
-      }
+      },
+      get_organization_api_keys: {
+        op: 'custom', access: 'read', method: 'get', adminOnly: true,
+        name: 'Get Organization ApiKeys',
+        path: '/organization-api-keys',
+        description: "Returns metadata (id, creator, businessId, updatedAt) for all ApiKeys in the admin's organization. Never returns the secret key.",
+        parameters: {},
+        returns: {
+          apiKeys: { validator: listOfObjectAnyFieldsAnyValuesValidator as any, required: true },
+        },
+      },
+      delete_organization_api_key: {
+        op: 'custom', access: 'delete', method: 'delete', adminOnly: true,
+        name: 'Delete Organization ApiKey',
+        path: '/organization-api-key/:id',
+        description: "Deletes an ApiKey in the admin's organization by id, regardless of which user created it.",
+        parameters: {
+          id: { validator: mongoIdStringValidator, required: true },
+        },
+        returns: { },
+      },
     }
   },
   integrations: {
@@ -7274,6 +7303,13 @@ export const schema: SchemaV1 = build_schema({
           environment: stringValidator1000Optional,
         }))
       },
+      chargebeeBusinessEntities: {
+        validator: listValidatorOptionalOrEmptyOk(objectValidator<ChargebeeBusinessEntity>({
+          environment: stringValidator1000,
+          businessEntityId: stringValidator1000,
+          name: stringValidator1000Optional,
+        }))
+      },
       name: {
         validator: stringValidator100,
         required: true,
@@ -10016,8 +10052,9 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           enduserId: { validator: mongoIdStringValidator, required: true },
           automationStepId: { validator: mongoIdStringValidator, required: true },
           outcomes: { validator: listOfStringsValidator, required: true },
-          prompt: { validator: stringValidator5000, required: true },
-          sources: { validator: listValidator(AIDecisionSourceValidator), required: true },
+          prompt: { validator: stringValidator5000OptionalEmptyOkay },                 // legacy, now optional
+          sources: { validator: listValidator(AIDecisionSourceValidator) },            // legacy, now optional
+          aiSummaryConfiguration: { validator: aiSummaryConfigurationValidator },       // new shared config
           journeyContext: { validator: journeyContextValidator },
         },
         returns: {},

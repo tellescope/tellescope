@@ -2,6 +2,7 @@ import { AvailabilityBlock, CalendarEvent, CalendarEventLimit, CompoundFilter, E
 import { DateTime } from "luxon";
 import { ObjectId } from "./ObjectId/objectid";
 export { ObjectId };
+export * from "./ai_summary";
 export type Indexable<T = any> = {
     [index: string]: T;
 };

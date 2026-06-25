@@ -330,7 +330,11 @@ exports.schema = (0, exports.build_schema)({
                     archivedAt: validation_1.dateValidatorOptional,
                 })),
                 redactions: ['enduser'],
-            }, references: { validator: validation_1.listOfRelatedRecordsValidator, redactions: ['enduser'], enduserUpdatesDisabled: true }, athenaDepartmentId: { validator: validation_1.stringValidator100, redactions: ['enduser'], enduserUpdatesDisabled: true }, athenaPracticeId: { validator: validation_1.stringValidator100, redactions: ['enduser'], enduserUpdatesDisabled: true }, salesforceId: { validator: validation_1.stringValidator100, redactions: ['enduser'], enduserUpdatesDisabled: true }, vitalTriggersDisabled: { validator: validation_1.booleanValidator }, defaultFromPhone: { validator: validation_1.phoneValidator, redactions: ['enduser'] }, defaultFromEmail: { validator: validation_1.emailValidator, redactions: ['enduser'] }, useDefaultFromEmailInAutomations: { validator: validation_1.booleanValidator }, useDefaultFromPhoneInAutomations: { validator: validation_1.booleanValidator }, stripeCustomerId: { validator: validation_1.stringValidator100, redactions: ['enduser'], enduserUpdatesDisabled: true }, stripeKey: { validator: validation_1.stringValidator250, redactions: ['enduser'], enduserUpdatesDisabled: true }, diagnoses: {
+            }, references: { validator: validation_1.listOfRelatedRecordsValidator, redactions: ['enduser'], enduserUpdatesDisabled: true }, athenaDepartmentId: { validator: validation_1.stringValidator100, redactions: ['enduser'], enduserUpdatesDisabled: true }, athenaPracticeId: { validator: validation_1.stringValidator100, redactions: ['enduser'], enduserUpdatesDisabled: true }, salesforceId: { validator: validation_1.stringValidator100, redactions: ['enduser'], enduserUpdatesDisabled: true }, vitalTriggersDisabled: { validator: validation_1.booleanValidator }, defaultFromPhone: { validator: validation_1.phoneValidator, redactions: ['enduser'] }, defaultFromEmail: { validator: validation_1.emailValidator, redactions: ['enduser'] }, useDefaultFromEmailInAutomations: { validator: validation_1.booleanValidator }, useDefaultFromPhoneInAutomations: { validator: validation_1.booleanValidator }, stripeCustomerId: { validator: validation_1.stringValidator100, redactions: ['enduser'], enduserUpdatesDisabled: true }, stripeKey: { validator: validation_1.stringValidator250, redactions: ['enduser'], enduserUpdatesDisabled: true }, 
+            // Chargebee linkage fields. Normally written server-side at customer creation, but exposed as
+            // staff-editable (enduserUpdatesDisabled) for manual correction — e.g. reflecting a Chargebee-side
+            // customer transfer between business entities, for which Chargebee emits no webhook. Empty clears.
+            chargebeeId: { validator: validation_1.stringValidatorOptionalEmptyOkay, redactions: ['enduser'], enduserUpdatesDisabled: true }, chargebeeEnvironment: { validator: validation_1.stringValidatorOptionalEmptyOkay, redactions: ['enduser'], enduserUpdatesDisabled: true }, chargebeeBusinessEntityId: { validator: validation_1.stringValidatorOptionalEmptyOkay, redactions: ['enduser'], enduserUpdatesDisabled: true }, diagnoses: {
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)(validation_1.enduserDiagnosisValidator),
                 redactions: ['enduser'],
                 enduserUpdatesDisabled: true,
@@ -881,7 +885,27 @@ exports.schema = (0, exports.build_schema)({
                         validator: validation_1.stringValidator,
                     }
                 }
-            }
+            },
+            get_organization_api_keys: {
+                op: 'custom', access: 'read', method: 'get', adminOnly: true,
+                name: 'Get Organization ApiKeys',
+                path: '/organization-api-keys',
+                description: "Returns metadata (id, creator, businessId, updatedAt) for all ApiKeys in the admin's organization. Never returns the secret key.",
+                parameters: {},
+                returns: {
+                    apiKeys: { validator: validation_1.listOfObjectAnyFieldsAnyValuesValidator, required: true },
+                },
+            },
+            delete_organization_api_key: {
+                op: 'custom', access: 'delete', method: 'delete', adminOnly: true,
+                name: 'Delete Organization ApiKey',
+                path: '/organization-api-key/:id',
+                description: "Deletes an ApiKey in the admin's organization by id, regardless of which user created it.",
+                parameters: {
+                    id: { validator: validation_1.mongoIdStringRequired, required: true },
+                },
+                returns: {},
+            },
         }
     },
     integrations: {
@@ -5047,6 +5071,12 @@ exports.schema = (0, exports.build_schema)({
                     title: validation_1.stringValidator5000EmptyOkay,
                     environment: validation_1.stringValidator1000Optional,
                 }))
+            }, chargebeeBusinessEntities: {
+                validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
+                    environment: validation_1.stringValidator1000,
+                    businessEntityId: validation_1.stringValidator1000,
+                    name: validation_1.stringValidator1000Optional,
+                }))
             }, name: {
                 validator: validation_1.stringValidator100,
                 required: true,
@@ -7085,8 +7115,9 @@ exports.schema = (0, exports.build_schema)({
                     enduserId: { validator: validation_1.mongoIdStringRequired, required: true },
                     automationStepId: { validator: validation_1.mongoIdStringRequired, required: true },
                     outcomes: { validator: validation_1.listOfStringsValidator, required: true },
-                    prompt: { validator: validation_1.stringValidator5000, required: true },
-                    sources: { validator: (0, validation_1.listValidator)(validation_1.AIDecisionSourceValidator), required: true },
+                    prompt: { validator: validation_1.stringValidator5000OptionalEmptyOkay },
+                    sources: { validator: (0, validation_1.listValidator)(validation_1.AIDecisionSourceValidator) },
+                    aiSummaryConfiguration: { validator: validation_1.aiSummaryConfigurationValidator },
                     journeyContext: { validator: validation_1.journeyContextValidator },
                 },
                 returns: {},
