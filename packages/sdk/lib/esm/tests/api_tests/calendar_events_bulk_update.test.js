@@ -47,19 +47,20 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 require('source-map-support').install();
 import { Session } from "../../sdk";
-import { async_test, assert, log_header, } from "@tellescope/testing";
+import { async_test, assert, log_header, wait, } from "@tellescope/testing";
 import { setup_tests } from "../setup";
 var host = process.env.API_URL || 'http://localhost:8080';
 export var calendar_events_bulk_update_tests = function (_a) {
     var sdk = _a.sdk;
     return __awaiter(void 0, void 0, void 0, function () {
-        var createdEventIds, createdEnduserIds, createEvent, createEnduser, validationEvent_1, validationEnduser_1, _b, ev1_1, ev2_1, ev3, ev3After, _c, delEv1_1, delEv2_1, now, DAY, enduser_1, rootEvent_1, childEvent1_1, childEvent2_1, childEvent3_1, rootAfter, child1After, _i, _d, id, idx, _e, createdEventIds_1, id, _1, _f, createdEnduserIds_1, id, _2;
-        return __generator(this, function (_g) {
-            switch (_g.label) {
+        var createdEventIds, createdEnduserIds, createdTriggerIds, createEvent, createEnduser, validationEvent_1, validationEnduser_1, _b, ev1_1, ev2_1, ev3, ev3After, _c, delEv1_1, delEv2_1, now, DAY, enduser_1, rootEvent_1, childEvent1_1, childEvent2_1, childEvent3_1, rootAfter, child1After, cancelledTrigger, _i, _d, id, idx, _e, createdEventIds_1, id, _1, _f, createdEnduserIds_1, id, _2, _g, createdTriggerIds_1, id, _3;
+        return __generator(this, function (_h) {
+            switch (_h.label) {
                 case 0:
                     log_header("Calendar Events Bulk Update Tests");
                     createdEventIds = [];
                     createdEnduserIds = [];
+                    createdTriggerIds = [];
                     createEvent = function (overrides) {
                         if (overrides === void 0) { overrides = {}; }
                         return __awaiter(void 0, void 0, void 0, function () {
@@ -87,36 +88,36 @@ export var calendar_events_bulk_update_tests = function (_a) {
                             }
                         });
                     }); };
-                    _g.label = 1;
+                    _h.label = 1;
                 case 1:
-                    _g.trys.push([1, , 34, 47]);
+                    _h.trys.push([1, , 37, 56]);
                     // ============================================================
                     // SECTION 1: Validation / Error Cases
                     // ============================================================
                     log_header("Bulk Update - Validation");
                     return [4 /*yield*/, async_test("bulk_update errors when neither recurringEventId nor ids provided", function () { return sdk.api.calendar_events.bulk_update({ action: 'cancel' }); }, { shouldError: true, onError: function (e) { return e.message.includes("Either recurringEventId or ids is required"); } })];
                 case 2:
-                    _g.sent();
+                    _h.sent();
                     return [4 /*yield*/, createEvent()];
                 case 3:
-                    validationEvent_1 = _g.sent();
+                    validationEvent_1 = _h.sent();
                     return [4 /*yield*/, async_test("bulk_update errors when both recurringEventId and ids provided", function () { return sdk.api.calendar_events.bulk_update({
                             recurringEventId: validationEvent_1.id,
                             ids: [validationEvent_1.id],
                             action: 'cancel',
                         }); }, { shouldError: true, onError: function (e) { return e.message.includes("Provide either recurringEventId or ids, not both"); } })];
                 case 4:
-                    _g.sent();
+                    _h.sent();
                     return [4 /*yield*/, createEnduser()];
                 case 5:
-                    validationEnduser_1 = _g.sent();
+                    validationEnduser_1 = _h.sent();
                     return [4 /*yield*/, async_test("bulk_update errors when attendee-level action used with ids", function () { return sdk.api.calendar_events.bulk_update({
                             ids: [validationEvent_1.id],
                             action: 'cancel_for_attendee',
                             enduserId: validationEnduser_1.id,
                         }); }, { shouldError: true, onError: function (e) { return e.message.includes("only supported with recurringEventId"); } })];
                 case 6:
-                    _g.sent();
+                    _h.sent();
                     return [4 /*yield*/, async_test("bulk_update errors when attendee action missing enduserId", function () { return sdk.api.calendar_events.bulk_update({
                             recurringEventId: validationEvent_1.id,
                             action: 'cancel_for_attendee',
@@ -126,14 +127,14 @@ export var calendar_events_bulk_update_tests = function (_a) {
                         // ============================================================
                     ];
                 case 7:
-                    _g.sent();
+                    _h.sent();
                     // ============================================================
                     // SECTION 2: ID-based bulk operations (new feature)
                     // ============================================================
                     log_header("Bulk Update - ID-based Cancel");
                     return [4 /*yield*/, Promise.all([createEvent(), createEvent(), createEvent()])];
                 case 8:
-                    _b = _g.sent(), ev1_1 = _b[0], ev2_1 = _b[1], ev3 = _b[2];
+                    _b = _h.sent(), ev1_1 = _b[0], ev2_1 = _b[1], ev3 = _b[2];
                     return [4 /*yield*/, async_test("bulk cancel by IDs cancels selected events", function () { return sdk.api.calendar_events.bulk_update({
                             ids: [ev1_1.id, ev2_1.id],
                             action: 'cancel',
@@ -146,10 +147,10 @@ export var calendar_events_bulk_update_tests = function (_a) {
                         // Verify third event is unchanged
                     ];
                 case 9:
-                    _g.sent();
+                    _h.sent();
                     return [4 /*yield*/, sdk.api.calendar_events.getOne(ev3.id)];
                 case 10:
-                    ev3After = _g.sent();
+                    ev3After = _h.sent();
                     assert(!ev3After.cancelledAt, 'Third event should not be cancelled', 'Third event remains uncancelled');
                     // --- Uncancel ---
                     log_header("Bulk Update - ID-based Uncancel");
@@ -163,7 +164,7 @@ export var calendar_events_bulk_update_tests = function (_a) {
                         // --- Confirm ---
                     ];
                 case 11:
-                    _g.sent();
+                    _h.sent();
                     // --- Confirm ---
                     log_header("Bulk Update - ID-based Confirm");
                     return [4 /*yield*/, async_test("bulk confirm by IDs sets confirmedAt", function () { return sdk.api.calendar_events.bulk_update({
@@ -176,7 +177,7 @@ export var calendar_events_bulk_update_tests = function (_a) {
                         // --- Idempotency: confirm already-confirmed ---
                     ];
                 case 12:
-                    _g.sent();
+                    _h.sent();
                     // --- Idempotency: confirm already-confirmed ---
                     return [4 /*yield*/, async_test("bulk confirm on already-confirmed events returns empty updated", function () { return sdk.api.calendar_events.bulk_update({
                             ids: [ev1_1.id, ev2_1.id],
@@ -186,7 +187,7 @@ export var calendar_events_bulk_update_tests = function (_a) {
                     ];
                 case 13:
                     // --- Idempotency: confirm already-confirmed ---
-                    _g.sent();
+                    _h.sent();
                     // --- No Show ---
                     log_header("Bulk Update - ID-based No Show");
                     return [4 /*yield*/, async_test("bulk no_show by IDs sets noShowedAt", function () { return sdk.api.calendar_events.bulk_update({
@@ -199,7 +200,7 @@ export var calendar_events_bulk_update_tests = function (_a) {
                         // --- Un-No-Show ---
                     ];
                 case 14:
-                    _g.sent();
+                    _h.sent();
                     // --- Un-No-Show ---
                     log_header("Bulk Update - ID-based Un-No-Show");
                     return [4 /*yield*/, async_test("bulk un_no_show by IDs clears noShowedAt", function () { return sdk.api.calendar_events.bulk_update({
@@ -212,12 +213,12 @@ export var calendar_events_bulk_update_tests = function (_a) {
                         // --- Delete by IDs ---
                     ];
                 case 15:
-                    _g.sent();
+                    _h.sent();
                     // --- Delete by IDs ---
                     log_header("Bulk Update - ID-based Delete");
                     return [4 /*yield*/, Promise.all([createEvent(), createEvent()])];
                 case 16:
-                    _c = _g.sent(), delEv1_1 = _c[0], delEv2_1 = _c[1];
+                    _c = _h.sent(), delEv1_1 = _c[0], delEv2_1 = _c[1];
                     return [4 /*yield*/, async_test("bulk delete by IDs removes events", function () { return sdk.api.calendar_events.bulk_update({
                             ids: [delEv1_1.id, delEv2_1.id],
                             action: 'delete',
@@ -225,14 +226,14 @@ export var calendar_events_bulk_update_tests = function (_a) {
                         // Verify deleted events are gone
                     ];
                 case 17:
-                    _g.sent();
+                    _h.sent();
                     // Verify deleted events are gone
                     return [4 /*yield*/, async_test("deleted events are no longer accessible", function () { return sdk.api.calendar_events.getOne(delEv1_1.id); }, { shouldError: true, onError: function (e) { return e.message.includes("Could not find"); } })
                         // Remove from cleanup tracking since already deleted
                     ];
                 case 18:
                     // Verify deleted events are gone
-                    _g.sent();
+                    _h.sent();
                     // Remove from cleanup tracking since already deleted
                     createdEventIds.splice(createdEventIds.indexOf(delEv1_1.id), 1);
                     createdEventIds.splice(createdEventIds.indexOf(delEv2_1.id), 1);
@@ -246,14 +247,14 @@ export var calendar_events_bulk_update_tests = function (_a) {
                         // Create a "recurring series": root event + child events with copiedFrom
                     ];
                 case 19:
-                    enduser_1 = _g.sent();
+                    enduser_1 = _h.sent();
                     return [4 /*yield*/, createEvent({
                             title: "Recurring Root",
                             startTimeInMS: now - 2 * DAY,
                             attendees: [{ id: enduser_1.id, type: 'enduser' }],
                         })];
                 case 20:
-                    rootEvent_1 = _g.sent();
+                    rootEvent_1 = _h.sent();
                     return [4 /*yield*/, createEvent({
                             title: "Recurring Child 1",
                             startTimeInMS: now - 1 * DAY,
@@ -261,7 +262,7 @@ export var calendar_events_bulk_update_tests = function (_a) {
                             attendees: [{ id: enduser_1.id, type: 'enduser' }],
                         })];
                 case 21:
-                    childEvent1_1 = _g.sent();
+                    childEvent1_1 = _h.sent();
                     return [4 /*yield*/, createEvent({
                             title: "Recurring Child 2",
                             startTimeInMS: now + 1 * DAY,
@@ -269,7 +270,7 @@ export var calendar_events_bulk_update_tests = function (_a) {
                             attendees: [{ id: enduser_1.id, type: 'enduser' }],
                         })];
                 case 22:
-                    childEvent2_1 = _g.sent();
+                    childEvent2_1 = _h.sent();
                     return [4 /*yield*/, createEvent({
                             title: "Recurring Child 3",
                             startTimeInMS: now + 2 * DAY,
@@ -279,7 +280,7 @@ export var calendar_events_bulk_update_tests = function (_a) {
                         // --- Cancel with scope 'this_and_future' ---
                     ];
                 case 23:
-                    childEvent3_1 = _g.sent();
+                    childEvent3_1 = _h.sent();
                     // --- Cancel with scope 'this_and_future' ---
                     log_header("Bulk Update - Recurring Cancel this_and_future");
                     return [4 /*yield*/, async_test("recurring cancel this_and_future cancels anchor and future events", function () { return sdk.api.calendar_events.bulk_update({
@@ -295,14 +296,14 @@ export var calendar_events_bulk_update_tests = function (_a) {
                         // Verify earlier events were NOT cancelled
                     ];
                 case 24:
-                    _g.sent();
+                    _h.sent();
                     return [4 /*yield*/, sdk.api.calendar_events.getOne(rootEvent_1.id)];
                 case 25:
-                    rootAfter = _g.sent();
+                    rootAfter = _h.sent();
                     assert(!rootAfter.cancelledAt, 'Root should not be cancelled', 'Root event not cancelled by this_and_future');
                     return [4 /*yield*/, sdk.api.calendar_events.getOne(childEvent1_1.id)];
                 case 26:
-                    child1After = _g.sent();
+                    child1After = _h.sent();
                     assert(!child1After.cancelledAt, 'Child 1 should not be cancelled', 'Child 1 not cancelled by this_and_future');
                     // --- Uncancel with scope 'all' to reset ---
                     return [4 /*yield*/, sdk.api.calendar_events.bulk_update({
@@ -314,7 +315,7 @@ export var calendar_events_bulk_update_tests = function (_a) {
                     ];
                 case 27:
                     // --- Uncancel with scope 'all' to reset ---
-                    _g.sent();
+                    _h.sent();
                     // --- Cancel with scope 'all' ---
                     log_header("Bulk Update - Recurring Cancel All");
                     return [4 /*yield*/, async_test("recurring cancel all cancels entire series", function () { return sdk.api.calendar_events.bulk_update({
@@ -328,7 +329,7 @@ export var calendar_events_bulk_update_tests = function (_a) {
                         // Reset: uncancel all
                     ];
                 case 28:
-                    _g.sent();
+                    _h.sent();
                     // Reset: uncancel all
                     return [4 /*yield*/, sdk.api.calendar_events.bulk_update({
                             recurringEventId: rootEvent_1.id,
@@ -339,9 +340,18 @@ export var calendar_events_bulk_update_tests = function (_a) {
                     ];
                 case 29:
                     // Reset: uncancel all
-                    _g.sent();
+                    _h.sent();
                     // --- Cancel for attendee ---
                     log_header("Bulk Update - Recurring Cancel for Attendee");
+                    return [4 /*yield*/, sdk.api.automation_triggers.createOne({
+                            event: { type: 'Appointment Cancelled', info: {} },
+                            action: { type: 'Add Tags', info: { tags: ['Bulk Cancel For Attendee'] } },
+                            status: 'Active',
+                            title: "Bulk Cancel For Attendee",
+                        })];
+                case 30:
+                    cancelledTrigger = _h.sent();
+                    createdTriggerIds.push(cancelledTrigger.id);
                     return [4 /*yield*/, async_test("cancel_for_attendee adds enduser to cancelledGroupAttendees across series", function () { return sdk.api.calendar_events.bulk_update({
                             recurringEventId: rootEvent_1.id,
                             action: 'cancel_for_attendee',
@@ -350,11 +360,17 @@ export var calendar_events_bulk_update_tests = function (_a) {
                         }); }, {
                             onResult: function (r) { return (r.updated.length === 4
                                 && r.updated.every(function (e) { var _a; return (_a = e.cancelledGroupAttendees) === null || _a === void 0 ? void 0 : _a.some(function (c) { return c.id === enduser_1.id; }); })); }
-                        })
+                        })];
+                case 31:
+                    _h.sent();
+                    return [4 /*yield*/, wait(undefined, 750)]; // allow Cancelled trigger to fire
+                case 32:
+                    _h.sent(); // allow Cancelled trigger to fire
+                    return [4 /*yield*/, async_test("cancel_for_attendee fires Appointment Cancelled trigger for the attendee", function () { return sdk.api.endusers.getOne(enduser_1.id); }, { onResult: function (e) { var _a; return !!((_a = e.tags) === null || _a === void 0 ? void 0 : _a.includes('Bulk Cancel For Attendee')); } })
                         // --- Uncancel for attendee ---
                     ];
-                case 30:
-                    _g.sent();
+                case 33:
+                    _h.sent();
                     // --- Uncancel for attendee ---
                     log_header("Bulk Update - Recurring Uncancel for Attendee");
                     return [4 /*yield*/, async_test("uncancel_for_attendee removes enduser from cancelledGroupAttendees", function () { return sdk.api.calendar_events.bulk_update({
@@ -368,8 +384,8 @@ export var calendar_events_bulk_update_tests = function (_a) {
                         })
                         // --- Remove attendee ---
                     ];
-                case 31:
-                    _g.sent();
+                case 34:
+                    _h.sent();
                     // --- Remove attendee ---
                     log_header("Bulk Update - Recurring Remove Attendee");
                     return [4 /*yield*/, async_test("remove_attendee removes enduser from attendees across series", function () { return sdk.api.calendar_events.bulk_update({
@@ -383,8 +399,8 @@ export var calendar_events_bulk_update_tests = function (_a) {
                         })
                         // --- Recurring delete ---
                     ];
-                case 32:
-                    _g.sent();
+                case 35:
+                    _h.sent();
                     // --- Recurring delete ---
                     log_header("Bulk Update - Recurring Delete");
                     return [4 /*yield*/, async_test("recurring delete removes all events in series", function () { return sdk.api.calendar_events.bulk_update({
@@ -394,8 +410,8 @@ export var calendar_events_bulk_update_tests = function (_a) {
                         }); }, { onResult: function (r) { return r.deleted.length === 4; } })
                         // Remove from cleanup tracking since already deleted
                     ];
-                case 33:
-                    _g.sent();
+                case 36:
+                    _h.sent();
                     // Remove from cleanup tracking since already deleted
                     for (_i = 0, _d = [rootEvent_1.id, childEvent1_1.id, childEvent2_1.id, childEvent3_1.id]; _i < _d.length; _i++) {
                         id = _d[_i];
@@ -403,47 +419,66 @@ export var calendar_events_bulk_update_tests = function (_a) {
                         if (idx !== -1)
                             createdEventIds.splice(idx, 1);
                     }
-                    return [3 /*break*/, 47];
-                case 34:
-                    _e = 0, createdEventIds_1 = createdEventIds;
-                    _g.label = 35;
-                case 35:
-                    if (!(_e < createdEventIds_1.length)) return [3 /*break*/, 40];
-                    id = createdEventIds_1[_e];
-                    _g.label = 36;
-                case 36:
-                    _g.trys.push([36, 38, , 39]);
-                    return [4 /*yield*/, sdk.api.calendar_events.deleteOne(id)];
+                    return [3 /*break*/, 56];
                 case 37:
-                    _g.sent();
-                    return [3 /*break*/, 39];
+                    _e = 0, createdEventIds_1 = createdEventIds;
+                    _h.label = 38;
                 case 38:
-                    _1 = _g.sent();
-                    return [3 /*break*/, 39];
+                    if (!(_e < createdEventIds_1.length)) return [3 /*break*/, 43];
+                    id = createdEventIds_1[_e];
+                    _h.label = 39;
                 case 39:
-                    _e++;
-                    return [3 /*break*/, 35];
+                    _h.trys.push([39, 41, , 42]);
+                    return [4 /*yield*/, sdk.api.calendar_events.deleteOne(id)];
                 case 40:
-                    _f = 0, createdEnduserIds_1 = createdEnduserIds;
-                    _g.label = 41;
+                    _h.sent();
+                    return [3 /*break*/, 42];
                 case 41:
-                    if (!(_f < createdEnduserIds_1.length)) return [3 /*break*/, 46];
-                    id = createdEnduserIds_1[_f];
-                    _g.label = 42;
+                    _1 = _h.sent();
+                    return [3 /*break*/, 42];
                 case 42:
-                    _g.trys.push([42, 44, , 45]);
-                    return [4 /*yield*/, sdk.api.endusers.deleteOne(id)];
+                    _e++;
+                    return [3 /*break*/, 38];
                 case 43:
-                    _g.sent();
-                    return [3 /*break*/, 45];
+                    _f = 0, createdEnduserIds_1 = createdEnduserIds;
+                    _h.label = 44;
                 case 44:
-                    _2 = _g.sent();
-                    return [3 /*break*/, 45];
+                    if (!(_f < createdEnduserIds_1.length)) return [3 /*break*/, 49];
+                    id = createdEnduserIds_1[_f];
+                    _h.label = 45;
                 case 45:
+                    _h.trys.push([45, 47, , 48]);
+                    return [4 /*yield*/, sdk.api.endusers.deleteOne(id)];
+                case 46:
+                    _h.sent();
+                    return [3 /*break*/, 48];
+                case 47:
+                    _2 = _h.sent();
+                    return [3 /*break*/, 48];
+                case 48:
                     _f++;
-                    return [3 /*break*/, 41];
-                case 46: return [7 /*endfinally*/];
-                case 47: return [2 /*return*/];
+                    return [3 /*break*/, 44];
+                case 49:
+                    _g = 0, createdTriggerIds_1 = createdTriggerIds;
+                    _h.label = 50;
+                case 50:
+                    if (!(_g < createdTriggerIds_1.length)) return [3 /*break*/, 55];
+                    id = createdTriggerIds_1[_g];
+                    _h.label = 51;
+                case 51:
+                    _h.trys.push([51, 53, , 54]);
+                    return [4 /*yield*/, sdk.api.automation_triggers.deleteOne(id)];
+                case 52:
+                    _h.sent();
+                    return [3 /*break*/, 54];
+                case 53:
+                    _3 = _h.sent();
+                    return [3 /*break*/, 54];
+                case 54:
+                    _g++;
+                    return [3 /*break*/, 50];
+                case 55: return [7 /*endfinally*/];
+                case 56: return [2 /*return*/];
             }
         });
     });

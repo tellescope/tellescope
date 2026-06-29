@@ -6,6 +6,7 @@ import {
   assert,
   handleAnyError,
   log_header,
+  wait,
 } from "@tellescope/testing"
 import { setup_tests } from "../setup"
 
@@ -17,6 +18,7 @@ export const calendar_events_bulk_update_tests = async ({ sdk }: { sdk: Session 
   // Track all created resources for cleanup
   const createdEventIds: string[] = []
   const createdEnduserIds: string[] = []
+  const createdTriggerIds: string[] = []
 
   const createEvent = async (overrides: Record<string, any> = {}) => {
     const event = await sdk.api.calendar_events.createOne({
@@ -305,6 +307,16 @@ export const calendar_events_bulk_update_tests = async ({ sdk }: { sdk: Session 
     // --- Cancel for attendee ---
     log_header("Bulk Update - Recurring Cancel for Attendee")
 
+    // Cancelled trigger to verify cancel_for_attendee fires the Appointment Cancelled trigger
+    // (previously this path's mutation was tested, but the trigger firing was not)
+    const cancelledTrigger = await sdk.api.automation_triggers.createOne({
+      event: { type: 'Appointment Cancelled', info: {} },
+      action: { type: 'Add Tags', info: { tags: ['Bulk Cancel For Attendee'] } },
+      status: 'Active',
+      title: "Bulk Cancel For Attendee",
+    })
+    createdTriggerIds.push(cancelledTrigger.id)
+
     await async_test(
       "cancel_for_attendee adds enduser to cancelledGroupAttendees across series",
       () => sdk.api.calendar_events.bulk_update({
@@ -321,6 +333,13 @@ export const calendar_events_bulk_update_tests = async ({ sdk }: { sdk: Session 
           )
         )
       }
+    )
+
+    await wait(undefined, 750) // allow Cancelled trigger to fire
+    await async_test(
+      "cancel_for_attendee fires Appointment Cancelled trigger for the attendee",
+      () => sdk.api.endusers.getOne(enduser.id),
+      { onResult: (e: any) => !!e.tags?.includes('Bulk Cancel For Attendee') }
     )
 
     // --- Uncancel for attendee ---
@@ -391,6 +410,9 @@ export const calendar_events_bulk_update_tests = async ({ sdk }: { sdk: Session 
     }
     for (const id of createdEnduserIds) {
       try { await sdk.api.endusers.deleteOne(id) } catch (_) {}
+    }
+    for (const id of createdTriggerIds) {
+      try { await sdk.api.automation_triggers.deleteOne(id) } catch (_) {}
     }
   }
 }

@@ -246,6 +246,7 @@ export declare const DAYS_OF_WEEK_STARTING_SUNDAY: string[];
 export declare const CURRENT_POLICY_VERION = "v2.0";
 export declare const BUILT_INS_FOR_SET_FIELDS: (keyof Enduser)[];
 export declare const BUILT_IN_BOOLEANS_FOR_SET_FIELDS: (keyof Enduser)[];
+export declare const HEALTHIE_FORCE_SYNC_FIELD = "Healthie Force Sync";
 export declare const DOCUMENT_REFERENCE_CODINGS: {
     system: string;
     code: string;

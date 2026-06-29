@@ -48,6 +48,8 @@ import { concurrent_build_threads_tests } from "./api_tests/concurrent_build_thr
 import { appointment_completed_trigger_tests } from "./api_tests/appointment_completed_trigger.test"
 import { purchase_made_trigger_tests } from "./api_tests/purchase_made_trigger.test"
 import { appointment_rescheduled_trigger_tests } from "./api_tests/appointment_rescheduled_trigger.test"
+import { appointment_no_showed_trigger_tests } from "./api_tests/appointment_no_showed_trigger.test"
+import { group_event_attendee_status_triggers_tests } from "./api_tests/group_event_attendee_status_triggers.test"
 import { journey_error_branching_tests } from "./api_tests/journey_error_branching.test"
 import { afteraction_day_of_month_delay_tests } from "./api_tests/afteraction_day_of_month_delay.test"
 import { push_forms_to_portal_group_completion_tests } from "./api_tests/push_forms_to_portal_group_completion.test"
@@ -5711,6 +5713,8 @@ const trigger_events_api_tests = async () => {
 const automation_trigger_tests = async () => {
   log_header("Automation Trigger Tests")
 
+  await appointment_no_showed_trigger_tests({ sdk, sdkNonAdmin })
+  await group_event_attendee_status_triggers_tests({ sdk, sdkNonAdmin })
   await assign_care_team_tests()
   await push_forms_to_portal_group_completion_tests({ sdk, sdkNonAdmin })
   await order_status_equals_tests()
@@ -11423,6 +11427,7 @@ const lockout_tests = async () => {
     () => sdk.api.users.updateOne(nonAdminId, { lockedOutUntil: -1 }),
     passOnAnyResult
   )
+  await wait(undefined, 1500) // ensure new token's iat second clears the stale deauthenticated-<id> cache marker (1s tolerance)
   await async_test(
     "non-admin can re authenciate when locked to 0",
     () => sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword),
@@ -11455,6 +11460,7 @@ const lockout_tests = async () => {
     () => sdk.api.users.updateOne(nonAdminId, { lockedOutUntil: -1 }),
     passOnAnyResult
   )
+  await wait(undefined, 1500) // ensure new token's iat second clears the stale deauthenticated-<id> cache marker (1s tolerance)
   await async_test(
     "non-admin can re authenciate when locked to future date",
     () => sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword),
@@ -15028,6 +15034,7 @@ const ip_address_form_tests = async () => {
     await replace_form_field_template_values_tests()
     await mfa_tests()
     await setup_tests(sdk, sdkNonAdmin)
+    await automation_trigger_tests()
     await resource_access_tags_tests({ sdk, sdkNonAdmin })
     await beluga_manual_sync_tests({ sdk, sdkNonAdmin })
     await beluga_pharmacy_mappings_tests({ sdk, sdkNonAdmin })
@@ -15038,7 +15045,6 @@ const ip_address_form_tests = async () => {
     await load_inbox_redaction_tests({ sdk, sdkNonAdmin })
     await webhook_timeout_tests({ sdk, sdkNonAdmin })
     await user_portal_settings_tests({ sdk, sdkNonAdmin })
-    await automation_trigger_tests()
     await invite_user_enumeration_tests({ sdk, sdkNonAdmin })
     await handle_incoming_communication_cross_tenant_tests({ sdk, sdkNonAdmin })
     await calendar_event_webhook_template_tests({ sdk, sdkNonAdmin })

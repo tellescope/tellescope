@@ -1036,6 +1036,9 @@ export var BUILT_IN_BOOLEANS_FOR_SET_FIELDS = [
     "useDefaultFromEmailInAutomations",
     'lockedFromPortal',
 ];
+// custom enduser field; incrementing/changing its value forces a full re-push of
+// demographic fields to Healthie via handle_updated_enduser
+export var HEALTHIE_FORCE_SYNC_FIELD = 'Healthie Force Sync';
 export var DOCUMENT_REFERENCE_CODINGS = [
     {
         "system": "http://schemas.canvasmedical.com/fhir/document-reference-category",

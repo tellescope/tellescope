@@ -84,6 +84,8 @@ import { concurrent_build_threads_tests } from "./api_tests/concurrent_build_thr
 import { appointment_completed_trigger_tests } from "./api_tests/appointment_completed_trigger.test";
 import { purchase_made_trigger_tests } from "./api_tests/purchase_made_trigger.test";
 import { appointment_rescheduled_trigger_tests } from "./api_tests/appointment_rescheduled_trigger.test";
+import { appointment_no_showed_trigger_tests } from "./api_tests/appointment_no_showed_trigger.test";
+import { group_event_attendee_status_triggers_tests } from "./api_tests/group_event_attendee_status_triggers.test";
 import { journey_error_branching_tests } from "./api_tests/journey_error_branching.test";
 import { afteraction_day_of_month_delay_tests } from "./api_tests/afteraction_day_of_month_delay.test";
 import { push_forms_to_portal_group_completion_tests } from "./api_tests/push_forms_to_portal_group_completion.test";
@@ -6960,68 +6962,74 @@ var automation_trigger_tests = function () { return __awaiter(void 0, void 0, vo
         switch (_a.label) {
             case 0:
                 log_header("Automation Trigger Tests");
-                return [4 /*yield*/, assign_care_team_tests()];
+                return [4 /*yield*/, appointment_no_showed_trigger_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 1:
                 _a.sent();
-                return [4 /*yield*/, push_forms_to_portal_group_completion_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, group_event_attendee_status_triggers_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 2:
                 _a.sent();
-                return [4 /*yield*/, order_status_equals_tests()];
+                return [4 /*yield*/, assign_care_team_tests()];
             case 3:
                 _a.sent();
-                return [4 /*yield*/, order_status_blank_tests()];
+                return [4 /*yield*/, push_forms_to_portal_group_completion_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 4:
                 _a.sent();
-                return [4 /*yield*/, set_fields_order_templates_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, order_status_equals_tests()];
             case 5:
                 _a.sent();
-                return [4 /*yield*/, medication_added_trigger_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, order_status_blank_tests()];
             case 6:
                 _a.sent();
-                return [4 /*yield*/, appointment_cancelled_tests()];
+                return [4 /*yield*/, set_fields_order_templates_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 7:
                 _a.sent();
-                return [4 /*yield*/, set_fields_tests()];
+                return [4 /*yield*/, medication_added_trigger_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 8:
                 _a.sent();
-                return [4 /*yield*/, purchase_made_trigger_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, appointment_cancelled_tests()];
             case 9:
                 _a.sent();
-                return [4 /*yield*/, appointment_rescheduled_trigger_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, set_fields_tests()];
             case 10:
                 _a.sent();
-                return [4 /*yield*/, form_response_set_fields_trigger_tests()];
+                return [4 /*yield*/, purchase_made_trigger_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 11:
                 _a.sent();
-                return [4 /*yield*/, form_response_set_fields_journey_tests()];
+                return [4 /*yield*/, appointment_rescheduled_trigger_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 12:
                 _a.sent();
-                return [4 /*yield*/, appointment_completed_trigger_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, form_response_set_fields_trigger_tests()];
             case 13:
                 _a.sent();
-                return [4 /*yield*/, trigger_events_api_tests()];
+                return [4 /*yield*/, form_response_set_fields_journey_tests()];
             case 14:
                 _a.sent();
-                return [4 /*yield*/, fields_changed_tests()];
+                return [4 /*yield*/, appointment_completed_trigger_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 15:
                 _a.sent();
-                return [4 /*yield*/, field_equals_trigger_tests()];
+                return [4 /*yield*/, trigger_events_api_tests()];
             case 16:
                 _a.sent();
-                return [4 /*yield*/, contact_created_tests()];
+                return [4 /*yield*/, fields_changed_tests()];
             case 17:
                 _a.sent();
-                return [4 /*yield*/, appointment_created_tests()];
+                return [4 /*yield*/, field_equals_trigger_tests()];
             case 18:
                 _a.sent();
-                return [4 /*yield*/, tag_added_tests()];
+                return [4 /*yield*/, contact_created_tests()];
             case 19:
                 _a.sent();
-                return [4 /*yield*/, order_created_tests()];
+                return [4 /*yield*/, appointment_created_tests()];
             case 20:
                 _a.sent();
-                return [4 /*yield*/, formSubmittedTriggerTests()];
+                return [4 /*yield*/, tag_added_tests()];
             case 21:
+                _a.sent();
+                return [4 /*yield*/, order_created_tests()];
+            case 22:
+                _a.sent();
+                return [4 /*yield*/, formSubmittedTriggerTests()];
+            case 23:
                 _a.sent();
                 return [2 /*return*/];
         }
@@ -13107,32 +13115,38 @@ var lockout_tests = function () { return __awaiter(void 0, void 0, void 0, funct
                 return [4 /*yield*/, async_test("admin unlock to -1", function () { return sdk.api.users.updateOne(nonAdminId, { lockedOutUntil: -1 }); }, passOnAnyResult)];
             case 18:
                 _a.sent();
-                return [4 /*yield*/, async_test("non-admin can re authenciate when locked to 0", function () { return sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword); }, passOnAnyResult)];
+                return [4 /*yield*/, wait(undefined, 1500)]; // ensure new token's iat second clears the stale deauthenticated-<id> cache marker (1s tolerance)
             case 19:
-                _a.sent();
-                return [4 /*yield*/, async_test("non-admin is authenticated", sdkNonAdmin.test_authenticated, passOnAnyResult)];
+                _a.sent(); // ensure new token's iat second clears the stale deauthenticated-<id> cache marker (1s tolerance)
+                return [4 /*yield*/, async_test("non-admin can re authenciate when locked to 0", function () { return sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword); }, passOnAnyResult)];
             case 20:
                 _a.sent();
-                return [4 /*yield*/, async_test("admin lock to future date", function () { return sdk.api.users.updateOne(nonAdminId, { lockedOutUntil: Date.now() + 10000 }); }, passOnAnyResult)];
+                return [4 /*yield*/, async_test("non-admin is authenticated", sdkNonAdmin.test_authenticated, passOnAnyResult)];
             case 21:
                 _a.sent();
-                return [4 /*yield*/, wait(undefined, 250)];
+                return [4 /*yield*/, async_test("admin lock to future date", function () { return sdk.api.users.updateOne(nonAdminId, { lockedOutUntil: Date.now() + 10000 }); }, passOnAnyResult)];
             case 22:
                 _a.sent();
-                return [4 /*yield*/, async_test("non-admin is de-authenticated when locked to future date", sdkNonAdmin.test_authenticated, handleAnyError)];
+                return [4 /*yield*/, wait(undefined, 250)];
             case 23:
                 _a.sent();
-                return [4 /*yield*/, async_test("non-admin can't authenciate when locked to future date", function () { return sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword); }, handleAnyError)];
+                return [4 /*yield*/, async_test("non-admin is de-authenticated when locked to future date", sdkNonAdmin.test_authenticated, handleAnyError)];
             case 24:
                 _a.sent();
-                return [4 /*yield*/, async_test("admin unlock to -1", function () { return sdk.api.users.updateOne(nonAdminId, { lockedOutUntil: -1 }); }, passOnAnyResult)];
+                return [4 /*yield*/, async_test("non-admin can't authenciate when locked to future date", function () { return sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword); }, handleAnyError)];
             case 25:
                 _a.sent();
-                return [4 /*yield*/, async_test("non-admin can re authenciate when locked to future date", function () { return sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword); }, passOnAnyResult)];
+                return [4 /*yield*/, async_test("admin unlock to -1", function () { return sdk.api.users.updateOne(nonAdminId, { lockedOutUntil: -1 }); }, passOnAnyResult)];
             case 26:
                 _a.sent();
-                return [4 /*yield*/, async_test("non-admin is authenticated", sdkNonAdmin.test_authenticated, passOnAnyResult)];
+                return [4 /*yield*/, wait(undefined, 1500)]; // ensure new token's iat second clears the stale deauthenticated-<id> cache marker (1s tolerance)
             case 27:
+                _a.sent(); // ensure new token's iat second clears the stale deauthenticated-<id> cache marker (1s tolerance)
+                return [4 /*yield*/, async_test("non-admin can re authenciate when locked to future date", function () { return sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword); }, passOnAnyResult)];
+            case 28:
+                _a.sent();
+                return [4 /*yield*/, async_test("non-admin is authenticated", sdkNonAdmin.test_authenticated, passOnAnyResult)];
+            case 29:
                 _a.sent();
                 return [2 /*return*/];
         }
@@ -17077,37 +17091,37 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                 return [4 /*yield*/, setup_tests(sdk, sdkNonAdmin)];
             case 18:
                 _l.sent();
-                return [4 /*yield*/, resource_access_tags_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, automation_trigger_tests()];
             case 19:
                 _l.sent();
-                return [4 /*yield*/, beluga_manual_sync_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, resource_access_tags_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 20:
                 _l.sent();
-                return [4 /*yield*/, beluga_pharmacy_mappings_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, beluga_manual_sync_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 21:
                 _l.sent();
-                return [4 /*yield*/, mdi_case_offerings_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, beluga_pharmacy_mappings_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 22:
                 _l.sent();
-                return [4 /*yield*/, enduser_write_restrictions_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, mdi_case_offerings_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 23:
                 _l.sent();
-                return [4 /*yield*/, enduser_cross_create_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, enduser_write_restrictions_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 24:
                 _l.sent();
-                return [4 /*yield*/, globalunique_leak_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, enduser_cross_create_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 25:
                 _l.sent();
-                return [4 /*yield*/, load_inbox_redaction_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, globalunique_leak_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 26:
                 _l.sent();
-                return [4 /*yield*/, webhook_timeout_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, load_inbox_redaction_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 27:
                 _l.sent();
-                return [4 /*yield*/, user_portal_settings_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, webhook_timeout_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 28:
                 _l.sent();
-                return [4 /*yield*/, automation_trigger_tests()];
+                return [4 /*yield*/, user_portal_settings_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 29:
                 _l.sent();
                 return [4 /*yield*/, invite_user_enumeration_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
