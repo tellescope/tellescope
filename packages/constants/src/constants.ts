@@ -195,6 +195,9 @@ export const METRIPORT_TITLE = "Metriport"
 export const PAUBOX_TITLE = "Paubox"
 export const BRIDGE_TITLE = "Bridge"
 export const MD_INTEGRATIONS_TITLE = "MD Integrations"
+// sentinel value for FormField.mdiImportantValues / mdiCriticalValues: when present in a list,
+// the MDI case question is flagged (important / is_critical) for any non-empty answer
+export const MDI_FLAG_ALL_ANSWERS = "*"
 
 // stored in Organization.hasIntegrations
 // must also be in ORGANIZATION_WIDE_INTEGRATIONS

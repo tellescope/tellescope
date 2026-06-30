@@ -2055,6 +2055,8 @@ export interface FormField extends FormField_readonly, FormField_required, FormF
   prepopulateFromFields?: boolean,
   disabledWhenPrepopulated?: boolean,
   calloutConditions?: FormFieldCalloutCondition[],
+  mdiImportantValues?: string[],  // answer values that flag the MDI case question as important (MDI_FLAG_ALL_ANSWERS sentinel => any answer)
+  mdiCriticalValues?: string[],   // answer values that flag the MDI case question as is_critical (MDI_FLAG_ALL_ANSWERS sentinel => any answer)
   feedback?: FormFieldFeedback[],
   highlightOnTimeline?: boolean,
   prepopulateFromDatabase?: {

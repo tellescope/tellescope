@@ -2010,6 +2010,8 @@ export interface FormField extends FormField_readonly, FormField_required, FormF
     prepopulateFromFields?: boolean;
     disabledWhenPrepopulated?: boolean;
     calloutConditions?: FormFieldCalloutCondition[];
+    mdiImportantValues?: string[];
+    mdiCriticalValues?: string[];
     feedback?: FormFieldFeedback[];
     highlightOnTimeline?: boolean;
     prepopulateFromDatabase?: {

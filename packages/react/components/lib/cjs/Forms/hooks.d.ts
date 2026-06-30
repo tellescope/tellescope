@@ -132,6 +132,8 @@ export declare const useTellescopeForm: ({ dontAutoadvance, isPublicForm, form, 
             prepopulateFromFields?: boolean | undefined;
             disabledWhenPrepopulated?: boolean | undefined;
             calloutConditions?: import("@tellescope/types-models").FormFieldCalloutCondition[] | undefined;
+            mdiImportantValues?: string[] | undefined;
+            mdiCriticalValues?: string[] | undefined;
             feedback?: import("@tellescope/types-models").FormFieldFeedback[] | undefined;
             highlightOnTimeline?: boolean | undefined;
             prepopulateFromDatabase?: {
@@ -194,6 +196,8 @@ export declare const useTellescopeForm: ({ dontAutoadvance, isPublicForm, form, 
             prepopulateFromFields?: boolean | undefined;
             disabledWhenPrepopulated?: boolean | undefined;
             calloutConditions?: import("@tellescope/types-models").FormFieldCalloutCondition[] | undefined;
+            mdiImportantValues?: string[] | undefined;
+            mdiCriticalValues?: string[] | undefined;
             feedback?: import("@tellescope/types-models").FormFieldFeedback[] | undefined;
             highlightOnTimeline?: boolean | undefined;
             prepopulateFromDatabase?: {

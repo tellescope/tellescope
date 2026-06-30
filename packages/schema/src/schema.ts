@@ -5067,6 +5067,8 @@ export const schema: SchemaV1 = build_schema({
       externalId: { validator: stringValidator1000 },
       sharedWithEnduser: { validator: booleanValidator },
       calloutConditions: { validator: formFieldCalloutConditionsValidator },
+      mdiImportantValues: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+      mdiCriticalValues: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       highlightOnTimeline: { validator: booleanValidator },
       prepopulateFromFields: { validator: booleanValidator },
       prepopulateFromDatabase: {
