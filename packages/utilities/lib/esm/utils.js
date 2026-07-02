@@ -36,6 +36,7 @@ import { DateTime } from "luxon";
 import { ObjectId } from "./ObjectId/objectid";
 export { ObjectId };
 export * from "./ai_summary";
+export * from "./translation";
 export var user_is_admin = function (u) { var _a; return u.type === 'enduser' ? false : !!((_a = u === null || u === void 0 ? void 0 : u.roles) === null || _a === void 0 ? void 0 : _a.includes(ADMIN_ROLE)); };
 // lockedOutUntil: -1 => not locked, 0 => locked indefinitely, > 0 => locked until unix time in MS
 // by default only explicit locks count, mirroring billable-user logic in the /usage endpoint
@@ -3572,5 +3573,8 @@ export function formatDuration(ms) {
     var seconds = totalSeconds % 60;
     var pad = function (num) { return num.toString().padStart(2, '0'); };
     return "".concat(pad(hours), ":").concat(pad(minutes), ":").concat(pad(seconds));
+}
+export function constructT2BaseURL(isStaging) {
+    return "https://".concat(isStaging ? 'staging-' : '', "app.tellescope.com");
 }
 //# sourceMappingURL=utils.js.map

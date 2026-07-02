@@ -338,7 +338,7 @@ exports.schema = (0, exports.build_schema)({
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)(validation_1.enduserDiagnosisValidator),
                 redactions: ['enduser'],
                 enduserUpdatesDisabled: true,
-            }, unsubscribedFromPhones: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay, redactions: ['enduser'] }, lockedFromPortal: { validator: validation_1.booleanValidator, enduserUpdatesDisabled: true }, eligibleForAutoMerge: { validator: validation_1.booleanValidator, enduserUpdatesDisabled: true }, preferredPharmacy: { validator: validation_1.pharmacyValidator, redactions: ['enduser'] } }),
+            }, unsubscribedFromPhones: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay, redactions: ['enduser'] }, lockedFromPortal: { validator: validation_1.booleanValidator, enduserUpdatesDisabled: true }, eligibleForAutoMerge: { validator: validation_1.booleanValidator, enduserUpdatesDisabled: true }, preferredPharmacy: { validator: validation_1.pharmacyValidator, redactions: ['enduser'] }, aiSummary: { validator: validation_1.stringValidator25000, redactions: ['enduser'], enduserUpdatesDisabled: true }, aiSummaryUpdatedAt: { validator: validation_1.dateValidator, redactions: ['enduser'], enduserUpdatesDisabled: true } }),
         customActions: {
             rename_stored_custom_fields: {
                 op: "custom", access: 'update', method: "patch",
@@ -5718,7 +5718,7 @@ exports.schema = (0, exports.build_schema)({
                         relationship: 'foreignKey',
                         onDependencyDelete: 'delete',
                     }]
-            }, inbound: { validator: validation_1.booleanValidator, required: true, examples: [true] }, externalId: { validator: validation_1.stringValidator100 }, to: { validator: validation_1.stringValidator100 }, from: { validator: validation_1.stringValidator100 }, isVoicemail: { validator: validation_1.booleanValidator }, recordingURI: { validator: validation_1.stringValidator1000 }, recordingId: { validator: validation_1.stringValidator100 }, transcriptionId: { validator: validation_1.stringValidator100 }, recordingDurationInSeconds: { validator: validation_1.nonNegNumberValidator }, transcription: { validator: validation_1.stringValidator25000 }, recordingTranscriptionData: { validator: validation_1.stringValidator25000 }, aiSummary: { validator: validation_1.stringValidator5000 }, note: { validator: validation_1.stringValidator5000EmptyOkay }, unread: { validator: validation_1.booleanValidator }, userId: { validator: validation_1.mongoIdStringRequired }, ticketId: { validator: validation_1.mongoIdStringRequired }, pinnedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, readBy: { validator: validation_1.idStringToDateValidator }, hiddenBy: { validator: validation_1.idStringToDateValidator }, hiddenForAll: { validator: validation_1.booleanValidator }, ticketIds: { validator: validation_1.listOfStringsValidatorEmptyOk }, tags: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, assignedTo: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, callDurationInSeconds: { validator: validation_1.numberValidator }, timestamp: { validator: validation_1.dateValidator }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, trashedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator } }),
+            }, inbound: { validator: validation_1.booleanValidator, required: true, examples: [true] }, externalId: { validator: validation_1.stringValidator100 }, to: { validator: validation_1.stringValidator100 }, from: { validator: validation_1.stringValidator100 }, isVoicemail: { validator: validation_1.booleanValidator }, recordingURI: { validator: validation_1.stringValidator1000 }, recordingId: { validator: validation_1.stringValidator100 }, transcriptionId: { validator: validation_1.stringValidator100 }, recordingDurationInSeconds: { validator: validation_1.nonNegNumberValidator }, transcription: { validator: validation_1.stringValidator25000 }, translations: { validator: validation_1.translationsValidator }, recordingTranscriptionData: { validator: validation_1.stringValidator25000 }, aiSummary: { validator: validation_1.stringValidator5000 }, note: { validator: validation_1.stringValidator5000EmptyOkay }, unread: { validator: validation_1.booleanValidator }, userId: { validator: validation_1.mongoIdStringRequired }, ticketId: { validator: validation_1.mongoIdStringRequired }, pinnedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, readBy: { validator: validation_1.idStringToDateValidator }, hiddenBy: { validator: validation_1.idStringToDateValidator }, hiddenForAll: { validator: validation_1.booleanValidator }, ticketIds: { validator: validation_1.listOfStringsValidatorEmptyOk }, tags: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, assignedTo: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, callDurationInSeconds: { validator: validation_1.numberValidator }, timestamp: { validator: validation_1.dateValidator }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, trashedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator } }),
     },
     analytics_frames: {
         info: {},
@@ -7100,7 +7100,10 @@ exports.schema = (0, exports.build_schema)({
                     maxTokens: { validator: validation_1.positiveNumberValidator },
                     conversationId: { validator: validation_1.mongoIdStringRequired },
                     prompt: { validator: validation_1.stringValidator100000EmptyOkay },
-                    orchestrationId: { validator: validation_1.stringValidatorOptional }, // optional ID to group multiple conversations as part of the same workflow
+                    orchestrationId: { validator: validation_1.stringValidatorOptional },
+                    enduserId: { validator: validation_1.mongoIdStringRequired },
+                    journeyId: { validator: validation_1.mongoIdStringRequired },
+                    automationStepId: { validator: validation_1.mongoIdStringRequired }, // optional automation step that produced this conversation
                 },
                 returns: {
                     ai_conversation: { validator: 'ai_conversation', required: true },
@@ -7123,7 +7126,34 @@ exports.schema = (0, exports.build_schema)({
                 returns: {},
             },
         },
-        fields: __assign(__assign({}, BuiltInFields), { type: { validator: validation_1.stringValidator, required: true, examples: ['HTML Template Generation'] }, modelName: { validator: validation_1.stringValidator, required: true, examples: ['Claude Sonnet 4', 'Claude Sonnet 4.5', 'Claude Sonnet 4.6'] }, orchestrationId: { validator: validation_1.stringValidatorOptional, examples: ['workflow-123', 'batch-456'] }, messages: {
+        fields: __assign(__assign({}, BuiltInFields), { type: { validator: validation_1.stringValidator, required: true, examples: ['HTML Template Generation'] }, modelName: { validator: validation_1.stringValidator, required: true, examples: ['Claude Sonnet 4', 'Claude Sonnet 4.5', 'Claude Sonnet 4.6'] }, orchestrationId: { validator: validation_1.stringValidatorOptional, examples: ['workflow-123', 'batch-456'] }, enduserId: {
+                validator: validation_1.mongoIdStringOptional,
+                examples: [constants_1.PLACEHOLDER_ID],
+                dependencies: [{
+                        dependsOn: ['endusers'],
+                        dependencyField: '_id',
+                        relationship: 'foreignKey',
+                        onDependencyDelete: 'nop', // we need to retain the audit record as proof we bill the customer correctly for their usage
+                    }],
+            }, journeyId: {
+                validator: validation_1.mongoIdStringOptional,
+                examples: [constants_1.PLACEHOLDER_ID],
+                dependencies: [{
+                        dependsOn: ['journeys'],
+                        dependencyField: '_id',
+                        relationship: 'foreignKey',
+                        onDependencyDelete: 'nop', // keep the audit record even if the journey is deleted
+                    }],
+            }, automationStepId: {
+                validator: validation_1.mongoIdStringOptional,
+                examples: [constants_1.PLACEHOLDER_ID],
+                dependencies: [{
+                        dependsOn: ['automation_steps'],
+                        dependencyField: '_id',
+                        relationship: 'foreignKey',
+                        onDependencyDelete: 'nop', // keep the audit record even if the step is deleted
+                    }],
+            }, messages: {
                 validator: (0, validation_1.listValidatorEmptyOk)((0, validation_1.objectValidator)({
                     role: (0, validation_1.exactMatchValidator)(['user', 'assistant']),
                     text: validation_1.stringValidator25000,

@@ -3,6 +3,7 @@ import { DateTime } from "luxon";
 import { ObjectId } from "./ObjectId/objectid";
 export { ObjectId };
 export * from "./ai_summary";
+export * from "./translation";
 export type Indexable<T = any> = {
     [index: string]: T;
 };
@@ -456,4 +457,5 @@ export declare function calculateTimeTrackDuration(timestamps: {
     timestamp: Date;
 }[], closedAt?: Date): number;
 export declare function formatDuration(ms: number): string;
+export declare function constructT2BaseURL(isStaging: boolean): string;
 //# sourceMappingURL=utils.d.ts.map

@@ -46,6 +46,16 @@ export type FilterKey = keyof Filters
 export const FilterKeys = ['_exists', '_gt', '_gte', '_lt', '_lte', '_all', "_ne", "_nin"] as const
 export type ReadFilter<T> = { [K in keyof T]?: T[K] | Partial<FilterType> }
 
+// Reusable full-stack translations framework. A model's `translations` field maps one of its own
+// field names to a map of language code -> translated text. e.g. translations.transcription.es holds
+// the Spanish translation of the record's `transcription` field. The Field generic is the union of
+// translatable field names on a given model, giving per-model field-name autocomplete.
+export type TranslationLanguageCode =
+  | 'en' | 'es' | 'fr' | 'zh' | 'de' | 'pt' | 'ru' | 'ar' | 'hi' | 'vi' | 'ko' | 'ja' | 'tl'
+  | (string & {}) // allow any language code while preserving autocomplete for the common ones
+export type FieldTranslations = Partial<Record<TranslationLanguageCode, string>>
+export type Translations<Field extends string = string> = Partial<Record<Field, FieldTranslations>>
+
 export type FlowchartUI = {
   x: number,
   y: number,
@@ -1135,6 +1145,8 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   superdialEligibilityResponse?: string,
   eligibleForAutoMerge?: boolean,
   preferredPharmacy?: Pharmacy,
+  aiSummary?: string, // AI-generated patient profile summary (e.g. from the Generate Patient Summary journey action)
+  aiSummaryUpdatedAt?: Date,
   // unsubscribedFromEmail?: boolean,
   // unsubscribedFromSMS?: boolean,
 }
@@ -2105,6 +2117,7 @@ export type AISummaryConfiguration = {
   prompt?: string,
   dataSources?: AISummaryDataSourceConfig[],
   maxOutputTokens?: number,
+  includeProfileFields?: boolean, // include the enduser profile block (name/DOB/fields/custom fields) in the AI context
 }
 
 export type FormCustomization = {
@@ -3610,6 +3623,9 @@ export type AIDecisionAutomationAction = AutomationActionBuilder<'aiDecision', {
   sources?: AIContextSource[],                        // legacy, optional
   aiSummaryConfiguration?: AISummaryConfiguration,    // new shared config
 }>
+export type GenerateEnduserSummaryAutomationAction = AutomationActionBuilder<'generateEnduserSummary', {
+  aiSummaryConfiguration?: AISummaryConfiguration, // includeProfileFields defaults to true for this action
+}>
 export type AssignInboxItemAutomationAction = AutomationActionBuilder<'assignInboxItem', {
   tags: ListOfStringsWithQualifier,
   limit: number,
@@ -3622,6 +3638,7 @@ export type CreateScriptSureDraftAutomationAction = AutomationActionBuilder<'cre
 
 export type AutomationActionForType = {
   'aiDecision': AIDecisionAutomationAction,
+  'generateEnduserSummary': GenerateEnduserSummaryAutomationAction,
   'assignInboxItem': AssignInboxItemAutomationAction,
   'stripeChargeCardOnFile': StripeChargeCardOnFileAutomationAction,
   'stripeCancelSubscription': StripeCancelSubscriptionAutomationAction,
@@ -4168,6 +4185,7 @@ export interface PhoneCall extends PhoneCall_readonly, PhoneCall_required, Phone
   conferenceAttendees?: (string[]) | (string[][]), // old code caused multiple lists to be pushed by mistake
   unread?: boolean,
   transcription?: string, // Twilio voicemail transcription
+  translations?: Translations<'transcription'>, // AI translations keyed by source field name -> language code
   recordingTranscriptionData?: string, // Full AWS Transcribe JSON response (stringified) with metadata
   aiSummary?: string,
   note?: string,
@@ -5664,6 +5682,9 @@ export interface AIConversation_required {
 export interface AIConversation_updatesDisabled {}
 export interface AIConversation extends AIConversation_readonly, AIConversation_required, AIConversation_updatesDisabled {
   orchestrationId?: string, // optional ID to group multiple conversations as part of the same workflow/orchestration
+  enduserId?: string, // optional patient this conversation is about (e.g. AI patient summaries / decisions)
+  journeyId?: string, // optional journey that produced this conversation (audit trail)
+  automationStepId?: string, // optional automation step that produced this conversation (audit trail)
 }
 
 export interface InboxThread_readonly extends ClientRecord {

@@ -51,6 +51,9 @@ export declare const FilterKeys: readonly ["_exists", "_gt", "_gte", "_lt", "_lt
 export type ReadFilter<T> = {
     [K in keyof T]?: T[K] | Partial<FilterType>;
 };
+export type TranslationLanguageCode = 'en' | 'es' | 'fr' | 'zh' | 'de' | 'pt' | 'ru' | 'ar' | 'hi' | 'vi' | 'ko' | 'ja' | 'tl' | (string & {});
+export type FieldTranslations = Partial<Record<TranslationLanguageCode, string>>;
+export type Translations<Field extends string = string> = Partial<Record<Field, FieldTranslations>>;
 export type FlowchartUI = {
     x: number;
     y: number;
@@ -1060,6 +1063,8 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
     superdialEligibilityResponse?: string;
     eligibleForAutoMerge?: boolean;
     preferredPharmacy?: Pharmacy;
+    aiSummary?: string;
+    aiSummaryUpdatedAt?: Date;
 }
 export interface EnduserCustomType_readonly extends ClientRecord {
 }
@@ -2041,6 +2046,7 @@ export type AISummaryConfiguration = {
     prompt?: string;
     dataSources?: AISummaryDataSourceConfig[];
     maxOutputTokens?: number;
+    includeProfileFields?: boolean;
 };
 export type FormCustomization = {
     publicFormHTMLDescription?: string;
@@ -3577,6 +3583,9 @@ export type AIDecisionAutomationAction = AutomationActionBuilder<'aiDecision', {
     sources?: AIContextSource[];
     aiSummaryConfiguration?: AISummaryConfiguration;
 }>;
+export type GenerateEnduserSummaryAutomationAction = AutomationActionBuilder<'generateEnduserSummary', {
+    aiSummaryConfiguration?: AISummaryConfiguration;
+}>;
 export type AssignInboxItemAutomationAction = AutomationActionBuilder<'assignInboxItem', {
     tags: ListOfStringsWithQualifier;
     limit: number;
@@ -3588,6 +3597,7 @@ export type CreateScriptSureDraftAutomationAction = AutomationActionBuilder<'cre
 }>;
 export type AutomationActionForType = {
     'aiDecision': AIDecisionAutomationAction;
+    'generateEnduserSummary': GenerateEnduserSummaryAutomationAction;
     'assignInboxItem': AssignInboxItemAutomationAction;
     'stripeChargeCardOnFile': StripeChargeCardOnFileAutomationAction;
     'stripeCancelSubscription': StripeCancelSubscriptionAutomationAction;
@@ -4134,6 +4144,7 @@ export interface PhoneCall extends PhoneCall_readonly, PhoneCall_required, Phone
     conferenceAttendees?: (string[]) | (string[][]);
     unread?: boolean;
     transcription?: string;
+    translations?: Translations<'transcription'>;
     recordingTranscriptionData?: string;
     aiSummary?: string;
     note?: string;
@@ -5756,6 +5767,9 @@ export interface AIConversation_updatesDisabled {
 }
 export interface AIConversation extends AIConversation_readonly, AIConversation_required, AIConversation_updatesDisabled {
     orchestrationId?: string;
+    enduserId?: string;
+    journeyId?: string;
+    automationStepId?: string;
 }
 export interface InboxThread_readonly extends ClientRecord {
     searchKeywords?: string[];

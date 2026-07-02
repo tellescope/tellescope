@@ -1735,6 +1735,9 @@ export type CustomActions = {
             conversationId?: string;
             maxTokens?: number;
             orchestrationId?: string;
+            enduserId?: string;
+            journeyId?: string;
+            automationStepId?: string;
         }, {
             ai_conversation: AIConversation;
         }>;

@@ -165,6 +165,7 @@ import {
   SMSMessageValidator,
   chatRoomTypeValidator,
   idStringToDateValidator,
+  translationsValidator,
   subdomainValidator,
   messageTemplateTypeValidator,
   stringValidator210,
@@ -1292,6 +1293,9 @@ export type CustomActions = {
       conversationId?: string, // for continuing an existing conversation
       maxTokens?: number,
       orchestrationId?: string, // optional ID to group multiple conversations as part of the same workflow
+      enduserId?: string, // optional patient this conversation is about
+      journeyId?: string, // optional journey that produced this conversation
+      automationStepId?: string, // optional automation step that produced this conversation
     }, { ai_conversation: AIConversation }>,
     generate_ai_decision: CustomAction<
       AIDecisionAutomationAction['info'] & { enduserId: string, automationStepId: string, journeyContext?: JourneyContext },
@@ -1737,10 +1741,12 @@ export const schema: SchemaV1 = build_schema({
       lockedFromPortal: { validator: booleanValidator, enduserUpdatesDisabled: true },
       eligibleForAutoMerge: { validator: booleanValidator, enduserUpdatesDisabled: true },
       preferredPharmacy: { validator: pharmacyValidator, redactions: ['enduser'] },
+      aiSummary: { validator: stringValidator25000, redactions: ['enduser'], enduserUpdatesDisabled: true },
+      aiSummaryUpdatedAt: { validator: dateValidator, redactions: ['enduser'], enduserUpdatesDisabled: true },
       // recentMessagePreview: {
       //   validator: stringValidator,
       // },
-    }, 
+    },
     customActions: {
       rename_stored_custom_fields: {
         op: "custom", access: 'update', method: "patch",
@@ -8212,6 +8218,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       recordingDurationInSeconds: { validator: nonNegNumberValidator },
 
       transcription: { validator: stringValidator25000 },
+      translations: { validator: translationsValidator },
       recordingTranscriptionData: { validator: stringValidator25000 },
       aiSummary: { validator: stringValidator5000 },
       note: { validator: stringValidator5000EmptyOkay },
@@ -10040,6 +10047,9 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           conversationId: { validator: mongoIdStringValidator },
           prompt: { validator: stringValidator100000EmptyOkay },
           orchestrationId: { validator: stringValidatorOptional }, // optional ID to group multiple conversations as part of the same workflow
+          enduserId: { validator: mongoIdStringValidator }, // optional patient this conversation is about
+          journeyId: { validator: mongoIdStringValidator }, // optional journey that produced this conversation
+          automationStepId: { validator: mongoIdStringValidator }, // optional automation step that produced this conversation
         },
         returns: {
           ai_conversation: { validator: 'ai_conversation' as any, required: true },
@@ -10068,6 +10078,36 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       type: { validator: stringValidator, required: true, examples: ['HTML Template Generation'] },
       modelName: { validator: stringValidator, required: true, examples: ['Claude Sonnet 4', 'Claude Sonnet 4.5', 'Claude Sonnet 4.6'] },
       orchestrationId: { validator: stringValidatorOptional, examples: ['workflow-123', 'batch-456'] },
+      enduserId: {
+        validator: mongoIdStringOptional,
+        examples: [PLACEHOLDER_ID],
+        dependencies: [{
+          dependsOn: ['endusers'],
+          dependencyField: '_id',
+          relationship: 'foreignKey',
+          onDependencyDelete: 'nop', // we need to retain the audit record as proof we bill the customer correctly for their usage
+        }],
+      },
+      journeyId: {
+        validator: mongoIdStringOptional,
+        examples: [PLACEHOLDER_ID],
+        dependencies: [{
+          dependsOn: ['journeys'],
+          dependencyField: '_id',
+          relationship: 'foreignKey',
+          onDependencyDelete: 'nop', // keep the audit record even if the journey is deleted
+        }],
+      },
+      automationStepId: {
+        validator: mongoIdStringOptional,
+        examples: [PLACEHOLDER_ID],
+        dependencies: [{
+          dependsOn: ['automation_steps'],
+          dependencyField: '_id',
+          relationship: 'foreignKey',
+          onDependencyDelete: 'nop', // keep the audit record even if the step is deleted
+        }],
+      },
       messages: {
         validator: listValidatorEmptyOk(objectValidator<AIConversationMessage>({
           role: exactMatchValidator(['user', 'assistant']),

@@ -36,6 +36,7 @@ import {
 
 import { Session, APIQuery, EnduserSession } from "../sdk"
 import { enduser_observations_acknowledge_tests } from "./api_tests/enduser_observations_acknowledge.test"
+import { translations_tests } from "./api_tests/translations.test"
 import { user_portal_settings_tests } from "./api_tests/user_portal_settings.test"
 import { integrations_redacted_tests } from "./api_tests/integrations_redacted.test"
 import { get_some_projection_tests } from "./api_tests/get_some_projection.test"
@@ -15113,6 +15114,7 @@ const ip_address_form_tests = async () => {
     await inbox_threads_loading_tests()
     await load_inbox_data_tests({ sdk, sdkNonAdmin })
     await enduser_observations_acknowledge_tests({ sdk, sdkNonAdmin })
+    await translations_tests({ sdk, sdkNonAdmin })
     await create_user_notifications_trigger_tests({ sdk })
     await group_mms_active_tests()
     await auto_reply_tests()

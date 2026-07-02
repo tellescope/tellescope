@@ -7,6 +7,7 @@ import { ObjectId } from "./ObjectId/objectid";
 export { ObjectId }
 
 export * from "./ai_summary"
+export * from "./translation"
 
 export type Indexable<T=any> = { [index: string]: T }
 
@@ -3842,4 +3843,8 @@ export function formatDuration(ms: number): string {
   const pad = (num: number) => num.toString().padStart(2, '0')
 
   return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
+}
+
+export function constructT2BaseURL(isStaging: boolean): string {
+  return `https://${isStaging ? 'staging-' : ''}app.tellescope.com`
 }

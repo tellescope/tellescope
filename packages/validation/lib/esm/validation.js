@@ -1436,6 +1436,11 @@ export var indexableNumberValidator = function (keyValidator, valueValidator) { 
 export var rejectionWithMessage = function (o) { return build_validator(function (v) { throw new Error((o === null || o === void 0 ? void 0 : o.errorMessage) || 'This field is not valid'); }, __assign(__assign({}, o), { isOptional: true, listOf: false })); };
 export var numberToDateValidator = indexableNumberValidator(numberValidator, dateValidator);
 export var idStringToDateValidator = indexableValidator(mongoIdStringRequired, dateOptionalOrEmptyStringValidator);
+// Reusable translations validator for any model's `translations` field. Shape-agnostic:
+// { [fieldName]: { [languageCode]: translatedText } }. Field names and language codes are arbitrary
+// strings, so the same validator works across models regardless of which fields are translated.
+export var fieldTranslationsValidator = indexableValidator(stringValidator100, stringValidator25000);
+export var translationsValidator = indexableValidator(stringValidator100, fieldTranslationsValidator);
 // todo: move preference to FIELD_TYPES with drop-down option in user-facing forms
 var FIELD_TYPES = ['string', 'number', 'email', 'phone', 'multiple_choice', 'file', 'signature'];
 var VALIDATE_OPTIONS_FOR_FIELD_TYPES = {
@@ -2134,6 +2139,7 @@ var _AUTOMATION_ACTIONS = {
     chargebeeChargeCardOnFile: '',
     metriportSync: '',
     aiDecision: '',
+    generateEnduserSummary: '',
     assignInboxItem: '',
     createScriptSureDraft: '',
 };
@@ -2439,6 +2445,7 @@ export var aiSummaryConfigurationValidator = objectValidator({
     prompt: stringValidator5000OptionalEmptyOkay,
     dataSources: listValidatorOptionalOrEmptyOk(aiSummaryDataSourceConfigValidator),
     maxOutputTokens: nonNegNumberValidatorOptional,
+    includeProfileFields: booleanValidatorOptional,
 }, { isOptional: true, emptyOk: true });
 export var AIDecisionSourceValidator = objectValidator({
     limit: numberValidator,
@@ -2763,6 +2770,10 @@ export var automationActionValidator = orValidator({
             sources: listValidatorOptionalOrEmptyOk(AIDecisionSourceValidator),
             aiSummaryConfiguration: aiSummaryConfigurationValidator, // new shared config (optional)
         }, { emptyOk: false }) // at least outcomes is required
+     })),
+    generateEnduserSummary: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['generateEnduserSummary']), info: objectValidator({
+            aiSummaryConfiguration: aiSummaryConfigurationValidator, // optional shared config
+        }, { emptyOk: true }) // config is optional; an empty info is valid
      })),
     assignInboxItem: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['assignInboxItem']), info: objectValidator({
             tags: listOfStringsWithQualifierValidator,

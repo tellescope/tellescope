@@ -345,6 +345,7 @@ import {
   OutOfOfficeBlock,
   MetriportSyncAutomationAction,
   AIDecisionAutomationAction,
+  GenerateEnduserSummaryAutomationAction,
   AssignInboxItemAutomationAction,
   CreateScriptSureDraftAutomationAction,
   BelugaAutoRxAutomationAction,
@@ -1912,6 +1913,12 @@ export const rejectionWithMessage: EscapeBuilder<undefined> = o => build_validat
 export const numberToDateValidator = indexableNumberValidator(numberValidator, dateValidator)
 export const idStringToDateValidator = indexableValidator(mongoIdStringRequired, dateOptionalOrEmptyStringValidator)
 
+// Reusable translations validator for any model's `translations` field. Shape-agnostic:
+// { [fieldName]: { [languageCode]: translatedText } }. Field names and language codes are arbitrary
+// strings, so the same validator works across models regardless of which fields are translated.
+export const fieldTranslationsValidator = indexableValidator(stringValidator100, stringValidator25000)
+export const translationsValidator = indexableValidator(stringValidator100, fieldTranslationsValidator)
+
 // todo: move preference to FIELD_TYPES with drop-down option in user-facing forms
 const FIELD_TYPES = ['string', 'number', 'email', 'phone', 'multiple_choice', 'file', 'signature']
 const VALIDATE_OPTIONS_FOR_FIELD_TYPES = {
@@ -2683,6 +2690,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   chargebeeChargeCardOnFile: '',
   metriportSync: '',
   aiDecision: '',
+  generateEnduserSummary: '',
   assignInboxItem: '',
   createScriptSureDraft: '',
 }
@@ -3050,6 +3058,7 @@ export const aiSummaryConfigurationValidator = objectValidator<AISummaryConfigur
   prompt: stringValidator5000OptionalEmptyOkay,
   dataSources: listValidatorOptionalOrEmptyOk(aiSummaryDataSourceConfigValidator),
   maxOutputTokens: nonNegNumberValidatorOptional,
+  includeProfileFields: booleanValidatorOptional,
 }, { isOptional: true, emptyOk: true })
 
 export const AIDecisionSourceValidator = objectValidator<AIContextSource>({
@@ -3614,6 +3623,13 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       sources: listValidatorOptionalOrEmptyOk(AIDecisionSourceValidator),  // legacy, now optional
       aiSummaryConfiguration: aiSummaryConfigurationValidator,             // new shared config (optional)
     }, { emptyOk: false }) // at least outcomes is required
+  }),
+  generateEnduserSummary: objectValidator<GenerateEnduserSummaryAutomationAction>({
+    ...sharedAutomationActionValidators,
+    type: exactMatchValidator(['generateEnduserSummary']),
+    info: objectValidator<GenerateEnduserSummaryAutomationAction['info']>({
+      aiSummaryConfiguration: aiSummaryConfigurationValidator, // optional shared config
+    }, { emptyOk: true }) // config is optional; an empty info is valid
   }),
   assignInboxItem: objectValidator<AssignInboxItemAutomationAction>({
     ...sharedAutomationActionValidators,

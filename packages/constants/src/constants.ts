@@ -1294,3 +1294,5 @@ export const EXAMPLE_AI_SUMMARY_PROMPT =
 `Summarize this patient's recent activity in 4-6 bullet points.
 Focus on changes since their last visit, current medications, recent symptoms or
 complaints, and any outstanding follow-ups. Keep clinical and concise.`
+
+export const T2_TEMPLATE_EDITOR_STATE = "TELLESCOPE_2_TEMPLATE_EDITOR";

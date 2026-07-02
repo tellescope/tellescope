@@ -325,6 +325,14 @@ export declare const numberToDateValidator: ValidatorDefinition<{
 export declare const idStringToDateValidator: ValidatorDefinition<{
     [index: string]: Date;
 }>;
+export declare const fieldTranslationsValidator: ValidatorDefinition<{
+    [index: string]: string;
+}>;
+export declare const translationsValidator: ValidatorDefinition<{
+    [index: string]: {
+        [index: string]: string;
+    };
+}>;
 export declare const RESERVED_INTAKE_FIELDS: string[];
 export declare const INTERNAL_NAME_TO_DISPLAY_FIELD: {
     string: string;
