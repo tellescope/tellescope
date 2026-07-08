@@ -2939,6 +2939,7 @@ export const replace_medication_template_values = (s: string, medication?: Omit<
       replacement: (
         match === '{{medication.name}}' ? medication.title
         : match === '{{medication.category}}' ? (medication.category || '')
+        : match === '{{medication.notes}}' ? (medication.notes || '')
         : ''
       )
     })

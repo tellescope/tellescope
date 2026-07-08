@@ -68,6 +68,16 @@ var _a = [process.env.NON_ADMIN_EMAIL, process.env.NON_ADMIN_PASSWORD], nonAdmin
  *   2. Assigns the role to the non-admin user.
  *   3. Calls each endpoint as the non-admin.
  *   4. Asserts each endpoint returns a 403-equivalent error (not 200).
+ *   5. Positive case: a role granting ai_conversations create (read/update denied) must pass
+ *      the send_message gate — generating a NEW conversation requires only create access.
+ *   6. But the same role must still 403 when passing a conversationId: continuing an existing
+ *      conversation reads its stored history (returned in the response) and appends to it,
+ *      so it requires read + update access in addition to create.
+ *   7. Default-provider-permissions role (ai_conversations = Assigned): send_message must not
+ *      500. Regression: the post-generation $push previously ran through the caller's
+ *      access-scoped DB, where "Assigned" filters can't match the just-created conversation,
+ *      returning null and crashing the handler (Cannot read properties of null '_id') after
+ *      credits were consumed. bedrock.ts now persists via tenant-scoped org-wide queries.
  *
  * Pre-fix:
  *   - send_message: 200 (or some downstream error from Bedrock) — NOT 403. Test fails.
@@ -78,22 +88,24 @@ var _a = [process.env.NON_ADMIN_EMAIL, process.env.NON_ADMIN_PASSWORD], nonAdmin
 export var ai_conversations_rbac_tests = function (_a) {
     var sdk = _a.sdk, sdkNonAdmin = _a.sdkNonAdmin;
     return __awaiter(void 0, void 0, void 0, function () {
-        var roleName, rbapId, originalRoles, rbap, _b, _c, _d;
-        return __generator(this, function (_e) {
-            switch (_e.label) {
+        var roleName, grantRoleName, assignedRoleName, rbapId, grantRbapId, assignedRbapId, originalRoles, rbap, grantRbap, assignedRbap, _b, _c, _d, _e, _f;
+        return __generator(this, function (_g) {
+            switch (_g.label) {
                 case 0:
                     log_header("F-0005: ai_conversations RBAC bypass regression");
                     roleName = "f0005-ai-conversations-no-access-".concat(Date.now());
+                    grantRoleName = "f0005-ai-conversations-create-granted-".concat(Date.now());
+                    assignedRoleName = "f0005-ai-conversations-assigned-default-".concat(Date.now());
                     originalRoles = sdkNonAdmin.userInfo.roles;
-                    _e.label = 1;
+                    _g.label = 1;
                 case 1:
-                    _e.trys.push([1, , 8, 21]);
+                    _g.trys.push([1, , 19, 40]);
                     return [4 /*yield*/, sdk.api.role_based_access_permissions.createOne({
                             role: roleName,
                             permissions: __assign(__assign({}, PROVIDER_PERMISSIONS), { ai_conversations: { create: null, read: null, update: null, delete: null }, endusers: { create: null, read: null, update: null, delete: null } }),
                         })];
                 case 2:
-                    rbap = _e.sent();
+                    rbap = _g.sent();
                     rbapId = rbap.id;
                     // 2. Assign the role to the non-admin user and re-authenticate so the new
                     //    session reflects the role's denied permissions.
@@ -101,16 +113,16 @@ export var ai_conversations_rbac_tests = function (_a) {
                 case 3:
                     // 2. Assign the role to the non-admin user and re-authenticate so the new
                     //    session reflects the role's denied permissions.
-                    _e.sent();
+                    _g.sent();
                     return [4 /*yield*/, wait(undefined, 1500)];
                 case 4:
-                    _e.sent();
+                    _g.sent();
                     return [4 /*yield*/, sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)
                         // 3a. send_message must throw 403 (or equivalent access error). Pre-fix: succeeds (or
                         //     fails downstream in Bedrock without 403). Post-fix: throws before any work.
                     ];
                 case 5:
-                    _e.sent();
+                    _g.sent();
                     // 3a. send_message must throw 403 (or equivalent access error). Pre-fix: succeeds (or
                     //     fails downstream in Bedrock without 403). Post-fix: throws before any work.
                     return [4 /*yield*/, async_test("F-0005: ai_conversations.send_message must throw 403 when role denies ai_conversations", function () { return sdkNonAdmin.api.ai_conversations.send_message({
@@ -135,7 +147,7 @@ export var ai_conversations_rbac_tests = function (_a) {
                 case 6:
                     // 3a. send_message must throw 403 (or equivalent access error). Pre-fix: succeeds (or
                     //     fails downstream in Bedrock without 403). Post-fix: throws before any work.
-                    _e.sent();
+                    _g.sent();
                     // 3b. generate_ai_decision must throw 403 BEFORE the early res.json({}) response.
                     //     Pre-fix: handler responds 200 with {} immediately and processes in background.
                     //     Post-fix: handler throws 403 before res.json({}).
@@ -154,60 +166,191 @@ export var ai_conversations_rbac_tests = function (_a) {
                                 return status === 403 || status === 401
                                     || msg.includes('access') || msg.includes('permission') || msg.includes('forbidden');
                             },
-                        })];
+                        })
+                        // 4. Positive case: granting only ai_conversations create must pass the RBAC gate.
+                        //    send_message may still fail downstream (e.g. 400 "Organization has not set up credits"),
+                        //    but it must NOT be an access-denial error.
+                    ];
                 case 7:
                     // 3b. generate_ai_decision must throw 403 BEFORE the early res.json({}) response.
                     //     Pre-fix: handler responds 200 with {} immediately and processes in background.
                     //     Post-fix: handler throws 403 before res.json({}).
-                    _e.sent();
-                    return [3 /*break*/, 21];
+                    _g.sent();
+                    return [4 /*yield*/, sdk.api.role_based_access_permissions.createOne({
+                            role: grantRoleName,
+                            permissions: __assign(__assign({}, PROVIDER_PERMISSIONS), { ai_conversations: { create: 'All', read: null, update: null, delete: null } }),
+                        })];
                 case 8:
-                    _e.trys.push([8, 10, , 11]);
-                    return [4 /*yield*/, sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: originalRoles !== null && originalRoles !== void 0 ? originalRoles : [] }, { replaceObjectFields: true })];
+                    grantRbap = _g.sent();
+                    grantRbapId = grantRbap.id;
+                    return [4 /*yield*/, sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: [grantRoleName] }, { replaceObjectFields: true })];
                 case 9:
-                    _e.sent();
-                    return [3 /*break*/, 11];
+                    _g.sent();
+                    return [4 /*yield*/, wait(undefined, 1500)];
                 case 10:
-                    _b = _e.sent();
-                    return [3 /*break*/, 11];
+                    _g.sent();
+                    return [4 /*yield*/, sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)];
                 case 11:
-                    if (!rbapId) return [3 /*break*/, 15];
-                    _e.label = 12;
+                    _g.sent();
+                    return [4 /*yield*/, async_test("F-0005: ai_conversations.send_message must NOT be access-denied when role grants create", function () { return sdkNonAdmin.api.ai_conversations.send_message({
+                            message: 'F-0005 positive-case test',
+                            type: 'Test',
+                            maxTokens: 1,
+                        })
+                            .then(function () { return 'allowed'; })
+                            .catch(function (e) {
+                            var _a, _b;
+                            var msg = ((_a = e === null || e === void 0 ? void 0 : e.message) !== null && _a !== void 0 ? _a : '').toLowerCase();
+                            var status = (_b = e === null || e === void 0 ? void 0 : e.status) !== null && _b !== void 0 ? _b : e === null || e === void 0 ? void 0 : e.code;
+                            if (status === 403 || status === 401
+                                || msg.includes('access') || msg.includes('permission') || msg.includes('forbidden')) {
+                                throw e; // access denial — the gate incorrectly blocked a create-granted role
+                            }
+                            return 'allowed'; // downstream (e.g. credits) error is fine — the gate passed
+                        }); }, { onResult: function (r) { return r === 'allowed'; } })
+                        // 5. The create-granted (read/update-denied) role must still be blocked from CONTINUING an
+                        //    existing conversation — send_message with conversationId returns the full stored history
+                        //    and appends to it. Fake id is fine: the access check must fire before any lookup.
+                    ];
                 case 12:
-                    _e.trys.push([12, 14, , 15]);
-                    return [4 /*yield*/, sdk.api.role_based_access_permissions.deleteOne(rbapId)];
+                    _g.sent();
+                    // 5. The create-granted (read/update-denied) role must still be blocked from CONTINUING an
+                    //    existing conversation — send_message with conversationId returns the full stored history
+                    //    and appends to it. Fake id is fine: the access check must fire before any lookup.
+                    return [4 /*yield*/, async_test("F-0005: ai_conversations.send_message with conversationId must 403 when role denies read/update", function () { return sdkNonAdmin.api.ai_conversations.send_message({
+                            message: 'F-0005 conversationId bypass test',
+                            type: 'Test',
+                            maxTokens: 1,
+                            conversationId: new ObjectId().toHexString(),
+                        }); }, {
+                            shouldError: true,
+                            onError: function (e) {
+                                var _a, _b;
+                                var msg = ((_a = e === null || e === void 0 ? void 0 : e.message) !== null && _a !== void 0 ? _a : '').toLowerCase();
+                                var status = (_b = e === null || e === void 0 ? void 0 : e.status) !== null && _b !== void 0 ? _b : e === null || e === void 0 ? void 0 : e.code;
+                                return status === 403 || status === 401
+                                    || msg.includes('access') || msg.includes('permission') || msg.includes('forbidden');
+                            },
+                        })
+                        // 6. Regression: a role with default provider permissions (ai_conversations = Assigned)
+                        //    must be able to generate a new conversation without a 500. Previously the
+                        //    post-generation $push ran through the access-scoped DB, matched nothing under
+                        //    "Assigned", and crashed the handler with "Cannot read properties of null ('_id')".
+                    ];
                 case 13:
-                    _e.sent();
-                    return [3 /*break*/, 15];
+                    // 5. The create-granted (read/update-denied) role must still be blocked from CONTINUING an
+                    //    existing conversation — send_message with conversationId returns the full stored history
+                    //    and appends to it. Fake id is fine: the access check must fire before any lookup.
+                    _g.sent();
+                    return [4 /*yield*/, sdk.api.role_based_access_permissions.createOne({
+                            role: assignedRoleName,
+                            permissions: __assign({}, PROVIDER_PERMISSIONS),
+                        })];
                 case 14:
-                    _c = _e.sent();
-                    return [3 /*break*/, 15];
-                case 15: 
+                    assignedRbap = _g.sent();
+                    assignedRbapId = assignedRbap.id;
+                    return [4 /*yield*/, sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: [assignedRoleName] }, { replaceObjectFields: true })];
+                case 15:
+                    _g.sent();
+                    return [4 /*yield*/, wait(undefined, 1500)];
+                case 16:
+                    _g.sent();
+                    return [4 /*yield*/, sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)];
+                case 17:
+                    _g.sent();
+                    return [4 /*yield*/, async_test("F-0005: ai_conversations.send_message must not 500 for Assigned-access (default provider) role", function () { return sdkNonAdmin.api.ai_conversations.send_message({
+                            message: 'F-0005 assigned-access regression test',
+                            type: 'Test',
+                            maxTokens: 1,
+                        })
+                            .then(function () { return 'ok'; })
+                            .catch(function (e) {
+                            var _a, _b;
+                            var msg = ((_a = e === null || e === void 0 ? void 0 : e.message) !== null && _a !== void 0 ? _a : '').toLowerCase();
+                            var status = (_b = e === null || e === void 0 ? void 0 : e.status) !== null && _b !== void 0 ? _b : e === null || e === void 0 ? void 0 : e.code;
+                            if (status === 500 || msg.includes('internal error') || msg.includes('cannot read properties')) {
+                                throw e; // the null-update crash — regression
+                            }
+                            if (status === 403 || status === 401
+                                || msg.includes('access') || msg.includes('permission') || msg.includes('forbidden')) {
+                                throw e; // Assigned access must pass the RBAC gate
+                            }
+                            return 'ok'; // downstream (e.g. credits) error is fine
+                        }); }, { onResult: function (r) { return r === 'ok'; } })];
+                case 18:
+                    _g.sent();
+                    return [3 /*break*/, 40];
+                case 19:
+                    _g.trys.push([19, 21, , 22]);
+                    return [4 /*yield*/, sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: originalRoles !== null && originalRoles !== void 0 ? originalRoles : [] }, { replaceObjectFields: true })];
+                case 20:
+                    _g.sent();
+                    return [3 /*break*/, 22];
+                case 21:
+                    _b = _g.sent();
+                    return [3 /*break*/, 22];
+                case 22:
+                    if (!rbapId) return [3 /*break*/, 26];
+                    _g.label = 23;
+                case 23:
+                    _g.trys.push([23, 25, , 26]);
+                    return [4 /*yield*/, sdk.api.role_based_access_permissions.deleteOne(rbapId)];
+                case 24:
+                    _g.sent();
+                    return [3 /*break*/, 26];
+                case 25:
+                    _c = _g.sent();
+                    return [3 /*break*/, 26];
+                case 26:
+                    if (!grantRbapId) return [3 /*break*/, 30];
+                    _g.label = 27;
+                case 27:
+                    _g.trys.push([27, 29, , 30]);
+                    return [4 /*yield*/, sdk.api.role_based_access_permissions.deleteOne(grantRbapId)];
+                case 28:
+                    _g.sent();
+                    return [3 /*break*/, 30];
+                case 29:
+                    _d = _g.sent();
+                    return [3 /*break*/, 30];
+                case 30:
+                    if (!assignedRbapId) return [3 /*break*/, 34];
+                    _g.label = 31;
+                case 31:
+                    _g.trys.push([31, 33, , 34]);
+                    return [4 /*yield*/, sdk.api.role_based_access_permissions.deleteOne(assignedRbapId)];
+                case 32:
+                    _g.sent();
+                    return [3 /*break*/, 34];
+                case 33:
+                    _e = _g.sent();
+                    return [3 /*break*/, 34];
+                case 34: 
                 // Re-authenticate the non-admin to drop the no-access role from their JWT
                 // before subsequent tests run.
                 // Role restore above re-triggers deauthenticate_user; wait > 1s so the freshly minted
                 // token's (second-floored) iat lands after the deauth timestamp and isn't permanently
                 // rejected by is_logged_in's iat-slack check. Matches the in-test re-auth above.
                 return [4 /*yield*/, wait(undefined, 1500)];
-                case 16:
+                case 35:
                     // Re-authenticate the non-admin to drop the no-access role from their JWT
                     // before subsequent tests run.
                     // Role restore above re-triggers deauthenticate_user; wait > 1s so the freshly minted
                     // token's (second-floored) iat lands after the deauth timestamp and isn't permanently
                     // rejected by is_logged_in's iat-slack check. Matches the in-test re-auth above.
-                    _e.sent();
-                    _e.label = 17;
-                case 17:
-                    _e.trys.push([17, 19, , 20]);
+                    _g.sent();
+                    _g.label = 36;
+                case 36:
+                    _g.trys.push([36, 38, , 39]);
                     return [4 /*yield*/, sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)];
-                case 18:
-                    _e.sent();
-                    return [3 /*break*/, 20];
-                case 19:
-                    _d = _e.sent();
-                    return [3 /*break*/, 20];
-                case 20: return [7 /*endfinally*/];
-                case 21: return [2 /*return*/];
+                case 37:
+                    _g.sent();
+                    return [3 /*break*/, 39];
+                case 38:
+                    _f = _g.sent();
+                    return [3 /*break*/, 39];
+                case 39: return [7 /*endfinally*/];
+                case 40: return [2 /*return*/];
             }
         });
     });

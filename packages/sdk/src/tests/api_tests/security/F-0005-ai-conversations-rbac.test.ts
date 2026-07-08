@@ -28,6 +28,16 @@ const [nonAdminEmail, nonAdminPassword] = [process.env.NON_ADMIN_EMAIL, process.
  *   2. Assigns the role to the non-admin user.
  *   3. Calls each endpoint as the non-admin.
  *   4. Asserts each endpoint returns a 403-equivalent error (not 200).
+ *   5. Positive case: a role granting ai_conversations create (read/update denied) must pass
+ *      the send_message gate — generating a NEW conversation requires only create access.
+ *   6. But the same role must still 403 when passing a conversationId: continuing an existing
+ *      conversation reads its stored history (returned in the response) and appends to it,
+ *      so it requires read + update access in addition to create.
+ *   7. Default-provider-permissions role (ai_conversations = Assigned): send_message must not
+ *      500. Regression: the post-generation $push previously ran through the caller's
+ *      access-scoped DB, where "Assigned" filters can't match the just-created conversation,
+ *      returning null and crashing the handler (Cannot read properties of null '_id') after
+ *      credits were consumed. bedrock.ts now persists via tenant-scoped org-wide queries.
  *
  * Pre-fix:
  *   - send_message: 200 (or some downstream error from Bedrock) — NOT 403. Test fails.
@@ -39,7 +49,11 @@ export const ai_conversations_rbac_tests = async ({ sdk, sdkNonAdmin } : { sdk: 
   log_header("F-0005: ai_conversations RBAC bypass regression")
 
   const roleName = `f0005-ai-conversations-no-access-${Date.now()}`
+  const grantRoleName = `f0005-ai-conversations-create-granted-${Date.now()}`
+  const assignedRoleName = `f0005-ai-conversations-assigned-default-${Date.now()}`
   let rbapId: string | undefined
+  let grantRbapId: string | undefined
+  let assignedRbapId: string | undefined
   const originalRoles = sdkNonAdmin.userInfo.roles
 
   try {
@@ -109,6 +123,109 @@ export const ai_conversations_rbac_tests = async ({ sdk, sdkNonAdmin } : { sdk: 
         },
       },
     )
+
+    // 4. Positive case: granting only ai_conversations create must pass the RBAC gate.
+    //    send_message may still fail downstream (e.g. 400 "Organization has not set up credits"),
+    //    but it must NOT be an access-denial error.
+    const grantRbap = await sdk.api.role_based_access_permissions.createOne({
+      role: grantRoleName,
+      permissions: {
+        ...PROVIDER_PERMISSIONS,
+        ai_conversations: { create: 'All', read: null, update: null, delete: null },
+      },
+    })
+    grantRbapId = grantRbap.id
+
+    await sdk.api.users.updateOne(
+      sdkNonAdmin.userInfo.id,
+      { roles: [grantRoleName] },
+      { replaceObjectFields: true },
+    )
+    await wait(undefined, 1500)
+    await sdkNonAdmin.authenticate(nonAdminEmail!, nonAdminPassword!)
+
+    await async_test(
+      "F-0005: ai_conversations.send_message must NOT be access-denied when role grants create",
+      () => sdkNonAdmin.api.ai_conversations.send_message({
+        message: 'F-0005 positive-case test',
+        type: 'Test',
+        maxTokens: 1,
+      } as any)
+        .then(() => 'allowed' as const)
+        .catch((e: any) => {
+          const msg = (e?.message ?? '').toLowerCase()
+          const status = e?.status ?? e?.code
+          if (status === 403 || status === 401
+            || msg.includes('access') || msg.includes('permission') || msg.includes('forbidden')) {
+            throw e // access denial — the gate incorrectly blocked a create-granted role
+          }
+          return 'allowed' as const // downstream (e.g. credits) error is fine — the gate passed
+        }),
+      { onResult: r => r === 'allowed' },
+    )
+
+    // 5. The create-granted (read/update-denied) role must still be blocked from CONTINUING an
+    //    existing conversation — send_message with conversationId returns the full stored history
+    //    and appends to it. Fake id is fine: the access check must fire before any lookup.
+    await async_test(
+      "F-0005: ai_conversations.send_message with conversationId must 403 when role denies read/update",
+      () => sdkNonAdmin.api.ai_conversations.send_message({
+        message: 'F-0005 conversationId bypass test',
+        type: 'Test',
+        maxTokens: 1,
+        conversationId: new ObjectId().toHexString(),
+      } as any),
+      {
+        shouldError: true,
+        onError: (e: any) => {
+          const msg = (e?.message ?? '').toLowerCase()
+          const status = e?.status ?? e?.code
+          return status === 403 || status === 401
+            || msg.includes('access') || msg.includes('permission') || msg.includes('forbidden')
+        },
+      },
+    )
+
+    // 6. Regression: a role with default provider permissions (ai_conversations = Assigned)
+    //    must be able to generate a new conversation without a 500. Previously the
+    //    post-generation $push ran through the access-scoped DB, matched nothing under
+    //    "Assigned", and crashed the handler with "Cannot read properties of null ('_id')".
+    const assignedRbap = await sdk.api.role_based_access_permissions.createOne({
+      role: assignedRoleName,
+      permissions: { ...PROVIDER_PERMISSIONS },
+    })
+    assignedRbapId = assignedRbap.id
+
+    await sdk.api.users.updateOne(
+      sdkNonAdmin.userInfo.id,
+      { roles: [assignedRoleName] },
+      { replaceObjectFields: true },
+    )
+    await wait(undefined, 1500)
+    await sdkNonAdmin.authenticate(nonAdminEmail!, nonAdminPassword!)
+
+    await async_test(
+      "F-0005: ai_conversations.send_message must not 500 for Assigned-access (default provider) role",
+      () => sdkNonAdmin.api.ai_conversations.send_message({
+        message: 'F-0005 assigned-access regression test',
+        type: 'Test',
+        maxTokens: 1,
+      } as any)
+        .then(() => 'ok' as const)
+        .catch((e: any) => {
+          const msg = (e?.message ?? '').toLowerCase()
+          const status = e?.status ?? e?.code
+          if (status === 500 || msg.includes('internal error') || msg.includes('cannot read properties')) {
+            throw e // the null-update crash — regression
+          }
+          if (status === 403 || status === 401
+            || msg.includes('access') || msg.includes('permission') || msg.includes('forbidden')) {
+            throw e // Assigned access must pass the RBAC gate
+          }
+          return 'ok' as const // downstream (e.g. credits) error is fine
+        }),
+      { onResult: r => r === 'ok' },
+    )
   } finally {
     // Cleanup: restore original roles, delete the test role.
     try {
@@ -120,6 +237,12 @@ export const ai_conversations_rbac_tests = async ({ sdk, sdkNonAdmin } : { sdk: 
     } catch {}
     if (rbapId) {
       try { await sdk.api.role_based_access_permissions.deleteOne(rbapId) } catch {}
+    }
+    if (grantRbapId) {
+      try { await sdk.api.role_based_access_permissions.deleteOne(grantRbapId) } catch {}
+    }
+    if (assignedRbapId) {
+      try { await sdk.api.role_based_access_permissions.deleteOne(assignedRbapId) } catch {}
     }
     // Re-authenticate the non-admin to drop the no-access role from their JWT
     // before subsequent tests run.

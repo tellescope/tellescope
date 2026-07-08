@@ -2920,7 +2920,8 @@ var replace_medication_template_values = function (s, medication) {
             match: match,
             replacement: (match === '{{medication.name}}' ? medication.title
                 : match === '{{medication.category}}' ? (medication.category || '')
-                    : '')
+                    : match === '{{medication.notes}}' ? (medication.notes || '')
+                        : '')
         });
         start = end + 2;
     }

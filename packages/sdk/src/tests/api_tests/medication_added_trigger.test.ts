@@ -182,7 +182,7 @@ export const medication_added_trigger_tests = async ({ sdk, sdkNonAdmin } : { sd
     title: "Medication - Beluga Protocol Test"
   })
 
-  // Simulate the Beluga RX_WRITTEN webhook with two meds covering category present (typical) and "N/A"
+  // Simulate the Beluga RX_WRITTEN webhook with two meds covering category/pharmacyNotes present (typical) and "N/A"/absent
   const webhookResponse = await fetch(`${host}/v1/webhooks/beluga`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -198,6 +198,7 @@ export const medication_added_trigger_tests = async ({ sdk, sdkNonAdmin } : { sd
         medId: 'test-ndc-123',
         rxId: 'test-rx-456',
         category: 'weightloss1',
+        pharmacyNotes: 'Dispense with syringes',
       }, {
         name: 'Metformin',
         strength: '500mg',
@@ -244,6 +245,16 @@ export const medication_added_trigger_tests = async ({ sdk, sdkNonAdmin } : { sd
     "Beluga RX_WRITTEN - Medication preserves N/A category verbatim",
     async () => belugaMedMetformin,
     { onResult: (m: EnduserMedication) => m?.category === 'N/A' }
+  )
+  await async_test(
+    "Beluga RX_WRITTEN - Medication has notes from webhook pharmacyNotes",
+    async () => belugaMedSemaglutide,
+    { onResult: (m: EnduserMedication) => m?.notes === 'Dispense with syringes' }
+  )
+  await async_test(
+    "Beluga RX_WRITTEN - Medication omits notes when pharmacyNotes not provided on med",
+    async () => belugaMedMetformin,
+    { onResult: (m: EnduserMedication) => m?.notes === undefined || m?.notes === null }
   )
 
   // Backwards-compatibility: a webhook with no category on any med should result in undefined category
@@ -293,6 +304,11 @@ export const medication_added_trigger_tests = async ({ sdk, sdkNonAdmin } : { sd
     "Beluga RX_WRITTEN - Medication omits category when not provided",
     async () => belugaMedNoCategory,
     { onResult: (m: EnduserMedication) => m?.category === undefined || m?.category === null }
+  )
+  await async_test(
+    "Beluga RX_WRITTEN - Medication omits notes when pharmacyNotes not provided",
+    async () => belugaMedNoCategory,
+    { onResult: (m: EnduserMedication) => m?.notes === undefined || m?.notes === null }
   )
 
   try {
@@ -389,14 +405,56 @@ export const medication_added_trigger_tests = async ({ sdk, sdkNonAdmin } : { sd
     { onResult: (e: Enduser) => e.fields?.['Medication Category'] === '' }
   )
 
+  // ---- Set Fields with {{medication.notes}} Test ----
+  log_header("Medication Added - Set Fields with {{medication.notes}}")
+
+  const setFieldsPharmacyNotesTrigger = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Medication Added', info: { titles: [], protocols: [] } },
+    action: { type: 'Set Fields', info: { fields: [{ name: 'Medication Notes', type: 'Custom Value' as const, value: '{{medication.notes}}' }] }},
+    status: 'Active',
+    title: "Medication - Set Fields medication.notes"
+  })
+
+  const setFieldsPharmacyNotesEnduser = await sdk.api.endusers.createOne({})
+
+  const setFieldsPharmacyNotesMed = await sdk.api.enduser_medications.createOne({
+    enduserId: setFieldsPharmacyNotesEnduser.id,
+    title: 'Ozempic 1mg',
+    notes: 'Dispense with syringes',
+  })
+  await wait(undefined, 500)
+
+  await async_test(
+    "Medication Added - Set Fields copies medication.notes to enduser field",
+    () => sdk.api.endusers.getOne(setFieldsPharmacyNotesEnduser.id),
+    { onResult: (e: Enduser) => e.fields?.['Medication Notes'] === 'Dispense with syringes' }
+  )
+
+  // notes absent on medication → placeholder resolves to empty string
+  const setFieldsPharmacyNotesEnduserEmpty = await sdk.api.endusers.createOne({})
+  const setFieldsPharmacyNotesMedEmpty = await sdk.api.enduser_medications.createOne({
+    enduserId: setFieldsPharmacyNotesEnduserEmpty.id,
+    title: 'Lisinopril 40mg',
+  })
+  await wait(undefined, 500)
+
+  await async_test(
+    "Medication Added - Set Fields with no notes resolves to empty string",
+    () => sdk.api.endusers.getOne(setFieldsPharmacyNotesEnduserEmpty.id),
+    { onResult: (e: Enduser) => e.fields?.['Medication Notes'] === '' }
+  )
+
   try {
     await sdk.api.automation_triggers.deleteOne(setFieldsTrigger.id)
     await sdk.api.automation_triggers.deleteOne(setFieldsTriggerFiltered.id)
     await sdk.api.automation_triggers.deleteOne(setFieldsCategoryTrigger.id)
+    await sdk.api.automation_triggers.deleteOne(setFieldsPharmacyNotesTrigger.id)
     await sdk.api.endusers.deleteOne(setFieldsEnduser.id)
     await sdk.api.endusers.deleteOne(setFieldsEnduser2.id)
     await sdk.api.endusers.deleteOne(setFieldsCategoryEnduser.id)
     await sdk.api.endusers.deleteOne(setFieldsCategoryEnduserEmpty.id)
+    await sdk.api.endusers.deleteOne(setFieldsPharmacyNotesEnduser.id)
+    await sdk.api.endusers.deleteOne(setFieldsPharmacyNotesEnduserEmpty.id)
   } finally {}
 
   // ---- titleCondition (compound conditional logic on title) ----
