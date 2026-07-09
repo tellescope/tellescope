@@ -185,6 +185,24 @@ exports.schema = (0, exports.build_schema)({
                             return "invalidateSessionsBefore can only be set forward in time";
                         }
                     }
+                }, {
+                    explanation: 'healthieIntegrationId cannot be changed once the patient has a Healthie patient ID',
+                    evaluate: function (_v, _deps, _session, method, _a) {
+                        var _b, _c;
+                        var updates = _a.updates, original = _a.original;
+                        if (method === 'create')
+                            return;
+                        if ((updates === null || updates === void 0 ? void 0 : updates.healthieIntegrationId) === undefined)
+                            return;
+                        var orig = original;
+                        if ((updates.healthieIntegrationId || '') === ((orig === null || orig === void 0 ? void 0 : orig.healthieIntegrationId) || ''))
+                            return; // no-op ok
+                        var healthiePatientId = (((_c = (_b = orig === null || orig === void 0 ? void 0 : orig.references) === null || _b === void 0 ? void 0 : _b.find(function (r) { return r.type === constants_1.HEALTHIE_TITLE; })) === null || _c === void 0 ? void 0 : _c.id)
+                            || ((orig === null || orig === void 0 ? void 0 : orig.source) === constants_1.HEALTHIE_TITLE && (orig === null || orig === void 0 ? void 0 : orig.externalId)));
+                        if (healthiePatientId) {
+                            return "healthieIntegrationId cannot be changed once the patient has a Healthie patient ID";
+                        }
+                    }
                 }
             ],
             access: [
@@ -198,7 +216,7 @@ exports.schema = (0, exports.build_schema)({
             add_to_journey: {}, remove_from_journey: {}, begin_login_flow: {}, set_password: {},
             unsubscribe: {},
         },
-        fields: __assign(__assign({}, BuiltInFields), { sharedWithOrganizations: __assign(__assign({}, BuiltInFields.sharedWithOrganizations), { enduserUpdatesDisabled: true }), recentViewers: { validator: validation_1.recentViewersValidator }, healthie_dietitian_id: { validator: validation_1.stringValidator100, enduserUpdatesDisabled: true }, mergedIds: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk, readonly: true, redactions: ['enduser'] }, externalId: {
+        fields: __assign(__assign({}, BuiltInFields), { sharedWithOrganizations: __assign(__assign({}, BuiltInFields.sharedWithOrganizations), { enduserUpdatesDisabled: true }), recentViewers: { validator: validation_1.recentViewersValidator }, healthie_dietitian_id: { validator: validation_1.stringValidator100, enduserUpdatesDisabled: true }, healthieIntegrationId: { validator: validation_1.stringValidator100, enduserUpdatesDisabled: true }, mergedIds: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk, readonly: true, redactions: ['enduser'] }, externalId: {
                 validator: validation_1.stringValidator250,
                 examples: ['addfed3e-ddea-415b-b52b-df820c944dbb'],
                 enduserUpdatesDisabled: true,
@@ -928,7 +946,7 @@ exports.schema = (0, exports.build_schema)({
                         info: {}
                     }
                 ]
-            }, pushHistoricalEvents: { validator: validation_1.booleanValidator }, pushHistoricalFiles: { validator: validation_1.booleanValidator }, syncCareTeam: { validator: validation_1.booleanValidator }, syncAsActive: { validator: validation_1.booleanValidator }, requirePhoneToPushEnduser: { validator: validation_1.booleanValidator }, lastSync: { validator: validation_1.nonNegNumberValidator }, emailDisabled: { validator: validation_1.booleanValidator }, syncUnrecognizedSenders: { validator: validation_1.booleanValidator }, createEndusersForUnrecognizedSenders: { validator: validation_1.booleanValidator }, calendars: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, environment: { validator: validation_1.stringValidator100 }, webhooksSecret: { validator: validation_1.stringValidator, redactions: ['all'] }, shouldCreateNotifications: { validator: validation_1.booleanValidator }, disableEnduserAutoSync: { validator: validation_1.booleanValidator }, disableTicketAutoSync: { validator: validation_1.booleanValidator }, redactExternalEvents: { validator: validation_1.booleanValidator }, syncEnduserFiles: { validator: validation_1.booleanValidator }, pushCalendarDetails: { validator: validation_1.booleanValidator }, defaultAttendeeId: { validator: validation_1.mongoIdStringRequired }, sendEmailOnSync: { validator: validation_1.booleanValidator }, enduserFieldMapping: { validator: validation_1.fieldMappingsValidator }, default_dietitian_id: { validator: validation_1.stringValidator100 }, dontPushCalendarEvent: { validator: validation_1.booleanValidator }, dontPullCalendarEvent: { validator: validation_1.booleanValidator }, pushAddedTags: { validator: validation_1.booleanValidator }, pushRemovedTags: { validator: validation_1.booleanValidator }, overwriteAddress: { validator: validation_1.booleanValidator }, syncEnduserId: { validator: validation_1.booleanValidator }, shardId: { validator: validation_1.stringValidator100 } }),
+            }, pushHistoricalEvents: { validator: validation_1.booleanValidator }, pushHistoricalFiles: { validator: validation_1.booleanValidator }, syncCareTeam: { validator: validation_1.booleanValidator }, syncAsActive: { validator: validation_1.booleanValidator }, requirePhoneToPushEnduser: { validator: validation_1.booleanValidator }, lastSync: { validator: validation_1.nonNegNumberValidator }, emailDisabled: { validator: validation_1.booleanValidator }, syncUnrecognizedSenders: { validator: validation_1.booleanValidator }, createEndusersForUnrecognizedSenders: { validator: validation_1.booleanValidator }, calendars: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, environment: { validator: validation_1.stringValidator100 }, webhooksSecret: { validator: validation_1.stringValidator, redactions: ['all'] }, shouldCreateNotifications: { validator: validation_1.booleanValidator }, disableEnduserAutoSync: { validator: validation_1.booleanValidator }, disableTicketAutoSync: { validator: validation_1.booleanValidator }, redactExternalEvents: { validator: validation_1.booleanValidator }, syncEnduserFiles: { validator: validation_1.booleanValidator }, pushCalendarDetails: { validator: validation_1.booleanValidator }, defaultAttendeeId: { validator: validation_1.mongoIdStringRequired }, sendEmailOnSync: { validator: validation_1.booleanValidator }, enduserFieldMapping: { validator: validation_1.fieldMappingsValidator }, default_dietitian_id: { validator: validation_1.stringValidator100 }, dontPushCalendarEvent: { validator: validation_1.booleanValidator }, dontPullCalendarEvent: { validator: validation_1.booleanValidator }, pushAddedTags: { validator: validation_1.booleanValidator }, pushRemovedTags: { validator: validation_1.booleanValidator }, overwriteAddress: { validator: validation_1.booleanValidator }, syncEnduserId: { validator: validation_1.booleanValidator }, shardId: { validator: validation_1.stringValidator100 }, tenantId: { validator: validation_1.stringValidator100 } }),
         customActions: {
             update_zoom: {
                 adminOnly: true,
@@ -952,6 +970,7 @@ exports.schema = (0, exports.build_schema)({
                     type: { validator: validation_1.stringValidator, required: true },
                     id: { validator: validation_1.stringValidator },
                     query: { validator: validation_1.stringValidator },
+                    healthieIntegrationId: { validator: validation_1.stringValidator100 }, // target an additional Healthie integration (Integration.tenantId); absent → primary
                 },
                 returns: {
                     data: { validator: validation_1.optionalAnyObjectValidator, required: true },
@@ -967,6 +986,7 @@ exports.schema = (0, exports.build_schema)({
                     type: { validator: validation_1.stringValidator, required: true },
                     query: { validator: validation_1.objectAnyFieldsAnyValuesValidator },
                     id: { validator: validation_1.stringValidator },
+                    healthieIntegrationId: { validator: validation_1.stringValidator100 }, // target an additional Healthie integration (Integration.tenantId); absent → primary
                 },
                 returns: {
                     data: { validator: validation_1.optionalAnyObjectValidator, required: true },
@@ -5071,7 +5091,7 @@ exports.schema = (0, exports.build_schema)({
                     title: validation_1.stringValidator5000EmptyOkay,
                     environment: validation_1.stringValidator1000Optional,
                 }))
-            }, chargebeeBusinessEntities: {
+            }, healthieIntegrationIds: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk, readonly: true }, chargebeeBusinessEntities: {
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     environment: validation_1.stringValidator1000,
                     businessEntityId: validation_1.stringValidator1000,

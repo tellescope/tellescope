@@ -386,6 +386,7 @@ import {
   USER_SESSION_TYPE,
   CANDID_TITLE,
   DEVELOP_HEALTH_TITLE,
+  HEALTHIE_TITLE,
 } from "@tellescope/constants"
 
 export const get_next_reminder_timestamp_for_ticket = ({ dueDateInMS, reminders, closedAt } : Pick<Ticket, 'dueDateInMS' | 'reminders' | 'closedAt'>): number => {
@@ -1022,8 +1023,8 @@ export type CustomActions = {
     }, {  }>, 
     disconnect_zendesk: CustomAction<{}, {}>,
     update_zoom: CustomAction<{ clientId?: string, clientSecret?: string }, { }>,
-    proxy_read: CustomAction<{ integration: string, type: string, id?: string, query?: string }, { data: any }>,
-    proxy_write: CustomAction<{ integration: string, type: string, id?: string, query?: Record<string, any> }, { data: any }>,
+    proxy_read: CustomAction<{ integration: string, type: string, id?: string, query?: string, healthieIntegrationId?: string }, { data: any }>,
+    proxy_write: CustomAction<{ integration: string, type: string, id?: string, query?: Record<string, any>, healthieIntegrationId?: string }, { data: any }>,
     load_redacted: CustomAction<{}, { integrations: Integration[] }>,
     update_settings: CustomAction<{ id: string, updates: Partial<Integration> }, { integration: Integration }>,
   },
@@ -1504,6 +1505,21 @@ export const schema: SchemaV1 = build_schema({
               return "invalidateSessionsBefore can only be set forward in time"
             }
           }
+        }, {
+          explanation: 'healthieIntegrationId cannot be changed once the patient has a Healthie patient ID',
+          evaluate: (_v, _deps, _session, method, { updates, original }) => {
+            if (method === 'create') return
+            if (updates?.healthieIntegrationId === undefined) return
+            const orig = original as any
+            if ((updates.healthieIntegrationId || '') === (orig?.healthieIntegrationId || '')) return // no-op ok
+            const healthiePatientId = (
+              orig?.references?.find((r: { type: string, id: string }) => r.type === HEALTHIE_TITLE)?.id
+              || (orig?.source === HEALTHIE_TITLE && orig?.externalId)
+            )
+            if (healthiePatientId) {
+              return "healthieIntegrationId cannot be changed once the patient has a Healthie patient ID"
+            }
+          }
         }
       ],
       access: [ // for non-admins, limit access to endusers the user is assigned to, by default
@@ -1522,6 +1538,7 @@ export const schema: SchemaV1 = build_schema({
       sharedWithOrganizations: { ...BuiltInFields.sharedWithOrganizations, enduserUpdatesDisabled: true },
       recentViewers: { validator: recentViewersValidator },
       healthie_dietitian_id: { validator: stringValidator100, enduserUpdatesDisabled: true },
+      healthieIntegrationId: { validator: stringValidator100, enduserUpdatesDisabled: true }, // matches Integration.tenantId of an additional Healthie integration; unset/'' resolves to the primary
       mergedIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk, readonly: true, redactions: ['enduser'] },
       externalId: {
         validator: stringValidator250,
@@ -2380,6 +2397,7 @@ export const schema: SchemaV1 = build_schema({
       overwriteAddress: { validator: booleanValidator },
       syncEnduserId: { validator: booleanValidator },
       shardId: { validator: stringValidator100 },
+      tenantId: { validator: stringValidator100 }, // per-integration disambiguator (e.g. Athena practice id, DoseSpot clinic id, additional-Healthie unique id)
     },
     customActions: {
       update_zoom: {
@@ -2404,8 +2422,9 @@ export const schema: SchemaV1 = build_schema({
           type: { validator: stringValidator, required: true },
           id: { validator: stringValidator },
           query: { validator: stringValidator },
+          healthieIntegrationId: { validator: stringValidator100 }, // target an additional Healthie integration (Integration.tenantId); absent → primary
         },
-        returns: { 
+        returns: {
           data: { validator: optionalAnyObjectValidator, required: true },
         }
       },
@@ -2413,12 +2432,13 @@ export const schema: SchemaV1 = build_schema({
         op: 'custom', access: 'update', method: 'post',
         path: '/integrations/proxy-write',
         name: 'Proxies a write request to a given integration and returns the result',
-        description: "", 
+        description: "",
         parameters: {
           integration: { validator: stringValidator, required: true },
           type: { validator: stringValidator, required: true },
           query: { validator: objectAnyFieldsAnyValuesValidator },
           id: { validator: stringValidator },
+          healthieIntegrationId: { validator: stringValidator100 }, // target an additional Healthie integration (Integration.tenantId); absent → primary
         },
         returns: { 
           data: { validator: optionalAnyObjectValidator, required: true },
@@ -7311,6 +7331,7 @@ export const schema: SchemaV1 = build_schema({
           environment: stringValidator1000Optional,
         }))
       },
+      healthieIntegrationIds: { validator: listOfStringsValidatorOptionalOrEmptyOk, readonly: true }, // tenantIds of additional Healthie integrations; maintained by integrations create/delete side effects
       chargebeeBusinessEntities: {
         validator: listValidatorOptionalOrEmptyOk(objectValidator<ChargebeeBusinessEntity>({
           environment: stringValidator1000,

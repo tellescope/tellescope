@@ -39,6 +39,7 @@ import { enduser_observations_acknowledge_tests } from "./api_tests/enduser_obse
 import { translations_tests } from "./api_tests/translations.test"
 import { user_portal_settings_tests } from "./api_tests/user_portal_settings.test"
 import { integrations_redacted_tests } from "./api_tests/integrations_redacted.test"
+import { healthie_multi_integration_tests } from "./api_tests/healthie_multi_integration.test"
 import { get_some_projection_tests } from "./api_tests/get_some_projection.test"
 import { mdb_sort_tests } from "./api_tests/mdb_sort.test"
 import { create_user_notifications_trigger_tests } from "./api_tests/create_user_notifications_trigger.test"
@@ -15073,6 +15074,7 @@ const ip_address_form_tests = async () => {
     await openloop_webhooks_tests({ sdk, sdkNonAdmin })
     await mdi_webhooks_tests({ sdk, sdkNonAdmin })
     await integrations_redacted_tests({ sdk, sdkNonAdmin })
+    await healthie_multi_integration_tests({ sdk, sdkNonAdmin })
     await mdb_sort_tests({ sdk, sdkNonAdmin })
     await search_tests()
     await time_tracks_tests({ sdk, sdkNonAdmin })

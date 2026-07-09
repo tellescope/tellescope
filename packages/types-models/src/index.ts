@@ -577,6 +577,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   stripeKeyDetails?: StripeKeyDetail[],
   metriportIntegrationDetails?: MetriportIntegrationDetail[],
   additionalIterableKeys?: string[],
+  healthieIntegrationIds?: string[], // tenantIds of additional Healthie integrations; maintained by integrations create/delete side effects
   defaultDoseSpotPharmacies?: { id: string, name: string }[]
   scriptSurePractices?: { id: string, name: string }[],
   scriptSureEmail?: string,
@@ -1060,6 +1061,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   references?: RelatedRecord[],
   recentViewers?: RecentViewer[],
   healthie_dietitian_id?: string,
+  healthieIntegrationId?: string, // matches Integration.tenantId of an additional Healthie integration; unset/'' resolves to the primary (untagged) integration
   unsubscribePhone?: boolean; // on AWS STOP reply
   externalId?: string;
   humanReadableId?: string;

@@ -1106,6 +1106,7 @@ export type CustomActions = {
             type: string;
             id?: string;
             query?: string;
+            healthieIntegrationId?: string;
         }, {
             data: any;
         }>;
@@ -1114,6 +1115,7 @@ export type CustomActions = {
             type: string;
             id?: string;
             query?: Record<string, any>;
+            healthieIntegrationId?: string;
         }, {
             data: any;
         }>;

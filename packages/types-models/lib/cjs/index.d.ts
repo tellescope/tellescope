@@ -564,6 +564,7 @@ export interface Organization extends Organization_readonly, Organization_requir
     stripeKeyDetails?: StripeKeyDetail[];
     metriportIntegrationDetails?: MetriportIntegrationDetail[];
     additionalIterableKeys?: string[];
+    healthieIntegrationIds?: string[];
     defaultDoseSpotPharmacies?: {
         id: string;
         name: string;
@@ -975,6 +976,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
     references?: RelatedRecord[];
     recentViewers?: RecentViewer[];
     healthie_dietitian_id?: string;
+    healthieIntegrationId?: string;
     unsubscribePhone?: boolean;
     externalId?: string;
     humanReadableId?: string;

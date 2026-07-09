@@ -1116,6 +1116,7 @@ export const BUILT_INS_FOR_SET_FIELDS: (keyof Enduser)[] = [
   'defaultFromEmail',
   'timezone',
   'healthie_dietitian_id',
+  'healthieIntegrationId',
 ]
 export const BUILT_IN_BOOLEANS_FOR_SET_FIELDS: (keyof Enduser)[] = [
   "useDefaultFromPhoneInAutomations",

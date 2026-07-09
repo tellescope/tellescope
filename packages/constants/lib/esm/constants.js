@@ -1033,6 +1033,7 @@ export var BUILT_INS_FOR_SET_FIELDS = [
     'defaultFromEmail',
     'timezone',
     'healthie_dietitian_id',
+    'healthieIntegrationId',
 ];
 export var BUILT_IN_BOOLEANS_FOR_SET_FIELDS = [
     "useDefaultFromPhoneInAutomations",
