@@ -386,7 +386,6 @@ import {
   USER_SESSION_TYPE,
   CANDID_TITLE,
   DEVELOP_HEALTH_TITLE,
-  HEALTHIE_TITLE,
 } from "@tellescope/constants"
 
 export const get_next_reminder_timestamp_for_ticket = ({ dueDateInMS, reminders, closedAt } : Pick<Ticket, 'dueDateInMS' | 'reminders' | 'closedAt'>): number => {
@@ -1503,21 +1502,6 @@ export const schema: SchemaV1 = build_schema({
             if (!orig?.invalidateSessionsBefore) return
             if (new Date(updates.invalidateSessionsBefore) < new Date(orig.invalidateSessionsBefore)) {
               return "invalidateSessionsBefore can only be set forward in time"
-            }
-          }
-        }, {
-          explanation: 'healthieIntegrationId cannot be changed once the patient has a Healthie patient ID',
-          evaluate: (_v, _deps, _session, method, { updates, original }) => {
-            if (method === 'create') return
-            if (updates?.healthieIntegrationId === undefined) return
-            const orig = original as any
-            if ((updates.healthieIntegrationId || '') === (orig?.healthieIntegrationId || '')) return // no-op ok
-            const healthiePatientId = (
-              orig?.references?.find((r: { type: string, id: string }) => r.type === HEALTHIE_TITLE)?.id
-              || (orig?.source === HEALTHIE_TITLE && orig?.externalId)
-            )
-            if (healthiePatientId) {
-              return "healthieIntegrationId cannot be changed once the patient has a Healthie patient ID"
             }
           }
         }

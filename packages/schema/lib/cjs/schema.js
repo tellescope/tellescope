@@ -185,24 +185,6 @@ exports.schema = (0, exports.build_schema)({
                             return "invalidateSessionsBefore can only be set forward in time";
                         }
                     }
-                }, {
-                    explanation: 'healthieIntegrationId cannot be changed once the patient has a Healthie patient ID',
-                    evaluate: function (_v, _deps, _session, method, _a) {
-                        var _b, _c;
-                        var updates = _a.updates, original = _a.original;
-                        if (method === 'create')
-                            return;
-                        if ((updates === null || updates === void 0 ? void 0 : updates.healthieIntegrationId) === undefined)
-                            return;
-                        var orig = original;
-                        if ((updates.healthieIntegrationId || '') === ((orig === null || orig === void 0 ? void 0 : orig.healthieIntegrationId) || ''))
-                            return; // no-op ok
-                        var healthiePatientId = (((_c = (_b = orig === null || orig === void 0 ? void 0 : orig.references) === null || _b === void 0 ? void 0 : _b.find(function (r) { return r.type === constants_1.HEALTHIE_TITLE; })) === null || _c === void 0 ? void 0 : _c.id)
-                            || ((orig === null || orig === void 0 ? void 0 : orig.source) === constants_1.HEALTHIE_TITLE && (orig === null || orig === void 0 ? void 0 : orig.externalId)));
-                        if (healthiePatientId) {
-                            return "healthieIntegrationId cannot be changed once the patient has a Healthie patient ID";
-                        }
-                    }
                 }
             ],
             access: [

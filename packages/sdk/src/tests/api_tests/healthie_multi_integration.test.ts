@@ -3,10 +3,12 @@ require('source-map-support').install();
 import axios from "axios"
 import { Session } from "../../sdk"
 import {
+  assert,
   async_test,
   log_header,
   wait,
 } from "@tellescope/testing"
+import { evaluate_conditional_logic_for_enduser_fields } from "@tellescope/utilities"
 import { setup_tests } from "../setup"
 import { BUILT_INS_FOR_SET_FIELDS, HEALTHIE_TITLE } from "@tellescope/constants"
 
@@ -32,6 +34,43 @@ export const healthie_multi_integration_tests = async ({ sdk, sdkNonAdmin } : { 
       throw new Error("healthieIntegrationId missing from BUILT_INS_FOR_SET_FIELDS")
     }
     console.log("✅ healthieIntegrationId exposed in BUILT_INS_FOR_SET_FIELDS")
+
+    // ── Conditional logic evaluation (pure — resolves via the generic built-in field fallback) ──
+    const conditionPlaceholders = {
+      businessId: '', creator: '', hashedPassword: '', lastActive: '', lastLogout: '', updatedAt: new Date(),
+    }
+    const taggedForConditions = { ...conditionPlaceholders, healthieIntegrationId: TAG } as any
+    const untaggedForConditions = { ...conditionPlaceholders } as any
+
+    assert(
+      evaluate_conditional_logic_for_enduser_fields(taggedForConditions, { $and: [{ condition: { healthieIntegrationId: TAG } }] }),
+      'Conditional logic error', 'healthieIntegrationId equality matches a tagged patient',
+    )
+    assert(
+      !evaluate_conditional_logic_for_enduser_fields(taggedForConditions, { $and: [{ condition: { healthieIntegrationId: 'other-clinic' } }] }),
+      'Conditional logic error', 'healthieIntegrationId equality rejects a different id',
+    )
+    assert(
+      !evaluate_conditional_logic_for_enduser_fields(untaggedForConditions, { $and: [{ condition: { healthieIntegrationId: TAG } }] }),
+      'Conditional logic error', 'healthieIntegrationId equality rejects an unset (primary) patient',
+    )
+    assert(
+      evaluate_conditional_logic_for_enduser_fields(taggedForConditions, { $and: [{ condition: { healthieIntegrationId: { $isSet: true } } }] }),
+      'Conditional logic error', 'healthieIntegrationId $isSet matches a tagged patient',
+    )
+    assert(
+      evaluate_conditional_logic_for_enduser_fields(untaggedForConditions, { $and: [{ condition: { healthieIntegrationId: { $isNotSet: true } } }] }),
+      'Conditional logic error', 'healthieIntegrationId $isNotSet matches an unset (primary) patient',
+    )
+    assert(
+      !evaluate_conditional_logic_for_enduser_fields(taggedForConditions, { $and: [{ condition: { healthieIntegrationId: { $ne: TAG } } }] }),
+      'Conditional logic error', 'healthieIntegrationId $ne rejects the matching tag',
+    )
+    assert(
+      evaluate_conditional_logic_for_enduser_fields(untaggedForConditions, { $and: [{ condition: { healthieIntegrationId: { $ne: TAG } } }] }),
+      'Conditional logic error', 'healthieIntegrationId $ne matches an unset (primary) patient',
+    )
+    console.log("✅ healthieIntegrationId evaluates in conditional logic (equality, $isSet/$isNotSet, $ne)")
 
     // ── Create primary (untagged, sandbox-style key) + additional (tagged, production-style key)
     // via the standard REST create endpoint — the real creation path for additional connections ──
@@ -78,6 +117,15 @@ export const healthie_multi_integration_tests = async ({ sdk, sdkNonAdmin } : { 
       "primary integration unaffected by tagged settings update",
       () => sdk.api.integrations.getOne(primaryIntegrationId),
       { onResult: i => !i.pushAddedTags },
+    )
+
+    // ── Invalid API key surfaces as an actionable 400 (fake key → Healthie rejects the request) ──
+    await async_test(
+      "proxy_read webhooks with an invalid API key returns a clear error",
+      () => sdk.api.integrations.proxy_read({
+        integration: HEALTHIE_TITLE, type: 'webhooks', healthieIntegrationId: TAG,
+      }),
+      { shouldError: true, onError: (e: any) => (e?.message || '').includes('API Key is Invalid') },
     )
 
     // ── Organization.healthieIntegrationIds pushed by create side effect ──
@@ -129,21 +177,21 @@ export const healthie_multi_integration_tests = async ({ sdk, sdkNonAdmin } : { 
     // link the patient to Healthie (reference with a Healthie patient id)
     await sdk.api.endusers.updateOne(enduserId, { references: [{ type: HEALTHIE_TITLE, id: '12345' }] } as any, { replaceObjectFields: true })
 
+    // no lock: linked patients stay editable so customers can self-serve fix or migrate them
     await async_test(
-      "healthieIntegrationId locked once a Healthie patient ID exists",
+      "healthieIntegrationId changeable while linked (self-serve fix/migrate)",
       () => sdk.api.endusers.updateOne(enduserId, { healthieIntegrationId: 'somewhere-else' }),
-      { shouldError: true, onError: (e: any) => (e?.message || e?.toString() || '').includes('healthieIntegrationId') },
+      { onResult: e => e.healthieIntegrationId === 'somewhere-else' },
     )
     await async_test(
-      "no-op write of the same value still allowed while locked",
+      "healthieIntegrationId revertible while linked",
       () => sdk.api.endusers.updateOne(enduserId, { healthieIntegrationId: TAG }),
       { onResult: e => e.healthieIntegrationId === TAG },
     )
 
-    // unlink → changeable again
     await sdk.api.endusers.updateOne(enduserId, { references: [] } as any, { replaceObjectFields: true })
     await async_test(
-      "healthieIntegrationId changeable again after unlinking",
+      "healthieIntegrationId clearable",
       () => sdk.api.endusers.updateOne(enduserId, { healthieIntegrationId: '' }),
       { onResult: e => !e.healthieIntegrationId },
     )
@@ -174,7 +222,7 @@ export const healthie_multi_integration_tests = async ({ sdk, sdkNonAdmin } : { 
       }},
     )
 
-    // link the formsort enduser, then attempt a relink via formsort — field change must be dropped
+    // linked endusers are re-routable via formsort too (self-serve fix/migrate)
     await sdk.api.endusers.updateOne(formsortEnduserId, { references: [{ type: HEALTHIE_TITLE, id: '6789' }] } as any, { replaceObjectFields: true })
     await postToFormsort([
       { key: 'email', value: formsortEmail },
@@ -183,16 +231,9 @@ export const healthie_multi_integration_tests = async ({ sdk, sdkNonAdmin } : { 
     await wait(undefined, 1000)
 
     await async_test(
-      "formsort relink attempt on linked enduser is dropped",
+      "formsort updates healthieIntegrationId on a linked enduser",
       () => sdk.api.endusers.getOne(formsortEnduserId),
-      { onResult: e => e.healthieIntegrationId === TAG },
-    )
-    await async_test(
-      "formsort relink attempt logs a customer-visible background error",
-      () => sdk.api.background_errors.getSome(),
-      { onResult: errors => errors.some(e =>
-        e.title === "Healthie Integration Change Blocked" && e.enduserId === formsortEnduserId
-      )},
+      { onResult: e => e.healthieIntegrationId === 'somewhere-else' },
     )
 
     // ── Removing the primary must not affect the tagged integration; org list recomputes on delete ──

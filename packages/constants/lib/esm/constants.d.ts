@@ -32,6 +32,7 @@ export declare const ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME: {
     termsVersion: string;
     customTypeId: string;
     healthie_dietitian_id: string;
+    healthieIntegrationId: string;
 };
 export declare const ENDUSER_FIELDS_WITH_NESTED_PATHS_DISPLAY_NAME: {
     readonly 'insurance.payerName': "Insurance Primary - Payer Name";
@@ -84,6 +85,7 @@ export declare const ENDUSER_FIELDS_WITH_NESTED_PATHS_DISPLAY_NAME: {
     readonly termsVersion: string;
     readonly customTypeId: string;
     readonly healthie_dietitian_id: string;
+    readonly healthieIntegrationId: string;
 };
 export declare const READONLY_ENDUSER_FIELDS_TO_DISPLAY_NAME: {
     recentFormSubmittedAt: string;

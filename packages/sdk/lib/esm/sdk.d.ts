@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { CustomActions, extractFields, PublicActions } from "@tellescope/schema";
 import { UserSession, ReadFilter, WebhookSubscriptionsType, Attendee, SearchOptions, AccessPermissions, OrganizationLimits, SortBy, AnalyticsQuery, UserUIRestrictions, UserFieldRedactions, ModelName, CustomDashboardView, DataSyncRecord } from "@tellescope/types-models";
 import { ClientModelForName, ClientModelForName_readonly, ClientModelForName_required, ClientModelForName_updatesDisabled, ChatRoom, Enduser, Meeting, CreateFields, User } from "@tellescope/types-client";

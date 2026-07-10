@@ -1,3 +1,14 @@
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -37,7 +48,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 require('source-map-support').install();
 import axios from "axios";
 import { Session } from "../../sdk";
-import { async_test, log_header, wait, } from "@tellescope/testing";
+import { assert, async_test, log_header, wait, } from "@tellescope/testing";
+import { evaluate_conditional_logic_for_enduser_fields } from "@tellescope/utilities";
 import { setup_tests } from "../setup";
 import { BUILT_INS_FOR_SET_FIELDS, HEALTHIE_TITLE } from "@tellescope/constants";
 var host = process.env.API_URL || 'http://localhost:8080';
@@ -46,7 +58,7 @@ var FORMSORT_TEST_KEY = '9d4f9dff00f60df2690a16da2cb848f289b447614ad9bef850e54af
 export var healthie_multi_integration_tests = function (_a) {
     var sdk = _a.sdk, sdkNonAdmin = _a.sdkNonAdmin;
     return __awaiter(void 0, void 0, void 0, function () {
-        var businessId, primaryIntegrationId, taggedIntegrationId, enduserId, formsortEnduserId, formId, primary, tagged, enduser, form_1, formsortEmail_1, postToFormsort, _i, _b, id;
+        var businessId, primaryIntegrationId, taggedIntegrationId, enduserId, formsortEnduserId, formId, conditionPlaceholders, taggedForConditions, untaggedForConditions, primary, tagged, enduser, form_1, formsortEmail_1, postToFormsort, _i, _b, id;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
@@ -65,6 +77,19 @@ export var healthie_multi_integration_tests = function (_a) {
                         throw new Error("healthieIntegrationId missing from BUILT_INS_FOR_SET_FIELDS");
                     }
                     console.log("✅ healthieIntegrationId exposed in BUILT_INS_FOR_SET_FIELDS");
+                    conditionPlaceholders = {
+                        businessId: '', creator: '', hashedPassword: '', lastActive: '', lastLogout: '', updatedAt: new Date(),
+                    };
+                    taggedForConditions = __assign(__assign({}, conditionPlaceholders), { healthieIntegrationId: TAG });
+                    untaggedForConditions = __assign({}, conditionPlaceholders);
+                    assert(evaluate_conditional_logic_for_enduser_fields(taggedForConditions, { $and: [{ condition: { healthieIntegrationId: TAG } }] }), 'Conditional logic error', 'healthieIntegrationId equality matches a tagged patient');
+                    assert(!evaluate_conditional_logic_for_enduser_fields(taggedForConditions, { $and: [{ condition: { healthieIntegrationId: 'other-clinic' } }] }), 'Conditional logic error', 'healthieIntegrationId equality rejects a different id');
+                    assert(!evaluate_conditional_logic_for_enduser_fields(untaggedForConditions, { $and: [{ condition: { healthieIntegrationId: TAG } }] }), 'Conditional logic error', 'healthieIntegrationId equality rejects an unset (primary) patient');
+                    assert(evaluate_conditional_logic_for_enduser_fields(taggedForConditions, { $and: [{ condition: { healthieIntegrationId: { $isSet: true } } }] }), 'Conditional logic error', 'healthieIntegrationId $isSet matches a tagged patient');
+                    assert(evaluate_conditional_logic_for_enduser_fields(untaggedForConditions, { $and: [{ condition: { healthieIntegrationId: { $isNotSet: true } } }] }), 'Conditional logic error', 'healthieIntegrationId $isNotSet matches an unset (primary) patient');
+                    assert(!evaluate_conditional_logic_for_enduser_fields(taggedForConditions, { $and: [{ condition: { healthieIntegrationId: { $ne: TAG } } }] }), 'Conditional logic error', 'healthieIntegrationId $ne rejects the matching tag');
+                    assert(evaluate_conditional_logic_for_enduser_fields(untaggedForConditions, { $and: [{ condition: { healthieIntegrationId: { $ne: TAG } } }] }), 'Conditional logic error', 'healthieIntegrationId $ne matches an unset (primary) patient');
+                    console.log("✅ healthieIntegrationId evaluates in conditional logic (equality, $isSet/$isNotSet, $ne)");
                     return [4 /*yield*/, sdk.api.integrations.createOne({
                             title: HEALTHIE_TITLE,
                             disableEnduserAutoSync: true,
@@ -103,76 +128,85 @@ export var healthie_multi_integration_tests = function (_a) {
                 case 5:
                     _c.sent();
                     return [4 /*yield*/, async_test("primary integration unaffected by tagged settings update", function () { return sdk.api.integrations.getOne(primaryIntegrationId); }, { onResult: function (i) { return !i.pushAddedTags; } })
-                        // ── Organization.healthieIntegrationIds pushed by create side effect ──
+                        // ── Invalid API key surfaces as an actionable 400 (fake key → Healthie rejects the request) ──
                     ];
                 case 6:
                     _c.sent();
+                    // ── Invalid API key surfaces as an actionable 400 (fake key → Healthie rejects the request) ──
+                    return [4 /*yield*/, async_test("proxy_read webhooks with an invalid API key returns a clear error", function () { return sdk.api.integrations.proxy_read({
+                            integration: HEALTHIE_TITLE, type: 'webhooks', healthieIntegrationId: TAG,
+                        }); }, { shouldError: true, onError: function (e) { return ((e === null || e === void 0 ? void 0 : e.message) || '').includes('API Key is Invalid'); } })
+                        // ── Organization.healthieIntegrationIds pushed by create side effect ──
+                    ];
+                case 7:
+                    // ── Invalid API key surfaces as an actionable 400 (fake key → Healthie rejects the request) ──
+                    _c.sent();
                     // ── Organization.healthieIntegrationIds pushed by create side effect ──
                     return [4 /*yield*/, wait(undefined, 2000)]; // side effects are async
-                case 7:
+                case 8:
                     // ── Organization.healthieIntegrationIds pushed by create side effect ──
                     _c.sent(); // side effects are async
                     return [4 /*yield*/, async_test("organization.healthieIntegrationIds includes tag after create", function () { return sdk.api.organizations.getOne(businessId); }, { onResult: function (o) { var _a; return !!((_a = o.healthieIntegrationIds) === null || _a === void 0 ? void 0 : _a.includes(TAG)); } })
                         // ── Inbound webhook resolution (help page proves the integration lookup without network) ──
                     ];
-                case 8:
+                case 9:
                     _c.sent();
                     // ── Inbound webhook resolution (help page proves the integration lookup without network) ──
                     return [4 /*yield*/, async_test("webhook help page resolves primary (sandbox) without query param", function () { return axios.get("".concat(host, "/v1/webhooks/healthie/").concat(businessId)); }, { onResult: function (r) { return typeof r.data === 'string' && r.data.startsWith('Sandbox'); } })];
-                case 9:
+                case 10:
                     // ── Inbound webhook resolution (help page proves the integration lookup without network) ──
                     _c.sent();
                     return [4 /*yield*/, async_test("webhook help page resolves tagged (production) integration via healthieIntegrationId param", function () { return axios.get("".concat(host, "/v1/webhooks/healthie/").concat(businessId, "?healthieIntegrationId=").concat(TAG)); }, { onResult: function (r) { return typeof r.data === 'string' && r.data.startsWith('Production'); } })];
-                case 10:
+                case 11:
                     _c.sent();
                     return [4 /*yield*/, async_test("webhook help page rejects unknown healthieIntegrationId", function () { return axios.get("".concat(host, "/v1/webhooks/healthie/").concat(businessId, "?healthieIntegrationId=not-a-real-id")); }, { shouldError: true, onError: function (e) { var _a; return ((_a = e === null || e === void 0 ? void 0 : e.response) === null || _a === void 0 ? void 0 : _a.status) === 400; } })
                         // ── Enduser field + one-org-per-patient lock (relationship constraint) ──
                     ];
-                case 11:
+                case 12:
                     _c.sent();
                     return [4 /*yield*/, sdk.api.endusers.createOne({
                             email: 'multi-healthie-test@tellescope.com',
                             healthieIntegrationId: TAG,
                         })];
-                case 12:
+                case 13:
                     enduser = _c.sent();
                     enduserId = enduser.id;
                     if (enduser.healthieIntegrationId !== TAG) {
                         throw new Error("healthieIntegrationId not persisted on enduser create");
                     }
                     return [4 /*yield*/, async_test("healthieIntegrationId freely changeable while unlinked", function () { return sdk.api.endusers.updateOne(enduserId, { healthieIntegrationId: '' }); }, { onResult: function (e) { return !e.healthieIntegrationId; } })];
-                case 13:
+                case 14:
                     _c.sent();
                     return [4 /*yield*/, async_test("healthieIntegrationId re-set while unlinked", function () { return sdk.api.endusers.updateOne(enduserId, { healthieIntegrationId: TAG }); }, { onResult: function (e) { return e.healthieIntegrationId === TAG; } })
                         // link the patient to Healthie (reference with a Healthie patient id)
                     ];
-                case 14:
-                    _c.sent();
-                    // link the patient to Healthie (reference with a Healthie patient id)
-                    return [4 /*yield*/, sdk.api.endusers.updateOne(enduserId, { references: [{ type: HEALTHIE_TITLE, id: '12345' }] }, { replaceObjectFields: true })];
                 case 15:
+                    _c.sent();
+                    // link the patient to Healthie (reference with a Healthie patient id)
+                    return [4 /*yield*/, sdk.api.endusers.updateOne(enduserId, { references: [{ type: HEALTHIE_TITLE, id: '12345' }] }, { replaceObjectFields: true })
+                        // no lock: linked patients stay editable so customers can self-serve fix or migrate them
+                    ];
+                case 16:
                     // link the patient to Healthie (reference with a Healthie patient id)
                     _c.sent();
-                    return [4 /*yield*/, async_test("healthieIntegrationId locked once a Healthie patient ID exists", function () { return sdk.api.endusers.updateOne(enduserId, { healthieIntegrationId: 'somewhere-else' }); }, { shouldError: true, onError: function (e) { return ((e === null || e === void 0 ? void 0 : e.message) || (e === null || e === void 0 ? void 0 : e.toString()) || '').includes('healthieIntegrationId'); } })];
-                case 16:
-                    _c.sent();
-                    return [4 /*yield*/, async_test("no-op write of the same value still allowed while locked", function () { return sdk.api.endusers.updateOne(enduserId, { healthieIntegrationId: TAG }); }, { onResult: function (e) { return e.healthieIntegrationId === TAG; } })
-                        // unlink → changeable again
-                    ];
+                    // no lock: linked patients stay editable so customers can self-serve fix or migrate them
+                    return [4 /*yield*/, async_test("healthieIntegrationId changeable while linked (self-serve fix/migrate)", function () { return sdk.api.endusers.updateOne(enduserId, { healthieIntegrationId: 'somewhere-else' }); }, { onResult: function (e) { return e.healthieIntegrationId === 'somewhere-else'; } })];
                 case 17:
+                    // no lock: linked patients stay editable so customers can self-serve fix or migrate them
                     _c.sent();
-                    // unlink → changeable again
-                    return [4 /*yield*/, sdk.api.endusers.updateOne(enduserId, { references: [] }, { replaceObjectFields: true })];
+                    return [4 /*yield*/, async_test("healthieIntegrationId revertible while linked", function () { return sdk.api.endusers.updateOne(enduserId, { healthieIntegrationId: TAG }); }, { onResult: function (e) { return e.healthieIntegrationId === TAG; } })];
                 case 18:
-                    // unlink → changeable again
                     _c.sent();
-                    return [4 /*yield*/, async_test("healthieIntegrationId changeable again after unlinking", function () { return sdk.api.endusers.updateOne(enduserId, { healthieIntegrationId: '' }); }, { onResult: function (e) { return !e.healthieIntegrationId; } })
-                        // ── Formsort mapping ──
-                    ];
+                    return [4 /*yield*/, sdk.api.endusers.updateOne(enduserId, { references: [] }, { replaceObjectFields: true })];
                 case 19:
                     _c.sent();
-                    return [4 /*yield*/, sdk.api.forms.createOne({ title: "Multi Healthie FormSort" })];
+                    return [4 /*yield*/, async_test("healthieIntegrationId clearable", function () { return sdk.api.endusers.updateOne(enduserId, { healthieIntegrationId: '' }); }, { onResult: function (e) { return !e.healthieIntegrationId; } })
+                        // ── Formsort mapping ──
+                    ];
                 case 20:
+                    _c.sent();
+                    return [4 /*yield*/, sdk.api.forms.createOne({ title: "Multi Healthie FormSort" })];
+                case 21:
                     form_1 = _c.sent();
                     formId = form_1.id;
                     formsortEmail_1 = 'multi-healthie-formsort@tellescope.com';
@@ -185,37 +219,32 @@ export var healthie_multi_integration_tests = function (_a) {
                             { key: 'email', value: formsortEmail_1 },
                             { key: 'healthieIntegrationId', value: TAG },
                         ], "multi-healthie-1")];
-                case 21:
+                case 22:
                     _c.sent();
                     return [4 /*yield*/, async_test("formsort sets healthieIntegrationId on unlinked enduser", function () { return sdk.api.endusers.getSome({ filter: { email: formsortEmail_1 } }); }, { onResult: function (es) {
                                 var e = es.find(function (e) { return e.email === formsortEmail_1; });
                                 formsortEnduserId = (e === null || e === void 0 ? void 0 : e.id) || '';
                                 return (e === null || e === void 0 ? void 0 : e.healthieIntegrationId) === TAG;
                             } })
-                        // link the formsort enduser, then attempt a relink via formsort — field change must be dropped
+                        // linked endusers are re-routable via formsort too (self-serve fix/migrate)
                     ];
-                case 22:
-                    _c.sent();
-                    // link the formsort enduser, then attempt a relink via formsort — field change must be dropped
-                    return [4 /*yield*/, sdk.api.endusers.updateOne(formsortEnduserId, { references: [{ type: HEALTHIE_TITLE, id: '6789' }] }, { replaceObjectFields: true })];
                 case 23:
-                    // link the formsort enduser, then attempt a relink via formsort — field change must be dropped
+                    _c.sent();
+                    // linked endusers are re-routable via formsort too (self-serve fix/migrate)
+                    return [4 /*yield*/, sdk.api.endusers.updateOne(formsortEnduserId, { references: [{ type: HEALTHIE_TITLE, id: '6789' }] }, { replaceObjectFields: true })];
+                case 24:
+                    // linked endusers are re-routable via formsort too (self-serve fix/migrate)
                     _c.sent();
                     return [4 /*yield*/, postToFormsort([
                             { key: 'email', value: formsortEmail_1 },
                             { key: 'healthieIntegrationId', value: 'somewhere-else' },
                         ], "multi-healthie-2")];
-                case 24:
-                    _c.sent();
-                    return [4 /*yield*/, wait(undefined, 1000)];
                 case 25:
                     _c.sent();
-                    return [4 /*yield*/, async_test("formsort relink attempt on linked enduser is dropped", function () { return sdk.api.endusers.getOne(formsortEnduserId); }, { onResult: function (e) { return e.healthieIntegrationId === TAG; } })];
+                    return [4 /*yield*/, wait(undefined, 1000)];
                 case 26:
                     _c.sent();
-                    return [4 /*yield*/, async_test("formsort relink attempt logs a customer-visible background error", function () { return sdk.api.background_errors.getSome(); }, { onResult: function (errors) { return errors.some(function (e) {
-                                return e.title === "Healthie Integration Change Blocked" && e.enduserId === formsortEnduserId;
-                            }); } })
+                    return [4 /*yield*/, async_test("formsort updates healthieIntegrationId on a linked enduser", function () { return sdk.api.endusers.getOne(formsortEnduserId); }, { onResult: function (e) { return e.healthieIntegrationId === 'somewhere-else'; } })
                         // ── Removing the primary must not affect the tagged integration; org list recomputes on delete ──
                     ];
                 case 27:

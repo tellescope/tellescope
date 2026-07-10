@@ -1216,13 +1216,19 @@ export declare const useDataSync____internal: () => {
     setLoadTiming: (key: string, loadTimeInMS: number) => void;
     setHandler: (key: string, handler: undefined | (() => void)) => void;
     removeHandler: (key: string, handler: () => void) => void;
-    getLoaded: <T extends string>(modelName: T) => ((import("@tellescope/types-models").File & {
+    getLoaded: <T extends string>(modelName: T) => ((import("@tellescope/types-models").Form & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").FormField & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Enduser & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").User & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").FormResponse & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AIConversation & {
@@ -1297,19 +1303,13 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").Meeting & {
         id: string;
         createdAt: Date;
+    }) | (import("@tellescope/types-models").File & {
+        id: string;
+        createdAt: Date;
     }) | (import("@tellescope/types-models").Note & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").MessageTemplate & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Form & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").FormField & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").FormResponse & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Journey & {
@@ -1494,13 +1494,19 @@ export declare const useDataSync____internal: () => {
         createdAt: Date;
     }))[];
     getDeleted: <T_1 extends string>(modelName: T_1) => string[];
-    popLoaded: <T_2 extends string>(modelName: T_2) => ((import("@tellescope/types-models").File & {
+    popLoaded: <T_2 extends string>(modelName: T_2) => ((import("@tellescope/types-models").Form & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").FormField & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Enduser & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").User & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").FormResponse & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AIConversation & {
@@ -1575,19 +1581,13 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").Meeting & {
         id: string;
         createdAt: Date;
+    }) | (import("@tellescope/types-models").File & {
+        id: string;
+        createdAt: Date;
     }) | (import("@tellescope/types-models").Note & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").MessageTemplate & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Form & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").FormField & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").FormResponse & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Journey & {
@@ -1780,13 +1780,19 @@ export declare const useSyncContext: () => {
     setLoadTiming: (key: string, loadTimeInMS: number) => void;
     setHandler: (key: string, handler: undefined | (() => void)) => void;
     removeHandler: (key: string, handler: () => void) => void;
-    getLoaded: <T extends string>(modelName: T) => ((import("@tellescope/types-models").File & {
+    getLoaded: <T extends string>(modelName: T) => ((import("@tellescope/types-models").Form & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").FormField & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Enduser & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").User & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").FormResponse & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AIConversation & {
@@ -1861,19 +1867,13 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").Meeting & {
         id: string;
         createdAt: Date;
+    }) | (import("@tellescope/types-models").File & {
+        id: string;
+        createdAt: Date;
     }) | (import("@tellescope/types-models").Note & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").MessageTemplate & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Form & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").FormField & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").FormResponse & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Journey & {
@@ -2058,13 +2058,19 @@ export declare const useSyncContext: () => {
         createdAt: Date;
     }))[];
     getDeleted: <T_1 extends string>(modelName: T_1) => string[];
-    popLoaded: <T_2 extends string>(modelName: T_2) => ((import("@tellescope/types-models").File & {
+    popLoaded: <T_2 extends string>(modelName: T_2) => ((import("@tellescope/types-models").Form & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").FormField & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Enduser & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").User & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").FormResponse & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AIConversation & {
@@ -2139,19 +2145,13 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").Meeting & {
         id: string;
         createdAt: Date;
+    }) | (import("@tellescope/types-models").File & {
+        id: string;
+        createdAt: Date;
     }) | (import("@tellescope/types-models").Note & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").MessageTemplate & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Form & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").FormField & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").FormResponse & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Journey & {

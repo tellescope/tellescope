@@ -45,6 +45,7 @@ exports.ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME = {
     termsVersion: "Terms Version",
     customTypeId: "Entity Type",
     healthie_dietitian_id: "Healthie Dietitian ID",
+    healthieIntegrationId: "Healthie Integration ID",
 };
 // Extended field mappings that include dotted notation for nested fields
 exports.ENDUSER_FIELDS_WITH_NESTED_PATHS_DISPLAY_NAME = __assign(__assign({}, exports.ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME), { 

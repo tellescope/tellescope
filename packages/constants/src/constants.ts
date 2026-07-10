@@ -38,6 +38,7 @@ export const ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME = {
   termsVersion: "Terms Version",
   customTypeId: "Entity Type",
   healthie_dietitian_id: "Healthie Dietitian ID",
+  healthieIntegrationId: "Healthie Integration ID",
 } satisfies { [K in keyof Enduser]?: string }
 
 // Extended field mappings that include dotted notation for nested fields
