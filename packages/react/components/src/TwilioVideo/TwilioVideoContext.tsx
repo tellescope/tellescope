@@ -8,38 +8,25 @@ import Video, {
   RemoteTrack,
   LocalParticipant,
 } from 'twilio-video'
-import type { GaussianBlurBackgroundProcessor as GaussianBlurBackgroundProcessorType } from '@twilio/video-processors'
+import {
+  BackgroundEffect,
+  BackgroundEffectController,
+  loadTwilioVideoProcessorsModule,
+  loadBackgroundImage,
+  readEffectPreference,
+  writeEffectPreference,
+  BLUR_BACKGROUND_ASSETS_PATH,
+} from './backgroundEffects'
 
 export const SCREEN_SHARE_TRACK_NAME = 'screen-share'
 export const SCREEN_SHARE_AUDIO_TRACK_NAME = 'screen-share-audio'
 
-export const BLUR_BACKGROUND_STORAGE_KEY = 'tellescope.twilio.blurBackground'
-export const BLUR_BACKGROUND_ASSETS_PATH = '/twilio-video-processors'
-
-let videoProcessorsModulePromise: Promise<typeof import('@twilio/video-processors')> | null = null
-export const loadTwilioVideoProcessorsModule = () => {
-  if (!videoProcessorsModulePromise) {
-    videoProcessorsModulePromise = import('@twilio/video-processors')
-  }
-  return videoProcessorsModulePromise
-}
-
-const readBlurPreference = (): boolean => {
-  try {
-    return typeof localStorage !== 'undefined'
-      && localStorage.getItem(BLUR_BACKGROUND_STORAGE_KEY) === 'true'
-  } catch {
-    return false
-  }
-}
-
-const writeBlurPreference = (enabled: boolean) => {
-  try {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(BLUR_BACKGROUND_STORAGE_KEY, enabled ? 'true' : 'false')
-    }
-  } catch { /* ignore */ }
-}
+// Re-exported for convenience / backward compatibility
+export {
+  loadTwilioVideoProcessorsModule,
+  BLUR_BACKGROUND_ASSETS_PATH,
+} from './backgroundEffects'
+export type { BackgroundEffect } from './backgroundEffects'
 
 export interface TwilioVideoState {
   room: Room | null
@@ -55,9 +42,10 @@ export interface TwilioVideoState {
   isHost: boolean
   isVideoEnabled: boolean
   isAudioEnabled: boolean
-  isBlurSupported: boolean
-  isBlurEnabled: boolean
-  isBlurLoading: boolean
+  backgroundEffect: BackgroundEffect
+  isBackgroundEffectSupported: boolean
+  isImageBackgroundAvailable: boolean
+  isEffectLoading: boolean
 }
 
 export interface TwilioVideoActions {
@@ -66,7 +54,7 @@ export interface TwilioVideoActions {
   toggleVideo: () => Promise<void>
   toggleAudio: () => void
   toggleScreenShare: (options?: { shareAudio?: boolean }) => Promise<void>
-  toggleBlur: () => void
+  setBackgroundEffect: (effect: BackgroundEffect) => void
   setIsHost: (isHost: boolean) => void
 }
 
@@ -84,9 +72,15 @@ export const useTwilioVideo = (): TwilioVideoContextType => {
 
 export interface TwilioVideoProviderProps {
   children: React.ReactNode
+  /**
+   * Optional URL of an image to offer as a virtual background. Only the
+   * provider webapp supplies this (from the org's videoCallBackgroundImage);
+   * when absent the Image effect option is hidden (patient portal).
+   */
+  backgroundImageURL?: string
 }
 
-export const TwilioVideoProvider: React.FC<TwilioVideoProviderProps> = ({ children }) => {
+export const TwilioVideoProvider: React.FC<TwilioVideoProviderProps> = ({ children, backgroundImageURL }) => {
   const [room, setRoom] = useState<Room | null>(null)
   const [isConnecting, setIsConnecting] = useState(false)
   const [localVideoTrack, setLocalVideoTrack] = useState<LocalVideoTrack | null>(null)
@@ -99,14 +93,16 @@ export const TwilioVideoProvider: React.FC<TwilioVideoProviderProps> = ({ childr
   const [localScreenTrack, setLocalScreenTrack] = useState<LocalVideoTrack | null>(null)
   const [isScreenSharing, setIsScreenSharing] = useState(false)
   const [screenSharingParticipantSid, setScreenSharingParticipantSid] = useState<string | null>(null)
-  const [isBlurSupported, setIsBlurSupported] = useState(false)
-  const [isBlurEnabled, setIsBlurEnabled] = useState<boolean>(readBlurPreference)
-  const [isBlurLoading, setIsBlurLoading] = useState(false)
+  const [isBackgroundEffectSupported, setIsBackgroundEffectSupported] = useState(false)
+  const [backgroundEffect, setBackgroundEffectState] = useState<BackgroundEffect>(readEffectPreference)
+  const [isEffectLoading, setIsEffectLoading] = useState(false)
+  const [backgroundImageEl, setBackgroundImageEl] = useState<HTMLImageElement | null>(null)
 
   const localTracksRef = useRef<(LocalVideoTrack | LocalAudioTrack)[]>([])
   const screenAudioTrackRef = useRef<LocalAudioTrack | null>(null)
-  const blurProcessorRef = useRef<GaussianBlurBackgroundProcessorType | null>(null)
-  const blurAttachedTrackRef = useRef<LocalVideoTrack | null>(null)
+  const backgroundControllerRef = useRef<BackgroundEffectController>(new BackgroundEffectController())
+
+  const isImageBackgroundAvailable = isBackgroundEffectSupported && !!backgroundImageURL
 
   const connect = useCallback(async (token: string, roomName: string) => {
     setIsConnecting(true)
@@ -114,7 +110,7 @@ export const TwilioVideoProvider: React.FC<TwilioVideoProviderProps> = ({ childr
 
     // Pick up any preference set by the pre-call preview, which lives outside
     // this provider and only persists via localStorage.
-    setIsBlurEnabled(readBlurPreference())
+    setBackgroundEffectState(readEffectPreference())
 
     try {
       // Create local tracks
@@ -312,89 +308,64 @@ export const TwilioVideoProvider: React.FC<TwilioVideoProviderProps> = ({ childr
     }
   }, [isScreenSharing, stopScreenShare, room])
 
-  const toggleBlur = useCallback(() => {
-    setIsBlurEnabled(prev => {
-      const next = !prev
-      writeBlurPreference(next)
-      return next
-    })
+  const setBackgroundEffect = useCallback((effect: BackgroundEffect) => {
+    setBackgroundEffectState(effect)
+    writeEffectPreference(effect)
   }, [])
 
   // Probe video-processors support once on mount
   useEffect(() => {
     let mounted = true
     loadTwilioVideoProcessorsModule()
-      .then(({ isSupported }) => { if (mounted) setIsBlurSupported(!!isSupported) })
+      .then(({ isSupported }) => { if (mounted) setIsBackgroundEffectSupported(!!isSupported) })
       .catch(() => { /* leave unsupported */ })
     return () => { mounted = false }
   }, [])
 
-  // Sync blur processor with the current local video track + enabled state
+  // Load the background image once per URL
   useEffect(() => {
-    if (!isBlurSupported) return
-    const track = localVideoTrack
+    if (!backgroundImageURL) {
+      setBackgroundImageEl(null)
+      return
+    }
+    let cancelled = false
+    loadBackgroundImage(backgroundImageURL)
+      .then(img => { if (!cancelled) setBackgroundImageEl(img) })
+      .catch(err => {
+        console.error('Failed to load Twilio background image:', err)
+        if (!cancelled) setBackgroundImageEl(null)
+      })
+    return () => { cancelled = true }
+  }, [backgroundImageURL])
+
+  // Sync the background-effect processor with the current local video track + effect
+  useEffect(() => {
+    if (!isBackgroundEffectSupported) return
 
     let cancelled = false
-    const apply = async () => {
-      // Detach from any previously-attached track if it differs from the current one
-      const previouslyAttached = blurAttachedTrackRef.current
-      if (previouslyAttached && previouslyAttached !== track && blurProcessorRef.current) {
-        try { previouslyAttached.removeProcessor(blurProcessorRef.current) } catch { /* ignore */ }
-        blurAttachedTrackRef.current = null
-      }
-
-      if (!track) return
-
-      if (isBlurEnabled) {
-        if (!blurProcessorRef.current) {
-          setIsBlurLoading(true)
-          try {
-            const { GaussianBlurBackgroundProcessor } = await loadTwilioVideoProcessorsModule()
-            if (cancelled) return
-            const processor = new GaussianBlurBackgroundProcessor({
-              assetsPath: BLUR_BACKGROUND_ASSETS_PATH,
-            })
-            await processor.loadModel()
-            if (cancelled) return
-            blurProcessorRef.current = processor
-          } catch (err) {
-            console.error('Failed to load Twilio video blur processor:', err)
-            if (!cancelled) setIsBlurEnabled(false)
-            return
-          } finally {
-            if (!cancelled) setIsBlurLoading(false)
-          }
-        }
-
-        if (blurAttachedTrackRef.current !== track && blurProcessorRef.current) {
-          try {
-            track.addProcessor(blurProcessorRef.current, {
-              inputFrameBufferType: 'videoframe',
-              outputFrameBufferContextType: 'bitmaprenderer',
-            })
-            blurAttachedTrackRef.current = track
-          } catch (err) {
-            console.error('Failed to attach blur processor to track:', err)
-          }
-        }
-      } else if (blurAttachedTrackRef.current === track && blurProcessorRef.current) {
-        try { track.removeProcessor(blurProcessorRef.current) } catch { /* ignore */ }
-        blurAttachedTrackRef.current = null
+    const controller = backgroundControllerRef.current
+    const run = async () => {
+      if (backgroundEffect !== 'none') setIsEffectLoading(true)
+      try {
+        await controller.apply(localVideoTrack, backgroundEffect, backgroundImageEl)
+      } catch (err) {
+        console.error('Failed to apply Twilio background effect:', err)
+        // Fall back to no effect if the processor/image failed to load
+        if (!cancelled) setBackgroundEffect('none')
+      } finally {
+        if (!cancelled) setIsEffectLoading(false)
       }
     }
-
-    apply()
+    run()
 
     return () => { cancelled = true }
-  }, [localVideoTrack, isBlurEnabled, isBlurSupported])
+  }, [localVideoTrack, backgroundEffect, isBackgroundEffectSupported, backgroundImageEl, setBackgroundEffect])
 
   // Cleanup on unmount
   useEffect(() => {
+    const controller = backgroundControllerRef.current
     return () => {
-      if (blurAttachedTrackRef.current && blurProcessorRef.current) {
-        try { blurAttachedTrackRef.current.removeProcessor(blurProcessorRef.current) } catch { /* ignore */ }
-      }
-      blurAttachedTrackRef.current = null
+      controller.detach()
       if (room) {
         room.disconnect()
       }
@@ -418,15 +389,16 @@ export const TwilioVideoProvider: React.FC<TwilioVideoProviderProps> = ({ childr
     isHost,
     isVideoEnabled,
     isAudioEnabled,
-    isBlurSupported,
-    isBlurEnabled,
-    isBlurLoading,
+    backgroundEffect,
+    isBackgroundEffectSupported,
+    isImageBackgroundAvailable,
+    isEffectLoading,
     connect,
     disconnect,
     toggleVideo,
     toggleAudio,
     toggleScreenShare,
-    toggleBlur,
+    setBackgroundEffect,
     setIsHost,
   }
 

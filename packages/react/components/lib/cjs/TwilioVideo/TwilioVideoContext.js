@@ -79,39 +79,17 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TwilioVideoProvider = exports.useTwilioVideo = exports.loadTwilioVideoProcessorsModule = exports.BLUR_BACKGROUND_ASSETS_PATH = exports.BLUR_BACKGROUND_STORAGE_KEY = exports.SCREEN_SHARE_AUDIO_TRACK_NAME = exports.SCREEN_SHARE_TRACK_NAME = void 0;
+exports.TwilioVideoProvider = exports.useTwilioVideo = exports.BLUR_BACKGROUND_ASSETS_PATH = exports.loadTwilioVideoProcessorsModule = exports.SCREEN_SHARE_AUDIO_TRACK_NAME = exports.SCREEN_SHARE_TRACK_NAME = void 0;
 var jsx_runtime_1 = require("react/jsx-runtime");
 var react_1 = require("react");
 var twilio_video_1 = __importStar(require("twilio-video"));
+var backgroundEffects_1 = require("./backgroundEffects");
 exports.SCREEN_SHARE_TRACK_NAME = 'screen-share';
 exports.SCREEN_SHARE_AUDIO_TRACK_NAME = 'screen-share-audio';
-exports.BLUR_BACKGROUND_STORAGE_KEY = 'tellescope.twilio.blurBackground';
-exports.BLUR_BACKGROUND_ASSETS_PATH = '/twilio-video-processors';
-var videoProcessorsModulePromise = null;
-var loadTwilioVideoProcessorsModule = function () {
-    if (!videoProcessorsModulePromise) {
-        videoProcessorsModulePromise = Promise.resolve().then(function () { return __importStar(require('@twilio/video-processors')); });
-    }
-    return videoProcessorsModulePromise;
-};
-exports.loadTwilioVideoProcessorsModule = loadTwilioVideoProcessorsModule;
-var readBlurPreference = function () {
-    try {
-        return typeof localStorage !== 'undefined'
-            && localStorage.getItem(exports.BLUR_BACKGROUND_STORAGE_KEY) === 'true';
-    }
-    catch (_a) {
-        return false;
-    }
-};
-var writeBlurPreference = function (enabled) {
-    try {
-        if (typeof localStorage !== 'undefined') {
-            localStorage.setItem(exports.BLUR_BACKGROUND_STORAGE_KEY, enabled ? 'true' : 'false');
-        }
-    }
-    catch ( /* ignore */_a) { /* ignore */ }
-};
+// Re-exported for convenience / backward compatibility
+var backgroundEffects_2 = require("./backgroundEffects");
+Object.defineProperty(exports, "loadTwilioVideoProcessorsModule", { enumerable: true, get: function () { return backgroundEffects_2.loadTwilioVideoProcessorsModule; } });
+Object.defineProperty(exports, "BLUR_BACKGROUND_ASSETS_PATH", { enumerable: true, get: function () { return backgroundEffects_2.BLUR_BACKGROUND_ASSETS_PATH; } });
 var TwilioVideoContext = (0, react_1.createContext)(null);
 var useTwilioVideo = function () {
     var context = (0, react_1.useContext)(TwilioVideoContext);
@@ -122,7 +100,7 @@ var useTwilioVideo = function () {
 };
 exports.useTwilioVideo = useTwilioVideo;
 var TwilioVideoProvider = function (_a) {
-    var children = _a.children;
+    var children = _a.children, backgroundImageURL = _a.backgroundImageURL;
     var _b = (0, react_1.useState)(null), room = _b[0], setRoom = _b[1];
     var _c = (0, react_1.useState)(false), isConnecting = _c[0], setIsConnecting = _c[1];
     var _d = (0, react_1.useState)(null), localVideoTrack = _d[0], setLocalVideoTrack = _d[1];
@@ -135,13 +113,14 @@ var TwilioVideoProvider = function (_a) {
     var _l = (0, react_1.useState)(null), localScreenTrack = _l[0], setLocalScreenTrack = _l[1];
     var _m = (0, react_1.useState)(false), isScreenSharing = _m[0], setIsScreenSharing = _m[1];
     var _o = (0, react_1.useState)(null), screenSharingParticipantSid = _o[0], setScreenSharingParticipantSid = _o[1];
-    var _p = (0, react_1.useState)(false), isBlurSupported = _p[0], setIsBlurSupported = _p[1];
-    var _q = (0, react_1.useState)(readBlurPreference), isBlurEnabled = _q[0], setIsBlurEnabled = _q[1];
-    var _r = (0, react_1.useState)(false), isBlurLoading = _r[0], setIsBlurLoading = _r[1];
+    var _p = (0, react_1.useState)(false), isBackgroundEffectSupported = _p[0], setIsBackgroundEffectSupported = _p[1];
+    var _q = (0, react_1.useState)(backgroundEffects_1.readEffectPreference), backgroundEffect = _q[0], setBackgroundEffectState = _q[1];
+    var _r = (0, react_1.useState)(false), isEffectLoading = _r[0], setIsEffectLoading = _r[1];
+    var _s = (0, react_1.useState)(null), backgroundImageEl = _s[0], setBackgroundImageEl = _s[1];
     var localTracksRef = (0, react_1.useRef)([]);
     var screenAudioTrackRef = (0, react_1.useRef)(null);
-    var blurProcessorRef = (0, react_1.useRef)(null);
-    var blurAttachedTrackRef = (0, react_1.useRef)(null);
+    var backgroundControllerRef = (0, react_1.useRef)(new backgroundEffects_1.BackgroundEffectController());
+    var isImageBackgroundAvailable = isBackgroundEffectSupported && !!backgroundImageURL;
     var connect = (0, react_1.useCallback)(function (token, roomName) { return __awaiter(void 0, void 0, void 0, function () {
         var tracks, videoTrack, audioTrack, newRoom, existingParticipants, err_1;
         return __generator(this, function (_a) {
@@ -151,7 +130,7 @@ var TwilioVideoProvider = function (_a) {
                     setError(null);
                     // Pick up any preference set by the pre-call preview, which lives outside
                     // this provider and only persists via localStorage.
-                    setIsBlurEnabled(readBlurPreference());
+                    setBackgroundEffectState((0, backgroundEffects_1.readEffectPreference)());
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 4, 5, 6]);
@@ -357,117 +336,82 @@ var TwilioVideoProvider = function (_a) {
             }
         });
     }); }, [isScreenSharing, stopScreenShare, room]);
-    var toggleBlur = (0, react_1.useCallback)(function () {
-        setIsBlurEnabled(function (prev) {
-            var next = !prev;
-            writeBlurPreference(next);
-            return next;
-        });
+    var setBackgroundEffect = (0, react_1.useCallback)(function (effect) {
+        setBackgroundEffectState(effect);
+        (0, backgroundEffects_1.writeEffectPreference)(effect);
     }, []);
     // Probe video-processors support once on mount
     (0, react_1.useEffect)(function () {
         var mounted = true;
-        (0, exports.loadTwilioVideoProcessorsModule)()
+        (0, backgroundEffects_1.loadTwilioVideoProcessorsModule)()
             .then(function (_a) {
             var isSupported = _a.isSupported;
             if (mounted)
-                setIsBlurSupported(!!isSupported);
+                setIsBackgroundEffectSupported(!!isSupported);
         })
             .catch(function () { });
         return function () { mounted = false; };
     }, []);
-    // Sync blur processor with the current local video track + enabled state
+    // Load the background image once per URL
     (0, react_1.useEffect)(function () {
-        if (!isBlurSupported)
+        if (!backgroundImageURL) {
+            setBackgroundImageEl(null);
             return;
-        var track = localVideoTrack;
+        }
         var cancelled = false;
-        var apply = function () { return __awaiter(void 0, void 0, void 0, function () {
-            var previouslyAttached, GaussianBlurBackgroundProcessor, processor, err_3;
+        (0, backgroundEffects_1.loadBackgroundImage)(backgroundImageURL)
+            .then(function (img) { if (!cancelled)
+            setBackgroundImageEl(img); })
+            .catch(function (err) {
+            console.error('Failed to load Twilio background image:', err);
+            if (!cancelled)
+                setBackgroundImageEl(null);
+        });
+        return function () { cancelled = true; };
+    }, [backgroundImageURL]);
+    // Sync the background-effect processor with the current local video track + effect
+    (0, react_1.useEffect)(function () {
+        if (!isBackgroundEffectSupported)
+            return;
+        var cancelled = false;
+        var controller = backgroundControllerRef.current;
+        var run = function () { return __awaiter(void 0, void 0, void 0, function () {
+            var err_3;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        previouslyAttached = blurAttachedTrackRef.current;
-                        if (previouslyAttached && previouslyAttached !== track && blurProcessorRef.current) {
-                            try {
-                                previouslyAttached.removeProcessor(blurProcessorRef.current);
-                            }
-                            catch ( /* ignore */_b) { /* ignore */ }
-                            blurAttachedTrackRef.current = null;
-                        }
-                        if (!track)
-                            return [2 /*return*/];
-                        if (!isBlurEnabled) return [3 /*break*/, 7];
-                        if (!!blurProcessorRef.current) return [3 /*break*/, 6];
-                        setIsBlurLoading(true);
+                        if (backgroundEffect !== 'none')
+                            setIsEffectLoading(true);
                         _a.label = 1;
                     case 1:
-                        _a.trys.push([1, 4, 5, 6]);
-                        return [4 /*yield*/, (0, exports.loadTwilioVideoProcessorsModule)()];
+                        _a.trys.push([1, 3, 4, 5]);
+                        return [4 /*yield*/, controller.apply(localVideoTrack, backgroundEffect, backgroundImageEl)];
                     case 2:
-                        GaussianBlurBackgroundProcessor = (_a.sent()).GaussianBlurBackgroundProcessor;
-                        if (cancelled)
-                            return [2 /*return*/];
-                        processor = new GaussianBlurBackgroundProcessor({
-                            assetsPath: exports.BLUR_BACKGROUND_ASSETS_PATH,
-                        });
-                        return [4 /*yield*/, processor.loadModel()];
-                    case 3:
                         _a.sent();
-                        if (cancelled)
-                            return [2 /*return*/];
-                        blurProcessorRef.current = processor;
-                        return [3 /*break*/, 6];
-                    case 4:
+                        return [3 /*break*/, 5];
+                    case 3:
                         err_3 = _a.sent();
-                        console.error('Failed to load Twilio video blur processor:', err_3);
+                        console.error('Failed to apply Twilio background effect:', err_3);
+                        // Fall back to no effect if the processor/image failed to load
                         if (!cancelled)
-                            setIsBlurEnabled(false);
-                        return [2 /*return*/];
-                    case 5:
+                            setBackgroundEffect('none');
+                        return [3 /*break*/, 5];
+                    case 4:
                         if (!cancelled)
-                            setIsBlurLoading(false);
+                            setIsEffectLoading(false);
                         return [7 /*endfinally*/];
-                    case 6:
-                        if (blurAttachedTrackRef.current !== track && blurProcessorRef.current) {
-                            try {
-                                track.addProcessor(blurProcessorRef.current, {
-                                    inputFrameBufferType: 'videoframe',
-                                    outputFrameBufferContextType: 'bitmaprenderer',
-                                });
-                                blurAttachedTrackRef.current = track;
-                            }
-                            catch (err) {
-                                console.error('Failed to attach blur processor to track:', err);
-                            }
-                        }
-                        return [3 /*break*/, 8];
-                    case 7:
-                        if (blurAttachedTrackRef.current === track && blurProcessorRef.current) {
-                            try {
-                                track.removeProcessor(blurProcessorRef.current);
-                            }
-                            catch ( /* ignore */_c) { /* ignore */ }
-                            blurAttachedTrackRef.current = null;
-                        }
-                        _a.label = 8;
-                    case 8: return [2 /*return*/];
+                    case 5: return [2 /*return*/];
                 }
             });
         }); };
-        apply();
+        run();
         return function () { cancelled = true; };
-    }, [localVideoTrack, isBlurEnabled, isBlurSupported]);
+    }, [localVideoTrack, backgroundEffect, isBackgroundEffectSupported, backgroundImageEl, setBackgroundEffect]);
     // Cleanup on unmount
     (0, react_1.useEffect)(function () {
+        var controller = backgroundControllerRef.current;
         return function () {
-            if (blurAttachedTrackRef.current && blurProcessorRef.current) {
-                try {
-                    blurAttachedTrackRef.current.removeProcessor(blurProcessorRef.current);
-                }
-                catch ( /* ignore */_a) { /* ignore */ }
-            }
-            blurAttachedTrackRef.current = null;
+            controller.detach();
             if (room) {
                 room.disconnect();
             }
@@ -490,15 +434,16 @@ var TwilioVideoProvider = function (_a) {
         isHost: isHost,
         isVideoEnabled: isVideoEnabled,
         isAudioEnabled: isAudioEnabled,
-        isBlurSupported: isBlurSupported,
-        isBlurEnabled: isBlurEnabled,
-        isBlurLoading: isBlurLoading,
+        backgroundEffect: backgroundEffect,
+        isBackgroundEffectSupported: isBackgroundEffectSupported,
+        isImageBackgroundAvailable: isImageBackgroundAvailable,
+        isEffectLoading: isEffectLoading,
         connect: connect,
         disconnect: disconnect,
         toggleVideo: toggleVideo,
         toggleAudio: toggleAudio,
         toggleScreenShare: toggleScreenShare,
-        toggleBlur: toggleBlur,
+        setBackgroundEffect: setBackgroundEffect,
         setIsHost: setIsHost,
     };
     return ((0, jsx_runtime_1.jsx)(TwilioVideoContext.Provider, __assign({ value: value }, { children: children })));

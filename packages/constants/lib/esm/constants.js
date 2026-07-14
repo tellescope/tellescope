@@ -532,6 +532,7 @@ export var AUTOMATED_ACTION_CANCEL_REASONS = [
     'Form Submission',
     'Incoming Communication',
     'Removed by Automation',
+    'Journey Deleted',
 ];
 export var RELATIONSHIP_TYPES = [
     'Caregiver',

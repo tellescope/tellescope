@@ -3,7 +3,6 @@ import {
   Box,
   IconButton,
   Button,
-  CircularProgress,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -19,10 +18,9 @@ import {
   CallEnd as CallEndIcon,
   ScreenShare as ScreenShareIcon,
   StopScreenShare as StopScreenShareIcon,
-  BlurOn as BlurOnIcon,
-  BlurOff as BlurOffIcon,
 } from '@mui/icons-material'
 import { useTwilioVideo } from './TwilioVideoContext'
+import { BackgroundEffectSelector } from './BackgroundEffectSelector'
 
 export interface TwilioControlBarProps {
   onLeave?: () => void
@@ -42,13 +40,14 @@ export const TwilioControlBar: React.FC<TwilioControlBarProps> = ({
     isVideoEnabled,
     isAudioEnabled,
     isScreenSharing,
-    isBlurSupported,
-    isBlurEnabled,
-    isBlurLoading,
+    backgroundEffect,
+    isBackgroundEffectSupported,
+    isImageBackgroundAvailable,
+    isEffectLoading,
     toggleVideo,
     toggleAudio,
     toggleScreenShare,
-    toggleBlur,
+    setBackgroundEffect,
     disconnect,
     isHost,
     room,
@@ -123,24 +122,13 @@ export const TwilioControlBar: React.FC<TwilioControlBarProps> = ({
         {isVideoEnabled ? <VideocamIcon /> : <VideocamOffIcon />}
       </IconButton>
 
-      {isBlurSupported && (
-        <IconButton
-          onClick={toggleBlur}
-          disabled={isBlurLoading}
-          sx={{
-            color: isBlurEnabled ? '#4caf50' : 'white',
-            '&:hover': {
-              backgroundColor: 'rgba(255,255,255,0.1)',
-            },
-            '&.Mui-disabled': {
-              color: 'rgba(255,255,255,0.5)',
-            },
-          }}
-        >
-          {isBlurLoading
-            ? <CircularProgress size={20} sx={{ color: 'white' }} />
-            : isBlurEnabled ? <BlurOnIcon /> : <BlurOffIcon />}
-        </IconButton>
+      {isBackgroundEffectSupported && (
+        <BackgroundEffectSelector
+          effect={backgroundEffect}
+          setEffect={setBackgroundEffect}
+          isImageAvailable={isImageBackgroundAvailable}
+          isLoading={isEffectLoading}
+        />
       )}
 
       {showScreenShareProp && supportsScreenShare && (

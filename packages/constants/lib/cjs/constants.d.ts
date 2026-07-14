@@ -225,7 +225,7 @@ export declare const CPT_CODES: {
     label: string;
 }[];
 export declare const HELPDESK_TICKET_CLOSE_REASONS: string[];
-export declare const AUTOMATED_ACTION_CANCEL_REASONS: readonly ["Removed by User", "Restarted in Journey", "Form Submission", "Incoming Communication", "Removed by Automation"];
+export declare const AUTOMATED_ACTION_CANCEL_REASONS: readonly ["Removed by User", "Restarted in Journey", "Form Submission", "Incoming Communication", "Removed by Automation", "Journey Deleted"];
 export declare const RELATIONSHIP_TYPES: ("Parent" | "Child" | "Spouse" | "Partner" | "Sibling" | "Grandparent" | "Grandchild" | "Caregiver" | "Care Recipient" | "Power of Attorney" | "Power of Attorney For" | "Emergency Contact" | "Emergency Contact For" | "Care Partner" | "Relates To" | "Referring Provider" | "Referred Patient")[];
 export declare const get_inverse_relationship_type: (type: EnduserRelationship['type']) => EnduserRelationship['type'];
 export declare const INSURANCE_RELATIONSHIPS_TO_CODE: {

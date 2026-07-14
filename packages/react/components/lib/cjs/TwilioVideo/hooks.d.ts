@@ -39,6 +39,6 @@ export declare const useTwilioMeetingForCalendarEvent: (calendarEventId: string)
     joining: boolean;
     startAndJoinMeeting: () => Promise<void>;
     joinMeeting: () => Promise<void>;
-    meetingStatus: "loading" | "disabled" | "waiting-room" | "joined";
+    meetingStatus: "disabled" | "loading" | "waiting-room" | "joined";
 };
 //# sourceMappingURL=hooks.d.ts.map

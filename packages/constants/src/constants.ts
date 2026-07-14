@@ -601,6 +601,7 @@ export const AUTOMATED_ACTION_CANCEL_REASONS = [
   'Form Submission',
   'Incoming Communication',
   'Removed by Automation',
+  'Journey Deleted',
 ] as const
 
 export const RELATIONSHIP_TYPES = [

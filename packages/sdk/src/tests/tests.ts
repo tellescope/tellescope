@@ -53,6 +53,7 @@ import { appointment_rescheduled_trigger_tests } from "./api_tests/appointment_r
 import { appointment_no_showed_trigger_tests } from "./api_tests/appointment_no_showed_trigger.test"
 import { group_event_attendee_status_triggers_tests } from "./api_tests/group_event_attendee_status_triggers.test"
 import { journey_error_branching_tests } from "./api_tests/journey_error_branching.test"
+import { journey_delete_cancels_actions_tests } from "./api_tests/journey_delete_cancels_actions.test"
 import { afteraction_day_of_month_delay_tests } from "./api_tests/afteraction_day_of_month_delay.test"
 import { push_forms_to_portal_group_completion_tests } from "./api_tests/push_forms_to_portal_group_completion.test"
 import { setup_tests } from "./setup"
@@ -102,6 +103,7 @@ import { ai_conversations_rbac_tests } from "./api_tests/security/F-0005-ai-conv
 import { cascade_role_rename_cross_tenant_tests } from "./api_tests/security/F-0053-cascade-role-rename-cross-tenant.test";
 import { self_admin_role_assignment_tests } from "./api_tests/security/F-0076-self-admin-role-assignment.test";
 import { invite_user_enumeration_tests } from "./api_tests/security/F-0007-invite-user-enumeration.test";
+import { register_business_id_injection_tests } from "./api_tests/security/register_business_id_injection.test";
 import { handle_incoming_communication_cross_tenant_tests } from "./api_tests/security/F-0008-handle-incoming-communication-cross-tenant.test";
 import { sanitize_user_html_xss_tests } from "./api_tests/security/F-0013-sanitize-user-html.test";
 import { prototype_pollution_tests } from "./api_tests/security/F-0016-prototype-pollution.test";
@@ -15036,6 +15038,7 @@ const ip_address_form_tests = async () => {
     await replace_form_field_template_values_tests()
     await mfa_tests()
     await setup_tests(sdk, sdkNonAdmin)
+    await register_business_id_injection_tests({ sdk, sdkNonAdmin })
     await automation_trigger_tests()
     await resource_access_tags_tests({ sdk, sdkNonAdmin })
     await beluga_manual_sync_tests({ sdk, sdkNonAdmin })
@@ -15111,6 +15114,7 @@ const ip_address_form_tests = async () => {
     await test_ticket_automation_assignment_and_optimization()
     await monthly_availability_restrictions_tests({ sdk, sdkNonAdmin })
     await journey_error_branching_tests({ sdk, sdkNonAdmin })
+    await journey_delete_cancels_actions_tests({ sdk, sdkNonAdmin })
     await message_assignment_trigger_tests({ sdk })
     await inbox_threads_building_tests()
     await inbox_threads_loading_tests()
