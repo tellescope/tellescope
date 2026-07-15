@@ -5916,7 +5916,7 @@ exports.schema = (0, exports.build_schema)({
     },
     custom_dashboards: {
         info: {},
-        constraints: { unique: [], relationship: [], access: [{ type: 'filter', field: 'userIds' }], },
+        constraints: { unique: [], relationship: [], access: [{ type: 'filter', field: 'userIds' }, { type: 'visibleToAllUsers', field: 'visibleToAllUsers' }], },
         defaultActions: constants_1.DEFAULT_OPERATIONS,
         customActions: {},
         enduserActions: {},
@@ -5924,6 +5924,9 @@ exports.schema = (0, exports.build_schema)({
                 validator: validation_1.stringValidator100,
                 required: true,
                 examples: ["Main Dashboard"]
+            }, type: {
+                validator: validation_1.stringValidator100,
+                examples: ["home"]
             }, description: {
                 validator: validation_1.stringValidator5000,
                 examples: ["A customizable dashboard for tracking key metrics"]
@@ -5936,7 +5939,7 @@ exports.schema = (0, exports.build_schema)({
                             colSpan: 2,
                             rowSpan: 1
                         }]]
-            }, userIds: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, defaultForRoles: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, hiddenFromRoles: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, defaultForUserIds: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, gridConfig: { validator: validation_1.objectAnyFieldsAnyValuesValidator } })
+            }, userIds: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, visibleToAllUsers: { validator: validation_1.booleanValidator, examples: [true] }, defaultForRoles: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, hiddenFromRoles: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, defaultForUserIds: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, gridConfig: { validator: validation_1.objectAnyFieldsAnyValuesValidator } })
     },
     background_errors: {
         info: {},

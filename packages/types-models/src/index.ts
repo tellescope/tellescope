@@ -4765,8 +4765,10 @@ export interface CustomDashboard_required {
 }
 export interface CustomDashboard_updatesDisabled {}
 export interface CustomDashboard extends CustomDashboard_readonly, CustomDashboard_required, CustomDashboard_updatesDisabled {
+  type?: string,
   description?: string,
   userIds?: string[],
+  visibleToAllUsers?: boolean,
   defaultForUserIds?: string[],
   defaultForRoles?: string[],
   hiddenFromRoles?: string[],

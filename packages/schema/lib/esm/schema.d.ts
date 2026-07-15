@@ -24,9 +24,13 @@ export type FilterAccessConstraint<T> = {
     type: 'filter';
     field: keyof T | `${(keyof T) & string}.${string}`;
 };
+export type VisibleToAllUsersAccessConstraint<T> = {
+    type: 'visibleToAllUsers';
+    field: keyof T;
+};
 export type AccessConstraint<T> = {
     type: 'creatorOnly';
-} | FilterAccessConstraint<T> | DependencyAccessConstraint<T>;
+} | FilterAccessConstraint<T> | DependencyAccessConstraint<T> | VisibleToAllUsersAccessConstraint<T>;
 export type UniqueArrayConstraint<T> = {
     array: keyof T;
     itemKey?: string;

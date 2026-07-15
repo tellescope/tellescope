@@ -5911,7 +5911,7 @@ export var schema = build_schema({
     },
     custom_dashboards: {
         info: {},
-        constraints: { unique: [], relationship: [], access: [{ type: 'filter', field: 'userIds' }], },
+        constraints: { unique: [], relationship: [], access: [{ type: 'filter', field: 'userIds' }, { type: 'visibleToAllUsers', field: 'visibleToAllUsers' }], },
         defaultActions: DEFAULT_OPERATIONS,
         customActions: {},
         enduserActions: {},
@@ -5919,6 +5919,9 @@ export var schema = build_schema({
                 validator: stringValidator100,
                 required: true,
                 examples: ["Main Dashboard"]
+            }, type: {
+                validator: stringValidator100,
+                examples: ["home"]
             }, description: {
                 validator: stringValidator5000,
                 examples: ["A customizable dashboard for tracking key metrics"]
@@ -5931,7 +5934,7 @@ export var schema = build_schema({
                             colSpan: 2,
                             rowSpan: 1
                         }]]
-            }, userIds: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, defaultForRoles: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, hiddenFromRoles: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, defaultForUserIds: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, gridConfig: { validator: objectAnyFieldsAnyValuesValidator } })
+            }, userIds: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, visibleToAllUsers: { validator: booleanValidator, examples: [true] }, defaultForRoles: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, hiddenFromRoles: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, defaultForUserIds: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, gridConfig: { validator: objectAnyFieldsAnyValuesValidator } })
     },
     background_errors: {
         info: {},

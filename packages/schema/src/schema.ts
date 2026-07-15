@@ -418,10 +418,12 @@ export type RelationshipConstraint<T> = {
 
 export type DependencyAccessConstraint <T> = { type: 'dependency', foreignModel: ModelName, foreignField: string, accessField: keyof T  }
 export type FilterAccessConstraint <T> = { type: 'filter', field: keyof T | `${(keyof T) & string}.${string}` }
+export type VisibleToAllUsersAccessConstraint <T> = { type: 'visibleToAllUsers', field: keyof T } // grants access (for staff users only) to records where the given boolean field is true
 
 export type AccessConstraint <T> = { type: 'creatorOnly' } 
   | FilterAccessConstraint<T>
   | DependencyAccessConstraint<T>
+  | VisibleToAllUsersAccessConstraint<T>
 
 export type UniqueArrayConstraint <T> = { array: keyof T, itemKey?: string, compareToOtherRecords?: boolean, }
 export type AndConstraint <T> = (keyof T)[]
@@ -8491,7 +8493,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
   },
   custom_dashboards: {
     info: {},
-    constraints: { unique: [], relationship: [], access: [{ type: 'filter', field: 'userIds' }], },
+    constraints: { unique: [], relationship: [], access: [{ type: 'filter', field: 'userIds' }, { type: 'visibleToAllUsers', field: 'visibleToAllUsers' }], },
     defaultActions: DEFAULT_OPERATIONS,
     customActions: {},
     enduserActions: {},
@@ -8501,6 +8503,10 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
         validator: stringValidator100,
         required: true,
         examples: ["Main Dashboard"]
+      },
+      type: {
+        validator: stringValidator100,
+        examples: ["home"]
       },
       description: {
         validator: stringValidator5000,
@@ -8517,6 +8523,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
         }]]
       },
       userIds: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
+      visibleToAllUsers: { validator: booleanValidator, examples: [true] },
       defaultForRoles: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       hiddenFromRoles: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       defaultForUserIds: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },

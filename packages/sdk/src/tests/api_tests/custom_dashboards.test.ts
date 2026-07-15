@@ -4,6 +4,7 @@ import { Session } from "../../sdk"
 import {
   async_test,
   log_header,
+  wait,
 } from "@tellescope/testing"
 import { setup_tests } from "../setup"
 
@@ -199,6 +200,56 @@ export const custom_dashboards_tests = async ({ sdk, sdkNonAdmin }: { sdk: Sessi
     }
   )
 
+  // Test 6b: Create dashboard with every built-in block type (legacy renderer set)
+  const dashboardWithBuiltInTypes = await sdk.api.custom_dashboards.createOne({
+    title: "Built-In Block Types Dashboard",
+    blocks: [
+      { type: "Inbox" },
+      { type: "Tickets" },
+      { type: "Team Chats" },
+      { type: "Upcoming Events" },
+      { type: "To-Dos" },
+      { type: "Database", info: { databaseId: "60398b0231a295e64f084fd9" } },
+    ],
+  })
+
+  await async_test(
+    "Dashboard with all built-in block types created correctly",
+    async () => dashboardWithBuiltInTypes,
+    {
+      onResult: r => (
+        r.blocks.length === 6
+        && r.blocks[0].type === "Inbox"
+        && r.blocks[1].type === "Tickets"
+        && r.blocks[2].type === "Team Chats"
+        && r.blocks[3].type === "Upcoming Events"
+        && r.blocks[4].type === "To-Dos"
+        && r.blocks[5].type === "Database"
+        && r.blocks[5].info !== undefined && r.blocks[5].info.databaseId === "60398b0231a295e64f084fd9"
+      )
+    }
+  )
+
+  // Test 6c: Unknown top-level block fields are stripped on save (params belong in info)
+  const dashboardWithUnknownBlockField = await sdk.api.custom_dashboards.createOne({
+    title: "Unknown Block Field Dashboard",
+    blocks: [
+      { type: "Inbox", customTopLevel: "x", info: { kept: true } } as any,
+    ],
+  })
+
+  await async_test(
+    "Unknown top-level block fields stripped, info preserved",
+    async () => dashboardWithUnknownBlockField,
+    {
+      onResult: r => (
+        r.blocks.length === 1
+        && (r.blocks[0] as any).customTopLevel === undefined
+        && r.blocks[0].info !== undefined && r.blocks[0].info.kept === true
+      )
+    }
+  )
+
   // Test 7: Update gridConfig only
   const updatedGridConfig = await sdk.api.custom_dashboards.updateOne(dashboardWithNewTypes.id, {
     gridConfig: { columns: 24, gap: 8 },
@@ -215,6 +266,67 @@ export const custom_dashboards_tests = async ({ sdk, sdkNonAdmin }: { sdk: Sessi
     }
   )
 
+  // Test 7b: Create dashboard with top-level type field
+  const typedDashboard = await sdk.api.custom_dashboards.createOne({
+    title: "Typed Dashboard",
+    type: "home",
+    blocks: [{ type: "Inbox", colSpan: 12 }],
+  })
+
+  await async_test(
+    "Dashboard with top-level type created correctly",
+    async () => typedDashboard,
+    { onResult: r => r.type === "home" }
+  )
+
+  // Test 7c: Dashboards without type still work (backwards compatibility)
+  await async_test(
+    "Dashboard without type has undefined type",
+    async () => sdk.api.custom_dashboards.getOne(basicDashboard.id),
+    { onResult: r => r.type === undefined }
+  )
+
+  // Test 7d: Update top-level type
+  const updatedType = await sdk.api.custom_dashboards.updateOne(typedDashboard.id, {
+    type: "clinical",
+  })
+
+  await async_test(
+    "Dashboard type updated correctly",
+    async () => updatedType,
+    { onResult: r => r.type === "clinical" }
+  )
+
+  // Test 7e: Filter dashboards by type
+  const secondTypedDashboard = await sdk.api.custom_dashboards.createOne({
+    title: "Second Typed Dashboard",
+    type: "clinical",
+    blocks: [{ type: "Tickets", colSpan: 12 }],
+  })
+
+  await async_test(
+    "Dashboards filtered by type via filter",
+    async () => sdk.api.custom_dashboards.getSome({ filter: { type: "clinical" } }),
+    {
+      onResult: r => (
+        r.length === 2
+        && r.every(d => d.type === "clinical")
+      )
+    }
+  )
+
+  // Test 7f: Filter dashboards by type via mdbFilter
+  await async_test(
+    "Dashboards filtered by type via mdbFilter",
+    async () => sdk.api.custom_dashboards.getSome({ mdbFilter: { type: "clinical" } }),
+    {
+      onResult: r => (
+        r.length === 2
+        && r.every(d => d.type === "clinical")
+      )
+    }
+  )
+
   // Test 8: Non-admin can read all dashboards by default
   const nonAdminList = await sdkNonAdmin.api.custom_dashboards.getSome({ filter: {} })
 
@@ -224,14 +336,110 @@ export const custom_dashboards_tests = async ({ sdk, sdkNonAdmin }: { sdk: Sessi
     { onResult: r => r.length >= 2 }
   )
 
+  // Test 9: visibleToAllUsers grants org-wide access to users without full read access
+  const restrictedRole = await sdk.api.role_based_access_permissions.createOne({
+    role: 'Dashboard Default Access',
+    permissions: {
+      custom_dashboards: { read: 'Default', create: null, update: null, delete: null },
+    },
+  })
+
+  const restrictedUserEmail = 'dashboard.restricted.test@tellescope.com'
+  let restrictedUser = await sdk.api.users.getOne({ email: restrictedUserEmail }).catch(() => null) // throws error on none found
+  if (restrictedUser && !restrictedUser.verifiedEmail) { // verifiedEmail can only be set on create, so recreate stale users
+    await sdk.api.users.deleteOne(restrictedUser.id)
+    restrictedUser = null
+  }
+  if (!restrictedUser) {
+    restrictedUser = await sdk.api.users.createOne({ email: restrictedUserEmail, notificationEmailsDisabled: true, verifiedEmail: true })
+  }
+  // ensure role is set, in case GET returned a user without a role or with a different role
+  await sdk.api.users.updateOne(restrictedUser.id, { roles: [restrictedRole.role] }, { replaceObjectFields: true })
+  await wait(undefined, 2000) // role change triggers a logout
+
+  const sdkRestricted = new Session({
+    host,
+    authToken: (await sdk.api.users.generate_auth_token({ id: restrictedUser.id })).authToken,
+  })
+  await async_test('test_authenticated (restricted dashboard user)', sdkRestricted.test_authenticated, { expectedResult: 'Authenticated!' })
+
+  const hiddenDashboard = await sdk.api.custom_dashboards.createOne({
+    title: "Hidden From Restricted",
+    blocks: [{ type: "Inbox", colSpan: 12 }],
+  })
+  const orgWideDashboard = await sdk.api.custom_dashboards.createOne({
+    title: "Org-Wide Dashboard",
+    visibleToAllUsers: true,
+    blocks: [{ type: "Inbox", colSpan: 12 }],
+  })
+  const explicitFalseDashboard = await sdk.api.custom_dashboards.createOne({
+    title: "Explicit False Dashboard",
+    visibleToAllUsers: false,
+    blocks: [{ type: "Inbox", colSpan: 12 }],
+  })
+  const assignedDashboard = await sdk.api.custom_dashboards.createOne({
+    title: "Assigned To Restricted",
+    userIds: [restrictedUser.id],
+    blocks: [{ type: "Inbox", colSpan: 12 }],
+  })
+
+  await async_test(
+    "Restricted user sees org-wide and assigned dashboards only",
+    () => sdkRestricted.api.custom_dashboards.getSome({ filter: {} }),
+    {
+      onResult: r => (
+        !!r.find(d => d.id === orgWideDashboard.id)
+        && !!r.find(d => d.id === assignedDashboard.id)
+        && !r.find(d => d.id === hiddenDashboard.id)
+        && !r.find(d => d.id === explicitFalseDashboard.id)
+      )
+    }
+  )
+
+  await async_test(
+    "Restricted user can read org-wide dashboard by id",
+    () => sdkRestricted.api.custom_dashboards.getOne(orgWideDashboard.id),
+    { onResult: r => r.id === orgWideDashboard.id && r.visibleToAllUsers === true }
+  )
+
+  await async_test(
+    "Restricted user cannot read unshared dashboard by id",
+    () => sdkRestricted.api.custom_dashboards.getOne(hiddenDashboard.id),
+    { shouldError: true, onError: () => true }
+  )
+
+  // Toggling the flag on takes effect for the restricted user
+  await sdk.api.custom_dashboards.updateOne(hiddenDashboard.id, { visibleToAllUsers: true })
+
+  await async_test(
+    "Restricted user can read dashboard after visibleToAllUsers enabled",
+    () => sdkRestricted.api.custom_dashboards.getOne(hiddenDashboard.id),
+    { onResult: r => r.id === hiddenDashboard.id }
+  )
+
+  // Admin continues to see everything, including unshared dashboards
+  await async_test(
+    "Admin still sees explicit-false dashboard",
+    () => sdk.api.custom_dashboards.getOne(explicitFalseDashboard.id),
+    { onResult: r => r.id === explicitFalseDashboard.id }
+  )
+
   // Cleanup
   await Promise.all([
+    sdk.api.custom_dashboards.deleteOne(hiddenDashboard.id),
+    sdk.api.custom_dashboards.deleteOne(orgWideDashboard.id),
+    sdk.api.custom_dashboards.deleteOne(explicitFalseDashboard.id),
+    sdk.api.custom_dashboards.deleteOne(assignedDashboard.id),
     sdk.api.custom_dashboards.deleteOne(basicDashboard.id),
     sdk.api.custom_dashboards.deleteOne(duplicateTitleDashboard.id),
     sdk.api.custom_dashboards.deleteOne(fullDashboard.id),
     sdk.api.custom_dashboards.deleteOne(dashboardWithUserIds.id),
     sdk.api.custom_dashboards.deleteOne(dashboardWithNewTypes.id),
     sdk.api.custom_dashboards.deleteOne(dashboardWithComplexBlocks.id),
+    sdk.api.custom_dashboards.deleteOne(dashboardWithBuiltInTypes.id),
+    sdk.api.custom_dashboards.deleteOne(dashboardWithUnknownBlockField.id),
+    sdk.api.custom_dashboards.deleteOne(typedDashboard.id),
+    sdk.api.custom_dashboards.deleteOne(secondTypedDashboard.id),
   ])
 }
 

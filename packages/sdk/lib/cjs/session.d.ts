@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { ReactNativeFile, S3PresignedPost } from "@tellescope/types-utilities";
 import { ClientModelForName, User } from "@tellescope/types-client";
 import { Indexable } from "@tellescope/utilities";
