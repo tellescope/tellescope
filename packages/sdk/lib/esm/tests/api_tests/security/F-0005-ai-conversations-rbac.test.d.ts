@@ -14,6 +14,16 @@ import { Session } from "../../../sdk";
  *   2. Assigns the role to the non-admin user.
  *   3. Calls each endpoint as the non-admin.
  *   4. Asserts each endpoint returns a 403-equivalent error (not 200).
+ *   5. Positive case: a role granting ai_conversations create (read/update denied) must pass
+ *      the send_message gate — generating a NEW conversation requires only create access.
+ *   6. But the same role must still 403 when passing a conversationId: continuing an existing
+ *      conversation reads its stored history (returned in the response) and appends to it,
+ *      so it requires read + update access in addition to create.
+ *   7. Default-provider-permissions role (ai_conversations = Assigned): send_message must not
+ *      500. Regression: the post-generation $push previously ran through the caller's
+ *      access-scoped DB, where "Assigned" filters can't match the just-created conversation,
+ *      returning null and crashing the handler (Cannot read properties of null '_id') after
+ *      credits were consumed. bedrock.ts now persists via tenant-scoped org-wide queries.
  *
  * Pre-fix:
  *   - send_message: 200 (or some downstream error from Bedrock) — NOT 403. Test fails.

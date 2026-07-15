@@ -42,7 +42,7 @@ var host = process.env.API_URL || "http://localhost:8080";
 export var medication_added_trigger_tests = function (_a) {
     var sdk = _a.sdk, sdkNonAdmin = _a.sdkNonAdmin;
     return __awaiter(void 0, void 0, void 0, function () {
-        var t1, t2, t3, t4, t5, enduser1, enduser2, enduser3, enduser4, enduser5, enduser6, med1, med2, med3, med4, med5, med6, belugaForm, belugaEnduser, belugaFormResponse, belugaTrigger, webhookResponse, _b, _c, _d, belugaMeds, belugaMedSemaglutide, belugaMedMetformin, belugaFormNoCategory, belugaEnduserNoCategory, belugaFormResponseNoCategory, webhookResponseNoCategory, _e, _f, _g, belugaMedsNoCategory, belugaMedNoCategory, setFieldsTrigger, setFieldsEnduser, setFieldsMed, setFieldsTriggerFiltered, setFieldsEnduser2, setFieldsMed2, setFieldsCategoryTrigger, setFieldsCategoryEnduser, setFieldsCategoryMed, setFieldsCategoryEnduserEmpty, setFieldsCategoryMedEmpty, c1Trigger, c1MatchEnduser, c1MissEnduser, c2Trigger, c2MatchEnduser, c2MissEnduser, c3Trigger, c3MatchEnduser, c3MissEnduser, c4Trigger, c4MatchA, c4MatchB, c4Miss, c5Trigger, c5Match, c5Miss, c6Trigger, c6Match;
+        var t1, t2, t3, t4, t5, enduser1, enduser2, enduser3, enduser4, enduser5, enduser6, med1, med2, med3, med4, med5, med6, belugaForm, belugaEnduser, belugaFormResponse, belugaTrigger, webhookResponse, _b, _c, _d, belugaMeds, belugaMedSemaglutide, belugaMedMetformin, belugaFormNoCategory, belugaEnduserNoCategory, belugaFormResponseNoCategory, webhookResponseNoCategory, _e, _f, _g, belugaMedsNoCategory, belugaMedNoCategory, setFieldsTrigger, setFieldsEnduser, setFieldsMed, setFieldsTriggerFiltered, setFieldsEnduser2, setFieldsMed2, setFieldsCategoryTrigger, setFieldsCategoryEnduser, setFieldsCategoryMed, setFieldsCategoryEnduserEmpty, setFieldsCategoryMedEmpty, setFieldsPharmacyNotesTrigger, setFieldsPharmacyNotesEnduser, setFieldsPharmacyNotesMed, setFieldsPharmacyNotesEnduserEmpty, setFieldsPharmacyNotesMedEmpty, c1Trigger, c1MatchEnduser, c1MissEnduser, c2Trigger, c2MatchEnduser, c2MissEnduser, c3Trigger, c3MatchEnduser, c3MissEnduser, c4Trigger, c4MatchA, c4MatchB, c4Miss, c5Trigger, c5Match, c5Miss, c6Trigger, c6Match;
         return __generator(this, function (_h) {
             switch (_h.label) {
                 case 0:
@@ -280,7 +280,7 @@ export var medication_added_trigger_tests = function (_a) {
                             status: 'Active',
                             title: "Medication - Beluga Protocol Test"
                         })
-                        // Simulate the Beluga RX_WRITTEN webhook with two meds covering category present (typical) and "N/A"
+                        // Simulate the Beluga RX_WRITTEN webhook with two meds covering category/pharmacyNotes present (typical) and "N/A"/absent
                     ];
                 case 47:
                     belugaTrigger = _h.sent();
@@ -299,6 +299,7 @@ export var medication_added_trigger_tests = function (_a) {
                                         medId: 'test-ndc-123',
                                         rxId: 'test-rx-456',
                                         category: 'weightloss1',
+                                        pharmacyNotes: 'Dispense with syringes',
                                     }, {
                                         name: 'Metformin',
                                         strength: '500mg',
@@ -349,19 +350,29 @@ export var medication_added_trigger_tests = function (_a) {
                     _h.sent();
                     return [4 /*yield*/, async_test("Beluga RX_WRITTEN - Medication preserves N/A category verbatim", function () { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
                             return [2 /*return*/, belugaMedMetformin];
-                        }); }); }, { onResult: function (m) { return (m === null || m === void 0 ? void 0 : m.category) === 'N/A'; } })
+                        }); }); }, { onResult: function (m) { return (m === null || m === void 0 ? void 0 : m.category) === 'N/A'; } })];
+                case 56:
+                    _h.sent();
+                    return [4 /*yield*/, async_test("Beluga RX_WRITTEN - Medication has notes from webhook pharmacyNotes", function () { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
+                            return [2 /*return*/, belugaMedSemaglutide];
+                        }); }); }, { onResult: function (m) { return (m === null || m === void 0 ? void 0 : m.notes) === 'Dispense with syringes'; } })];
+                case 57:
+                    _h.sent();
+                    return [4 /*yield*/, async_test("Beluga RX_WRITTEN - Medication omits notes when pharmacyNotes not provided on med", function () { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
+                            return [2 /*return*/, belugaMedMetformin];
+                        }); }); }, { onResult: function (m) { return (m === null || m === void 0 ? void 0 : m.notes) === undefined || (m === null || m === void 0 ? void 0 : m.notes) === null; } })
                         // Backwards-compatibility: a webhook with no category on any med should result in undefined category
                     ];
-                case 56:
+                case 58:
                     _h.sent();
                     return [4 /*yield*/, sdk.api.forms.createOne({
                             title: 'Beluga Protocol Test Form (no category)',
                             belugaVisitType: 'Weight Loss',
                         })];
-                case 57:
+                case 59:
                     belugaFormNoCategory = _h.sent();
                     return [4 /*yield*/, sdk.api.endusers.createOne({})];
-                case 58:
+                case 60:
                     belugaEnduserNoCategory = _h.sent();
                     return [4 /*yield*/, sdk.api.form_responses.createOne({
                             formId: belugaFormNoCategory.id,
@@ -373,7 +384,7 @@ export var medication_added_trigger_tests = function (_a) {
                                     answer: { type: 'string', value: 'test' },
                                 }],
                         })];
-                case 59:
+                case 61:
                     belugaFormResponseNoCategory = _h.sent();
                     return [4 /*yield*/, fetch("".concat(host, "/v1/webhooks/beluga"), {
                             method: 'POST',
@@ -392,48 +403,53 @@ export var medication_added_trigger_tests = function (_a) {
                                     }],
                             }),
                         })];
-                case 60:
+                case 62:
                     webhookResponseNoCategory = _h.sent();
-                    if (!!webhookResponseNoCategory.ok) return [3 /*break*/, 62];
+                    if (!!webhookResponseNoCategory.ok) return [3 /*break*/, 64];
                     _e = Error.bind;
                     _g = (_f = "Beluga webhook (no category) failed with status ".concat(webhookResponseNoCategory.status, ": ")).concat;
                     return [4 /*yield*/, webhookResponseNoCategory.text()];
-                case 61: throw new (_e.apply(Error, [void 0, _g.apply(_f, [_h.sent()])]))();
-                case 62: return [4 /*yield*/, wait(undefined, 500)];
-                case 63:
+                case 63: throw new (_e.apply(Error, [void 0, _g.apply(_f, [_h.sent()])]))();
+                case 64: return [4 /*yield*/, wait(undefined, 500)];
+                case 65:
                     _h.sent();
                     return [4 /*yield*/, sdk.api.enduser_medications.getSome({ filter: { enduserId: belugaEnduserNoCategory.id } })];
-                case 64:
+                case 66:
                     belugaMedsNoCategory = _h.sent();
                     belugaMedNoCategory = belugaMedsNoCategory[0];
                     return [4 /*yield*/, async_test("Beluga RX_WRITTEN - Medication omits category when not provided", function () { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
                             return [2 /*return*/, belugaMedNoCategory];
                         }); }); }, { onResult: function (m) { return (m === null || m === void 0 ? void 0 : m.category) === undefined || (m === null || m === void 0 ? void 0 : m.category) === null; } })];
-                case 65:
+                case 67:
                     _h.sent();
-                    _h.label = 66;
-                case 66:
-                    _h.trys.push([66, , 72, 73]);
+                    return [4 /*yield*/, async_test("Beluga RX_WRITTEN - Medication omits notes when pharmacyNotes not provided", function () { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
+                            return [2 /*return*/, belugaMedNoCategory];
+                        }); }); }, { onResult: function (m) { return (m === null || m === void 0 ? void 0 : m.notes) === undefined || (m === null || m === void 0 ? void 0 : m.notes) === null; } })];
+                case 68:
+                    _h.sent();
+                    _h.label = 69;
+                case 69:
+                    _h.trys.push([69, , 75, 76]);
                     // Clean up Beluga test data
                     return [4 /*yield*/, sdk.api.automation_triggers.deleteOne(belugaTrigger.id)];
-                case 67:
+                case 70:
                     // Clean up Beluga test data
                     _h.sent();
                     return [4 /*yield*/, sdk.api.forms.deleteOne(belugaForm.id)];
-                case 68:
+                case 71:
                     _h.sent();
                     return [4 /*yield*/, sdk.api.forms.deleteOne(belugaFormNoCategory.id)];
-                case 69:
+                case 72:
                     _h.sent();
                     return [4 /*yield*/, sdk.api.endusers.deleteOne(belugaEnduser.id)]; // also cleans up form response and medications
-                case 70:
+                case 73:
                     _h.sent(); // also cleans up form response and medications
                     return [4 /*yield*/, sdk.api.endusers.deleteOne(belugaEnduserNoCategory.id)]; // also cleans up form response and medications
-                case 71:
+                case 74:
                     _h.sent(); // also cleans up form response and medications
-                    return [3 /*break*/, 73];
-                case 72: return [7 /*endfinally*/];
-                case 73:
+                    return [3 /*break*/, 76];
+                case 75: return [7 /*endfinally*/];
+                case 76:
                     // ---- Set Fields with {{medication.name}} Test ----
                     log_header("Medication Added - Set Fields with {{medication.name}}");
                     return [4 /*yield*/, sdk.api.automation_triggers.createOne({
@@ -442,24 +458,24 @@ export var medication_added_trigger_tests = function (_a) {
                             status: 'Active',
                             title: "Medication - Set Fields medication.name"
                         })];
-                case 74:
+                case 77:
                     setFieldsTrigger = _h.sent();
                     return [4 /*yield*/, sdk.api.endusers.createOne({})];
-                case 75:
+                case 78:
                     setFieldsEnduser = _h.sent();
                     return [4 /*yield*/, sdk.api.enduser_medications.createOne({
                             enduserId: setFieldsEnduser.id,
                             title: 'Lisinopril 10mg',
                         })];
-                case 76:
+                case 79:
                     setFieldsMed = _h.sent();
                     return [4 /*yield*/, wait(undefined, 500)];
-                case 77:
+                case 80:
                     _h.sent();
                     return [4 /*yield*/, async_test("Medication Added - Set Fields copies medication.name to enduser field", function () { return sdk.api.endusers.getOne(setFieldsEnduser.id); }, { onResult: function (e) { var _a; return ((_a = e.fields) === null || _a === void 0 ? void 0 : _a['Medication Name']) === 'Lisinopril 10mg'; } })
                         // Test with title-filtered trigger to verify medication context is passed correctly
                     ];
-                case 78:
+                case 81:
                     _h.sent();
                     return [4 /*yield*/, sdk.api.automation_triggers.createOne({
                             event: { type: 'Medication Added', info: { titles: ['Metformin 500mg'], protocols: [] } },
@@ -467,24 +483,24 @@ export var medication_added_trigger_tests = function (_a) {
                             status: 'Active',
                             title: "Medication - Set Fields filtered"
                         })];
-                case 79:
+                case 82:
                     setFieldsTriggerFiltered = _h.sent();
                     return [4 /*yield*/, sdk.api.endusers.createOne({})];
-                case 80:
+                case 83:
                     setFieldsEnduser2 = _h.sent();
                     return [4 /*yield*/, sdk.api.enduser_medications.createOne({
                             enduserId: setFieldsEnduser2.id,
                             title: 'Metformin 500mg',
                         })];
-                case 81:
+                case 84:
                     setFieldsMed2 = _h.sent();
                     return [4 /*yield*/, wait(undefined, 500)];
-                case 82:
+                case 85:
                     _h.sent();
                     return [4 /*yield*/, async_test("Medication Added - Set Fields with title filter copies medication.name", function () { return sdk.api.endusers.getOne(setFieldsEnduser2.id); }, { onResult: function (e) { var _a; return ((_a = e.fields) === null || _a === void 0 ? void 0 : _a['Specific Med']) === 'Metformin 500mg'; } })
                         // ---- Set Fields with {{medication.category}} Test ----
                     ];
-                case 83:
+                case 86:
                     _h.sent();
                     // ---- Set Fields with {{medication.category}} Test ----
                     log_header("Medication Added - Set Fields with {{medication.category}}");
@@ -494,68 +510,122 @@ export var medication_added_trigger_tests = function (_a) {
                             status: 'Active',
                             title: "Medication - Set Fields medication.category"
                         })];
-                case 84:
+                case 87:
                     setFieldsCategoryTrigger = _h.sent();
                     return [4 /*yield*/, sdk.api.endusers.createOne({})];
-                case 85:
+                case 88:
                     setFieldsCategoryEnduser = _h.sent();
                     return [4 /*yield*/, sdk.api.enduser_medications.createOne({
                             enduserId: setFieldsCategoryEnduser.id,
                             title: 'Ozempic 0.5mg',
                             category: 'weightloss1',
                         })];
-                case 86:
+                case 89:
                     setFieldsCategoryMed = _h.sent();
                     return [4 /*yield*/, wait(undefined, 500)];
-                case 87:
+                case 90:
                     _h.sent();
                     return [4 /*yield*/, async_test("Medication Added - Set Fields copies medication.category to enduser field", function () { return sdk.api.endusers.getOne(setFieldsCategoryEnduser.id); }, { onResult: function (e) { var _a; return ((_a = e.fields) === null || _a === void 0 ? void 0 : _a['Medication Category']) === 'weightloss1'; } })
                         // Category absent on medication → placeholder resolves to empty string
                     ];
-                case 88:
+                case 91:
                     _h.sent();
                     return [4 /*yield*/, sdk.api.endusers.createOne({})];
-                case 89:
+                case 92:
                     setFieldsCategoryEnduserEmpty = _h.sent();
                     return [4 /*yield*/, sdk.api.enduser_medications.createOne({
                             enduserId: setFieldsCategoryEnduserEmpty.id,
                             title: 'Lisinopril 20mg',
                         })];
-                case 90:
+                case 93:
                     setFieldsCategoryMedEmpty = _h.sent();
                     return [4 /*yield*/, wait(undefined, 500)];
-                case 91:
-                    _h.sent();
-                    return [4 /*yield*/, async_test("Medication Added - Set Fields with no category resolves to empty string", function () { return sdk.api.endusers.getOne(setFieldsCategoryEnduserEmpty.id); }, { onResult: function (e) { var _a; return ((_a = e.fields) === null || _a === void 0 ? void 0 : _a['Medication Category']) === ''; } })];
-                case 92:
-                    _h.sent();
-                    _h.label = 93;
-                case 93:
-                    _h.trys.push([93, , 101, 102]);
-                    return [4 /*yield*/, sdk.api.automation_triggers.deleteOne(setFieldsTrigger.id)];
                 case 94:
                     _h.sent();
-                    return [4 /*yield*/, sdk.api.automation_triggers.deleteOne(setFieldsTriggerFiltered.id)];
+                    return [4 /*yield*/, async_test("Medication Added - Set Fields with no category resolves to empty string", function () { return sdk.api.endusers.getOne(setFieldsCategoryEnduserEmpty.id); }, { onResult: function (e) { var _a; return ((_a = e.fields) === null || _a === void 0 ? void 0 : _a['Medication Category']) === ''; } })
+                        // ---- Set Fields with {{medication.notes}} Test ----
+                    ];
                 case 95:
                     _h.sent();
-                    return [4 /*yield*/, sdk.api.automation_triggers.deleteOne(setFieldsCategoryTrigger.id)];
+                    // ---- Set Fields with {{medication.notes}} Test ----
+                    log_header("Medication Added - Set Fields with {{medication.notes}}");
+                    return [4 /*yield*/, sdk.api.automation_triggers.createOne({
+                            event: { type: 'Medication Added', info: { titles: [], protocols: [] } },
+                            action: { type: 'Set Fields', info: { fields: [{ name: 'Medication Notes', type: 'Custom Value', value: '{{medication.notes}}' }] } },
+                            status: 'Active',
+                            title: "Medication - Set Fields medication.notes"
+                        })];
                 case 96:
-                    _h.sent();
-                    return [4 /*yield*/, sdk.api.endusers.deleteOne(setFieldsEnduser.id)];
+                    setFieldsPharmacyNotesTrigger = _h.sent();
+                    return [4 /*yield*/, sdk.api.endusers.createOne({})];
                 case 97:
-                    _h.sent();
-                    return [4 /*yield*/, sdk.api.endusers.deleteOne(setFieldsEnduser2.id)];
+                    setFieldsPharmacyNotesEnduser = _h.sent();
+                    return [4 /*yield*/, sdk.api.enduser_medications.createOne({
+                            enduserId: setFieldsPharmacyNotesEnduser.id,
+                            title: 'Ozempic 1mg',
+                            notes: 'Dispense with syringes',
+                        })];
                 case 98:
-                    _h.sent();
-                    return [4 /*yield*/, sdk.api.endusers.deleteOne(setFieldsCategoryEnduser.id)];
+                    setFieldsPharmacyNotesMed = _h.sent();
+                    return [4 /*yield*/, wait(undefined, 500)];
                 case 99:
                     _h.sent();
-                    return [4 /*yield*/, sdk.api.endusers.deleteOne(setFieldsCategoryEnduserEmpty.id)];
+                    return [4 /*yield*/, async_test("Medication Added - Set Fields copies medication.notes to enduser field", function () { return sdk.api.endusers.getOne(setFieldsPharmacyNotesEnduser.id); }, { onResult: function (e) { var _a; return ((_a = e.fields) === null || _a === void 0 ? void 0 : _a['Medication Notes']) === 'Dispense with syringes'; } })
+                        // notes absent on medication → placeholder resolves to empty string
+                    ];
                 case 100:
                     _h.sent();
-                    return [3 /*break*/, 102];
-                case 101: return [7 /*endfinally*/];
+                    return [4 /*yield*/, sdk.api.endusers.createOne({})];
+                case 101:
+                    setFieldsPharmacyNotesEnduserEmpty = _h.sent();
+                    return [4 /*yield*/, sdk.api.enduser_medications.createOne({
+                            enduserId: setFieldsPharmacyNotesEnduserEmpty.id,
+                            title: 'Lisinopril 40mg',
+                        })];
                 case 102:
+                    setFieldsPharmacyNotesMedEmpty = _h.sent();
+                    return [4 /*yield*/, wait(undefined, 500)];
+                case 103:
+                    _h.sent();
+                    return [4 /*yield*/, async_test("Medication Added - Set Fields with no notes resolves to empty string", function () { return sdk.api.endusers.getOne(setFieldsPharmacyNotesEnduserEmpty.id); }, { onResult: function (e) { var _a; return ((_a = e.fields) === null || _a === void 0 ? void 0 : _a['Medication Notes']) === ''; } })];
+                case 104:
+                    _h.sent();
+                    _h.label = 105;
+                case 105:
+                    _h.trys.push([105, , 116, 117]);
+                    return [4 /*yield*/, sdk.api.automation_triggers.deleteOne(setFieldsTrigger.id)];
+                case 106:
+                    _h.sent();
+                    return [4 /*yield*/, sdk.api.automation_triggers.deleteOne(setFieldsTriggerFiltered.id)];
+                case 107:
+                    _h.sent();
+                    return [4 /*yield*/, sdk.api.automation_triggers.deleteOne(setFieldsCategoryTrigger.id)];
+                case 108:
+                    _h.sent();
+                    return [4 /*yield*/, sdk.api.automation_triggers.deleteOne(setFieldsPharmacyNotesTrigger.id)];
+                case 109:
+                    _h.sent();
+                    return [4 /*yield*/, sdk.api.endusers.deleteOne(setFieldsEnduser.id)];
+                case 110:
+                    _h.sent();
+                    return [4 /*yield*/, sdk.api.endusers.deleteOne(setFieldsEnduser2.id)];
+                case 111:
+                    _h.sent();
+                    return [4 /*yield*/, sdk.api.endusers.deleteOne(setFieldsCategoryEnduser.id)];
+                case 112:
+                    _h.sent();
+                    return [4 /*yield*/, sdk.api.endusers.deleteOne(setFieldsCategoryEnduserEmpty.id)];
+                case 113:
+                    _h.sent();
+                    return [4 /*yield*/, sdk.api.endusers.deleteOne(setFieldsPharmacyNotesEnduser.id)];
+                case 114:
+                    _h.sent();
+                    return [4 /*yield*/, sdk.api.endusers.deleteOne(setFieldsPharmacyNotesEnduserEmpty.id)];
+                case 115:
+                    _h.sent();
+                    return [3 /*break*/, 117];
+                case 116: return [7 /*endfinally*/];
+                case 117:
                     // ---- titleCondition (compound conditional logic on title) ----
                     log_header("Medication Added - titleCondition compound logic");
                     return [4 /*yield*/, sdk.api.automation_triggers.createOne({
@@ -571,33 +641,33 @@ export var medication_added_trigger_tests = function (_a) {
                             status: 'Active',
                             title: "Medication - titleCondition contains GLP"
                         })];
-                case 103:
+                case 118:
                     c1Trigger = _h.sent();
                     return [4 /*yield*/, sdk.api.endusers.createOne({})];
-                case 104:
+                case 119:
                     c1MatchEnduser = _h.sent();
                     return [4 /*yield*/, sdk.api.enduser_medications.createOne({ enduserId: c1MatchEnduser.id, title: 'Semaglutide GLP-1' })];
-                case 105:
+                case 120:
                     _h.sent();
                     return [4 /*yield*/, wait(undefined, 500)];
-                case 106:
+                case 121:
                     _h.sent();
                     return [4 /*yield*/, async_test("titleCondition $contains - matching medication fires", function () { return sdk.api.endusers.getOne(c1MatchEnduser.id); }, { onResult: function (e) { var _a; return !!((_a = e.tags) === null || _a === void 0 ? void 0 : _a.includes('Med-Cond-Contains-GLP')); } })];
-                case 107:
+                case 122:
                     _h.sent();
                     return [4 /*yield*/, sdk.api.endusers.createOne({})];
-                case 108:
+                case 123:
                     c1MissEnduser = _h.sent();
                     return [4 /*yield*/, sdk.api.enduser_medications.createOne({ enduserId: c1MissEnduser.id, title: 'Aspirin' })];
-                case 109:
+                case 124:
                     _h.sent();
                     return [4 /*yield*/, wait(undefined, 500)];
-                case 110:
+                case 125:
                     _h.sent();
                     return [4 /*yield*/, async_test("titleCondition $contains - non-matching medication does NOT fire", function () { return sdk.api.endusers.getOne(c1MissEnduser.id); }, { onResult: function (e) { var _a; return !((_a = e.tags) === null || _a === void 0 ? void 0 : _a.includes('Med-Cond-Contains-GLP')); } })
                         // C2: $ne — fires for everything except 'Placebo'
                     ];
-                case 111:
+                case 126:
                     _h.sent();
                     return [4 /*yield*/, sdk.api.automation_triggers.createOne({
                             event: {
@@ -612,33 +682,33 @@ export var medication_added_trigger_tests = function (_a) {
                             status: 'Active',
                             title: "Medication - titleCondition ne Placebo"
                         })];
-                case 112:
+                case 127:
                     c2Trigger = _h.sent();
                     return [4 /*yield*/, sdk.api.endusers.createOne({})];
-                case 113:
+                case 128:
                     c2MatchEnduser = _h.sent();
                     return [4 /*yield*/, sdk.api.enduser_medications.createOne({ enduserId: c2MatchEnduser.id, title: 'Metformin' })];
-                case 114:
+                case 129:
                     _h.sent();
                     return [4 /*yield*/, wait(undefined, 500)];
-                case 115:
+                case 130:
                     _h.sent();
                     return [4 /*yield*/, async_test("titleCondition $ne - non-Placebo medication fires", function () { return sdk.api.endusers.getOne(c2MatchEnduser.id); }, { onResult: function (e) { var _a; return !!((_a = e.tags) === null || _a === void 0 ? void 0 : _a.includes('Med-Cond-Ne-Placebo')); } })];
-                case 116:
+                case 131:
                     _h.sent();
                     return [4 /*yield*/, sdk.api.endusers.createOne({})];
-                case 117:
+                case 132:
                     c2MissEnduser = _h.sent();
                     return [4 /*yield*/, sdk.api.enduser_medications.createOne({ enduserId: c2MissEnduser.id, title: 'Placebo' })];
-                case 118:
+                case 133:
                     _h.sent();
                     return [4 /*yield*/, wait(undefined, 500)];
-                case 119:
+                case 134:
                     _h.sent();
                     return [4 /*yield*/, async_test("titleCondition $ne - Placebo medication does NOT fire", function () { return sdk.api.endusers.getOne(c2MissEnduser.id); }, { onResult: function (e) { var _a; return !((_a = e.tags) === null || _a === void 0 ? void 0 : _a.includes('Med-Cond-Ne-Placebo')); } })
                         // C3: compound $and — contains 'mg' AND does not contain 'Placebo' (case-sensitive)
                     ];
-                case 120:
+                case 135:
                     _h.sent();
                     return [4 /*yield*/, sdk.api.automation_triggers.createOne({
                             event: {
@@ -658,33 +728,33 @@ export var medication_added_trigger_tests = function (_a) {
                             status: 'Active',
                             title: "Medication - titleCondition compound AND"
                         })];
-                case 121:
+                case 136:
                     c3Trigger = _h.sent();
                     return [4 /*yield*/, sdk.api.endusers.createOne({})];
-                case 122:
+                case 137:
                     c3MatchEnduser = _h.sent();
                     return [4 /*yield*/, sdk.api.enduser_medications.createOne({ enduserId: c3MatchEnduser.id, title: 'Lisinopril 10mg' })];
-                case 123:
+                case 138:
                     _h.sent();
                     return [4 /*yield*/, wait(undefined, 500)];
-                case 124:
+                case 139:
                     _h.sent();
                     return [4 /*yield*/, async_test("titleCondition $and - both pass fires", function () { return sdk.api.endusers.getOne(c3MatchEnduser.id); }, { onResult: function (e) { var _a; return !!((_a = e.tags) === null || _a === void 0 ? void 0 : _a.includes('Med-Cond-And')); } })];
-                case 125:
+                case 140:
                     _h.sent();
                     return [4 /*yield*/, sdk.api.endusers.createOne({})];
-                case 126:
+                case 141:
                     c3MissEnduser = _h.sent();
                     return [4 /*yield*/, sdk.api.enduser_medications.createOne({ enduserId: c3MissEnduser.id, title: 'Placebo 5mg' })];
-                case 127:
+                case 142:
                     _h.sent();
                     return [4 /*yield*/, wait(undefined, 500)];
-                case 128:
+                case 143:
                     _h.sent();
                     return [4 /*yield*/, async_test("titleCondition $and - second branch fails does NOT fire", function () { return sdk.api.endusers.getOne(c3MissEnduser.id); }, { onResult: function (e) { var _a; return !((_a = e.tags) === null || _a === void 0 ? void 0 : _a.includes('Med-Cond-And')); } })
                         // C4: compound $or — equals 'Aspirin' OR contains 'pril'
                     ];
-                case 129:
+                case 144:
                     _h.sent();
                     return [4 /*yield*/, sdk.api.automation_triggers.createOne({
                             event: {
@@ -704,45 +774,45 @@ export var medication_added_trigger_tests = function (_a) {
                             status: 'Active',
                             title: "Medication - titleCondition compound OR"
                         })];
-                case 130:
+                case 145:
                     c4Trigger = _h.sent();
                     return [4 /*yield*/, sdk.api.endusers.createOne({})];
-                case 131:
+                case 146:
                     c4MatchA = _h.sent();
                     return [4 /*yield*/, sdk.api.enduser_medications.createOne({ enduserId: c4MatchA.id, title: 'Aspirin' })];
-                case 132:
+                case 147:
                     _h.sent();
                     return [4 /*yield*/, wait(undefined, 500)];
-                case 133:
+                case 148:
                     _h.sent();
                     return [4 /*yield*/, async_test("titleCondition $or - first branch matches fires", function () { return sdk.api.endusers.getOne(c4MatchA.id); }, { onResult: function (e) { var _a; return !!((_a = e.tags) === null || _a === void 0 ? void 0 : _a.includes('Med-Cond-Or')); } })];
-                case 134:
+                case 149:
                     _h.sent();
                     return [4 /*yield*/, sdk.api.endusers.createOne({})];
-                case 135:
+                case 150:
                     c4MatchB = _h.sent();
                     return [4 /*yield*/, sdk.api.enduser_medications.createOne({ enduserId: c4MatchB.id, title: 'Lisinopril' })];
-                case 136:
+                case 151:
                     _h.sent();
                     return [4 /*yield*/, wait(undefined, 500)];
-                case 137:
+                case 152:
                     _h.sent();
                     return [4 /*yield*/, async_test("titleCondition $or - second branch matches fires", function () { return sdk.api.endusers.getOne(c4MatchB.id); }, { onResult: function (e) { var _a; return !!((_a = e.tags) === null || _a === void 0 ? void 0 : _a.includes('Med-Cond-Or')); } })];
-                case 138:
+                case 153:
                     _h.sent();
                     return [4 /*yield*/, sdk.api.endusers.createOne({})];
-                case 139:
+                case 154:
                     c4Miss = _h.sent();
                     return [4 /*yield*/, sdk.api.enduser_medications.createOne({ enduserId: c4Miss.id, title: 'Metformin' })];
-                case 140:
+                case 155:
                     _h.sent();
                     return [4 /*yield*/, wait(undefined, 500)];
-                case 141:
+                case 156:
                     _h.sent();
                     return [4 /*yield*/, async_test("titleCondition $or - neither branch matches does NOT fire", function () { return sdk.api.endusers.getOne(c4Miss.id); }, { onResult: function (e) { var _a; return !((_a = e.tags) === null || _a === void 0 ? void 0 : _a.includes('Med-Cond-Or')); } })
                         // C5: backwards compatibility — no titleCondition, titles array still works
                     ];
-                case 142:
+                case 157:
                     _h.sent();
                     return [4 /*yield*/, sdk.api.automation_triggers.createOne({
                             event: { type: 'Medication Added', info: { titles: ['Atorvastatin'], protocols: [] } },
@@ -750,33 +820,33 @@ export var medication_added_trigger_tests = function (_a) {
                             status: 'Active',
                             title: "Medication - titles array back-compat"
                         })];
-                case 143:
+                case 158:
                     c5Trigger = _h.sent();
                     return [4 /*yield*/, sdk.api.endusers.createOne({})];
-                case 144:
+                case 159:
                     c5Match = _h.sent();
                     return [4 /*yield*/, sdk.api.enduser_medications.createOne({ enduserId: c5Match.id, title: 'Atorvastatin' })];
-                case 145:
+                case 160:
                     _h.sent();
                     return [4 /*yield*/, wait(undefined, 500)];
-                case 146:
+                case 161:
                     _h.sent();
                     return [4 /*yield*/, async_test("titles back-compat - title match still fires without titleCondition", function () { return sdk.api.endusers.getOne(c5Match.id); }, { onResult: function (e) { var _a; return !!((_a = e.tags) === null || _a === void 0 ? void 0 : _a.includes('Med-Cond-BackCompat')); } })];
-                case 147:
+                case 162:
                     _h.sent();
                     return [4 /*yield*/, sdk.api.endusers.createOne({})];
-                case 148:
+                case 163:
                     c5Miss = _h.sent();
                     return [4 /*yield*/, sdk.api.enduser_medications.createOne({ enduserId: c5Miss.id, title: 'Aspirin' })];
-                case 149:
+                case 164:
                     _h.sent();
                     return [4 /*yield*/, wait(undefined, 500)];
-                case 150:
+                case 165:
                     _h.sent();
                     return [4 /*yield*/, async_test("titles back-compat - non-match does NOT fire without titleCondition", function () { return sdk.api.endusers.getOne(c5Miss.id); }, { onResult: function (e) { var _a; return !((_a = e.tags) === null || _a === void 0 ? void 0 : _a.includes('Med-Cond-BackCompat')); } })
                         // C6: combined — titles array AND titleCondition compose (both must pass)
                     ];
-                case 151:
+                case 166:
                     _h.sent();
                     return [4 /*yield*/, sdk.api.automation_triggers.createOne({
                             event: {
@@ -791,80 +861,80 @@ export var medication_added_trigger_tests = function (_a) {
                             status: 'Active',
                             title: "Medication - titles + titleCondition combined"
                         })];
-                case 152:
+                case 167:
                     c6Trigger = _h.sent();
                     return [4 /*yield*/, sdk.api.endusers.createOne({})];
-                case 153:
+                case 168:
                     c6Match = _h.sent();
                     return [4 /*yield*/, sdk.api.enduser_medications.createOne({ enduserId: c6Match.id, title: 'Lisinopril' })];
-                case 154:
-                    _h.sent();
-                    return [4 /*yield*/, wait(undefined, 500)];
-                case 155:
-                    _h.sent();
-                    return [4 /*yield*/, async_test("titleCondition combined - both pass fires", function () { return sdk.api.endusers.getOne(c6Match.id); }, { onResult: function (e) { var _a; return !!((_a = e.tags) === null || _a === void 0 ? void 0 : _a.includes('Med-Cond-Combined')); } })];
-                case 156:
-                    _h.sent();
-                    _h.label = 157;
-                case 157:
-                    _h.trys.push([157, , 176, 177]);
-                    return [4 /*yield*/, sdk.api.automation_triggers.deleteOne(c1Trigger.id)];
-                case 158:
-                    _h.sent();
-                    return [4 /*yield*/, sdk.api.automation_triggers.deleteOne(c2Trigger.id)];
-                case 159:
-                    _h.sent();
-                    return [4 /*yield*/, sdk.api.automation_triggers.deleteOne(c3Trigger.id)];
-                case 160:
-                    _h.sent();
-                    return [4 /*yield*/, sdk.api.automation_triggers.deleteOne(c4Trigger.id)];
-                case 161:
-                    _h.sent();
-                    return [4 /*yield*/, sdk.api.automation_triggers.deleteOne(c5Trigger.id)];
-                case 162:
-                    _h.sent();
-                    return [4 /*yield*/, sdk.api.automation_triggers.deleteOne(c6Trigger.id)];
-                case 163:
-                    _h.sent();
-                    return [4 /*yield*/, sdk.api.endusers.deleteOne(c1MatchEnduser.id)];
-                case 164:
-                    _h.sent();
-                    return [4 /*yield*/, sdk.api.endusers.deleteOne(c1MissEnduser.id)];
-                case 165:
-                    _h.sent();
-                    return [4 /*yield*/, sdk.api.endusers.deleteOne(c2MatchEnduser.id)];
-                case 166:
-                    _h.sent();
-                    return [4 /*yield*/, sdk.api.endusers.deleteOne(c2MissEnduser.id)];
-                case 167:
-                    _h.sent();
-                    return [4 /*yield*/, sdk.api.endusers.deleteOne(c3MatchEnduser.id)];
-                case 168:
-                    _h.sent();
-                    return [4 /*yield*/, sdk.api.endusers.deleteOne(c3MissEnduser.id)];
                 case 169:
                     _h.sent();
-                    return [4 /*yield*/, sdk.api.endusers.deleteOne(c4MatchA.id)];
+                    return [4 /*yield*/, wait(undefined, 500)];
                 case 170:
                     _h.sent();
-                    return [4 /*yield*/, sdk.api.endusers.deleteOne(c4MatchB.id)];
+                    return [4 /*yield*/, async_test("titleCondition combined - both pass fires", function () { return sdk.api.endusers.getOne(c6Match.id); }, { onResult: function (e) { var _a; return !!((_a = e.tags) === null || _a === void 0 ? void 0 : _a.includes('Med-Cond-Combined')); } })];
                 case 171:
                     _h.sent();
-                    return [4 /*yield*/, sdk.api.endusers.deleteOne(c4Miss.id)];
+                    _h.label = 172;
                 case 172:
-                    _h.sent();
-                    return [4 /*yield*/, sdk.api.endusers.deleteOne(c5Match.id)];
+                    _h.trys.push([172, , 191, 192]);
+                    return [4 /*yield*/, sdk.api.automation_triggers.deleteOne(c1Trigger.id)];
                 case 173:
                     _h.sent();
-                    return [4 /*yield*/, sdk.api.endusers.deleteOne(c5Miss.id)];
+                    return [4 /*yield*/, sdk.api.automation_triggers.deleteOne(c2Trigger.id)];
                 case 174:
                     _h.sent();
-                    return [4 /*yield*/, sdk.api.endusers.deleteOne(c6Match.id)];
+                    return [4 /*yield*/, sdk.api.automation_triggers.deleteOne(c3Trigger.id)];
                 case 175:
                     _h.sent();
-                    return [3 /*break*/, 177];
-                case 176: return [7 /*endfinally*/];
-                case 177: return [2 /*return*/];
+                    return [4 /*yield*/, sdk.api.automation_triggers.deleteOne(c4Trigger.id)];
+                case 176:
+                    _h.sent();
+                    return [4 /*yield*/, sdk.api.automation_triggers.deleteOne(c5Trigger.id)];
+                case 177:
+                    _h.sent();
+                    return [4 /*yield*/, sdk.api.automation_triggers.deleteOne(c6Trigger.id)];
+                case 178:
+                    _h.sent();
+                    return [4 /*yield*/, sdk.api.endusers.deleteOne(c1MatchEnduser.id)];
+                case 179:
+                    _h.sent();
+                    return [4 /*yield*/, sdk.api.endusers.deleteOne(c1MissEnduser.id)];
+                case 180:
+                    _h.sent();
+                    return [4 /*yield*/, sdk.api.endusers.deleteOne(c2MatchEnduser.id)];
+                case 181:
+                    _h.sent();
+                    return [4 /*yield*/, sdk.api.endusers.deleteOne(c2MissEnduser.id)];
+                case 182:
+                    _h.sent();
+                    return [4 /*yield*/, sdk.api.endusers.deleteOne(c3MatchEnduser.id)];
+                case 183:
+                    _h.sent();
+                    return [4 /*yield*/, sdk.api.endusers.deleteOne(c3MissEnduser.id)];
+                case 184:
+                    _h.sent();
+                    return [4 /*yield*/, sdk.api.endusers.deleteOne(c4MatchA.id)];
+                case 185:
+                    _h.sent();
+                    return [4 /*yield*/, sdk.api.endusers.deleteOne(c4MatchB.id)];
+                case 186:
+                    _h.sent();
+                    return [4 /*yield*/, sdk.api.endusers.deleteOne(c4Miss.id)];
+                case 187:
+                    _h.sent();
+                    return [4 /*yield*/, sdk.api.endusers.deleteOne(c5Match.id)];
+                case 188:
+                    _h.sent();
+                    return [4 /*yield*/, sdk.api.endusers.deleteOne(c5Miss.id)];
+                case 189:
+                    _h.sent();
+                    return [4 /*yield*/, sdk.api.endusers.deleteOne(c6Match.id)];
+                case 190:
+                    _h.sent();
+                    return [3 /*break*/, 192];
+                case 191: return [7 /*endfinally*/];
+                case 192: return [2 /*return*/];
             }
         });
     });

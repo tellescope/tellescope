@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { AvailabilityBlock, CalendarEvent, CalendarEventLimit, CompoundFilter, Enduser, EnduserInsurance, EnduserMedication, EnduserObservation, EnduserOrder, Form, FormField, FormFieldType, FormResponse, FormResponseValue, FormResponseValueAnswer, Integration, LabeledField, ManagedContentRecord, Organization, OutOfOfficeBlock, Purchase, RoundRobinAssignmentInfo, SMSMessage, TableInputCell, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models";
 import { DateTime } from "luxon";
 import { ObjectId } from "./ObjectId/objectid";

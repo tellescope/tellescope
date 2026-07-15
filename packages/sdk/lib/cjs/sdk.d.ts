@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { CustomActions, extractFields, PublicActions } from "@tellescope/schema";
 import { UserSession, ReadFilter, WebhookSubscriptionsType, Attendee, SearchOptions, AccessPermissions, OrganizationLimits, SortBy, AnalyticsQuery, UserUIRestrictions, UserFieldRedactions, ModelName, CustomDashboardView, DataSyncRecord } from "@tellescope/types-models";
 import { ClientModelForName, ClientModelForName_readonly, ClientModelForName_required, ClientModelForName_updatesDisabled, ChatRoom, Enduser, Meeting, CreateFields, User } from "@tellescope/types-client";
@@ -4187,6 +4188,7 @@ export declare class Session extends SessionManager {
         exp: number;
         allowedPaths?: string[] | undefined;
         requiresMFA?: boolean | undefined;
+        users?: number | undefined;
         inbox_threads?: number | undefined;
         ai_conversations?: number | undefined;
         waitlists?: number | undefined;
@@ -4233,7 +4235,6 @@ export declare class Session extends SessionManager {
         sms_messages?: number | undefined;
         chat_rooms?: number | undefined;
         chats?: number | undefined;
-        users?: number | undefined;
         templates?: number | undefined;
         files?: number | undefined;
         tickets?: number | undefined;
@@ -4349,6 +4350,7 @@ export declare class Session extends SessionManager {
         exp: number;
         allowedPaths?: string[] | undefined;
         requiresMFA?: boolean | undefined;
+        users?: number | undefined;
         inbox_threads?: number | undefined;
         ai_conversations?: number | undefined;
         waitlists?: number | undefined;
@@ -4395,7 +4397,6 @@ export declare class Session extends SessionManager {
         sms_messages?: number | undefined;
         chat_rooms?: number | undefined;
         chats?: number | undefined;
-        users?: number | undefined;
         templates?: number | undefined;
         files?: number | undefined;
         tickets?: number | undefined;
