@@ -3669,6 +3669,9 @@ export var schema = build_schema({
                 examples: ["Text"],
             }, subscriptions: {
                 validator: WebhookSubscriptionValidator,
+            }, deliveryFailureCount: {
+                validator: nonNegNumberValidatorOptional,
+                readonly: true, // server-managed: incremented on failed delivery attempts, not customer-settable
             } })
     },
     calendar_events: {

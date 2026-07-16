@@ -444,6 +444,7 @@ export interface Organization_readonly extends ClientRecord {
   fromEmails?: string[],
   twilioSID?: string,
   twilioCustomerId?: string,
+  outboundSMSDisabled?: boolean, // internal kill-switch for outgoing Twilio SMS, set directly in DB only
   customPortalScriptTags?: string[],
   verifiedEmailDomains?: VerifiedEmailDomain[],
   verifiedEmailDomainSettings?: VerifiedEmailDomainSettings,
@@ -2731,7 +2732,8 @@ export interface WebHook_updatesDisabled {}
 export interface WebHook extends WebHook_readonly, WebHook_required, WebHook_updatesDisabled {
   url: string,
   secret: string,
-  subscriptions: WebhookSubscriptionsType
+  subscriptions: WebhookSubscriptionsType,
+  deliveryFailureCount?: number, // server-managed: incremented on each failed delivery attempt
 }
 
 export type BaseAvailabilityBlock = {
@@ -3619,6 +3621,10 @@ export type AIContextSource = {
   type: "Email" | "SMS" | "PhoneCall"
   limit: number,
 }
+// Reserved outcome for onAIDecision events: a child step listing this in its outcomes acts as the
+// fallback branch when the AI's answer matches no configured outcome. Never shown to users — the
+// Journey Editor renders it as a first-class "Fallback" option ("No Matching Outcome").
+export const AI_DECISION_NO_MATCH_OUTCOME = '____NO_MATCH____'
 export type AIDecisionAutomationAction = AutomationActionBuilder<'aiDecision', {
   outcomes: string[],
   prompt?: string,                                    // legacy, optional

@@ -46,10 +46,7 @@ export var TwilioVideoRoom = function (_a) {
     ], participants, true);
     if (isScreenShareActive) {
         // Presentation layout: screen share large on top, camera strip on bottom
-        return (_jsxs(Box, __assign({ sx: __assign(__assign({ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', backgroundColor: '#1a1a1a' }, style), { 
-                // keep the enlarged room within the viewport so it can't push the
-                // DraggableWindow's topbar controls off-screen
-                maxWidth: '95vw', maxHeight: '90vh', boxSizing: 'border-box', overflow: 'hidden' }) }, { children: [_jsx(Box, __assign({ sx: {
+        return (_jsxs(Box, __assign({ sx: __assign(__assign({ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', backgroundColor: '#1a1a1a' }, style), { boxSizing: 'border-box', overflow: 'hidden' }) }, { children: [_jsx(Box, __assign({ sx: {
                         flex: 1,
                         overflow: 'hidden',
                         minHeight: 0,
@@ -70,24 +67,27 @@ export var TwilioVideoRoom = function (_a) {
                         } }, { children: _jsx(TwilioParticipant, { participant: p, isLocal: p === localParticipant, showScreenShare: false, resolveIdentity: resolveIdentity }) }), p.sid)); }) })), _jsx(TwilioControlBar, { onLeave: onLeave, onEndForAll: onEndForAll, showScreenShare: showScreenShareProp })] })));
     }
     // Normal layout (no screen share active)
-    return (_jsxs(Box, __assign({ sx: __assign(__assign({ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', backgroundColor: '#1a1a1a' }, style), { 
-            // keep the enlarged room within the viewport so it can't push the
-            // DraggableWindow's topbar controls off-screen
-            maxWidth: '95vw', maxHeight: '90vh', boxSizing: 'border-box', overflow: 'hidden' }) }, { children: [_jsxs(Box, __assign({ sx: {
+    return (_jsxs(Box, __assign({ sx: __assign(__assign({ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', backgroundColor: '#1a1a1a' }, style), { boxSizing: 'border-box', overflow: 'hidden' }) }, { children: [_jsxs(Box, __assign({ sx: {
                     flex: 1,
                     position: 'relative',
                     overflow: 'hidden',
+                    // when the caller gives the room a definite height, allow shrinking below
+                    // the video's intrinsic height so object-fit fits it to the visible area;
+                    // otherwise (content-sized windows) keep growing to the video's natural size
+                    minHeight: (style === null || style === void 0 ? void 0 : style.height) !== undefined ? 0 : undefined,
                 } }, { children: [hasRemoteParticipants ? (_jsx(Grid, __assign({ container: true, sx: {
                             height: '100%',
                             width: '100%',
-                        } }, { children: participants.map(function (participant) { return (_jsx(Grid, __assign({ item: true, xs: participants.length === 1 ? 12 : 6, sx: { height: participants.length <= 2 ? '100%' : '50%' } }, { children: _jsx(TwilioParticipant, { participant: participant, resolveIdentity: resolveIdentity }) }), participant.sid)); }) }))) : (
+                        } }, { children: participants.map(function (participant) { return (_jsx(Grid, __assign({ item: true, xs: participants.length === 1 ? 12 : 6, sx: { height: participants.length <= 2 ? '100%' : '50%' } }, { children: _jsx(TwilioParticipant, { participant: participant, resolveIdentity: resolveIdentity, videoFit: "contain" }) }), participant.sid)); }) }))) : (
                     // When alone, show local video larger
                     _jsx(Box, __assign({ sx: { height: '100%', width: '100%' } }, { children: _jsx(TwilioParticipant, { participant: localParticipant, isLocal: true, resolveIdentity: resolveIdentity }) }))), hasRemoteParticipants && (_jsx(Box, __assign({ sx: {
                             position: 'absolute',
                             top: 16,
                             right: 16,
-                            width: 200,
-                            height: 150,
+                            width: '22%',
+                            maxWidth: 200,
+                            minWidth: 110,
+                            aspectRatio: '4/3',
                             zIndex: 10,
                             borderRadius: 1,
                             overflow: 'hidden',

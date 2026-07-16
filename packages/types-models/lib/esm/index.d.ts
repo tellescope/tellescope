@@ -404,6 +404,7 @@ export interface Organization_readonly extends ClientRecord {
     fromEmails?: string[];
     twilioSID?: string;
     twilioCustomerId?: string;
+    outboundSMSDisabled?: boolean;
     customPortalScriptTags?: string[];
     verifiedEmailDomains?: VerifiedEmailDomain[];
     verifiedEmailDomainSettings?: VerifiedEmailDomainSettings;
@@ -2618,6 +2619,7 @@ export interface WebHook extends WebHook_readonly, WebHook_required, WebHook_upd
     url: string;
     secret: string;
     subscriptions: WebhookSubscriptionsType;
+    deliveryFailureCount?: number;
 }
 export type BaseAvailabilityBlock = {
     userId: string;
@@ -3579,6 +3581,7 @@ export type AIContextSource = {
     type: "Email" | "SMS" | "PhoneCall";
     limit: number;
 };
+export declare const AI_DECISION_NO_MATCH_OUTCOME = "____NO_MATCH____";
 export type AIDecisionAutomationAction = AutomationActionBuilder<'aiDecision', {
     outcomes: string[];
     prompt?: string;

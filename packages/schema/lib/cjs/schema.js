@@ -3674,6 +3674,9 @@ exports.schema = (0, exports.build_schema)({
                 examples: ["Text"],
             }, subscriptions: {
                 validator: validation_1.WebhookSubscriptionValidator,
+            }, deliveryFailureCount: {
+                validator: validation_1.nonNegNumberValidatorOptional,
+                readonly: true, // server-managed: incremented on failed delivery attempts, not customer-settable
             } })
     },
     calendar_events: {

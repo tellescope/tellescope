@@ -12,6 +12,10 @@ var __assign = (this && this.__assign) || function () {
 var _a;
 export var SORT_BY_OPTIONS = ['updatedAt', 'dueDateInMS', 'closedAt', 'timestamp'];
 export var FilterKeys = ['_exists', '_gt', '_gte', '_lt', '_lte', '_all', "_ne", "_nin"];
+// Reserved outcome for onAIDecision events: a child step listing this in its outcomes acts as the
+// fallback branch when the AI's answer matches no configured outcome. Never shown to users — the
+// Journey Editor renders it as a first-class "Fallback" option ("No Matching Outcome").
+export var AI_DECISION_NO_MATCH_OUTCOME = '____NO_MATCH____';
 export var TEXT_EMBEDDING_ADA_002 = "text-embedding-ada-002";
 export var EmbeddingInfo = (_a = {},
     _a[TEXT_EMBEDDING_ADA_002] = {

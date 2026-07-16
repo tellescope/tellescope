@@ -136,6 +136,7 @@ import { date_string_validation_tests } from "./api_tests/date_string_validation
 import { enduser_session_invalidation_tests } from "./api_tests/enduser_session_invalidation.test";
 import { enduser_cross_access_isolation_tests } from "./api_tests/enduser_cross_access_isolation.test";
 import { calendar_event_webhook_template_tests } from "./api_tests/calendar_event_webhook_template.test";
+import { webhook_error_handling_tests } from "./api_tests/webhook_error_handling.test";
 
 const UniquenessViolationMessage = 'Uniqueness Violation'
 
@@ -15054,6 +15055,7 @@ const ip_address_form_tests = async () => {
     await invite_user_enumeration_tests({ sdk, sdkNonAdmin })
     await handle_incoming_communication_cross_tenant_tests({ sdk, sdkNonAdmin })
     await calendar_event_webhook_template_tests({ sdk, sdkNonAdmin })
+    await webhook_error_handling_tests({ sdk, sdkNonAdmin })
     await outbound_chat_sent_trigger_tests({ sdk })
     await enduser_login_rate_limits_tests({ sdk, sdkNonAdmin })
     await data_sync_redaction_bypass_tests({ sdk, sdkNonAdmin })

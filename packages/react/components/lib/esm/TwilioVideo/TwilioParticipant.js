@@ -38,11 +38,11 @@ var RemoteAudioTrackElement = function (_a) {
     return _jsx("audio", { ref: audioRef, autoPlay: true });
 };
 export var TwilioParticipant = function (_a) {
-    var participant = _a.participant, _b = _a.isLocal, isLocal = _b === void 0 ? false : _b, style = _a.style, _c = _a.resolveIdentity, resolveIdentity = _c === void 0 ? function () { return ''; } : _c, _d = _a.showScreenShare, showScreenShare = _d === void 0 ? false : _d;
+    var participant = _a.participant, _b = _a.isLocal, isLocal = _b === void 0 ? false : _b, style = _a.style, _c = _a.resolveIdentity, resolveIdentity = _c === void 0 ? function () { return ''; } : _c, _d = _a.showScreenShare, showScreenShare = _d === void 0 ? false : _d, _e = _a.videoFit, videoFit = _e === void 0 ? 'cover' : _e;
     var videoRef = useRef(null);
-    var _e = useState(null), cameraTrack = _e[0], setCameraTrack = _e[1];
-    var _f = useState(null), screenTrack = _f[0], setScreenTrack = _f[1];
-    var _g = useState([]), audioTracks = _g[0], setAudioTracks = _g[1];
+    var _f = useState(null), cameraTrack = _f[0], setCameraTrack = _f[1];
+    var _g = useState(null), screenTrack = _g[0], setScreenTrack = _g[1];
+    var _h = useState([]), audioTracks = _h[0], setAudioTracks = _h[1];
     useEffect(function () {
         var handleTrackSubscribed = function (track) {
             if (track.kind === 'video') {
@@ -120,7 +120,7 @@ export var TwilioParticipant = function (_a) {
     return (_jsxs(Box, __assign({ sx: __assign({ position: 'relative', width: '100%', height: '100%', backgroundColor: '#1a1a1a', borderRadius: 1, overflow: 'hidden' }, style) }, { children: [_jsx("video", { ref: videoRef, autoPlay: true, muted: isLocal, playsInline: true, style: {
                     width: '100%',
                     height: '100%',
-                    objectFit: showScreenShare ? 'contain' : 'cover',
+                    objectFit: showScreenShare ? 'contain' : videoFit,
                     transform: shouldMirror ? 'scaleX(-1)' : 'none',
                 } }), !isLocal && audioTracks.map(function (track) { return (_jsx(RemoteAudioTrackElement, { track: track }, track.sid)); }), (function () {
                 var label = resolveIdentity(participant.identity);

@@ -5632,6 +5632,10 @@ export const schema: SchemaV1 = build_schema({
       subscriptions: {
         validator: WebhookSubscriptionValidator,
       },
+      deliveryFailureCount: {
+        validator: nonNegNumberValidatorOptional,
+        readonly: true, // server-managed: incremented on failed delivery attempts, not customer-settable
+      },
     }
   },
   calendar_events: {

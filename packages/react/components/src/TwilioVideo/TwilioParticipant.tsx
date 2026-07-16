@@ -19,6 +19,8 @@ export interface TwilioParticipantProps {
   resolveIdentity?: (identity: string) => string
   /** When true, render the screen share track instead of the camera track */
   showScreenShare?: boolean
+  /** How the camera video should fit its tile. Defaults to 'cover' (backwards compatible). */
+  videoFit?: 'cover' | 'contain'
 }
 
 /** Renders a single remote audio track into its own <audio> element. */
@@ -44,6 +46,7 @@ export const TwilioParticipant: React.FC<TwilioParticipantProps> = ({
   style,
   resolveIdentity = () => '',
   showScreenShare = false,
+  videoFit = 'cover',
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [cameraTrack, setCameraTrack] = useState<VideoTrack | null>(null)
@@ -148,7 +151,7 @@ export const TwilioParticipant: React.FC<TwilioParticipantProps> = ({
         style={{
           width: '100%',
           height: '100%',
-          objectFit: showScreenShare ? 'contain' : 'cover',
+          objectFit: showScreenShare ? 'contain' : videoFit,
           transform: shouldMirror ? 'scaleX(-1)' : 'none',
         }}
       />

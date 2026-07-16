@@ -57,10 +57,6 @@ export const TwilioVideoRoom: React.FC<TwilioVideoRoomProps> = ({
           width: '100%',
           backgroundColor: '#1a1a1a',
           ...style,
-          // keep the enlarged room within the viewport so it can't push the
-          // DraggableWindow's topbar controls off-screen
-          maxWidth: '95vw',
-          maxHeight: '90vh',
           boxSizing: 'border-box',
           overflow: 'hidden',
         }}
@@ -130,10 +126,6 @@ export const TwilioVideoRoom: React.FC<TwilioVideoRoomProps> = ({
         width: '100%',
         backgroundColor: '#1a1a1a',
         ...style,
-        // keep the enlarged room within the viewport so it can't push the
-        // DraggableWindow's topbar controls off-screen
-        maxWidth: '95vw',
-        maxHeight: '90vh',
         boxSizing: 'border-box',
         overflow: 'hidden',
       }}
@@ -144,6 +136,10 @@ export const TwilioVideoRoom: React.FC<TwilioVideoRoomProps> = ({
           flex: 1,
           position: 'relative',
           overflow: 'hidden',
+          // when the caller gives the room a definite height, allow shrinking below
+          // the video's intrinsic height so object-fit fits it to the visible area;
+          // otherwise (content-sized windows) keep growing to the video's natural size
+          minHeight: style?.height !== undefined ? 0 : undefined,
         }}
       >
         {/* Remote participants */}
@@ -162,7 +158,7 @@ export const TwilioVideoRoom: React.FC<TwilioVideoRoomProps> = ({
                 xs={participants.length === 1 ? 12 : 6}
                 sx={{ height: participants.length <= 2 ? '100%' : '50%' }}
               >
-                <TwilioParticipant participant={participant} resolveIdentity={resolveIdentity} />
+                <TwilioParticipant participant={participant} resolveIdentity={resolveIdentity} videoFit="contain" />
               </Grid>
             ))}
           </Grid>
@@ -180,8 +176,10 @@ export const TwilioVideoRoom: React.FC<TwilioVideoRoomProps> = ({
               position: 'absolute',
               top: 16,
               right: 16,
-              width: 200,
-              height: 150,
+              width: '22%',
+              maxWidth: 200,
+              minWidth: 110,
+              aspectRatio: '4/3',
               zIndex: 10,
               borderRadius: 1,
               overflow: 'hidden',

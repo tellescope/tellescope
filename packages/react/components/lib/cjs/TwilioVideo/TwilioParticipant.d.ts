@@ -8,6 +8,8 @@ export interface TwilioParticipantProps {
     resolveIdentity?: (identity: string) => string;
     /** When true, render the screen share track instead of the camera track */
     showScreenShare?: boolean;
+    /** How the camera video should fit its tile. Defaults to 'cover' (backwards compatible). */
+    videoFit?: 'cover' | 'contain';
 }
 export declare const TwilioParticipant: React.FC<TwilioParticipantProps>;
 //# sourceMappingURL=TwilioParticipant.d.ts.map

@@ -41,11 +41,11 @@ var RemoteAudioTrackElement = function (_a) {
     return (0, jsx_runtime_1.jsx)("audio", { ref: audioRef, autoPlay: true });
 };
 var TwilioParticipant = function (_a) {
-    var participant = _a.participant, _b = _a.isLocal, isLocal = _b === void 0 ? false : _b, style = _a.style, _c = _a.resolveIdentity, resolveIdentity = _c === void 0 ? function () { return ''; } : _c, _d = _a.showScreenShare, showScreenShare = _d === void 0 ? false : _d;
+    var participant = _a.participant, _b = _a.isLocal, isLocal = _b === void 0 ? false : _b, style = _a.style, _c = _a.resolveIdentity, resolveIdentity = _c === void 0 ? function () { return ''; } : _c, _d = _a.showScreenShare, showScreenShare = _d === void 0 ? false : _d, _e = _a.videoFit, videoFit = _e === void 0 ? 'cover' : _e;
     var videoRef = (0, react_1.useRef)(null);
-    var _e = (0, react_1.useState)(null), cameraTrack = _e[0], setCameraTrack = _e[1];
-    var _f = (0, react_1.useState)(null), screenTrack = _f[0], setScreenTrack = _f[1];
-    var _g = (0, react_1.useState)([]), audioTracks = _g[0], setAudioTracks = _g[1];
+    var _f = (0, react_1.useState)(null), cameraTrack = _f[0], setCameraTrack = _f[1];
+    var _g = (0, react_1.useState)(null), screenTrack = _g[0], setScreenTrack = _g[1];
+    var _h = (0, react_1.useState)([]), audioTracks = _h[0], setAudioTracks = _h[1];
     (0, react_1.useEffect)(function () {
         var handleTrackSubscribed = function (track) {
             if (track.kind === 'video') {
@@ -123,7 +123,7 @@ var TwilioParticipant = function (_a) {
     return ((0, jsx_runtime_1.jsxs)(material_1.Box, __assign({ sx: __assign({ position: 'relative', width: '100%', height: '100%', backgroundColor: '#1a1a1a', borderRadius: 1, overflow: 'hidden' }, style) }, { children: [(0, jsx_runtime_1.jsx)("video", { ref: videoRef, autoPlay: true, muted: isLocal, playsInline: true, style: {
                     width: '100%',
                     height: '100%',
-                    objectFit: showScreenShare ? 'contain' : 'cover',
+                    objectFit: showScreenShare ? 'contain' : videoFit,
                     transform: shouldMirror ? 'scaleX(-1)' : 'none',
                 } }), !isLocal && audioTracks.map(function (track) { return ((0, jsx_runtime_1.jsx)(RemoteAudioTrackElement, { track: track }, track.sid)); }), (function () {
                 var label = resolveIdentity(participant.identity);
