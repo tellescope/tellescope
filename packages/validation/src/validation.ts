@@ -67,6 +67,8 @@ import {
   ObservationCategory,
   ObservationStatusCode,
   ObservationValue,
+  ObservationComponent,
+  ObservationComponentCoding,
   TicketCompletedAutomationEvent,
   CreateTicketActionInfo,
   CreateTicketAssignmentStrategy,
@@ -3734,6 +3736,20 @@ export const FHIRObservationValueValidator = objectValidator<ObservationValue>({
   unit: stringValidator,
   value: numberValidator,
 })
+
+export const observationComponentsValidator = listValidatorOptionalOrEmptyOk(
+  objectValidator<ObservationComponent>({
+    code: objectValidator<ObservationComponent['code']>({
+      text: stringValidator,
+      coding: listValidatorOptionalOrEmptyOk(objectValidator<ObservationComponentCoding>({
+        system: stringValidator,
+        code: stringValidator,
+        display: stringValidatorOptional,
+      })),
+    }, { emptyOk: false }),
+    valueQuantity: FHIRObservationValueValidator,
+  })
+)
 
 
 export const previousFormFieldValidator = orValidator<{ [K in PreviousFormFieldType]: PreviousFormField & { type: K } } >({

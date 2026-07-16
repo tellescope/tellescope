@@ -49,7 +49,7 @@ require('source-map-support').install();
 import { Session, EnduserSession } from "../../sdk";
 import { assert, async_test, handleAnyError, log_header, } from "@tellescope/testing";
 import { schema } from "@tellescope/schema";
-import { setup_tests } from "../setup";
+import { authenticate_enduser_via_token, setup_tests } from "../setup";
 var host = process.env.API_URL || 'http://localhost:8080';
 var businessId = '60398b1131a295e64f084ff6';
 var buildAttendees = function (enduserId) { return [{ id: enduserId, type: 'enduser' }]; };
@@ -428,16 +428,16 @@ export var enduser_cross_access_isolation_tests = function (_a) {
                     _c.label = 5;
                 case 5:
                     _c.trys.push([5, , 14, 17]);
-                    // Sanity check: each enduser session can authenticate. We only use sdkA
-                    // for negative assertions, but a failed sdkB auth would mean the test
-                    // data setup itself is malformed.
-                    return [4 /*yield*/, sdkA.authenticate(enduserA.email, password)];
+                    // Sanity check: each enduser session can be established. We only use sdkA
+                    // for negative assertions, but a failed sdkB session would mean the test
+                    // data setup itself is malformed. (Token-based to spare the IP-rate-limited /login-enduser.)
+                    return [4 /*yield*/, authenticate_enduser_via_token(sdk, sdkA, { id: enduserA.id })];
                 case 6:
-                    // Sanity check: each enduser session can authenticate. We only use sdkA
-                    // for negative assertions, but a failed sdkB auth would mean the test
-                    // data setup itself is malformed.
+                    // Sanity check: each enduser session can be established. We only use sdkA
+                    // for negative assertions, but a failed sdkB session would mean the test
+                    // data setup itself is malformed. (Token-based to spare the IP-rate-limited /login-enduser.)
                     _c.sent();
-                    return [4 /*yield*/, sdkB.authenticate(enduserB.email, password)
+                    return [4 /*yield*/, authenticate_enduser_via_token(sdk, sdkB, { id: enduserB.id })
                         // Regression guard: hashedPassword must never appear in updateOne responses,
                         // for either enduser self-update or admin-side update of an enduser.
                     ];

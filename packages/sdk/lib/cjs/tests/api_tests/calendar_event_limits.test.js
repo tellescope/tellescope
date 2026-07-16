@@ -1217,7 +1217,7 @@ var calendar_event_limits_tests = function (_a) {
                     // Reset user limits for book_appointment tests
                     _b.sent();
                     enduserSession_1 = new sdk_1.EnduserSession({ host: host, businessId: businessId });
-                    return [4 /*yield*/, enduserSession_1.authenticate('test-limits-enduser@tellescope.com', password)
+                    return [4 /*yield*/, (0, setup_1.authenticate_enduser_via_token)(sdk, enduserSession_1, { email: 'test-limits-enduser@tellescope.com' })
                         // Get next available Monday
                     ];
                 case 39:

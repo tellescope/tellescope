@@ -118,6 +118,9 @@ var TwilioVideoProvider = function (_a) {
     var _r = (0, react_1.useState)(false), isEffectLoading = _r[0], setIsEffectLoading = _r[1];
     var _s = (0, react_1.useState)(null), backgroundImageEl = _s[0], setBackgroundImageEl = _s[1];
     var localTracksRef = (0, react_1.useRef)([]);
+    // Mirrors the room state so unmount/page-unload cleanup can reach the live
+    // room without re-registering listeners (state closures go stale)
+    var roomRef = (0, react_1.useRef)(null);
     var screenAudioTrackRef = (0, react_1.useRef)(null);
     var backgroundControllerRef = (0, react_1.useRef)(new backgroundEffects_1.BackgroundEffectController());
     var isImageBackgroundAvailable = isBackgroundEffectSupported && !!backgroundImageURL;
@@ -156,6 +159,7 @@ var TwilioVideoProvider = function (_a) {
                 case 3:
                     newRoom = _a.sent();
                     setRoom(newRoom);
+                    roomRef.current = newRoom;
                     existingParticipants = Array.from(newRoom.participants.values());
                     setParticipants(existingParticipants);
                     // Listen for new participants
@@ -183,6 +187,7 @@ var TwilioVideoProvider = function (_a) {
                         });
                         localTracksRef.current = [];
                         screenAudioTrackRef.current = null;
+                        roomRef.current = null;
                         setRoom(null);
                         setLocalVideoTrack(null);
                         setLocalAudioTrack(null);
@@ -214,6 +219,7 @@ var TwilioVideoProvider = function (_a) {
         });
         localTracksRef.current = [];
         screenAudioTrackRef.current = null;
+        roomRef.current = null;
         setRoom(null);
         setLocalVideoTrack(null);
         setLocalAudioTrack(null);
@@ -407,17 +413,33 @@ var TwilioVideoProvider = function (_a) {
         run();
         return function () { cancelled = true; };
     }, [localVideoTrack, backgroundEffect, isBackgroundEffectSupported, backgroundImageEl, setBackgroundEffect]);
-    // Cleanup on unmount
+    // Cleanup on unmount (e.g. SPA navigation away from the call)
     (0, react_1.useEffect)(function () {
         var controller = backgroundControllerRef.current;
         return function () {
+            var _a;
             controller.detach();
-            if (room) {
-                room.disconnect();
-            }
+            (_a = roomRef.current) === null || _a === void 0 ? void 0 : _a.disconnect();
             localTracksRef.current.forEach(function (track) {
                 track.stop();
             });
+        };
+    }, []);
+    // Disconnect on page unload (tab close, browser back out of the SPA) so the
+    // remote side gets participantDisconnected immediately instead of a frozen
+    // frame until Twilio's media timeout. pagehide covers modern browsers
+    // (including mobile Safari + bfcache); beforeunload is an older fallback.
+    // Disconnecting an already-disconnected room is a no-op.
+    (0, react_1.useEffect)(function () {
+        var handleUnload = function () {
+            var _a;
+            (_a = roomRef.current) === null || _a === void 0 ? void 0 : _a.disconnect();
+        };
+        window.addEventListener('pagehide', handleUnload);
+        window.addEventListener('beforeunload', handleUnload);
+        return function () {
+            window.removeEventListener('pagehide', handleUnload);
+            window.removeEventListener('beforeunload', handleUnload);
         };
     }, []);
     var value = {

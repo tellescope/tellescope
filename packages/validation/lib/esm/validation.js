@@ -2854,6 +2854,17 @@ export var FHIRObservationValueValidator = objectValidator({
     unit: stringValidator,
     value: numberValidator,
 });
+export var observationComponentsValidator = listValidatorOptionalOrEmptyOk(objectValidator({
+    code: objectValidator({
+        text: stringValidator,
+        coding: listValidatorOptionalOrEmptyOk(objectValidator({
+            system: stringValidator,
+            code: stringValidator,
+            display: stringValidatorOptional,
+        })),
+    }, { emptyOk: false }),
+    valueQuantity: FHIRObservationValueValidator,
+}));
 export var previousFormFieldValidator = orValidator({
     root: objectValidator({
         type: exactMatchValidator(['root']),

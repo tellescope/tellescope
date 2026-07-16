@@ -160,3 +160,16 @@ export const setup_tests = async (sdk: Session, sdkNonAdmin: Session) => {
     sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { notificationEmailsDisabled: true }),
   ]).catch(console.error)
 }
+
+// Establishes an enduser session WITHOUT hitting the IP-rate-limited /login-enduser endpoint
+// (throttleByIp: 20/min + 100/hr per IP — the full suite shares one IP and can exceed both).
+// Use for test setup; reserve enduserSDK.authenticate for tests OF the login flow itself.
+export const authenticate_enduser_via_token = async (
+  sdk: Session,
+  enduserSDK: EnduserSession,
+  filter: { id?: string, email?: string, externalId?: string },
+) => {
+  const { authToken, enduser } = await sdk.api.endusers.generate_auth_token(filter)
+  await enduserSDK.handle_new_session({ authToken, enduser })
+  return enduser
+}

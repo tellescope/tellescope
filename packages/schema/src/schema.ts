@@ -204,6 +204,7 @@ import {
   FHIRObservationCategoryValidator,
   FHIRObservationStatusCodeValidator,
   FHIRObservationValueValidator,
+  observationComponentsValidator,
   userIdentityValidator,
   formFieldTypeValidator,
   previousFormFieldsValidator,
@@ -765,6 +766,7 @@ export type CustomActions = {
         utm?: LabeledField[],
         markedAsSubmitted?: boolean,
         enduserAISummary?: string,
+        dontSyncToElation?: boolean,
       },
       { formResponse: FormResponse, nextFormGroupPublicURL?: string, redirectTo?: string }
     >,
@@ -1675,6 +1677,13 @@ export const schema: SchemaV1 = build_schema({
       pronouns: { validator: stringValidator100, redactions: ['enduser'] },
       height: { validator: genericUnitWithQuantityValidator, redactions: ['enduser'] },
       weight: { validator: genericUnitWithQuantityValidator, redactions: ['enduser'] },
+      // daily nutrition targets - enduser-readable and -writable (no redactions, no enduserUpdatesDisabled)
+      dailyCalorieTarget: { validator: nonNegNumberValidator },
+      dailyProteinTarget: { validator: nonNegNumberValidator },
+      dailyCarbTarget: { validator: nonNegNumberValidator },
+      dailyFatTarget: { validator: nonNegNumberValidator },
+      dailyFiberTarget: { validator: nonNegNumberValidator },
+      dailyWaterTarget: { validator: nonNegNumberValidator },
       source: { validator: stringValidator1000Optional, enduserUpdatesDisabled: true },
       addressLineOne: { validator: stringValidator5000EmptyOkay, redactions: ['enduser'] },
       addressLineTwo: { validator: stringValidator5000EmptyOkay, redactions: ['enduser'] },
@@ -4910,6 +4919,7 @@ export const schema: SchemaV1 = build_schema({
       diagnosisCodes: { validator: diagnosisCodesValidator },
       gtmTag: { validator: stringValidator100EscapeHTML },
       dontSyncToCanvasOnSubmission: { validator: booleanValidator },
+      dontAssociateCanvasResponsesWithAppointments: { validator: booleanValidator },
       archivedAt: { validator: dateOptionalOrEmptyStringValidator },
       title: {
         validator: stringValidator250,
@@ -5310,6 +5320,7 @@ export const schema: SchemaV1 = build_schema({
           utm: { validator: labeledFieldsValidator },
           markedAsSubmitted: { validator: booleanValidator },
           enduserAISummary: { validator: stringValidator25000 },
+          dontSyncToElation: { validator: booleanValidator },
         },
         returns: {
           formResponse: 'form response' as any,
@@ -6571,9 +6582,9 @@ export const schema: SchemaV1 = build_schema({
         returns: { },
       },
     },
-    enduserActions: { create: {}, createMany: {}, read: {}, readMany: {}, load: {} },
+    enduserActions: { create: {}, createMany: {}, read: {}, readMany: {}, load: {}, update: { creatorOnly: true }, delete: { creatorOnly: true } },
     fields: {
-      ...BuiltInFields, 
+      ...BuiltInFields,
       timestampIsEstimated: { validator: booleanValidator },
       category: {
         required: true,
@@ -6592,6 +6603,10 @@ export const schema: SchemaV1 = build_schema({
           unit: 'mmol',
           value: 8,
         }],
+      },
+      components: {
+        validator: observationComponentsValidator,
+        examples: [[{ code: { text: 'Protein' }, valueQuantity: { value: 42, unit: 'g' } }]],
       },
       enduserId: {
         required: true,

@@ -56,7 +56,7 @@ import { journey_error_branching_tests } from "./api_tests/journey_error_branchi
 import { journey_delete_cancels_actions_tests } from "./api_tests/journey_delete_cancels_actions.test"
 import { afteraction_day_of_month_delay_tests } from "./api_tests/afteraction_day_of_month_delay.test"
 import { push_forms_to_portal_group_completion_tests } from "./api_tests/push_forms_to_portal_group_completion.test"
-import { setup_tests } from "./setup"
+import { authenticate_enduser_via_token, setup_tests } from "./setup"
 import { evaluate_conditional_logic_for_enduser_fields, FORM_LOGIC_CALCULATED_FIELDS, get_care_team_primary, get_flattened_fields, get_next_reminder_timestamp, object_is_empty, replace_enduser_template_values, replace_form_field_template_values, responses_satisfy_conditions, truncate_string, weighted_round_robin, YYYY_MM_DD_to_MM_DD_YYYY } from "@tellescope/utilities"
 import { DEFAULT_OPERATIONS, PLACEHOLDER_ID, ZENDESK_INTEGRATIONS_TITLE, ZOOM_TITLE } from "@tellescope/constants"
 import { 
@@ -94,6 +94,7 @@ import { monthly_availability_restrictions_tests } from "./api_tests/monthly_ava
 import { calendar_event_limits_tests } from "./api_tests/calendar_event_limits.test";
 import { custom_aggregation_tests } from "./api_tests/custom_aggregation.test";
 import { chats_analytics_tests } from "./api_tests/chats_analytics.test";
+import { nutrition_tracking_tests } from "./api_tests/nutrition_tracking.test";
 import { no_access_permission_checks_tests } from "./api_tests/no_access_permission_checks.test";
 import { resource_access_tags_tests } from "./api_tests/resource_access_tags.test";
 import { field_redaction_tests } from "./api_tests/field_redaction.test";
@@ -120,6 +121,7 @@ import { ai_conversations_tests } from "./api_tests/ai_conversations.test";
 import { load_team_chat_tests } from "./api_tests/load_team_chat.test";
 import { form_started_trigger_tests } from "./api_tests/form_started_trigger.test";
 import { form_submitted_trigger_tests } from "./api_tests/form_submitted_trigger.test";
+import { dont_sync_to_elation_form_submission_tests } from "./api_tests/dont_sync_to_elation_form_submission.test";
 import { medication_added_trigger_tests } from "./api_tests/medication_added_trigger.test";
 import { conditional_logic_medication_unit_tests } from "./unit_tests/conditional_logic_medication.test";
 import { elation_user_id_tests } from "./api_tests/elation_user_id.test";
@@ -283,7 +285,7 @@ const sub_organization_tests = async() => {
   await async_test(`subsub get subsub`, () => sdkSubSub.api.endusers.getOne(subSubEnduser.id), passOnAnyResult)
 
   await sdk.api.endusers.set_password({ id: rootEnduser.id, password })
-  await enduserSDK.authenticate(rootEnduser.email!, password)
+  await authenticate_enduser_via_token(sdk, enduserSDK, { id: rootEnduser.id })
   await async_test(
     `root enduser create`, 
     () => enduserSDK.api.engagement_events.createOne({ significance: 1, type: 'test', enduserId: rootEnduser.id }), 
@@ -295,7 +297,7 @@ const sub_organization_tests = async() => {
 
 
   await sdk.api.endusers.set_password({ id: subEnduser.id, password })
-  await enduserSDK.authenticate(subEnduser.email!, password)
+  await authenticate_enduser_via_token(sdk, enduserSDK, { id: subEnduser.id })
   await async_test(
     `sub enduser create`, 
     () => enduserSDK.api.engagement_events.createOne({ significance: 1, type: 'test', enduserId: subEnduser.id }), 
@@ -303,7 +305,7 @@ const sub_organization_tests = async() => {
   )
 
   await sdk.api.endusers.set_password({ id: subSubEnduser.id, password })
-  await enduserSDK.authenticate(subSubEnduser.email!, password)
+  await authenticate_enduser_via_token(sdk, enduserSDK, { id: subSubEnduser.id })
   await async_test(
     `subSub enduser create`, 
     () => enduserSDK.api.engagement_events.createOne({ significance: 1, type: 'test', enduserId: subSubEnduser.id }), 
@@ -827,8 +829,13 @@ const enduser_tests = async (queries=sdk.api.endusers) => {
   )
   await async_test(
     `enduser registered can log in`,
-    () => enduserSDK.authenticate('test3@gmail.com', 'testenduserpassword'), 
+    () => enduserSDK.authenticate('test3@gmail.com', 'testenduserpassword'),
     { onResult: e => !!e.authToken && e.enduser.email === 'test3@gmail.com' },
+  )
+  await async_test(
+    `enduser login rejects a wrong password`,
+    () => new EnduserSession({ host, businessId }).authenticate('test3@gmail.com', 'wrong-password'),
+    handleAnyError,
   )
 
   await async_test(
@@ -1379,7 +1386,7 @@ const chat_tests = async() => {
 
   const enduser = await sdk.api.endusers.createOne({ email })
   await sdk.api.endusers.set_password({ id: enduser.id, password }).catch(console.error)
-  await enduserSDK.authenticate(email, password).catch(console.error)
+  await authenticate_enduser_via_token(sdk, enduserSDK, { id: enduser.id }).catch(console.error)
 
   const room  = await sdk.api.chat_rooms.createOne({ type: 'internal', userIds: [userId] })
   const chat  = await sdk.api.chats.createOne({ roomId: room.id, message: "Hello!" })
@@ -1522,7 +1529,7 @@ const enduserAccessTests = async () => {
   const enduser = await sdk.api.endusers.createOne({ email })
   const enduser2 = await sdk.api.endusers.createOne({ email: 'hi' + email })
   await sdk.api.endusers.set_password({ id: enduser.id, password }).catch(console.error)
-  await enduserSDK.authenticate(email, password).catch(console.error)
+  await authenticate_enduser_via_token(sdk, enduserSDK, { id: enduser.id }).catch(console.error)
 
   await wait(undefined, 1000) // wait so that refresh_session generates a new authToken (different timestamp)
 
@@ -1707,7 +1714,7 @@ const files_tests = async () => {
   log_header("Files")
   const enduser = await sdk.api.endusers.createOne({ email })
   await sdk.api.endusers.set_password({ id: enduser.id, password }).catch(console.error)
-  await enduserSDK.authenticate(email, password).catch(console.error)
+  await authenticate_enduser_via_token(sdk, enduserSDK, { id: enduser.id }).catch(console.error)
   await sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword) // to use new role, handle logout on role change
 
   const buff = buffer.Buffer.from('test file data')
@@ -1818,7 +1825,7 @@ const enduser_session_tests = async () => {
 
   const enduser = await sdk.api.endusers.createOne({ email })
   await sdk.api.endusers.set_password({ id: enduser.id, password }).catch(console.error)
-  await enduserSDK.authenticate(email, password).catch(console.error)
+  await authenticate_enduser_via_token(sdk, enduserSDK, { id: enduser.id }).catch(console.error)
 
   const users = await enduserSDK.api.users.display_info()
   assert(users && users.length > 0, 'No users returned', 'Get user display info for enduser')
@@ -5840,7 +5847,7 @@ export const meetings_tests = async () => {
 
   const enduser = await sdk.api.endusers.createOne({ email })
   await sdk.api.endusers.set_password({ id: enduser.id, password }).catch(console.error)
-  await enduserSDK.authenticate(email, password).catch(console.error) 
+  await authenticate_enduser_via_token(sdk, enduserSDK, { id: enduser.id }).catch(console.error)
 
   const privateMeeting = await sdk.api.meetings.start_meeting({ })
   const publicMeeting = await sdk.api.meetings.start_meeting({ publicRead: true })
@@ -6206,7 +6213,7 @@ const community_tests = async () => {
 
   const enduser = await sdk.api.endusers.createOne({ email })
   await sdk.api.endusers.set_password({ id: enduser.id, password }).catch(console.error)
-  await enduserSDK.authenticate(email, password).catch(console.error) 
+  await authenticate_enduser_via_token(sdk, enduserSDK, { id: enduser.id }).catch(console.error)
 
   const forum = await sdk.api.forums.createOne({ title: 'test', publicRead: true })
   const privateForum = await sdk.api.forums.createOne({ title: 'test 2', publicRead: false })
@@ -6353,7 +6360,7 @@ const redaction_tests = async () => {
     unredactedFields: [{ field: 'testField', value: 'testValue' }] as any,
   })
   await sdk.api.endusers.set_password({ id: enduser.id, password }).catch(console.error)
-  await enduserSDK.authenticate(email, password).catch(console.error)
+  await authenticate_enduser_via_token(sdk, enduserSDK, { id: enduser.id }).catch(console.error)
 
   const endusers = await enduserSDK.api.endusers.getSome()
   const forUser  = await sdk.api.endusers.getSome()
@@ -6600,7 +6607,7 @@ export const calendar_event_RSVPs_tests = async () => {
   log_header("Calendar Event RSVPs")
 
   await enduserSDK.register({ email: 'rsvps@tellescope.com', password: "testenduserpassword" })
-  await enduserSDK.authenticate('rsvps@tellescope.com', "testenduserpassword")
+  await authenticate_enduser_via_token(sdk, enduserSDK, { email: 'rsvps@tellescope.com' })
 
   const event = await sdk.api.calendar_events.createOne({
     title: "RSVP Event",
@@ -6685,7 +6692,7 @@ const post_comments_tests = async () => {
   log_header("Post Comments")
 
   await enduserSDK.register({ email: 'rsvps@tellescope.com', password: "testenduserpassword" })
-  await enduserSDK.authenticate('rsvps@tellescope.com', "testenduserpassword")
+  await authenticate_enduser_via_token(sdk, enduserSDK, { email: 'rsvps@tellescope.com' })
 
   const forumId = (await sdk.api.forums.createOne({ title: "RSVP Event", publicRead: true })).id
   const postId = (await sdk.api.forum_posts.createOne({ forumId, title: 'Post', htmlContent: '', textContent: '',  })).id
@@ -6903,13 +6910,13 @@ export const self_serve_appointment_booking_tests = async () => {
   })
 
   const enduserSDK2 = new EnduserSession({ host, businessId })
-  await enduserSDK2.authenticate('sebass+ca@tellescope.com', password).catch(console.error) 
+  await authenticate_enduser_via_token(sdk, enduserSDK2, { email: 'sebass+ca@tellescope.com' }).catch(console.error)
 
   const enduserSDK3 = new EnduserSession({ host, businessId })
-  await enduserSDK3.authenticate('sebass+3@tellescope.com', password).catch(console.error) 
+  await authenticate_enduser_via_token(sdk, enduserSDK3, { email: 'sebass+3@tellescope.com' }).catch(console.error)
 
   // NY Enduser Tests
-  await enduserSDK.authenticate('sebass+ny@tellescope.com', password).catch(console.error) 
+  await authenticate_enduser_via_token(sdk, enduserSDK, { email: 'sebass+ny@tellescope.com' }).catch(console.error)
   await async_test(
     '30 minute slots for state restriction',
     () => enduserSDK.api.calendar_events.get_appointment_availability({
@@ -7570,7 +7577,7 @@ const run_autoreply_test = async (title: string, { expectingAutoreply, autoreply
 
   const enduser = await sdk.api.endusers.createOne({ fname: 'Autoreply', lname: "Test", email: "autoreply@tellescope.com" })
   await sdk.api.endusers.set_password({ id: enduser.id, password })
-  await enduserSDK.authenticate(enduser.email!, password)
+  await authenticate_enduser_via_token(sdk, enduserSDK, { id: enduser.id })
 
   const room = await sdk.api.chat_rooms.createOne({ 
     userIds: [sdk.userInfo.id],
@@ -15076,6 +15083,7 @@ const ip_address_form_tests = async () => {
     await chats_analytics_tests({ sdk, sdkNonAdmin })
     await field_redaction_tests({ sdk, sdkNonAdmin })
     await form_submitted_trigger_tests({ sdk, sdkNonAdmin })
+    await dont_sync_to_elation_form_submission_tests({ sdk, sdkNonAdmin })
     await date_string_validation_tests({ sdk, sdkNonAdmin })
     await openloop_webhooks_tests({ sdk, sdkNonAdmin })
     await mdi_webhooks_tests({ sdk, sdkNonAdmin })
@@ -15122,6 +15130,7 @@ const ip_address_form_tests = async () => {
     await inbox_threads_loading_tests()
     await load_inbox_data_tests({ sdk, sdkNonAdmin })
     await enduser_observations_acknowledge_tests({ sdk, sdkNonAdmin })
+    await nutrition_tracking_tests({ sdk, sdkNonAdmin })
     await translations_tests({ sdk, sdkNonAdmin })
     await create_user_notifications_trigger_tests({ sdk })
     await group_mms_active_tests()

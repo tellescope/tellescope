@@ -443,6 +443,7 @@ export type CustomActions = {
             utm?: LabeledField[];
             markedAsSubmitted?: boolean;
             enduserAISummary?: string;
+            dontSyncToElation?: boolean;
         }, {
             formResponse: FormResponse;
             nextFormGroupPublicURL?: string;

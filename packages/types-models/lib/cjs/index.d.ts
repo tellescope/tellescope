@@ -1014,6 +1014,12 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
     pronouns?: string;
     height?: GenericQuantityWithUnit;
     weight?: GenericQuantityWithUnit;
+    dailyCalorieTarget?: number;
+    dailyProteinTarget?: number;
+    dailyCarbTarget?: number;
+    dailyFatTarget?: number;
+    dailyFiberTarget?: number;
+    dailyWaterTarget?: number;
     source?: string;
     usingV1SMS?: boolean;
     addressLineOne?: string;
@@ -2146,6 +2152,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
     syncToCanvasAsDataImport?: boolean;
     matchCareTeamTagsForCanvasPractitionerResolution?: ListOfStringsWithQualifier;
     dontSyncToCanvasOnSubmission?: boolean;
+    dontAssociateCanvasResponsesWithAppointments?: boolean;
     belugaVisitType?: string;
     belugaVerificationId?: string;
     belugaPharmacyMappings?: BelugaPharmacyMapping[];
@@ -3706,6 +3713,18 @@ export type ObservationValue = {
     value: number;
     unit: string;
 };
+export type ObservationComponentCoding = {
+    system: string;
+    code: string;
+    display?: string;
+};
+export type ObservationComponent = {
+    code: {
+        text: string;
+        coding?: ObservationComponentCoding[];
+    };
+    valueQuantity: ObservationValue;
+};
 export type ObservationStatusCode = ('registered' | 'preliminary' | 'final' | 'amended' | 'corrected' | 'cancelled' | 'entered-in-error' | 'unknown');
 export type ObservationCategory = 'vital-signs' | 'laboratory';
 export interface EnduserObservation_readonly extends ClientRecord {
@@ -3746,6 +3765,7 @@ export interface EnduserObservation extends EnduserObservation_readonly, Enduser
     showWithPlotsByUnit?: string[];
     invalidationReason?: string;
     excludeFromVitalCountLookback?: boolean;
+    components?: ObservationComponent[];
 }
 export type BlockType = 'h1' | 'h2' | 'html' | 'raw-html' | 'image' | 'youtube' | 'pdf' | 'iframe' | 'content-link';
 export type BlockStyle = {

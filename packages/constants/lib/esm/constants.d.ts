@@ -173,6 +173,7 @@ export declare const ATHENA_TITLE = "athenahealth";
 export declare const SUPERDIAL_TITLE = "SuperDial";
 export declare const DOSESPOT_TITLE = "DoseSpot";
 export declare const SCRIPTSURE_TITLE = "ScriptSure";
+export declare const USDA_TITLE = "USDA";
 export declare const DOCSUMO_TITLE = "Docsumo";
 export declare const ACTIVE_CAMPAIGN_TITLE = "ActiveCampaign";
 export declare const ZENDESK_INTEGRATIONS_TITLE = "Zendesk";

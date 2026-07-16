@@ -257,4 +257,21 @@ export var setup_tests = function (sdk, sdkNonAdmin) { return __awaiter(void 0, 
         }
     });
 }); };
+// Establishes an enduser session WITHOUT hitting the IP-rate-limited /login-enduser endpoint
+// (throttleByIp: 20/min + 100/hr per IP — the full suite shares one IP and can exceed both).
+// Use for test setup; reserve enduserSDK.authenticate for tests OF the login flow itself.
+export var authenticate_enduser_via_token = function (sdk, enduserSDK, filter) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, authToken, enduser;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0: return [4 /*yield*/, sdk.api.endusers.generate_auth_token(filter)];
+            case 1:
+                _a = _b.sent(), authToken = _a.authToken, enduser = _a.enduser;
+                return [4 /*yield*/, enduserSDK.handle_new_session({ authToken: authToken, enduser: enduser })];
+            case 2:
+                _b.sent();
+                return [2 /*return*/, enduser];
+        }
+    });
+}); };
 //# sourceMappingURL=setup.js.map

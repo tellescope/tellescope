@@ -99,6 +99,9 @@ export const TwilioVideoProvider: React.FC<TwilioVideoProviderProps> = ({ childr
   const [backgroundImageEl, setBackgroundImageEl] = useState<HTMLImageElement | null>(null)
 
   const localTracksRef = useRef<(LocalVideoTrack | LocalAudioTrack)[]>([])
+  // Mirrors the room state so unmount/page-unload cleanup can reach the live
+  // room without re-registering listeners (state closures go stale)
+  const roomRef = useRef<Room | null>(null)
   const screenAudioTrackRef = useRef<LocalAudioTrack | null>(null)
   const backgroundControllerRef = useRef<BackgroundEffectController>(new BackgroundEffectController())
 
@@ -136,6 +139,7 @@ export const TwilioVideoProvider: React.FC<TwilioVideoProviderProps> = ({ childr
       })
 
       setRoom(newRoom)
+      roomRef.current = newRoom
 
       // Handle existing participants
       const existingParticipants = Array.from(newRoom.participants.values())
@@ -169,6 +173,7 @@ export const TwilioVideoProvider: React.FC<TwilioVideoProviderProps> = ({ childr
         })
         localTracksRef.current = []
         screenAudioTrackRef.current = null
+        roomRef.current = null
         setRoom(null)
         setLocalVideoTrack(null)
         setLocalAudioTrack(null)
@@ -198,6 +203,7 @@ export const TwilioVideoProvider: React.FC<TwilioVideoProviderProps> = ({ childr
     localTracksRef.current = []
     screenAudioTrackRef.current = null
 
+    roomRef.current = null
     setRoom(null)
     setLocalVideoTrack(null)
     setLocalAudioTrack(null)
@@ -361,17 +367,32 @@ export const TwilioVideoProvider: React.FC<TwilioVideoProviderProps> = ({ childr
     return () => { cancelled = true }
   }, [localVideoTrack, backgroundEffect, isBackgroundEffectSupported, backgroundImageEl, setBackgroundEffect])
 
-  // Cleanup on unmount
+  // Cleanup on unmount (e.g. SPA navigation away from the call)
   useEffect(() => {
     const controller = backgroundControllerRef.current
     return () => {
       controller.detach()
-      if (room) {
-        room.disconnect()
-      }
+      roomRef.current?.disconnect()
       localTracksRef.current.forEach(track => {
         track.stop()
       })
+    }
+  }, [])
+
+  // Disconnect on page unload (tab close, browser back out of the SPA) so the
+  // remote side gets participantDisconnected immediately instead of a frozen
+  // frame until Twilio's media timeout. pagehide covers modern browsers
+  // (including mobile Safari + bfcache); beforeunload is an older fallback.
+  // Disconnecting an already-disconnected room is a no-op.
+  useEffect(() => {
+    const handleUnload = () => {
+      roomRef.current?.disconnect()
+    }
+    window.addEventListener('pagehide', handleUnload)
+    window.addEventListener('beforeunload', handleUnload)
+    return () => {
+      window.removeEventListener('pagehide', handleUnload)
+      window.removeEventListener('beforeunload', handleUnload)
     }
   }, [])
 

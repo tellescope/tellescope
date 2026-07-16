@@ -6,7 +6,7 @@ import {
   handleAnyError,
   log_header,
 } from "@tellescope/testing"
-import { setup_tests } from "../setup"
+import { authenticate_enduser_via_token, setup_tests } from "../setup"
 import { DateTime } from "luxon"
 import { slot_violates_calendar_event_limits } from "@tellescope/utilities"
 import { CalendarEventLimit } from "@tellescope/types-models"
@@ -1272,7 +1272,7 @@ export const calendar_event_limits_tests = async ({ sdk, sdkNonAdmin } : { sdk: 
 
     // Authenticate enduser for booking
     const enduserSession = new EnduserSession({ host, businessId })
-    await enduserSession.authenticate('test-limits-enduser@tellescope.com', password)
+    await authenticate_enduser_via_token(sdk, enduserSession, { email: 'test-limits-enduser@tellescope.com' })
 
     // Get next available Monday
     const nowForBooking = DateTime.now().setZone('America/New_York')

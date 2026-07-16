@@ -37,7 +37,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 require('source-map-support').install();
 import { Session, EnduserSession } from "../../sdk";
 import { async_test, handleAnyError, log_header, } from "@tellescope/testing";
-import { setup_tests } from "../setup";
+import { authenticate_enduser_via_token, setup_tests } from "../setup";
 import { DateTime } from "luxon";
 import { slot_violates_calendar_event_limits } from "@tellescope/utilities";
 var host = process.env.API_URL || 'http://localhost:8080';
@@ -1213,7 +1213,7 @@ export var calendar_event_limits_tests = function (_a) {
                     // Reset user limits for book_appointment tests
                     _b.sent();
                     enduserSession_1 = new EnduserSession({ host: host, businessId: businessId });
-                    return [4 /*yield*/, enduserSession_1.authenticate('test-limits-enduser@tellescope.com', password)
+                    return [4 /*yield*/, authenticate_enduser_via_token(sdk, enduserSession_1, { email: 'test-limits-enduser@tellescope.com' })
                         // Get next available Monday
                     ];
                 case 39:

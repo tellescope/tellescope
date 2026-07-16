@@ -310,7 +310,9 @@ exports.schema = (0, exports.build_schema)({
                 // ]
             }, 
             // should allow any gender via API but our UI can limit to Tellescope types by default
-            gender: { validator: validation_1.stringValidator, redactions: ['enduser'] }, genderIdentity: { validator: validation_1.stringValidator100, redactions: ['enduser'] }, pronouns: { validator: validation_1.stringValidator100, redactions: ['enduser'] }, height: { validator: validation_1.genericUnitWithQuantityValidator, redactions: ['enduser'] }, weight: { validator: validation_1.genericUnitWithQuantityValidator, redactions: ['enduser'] }, source: { validator: validation_1.stringValidator1000Optional, enduserUpdatesDisabled: true }, addressLineOne: { validator: validation_1.stringValidator5000EmptyOkay, redactions: ['enduser'] }, addressLineTwo: { validator: validation_1.stringValidator5000EmptyOkay, redactions: ['enduser'] }, city: { validator: validation_1.stringValidator5000EmptyOkay, redactions: ['enduser'] }, state: { validator: validation_1.stateValidator, redactions: ['enduser'] }, zipCode: { validator: validation_1.stringValidator25000EmptyOkay, redactions: ['enduser'] }, zipPlusFour: { validator: validation_1.stringValidator100, redactions: ['enduser'] }, timezone: { validator: validation_1.timezoneValidator }, humanReadableId: { validator: validation_1.stringValidator100 }, displayName: { validator: validation_1.stringValidator250 }, unsubscribedFromPortalChatNotifications: { validator: validation_1.booleanValidator }, triggeredEvents: { validator: (0, validation_1.objectAnyFieldsValidator)(validation_1.numberValidator) }, customTypeId: { validator: validation_1.mongoIdStringRequired, enduserUpdatesDisabled: true }, language: { validator: validation_1.languageValidator }, relationships: {
+            gender: { validator: validation_1.stringValidator, redactions: ['enduser'] }, genderIdentity: { validator: validation_1.stringValidator100, redactions: ['enduser'] }, pronouns: { validator: validation_1.stringValidator100, redactions: ['enduser'] }, height: { validator: validation_1.genericUnitWithQuantityValidator, redactions: ['enduser'] }, weight: { validator: validation_1.genericUnitWithQuantityValidator, redactions: ['enduser'] }, 
+            // daily nutrition targets - enduser-readable and -writable (no redactions, no enduserUpdatesDisabled)
+            dailyCalorieTarget: { validator: validation_1.nonNegNumberValidator }, dailyProteinTarget: { validator: validation_1.nonNegNumberValidator }, dailyCarbTarget: { validator: validation_1.nonNegNumberValidator }, dailyFatTarget: { validator: validation_1.nonNegNumberValidator }, dailyFiberTarget: { validator: validation_1.nonNegNumberValidator }, dailyWaterTarget: { validator: validation_1.nonNegNumberValidator }, source: { validator: validation_1.stringValidator1000Optional, enduserUpdatesDisabled: true }, addressLineOne: { validator: validation_1.stringValidator5000EmptyOkay, redactions: ['enduser'] }, addressLineTwo: { validator: validation_1.stringValidator5000EmptyOkay, redactions: ['enduser'] }, city: { validator: validation_1.stringValidator5000EmptyOkay, redactions: ['enduser'] }, state: { validator: validation_1.stateValidator, redactions: ['enduser'] }, zipCode: { validator: validation_1.stringValidator25000EmptyOkay, redactions: ['enduser'] }, zipPlusFour: { validator: validation_1.stringValidator100, redactions: ['enduser'] }, timezone: { validator: validation_1.timezoneValidator }, humanReadableId: { validator: validation_1.stringValidator100 }, displayName: { validator: validation_1.stringValidator250 }, unsubscribedFromPortalChatNotifications: { validator: validation_1.booleanValidator }, triggeredEvents: { validator: (0, validation_1.objectAnyFieldsValidator)(validation_1.numberValidator) }, customTypeId: { validator: validation_1.mongoIdStringRequired, enduserUpdatesDisabled: true }, language: { validator: validation_1.languageValidator }, relationships: {
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     id: validation_1.mongoIdStringRequired,
                     type: validation_1.stringValidator100,
@@ -3149,7 +3151,7 @@ exports.schema = (0, exports.build_schema)({
                     offering_id: validation_1.stringValidator100,
                     conditions: validation_1.compoundFilterValidator,
                 }))
-            }, autoMergeOnSubmission: { validator: validation_1.booleanValidator }, procedureCodes: { validator: procedureCodesValidator }, diagnosisCodes: { validator: diagnosisCodesValidator }, gtmTag: { validator: validation_1.stringValidator100EscapeHTML }, dontSyncToCanvasOnSubmission: { validator: validation_1.booleanValidator }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, title: {
+            }, autoMergeOnSubmission: { validator: validation_1.booleanValidator }, procedureCodes: { validator: procedureCodesValidator }, diagnosisCodes: { validator: diagnosisCodesValidator }, gtmTag: { validator: validation_1.stringValidator100EscapeHTML }, dontSyncToCanvasOnSubmission: { validator: validation_1.booleanValidator }, dontAssociateCanvasResponsesWithAppointments: { validator: validation_1.booleanValidator }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, title: {
                 validator: validation_1.stringValidator250,
                 required: true,
                 examples: ["Text"],
@@ -3408,6 +3410,7 @@ exports.schema = (0, exports.build_schema)({
                     utm: { validator: validation_1.labeledFieldsValidator },
                     markedAsSubmitted: { validator: validation_1.booleanValidator },
                     enduserAISummary: { validator: validation_1.stringValidator25000 },
+                    dontSyncToElation: { validator: validation_1.booleanValidator },
                 },
                 returns: {
                     formResponse: 'form response',
@@ -4413,7 +4416,7 @@ exports.schema = (0, exports.build_schema)({
                 returns: {},
             },
         },
-        enduserActions: { create: {}, createMany: {}, read: {}, readMany: {}, load: {} },
+        enduserActions: { create: {}, createMany: {}, read: {}, readMany: {}, load: {}, update: { creatorOnly: true }, delete: { creatorOnly: true } },
         fields: __assign(__assign({}, BuiltInFields), { timestampIsEstimated: { validator: validation_1.booleanValidator }, category: {
                 required: true,
                 validator: validation_1.FHIRObservationCategoryValidator,
@@ -4429,6 +4432,9 @@ exports.schema = (0, exports.build_schema)({
                         unit: 'mmol',
                         value: 8,
                     }],
+            }, components: {
+                validator: validation_1.observationComponentsValidator,
+                examples: [[{ code: { text: 'Protein' }, valueQuantity: { value: 42, unit: 'g' } }]],
             }, enduserId: {
                 required: true,
                 validator: validation_1.mongoIdStringRequired,
