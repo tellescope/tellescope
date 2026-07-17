@@ -5082,6 +5082,9 @@ export type PhoneTreeEvents = {
     'If No Users Match': PhoneTreeEventBuilder<'If No Users Match', {}>;
     'If No Users Answer': PhoneTreeEventBuilder<'If No Users Answer', {}>;
     'After Action': PhoneTreeEventBuilder<'After Action', {}>;
+    'On Agent Outcome': PhoneTreeEventBuilder<'On Agent Outcome', {
+        outcome: string;
+    }>;
 };
 export type PhoneTreeEventType = keyof PhoneTreeEvents;
 export type PhoneTreeEvent = PhoneTreeEvents[PhoneTreeEventType];
@@ -5172,6 +5175,21 @@ export type PhoneTreeActions = {
     }>;
     'Add to Journey': PhoneTreeActionBuilder<"Add to Journey", {
         journeyId: string;
+    }>;
+    'AI Agent': PhoneTreeActionBuilder<"AI Agent", {
+        prompt: string;
+        greeting?: string;
+        voice?: string;
+        language?: string;
+        interruptible?: boolean;
+        maxTokensPerTurn?: number;
+        maxTurns?: number;
+        maxDurationSeconds?: number;
+        maxCreditsPerCall?: number;
+        outcomes: {
+            value: string;
+            description: string;
+        }[];
     }>;
 };
 export type PhoneTreeActionType = keyof PhoneTreeActions;
@@ -5774,6 +5792,7 @@ export type AICOnversationMessageContent = {
     type: 'text' | 'image' | 'file';
     text?: string;
 };
+export type AIConversationMessageStatus = 'pending' | 'completed' | 'errored_pre_stream' | 'errored_mid_stream' | 'rejected_pre_request';
 export type AIConversationMessage = {
     role: 'user' | 'assistant';
     text: string;
@@ -5782,6 +5801,18 @@ export type AIConversationMessage = {
     content?: AICOnversationMessageContent[];
     userId?: string;
     systemPrompt?: string;
+    invocationId?: string;
+    turnId?: string;
+    toolRound?: number;
+    status?: AIConversationMessageStatus;
+    estimated?: boolean;
+    stopReason?: string;
+    interrupted?: boolean;
+    latencyMs?: number;
+    cacheReadInputTokens?: number;
+    cacheWriteInputTokens?: number;
+    ratedAt?: Date;
+    creditsCharged?: number;
 };
 export interface AIConversation_readonly extends ClientRecord {
 }
@@ -5797,6 +5828,9 @@ export interface AIConversation extends AIConversation_readonly, AIConversation_
     enduserId?: string;
     journeyId?: string;
     automationStepId?: string;
+    callSid?: string;
+    phoneTreeId?: string;
+    nodeId?: string;
 }
 export interface InboxThread_readonly extends ClientRecord {
     searchKeywords?: string[];

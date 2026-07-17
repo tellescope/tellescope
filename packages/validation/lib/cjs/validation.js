@@ -5620,6 +5620,13 @@ exports.phoneTreeEventValidator = (0, exports.orValidator)({
         info: exports.optionalEmptyObjectValidator,
         parentId: exports.stringValidator1000Optional,
     }),
+    "On Agent Outcome": (0, exports.objectValidator)({
+        type: (0, exports.exactMatchValidator)(['On Agent Outcome']),
+        parentId: exports.stringValidator100,
+        info: (0, exports.objectValidator)({
+            outcome: exports.stringValidator250,
+        }),
+    }),
 });
 exports.phoneTreeEventsValidator = (0, exports.listValidatorEmptyOk)(exports.phoneTreeEventValidator);
 exports.phonePlaybackValidator = (0, exports.orValidator)({
@@ -5765,6 +5772,24 @@ exports.phoneTreeActionValidator = (0, exports.orValidator)({
         type: (0, exports.exactMatchValidator)(['Add to Journey']),
         info: (0, exports.objectValidator)({
             journeyId: exports.mongoIdStringRequired,
+        }),
+    }),
+    "AI Agent": (0, exports.objectValidator)({
+        type: (0, exports.exactMatchValidator)(['AI Agent']),
+        info: (0, exports.objectValidator)({
+            prompt: exports.stringValidator5000,
+            greeting: exports.stringValidatorOptional,
+            voice: exports.stringValidatorOptional,
+            language: exports.stringValidatorOptional,
+            interruptible: exports.booleanValidatorOptional,
+            maxTokensPerTurn: exports.numberValidatorOptional,
+            maxTurns: exports.numberValidatorOptional,
+            maxDurationSeconds: exports.numberValidatorOptional,
+            maxCreditsPerCall: exports.numberValidatorOptional,
+            outcomes: (0, exports.listValidator)((0, exports.objectValidator)({
+                value: exports.stringValidator250,
+                description: exports.stringValidator1000,
+            })),
         }),
     }),
 });

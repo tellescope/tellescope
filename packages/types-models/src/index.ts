@@ -5072,6 +5072,8 @@ export type PhoneTreeEvents = {
   'If No Users Match': PhoneTreeEventBuilder<'If No Users Match', { }>,
   'If No Users Answer': PhoneTreeEventBuilder<'If No Users Answer', { }>,
   'After Action': PhoneTreeEventBuilder<'After Action', { }>,
+  // branches from an 'AI Agent' node when the agent ends with this outcome (the AI sibling of 'On Gather')
+  'On Agent Outcome': PhoneTreeEventBuilder<'On Agent Outcome', { outcome: string }>,
 }
 export type PhoneTreeEventType = keyof PhoneTreeEvents
 export type PhoneTreeEvent = PhoneTreeEvents[PhoneTreeEventType]
@@ -5128,8 +5130,23 @@ export type PhoneTreeActions = {
     playback?: Partial<PhonePlayback>,
   }>
   'Add to Journey': PhoneTreeActionBuilder<"Add to Journey", { journeyId: string }>
+  // Conversational AI agent (Twilio ConversationRelay + Bedrock). A generic "end call with outcome"
+  // step: the agent converses, then ends with one of the configured outcomes; the tree branches on
+  // the outcome via 'On Agent Outcome' events, like 'On Gather' branches on input.
+  'AI Agent': PhoneTreeActionBuilder<"AI Agent", {
+    prompt: string, // org-authored additions to the base voice system prompt
+    greeting?: string, // ConversationRelay welcomeGreeting
+    voice?: string,
+    language?: string,
+    interruptible?: boolean, // barge-in, default true
+    maxTokensPerTurn?: number,
+    maxTurns?: number,
+    maxDurationSeconds?: number,
+    maxCreditsPerCall?: number, // per-call spend circuit breaker, default from constants
+    outcomes: { value: string, description: string }[], // the agent must end with one of these
+  }>
 }
-export type PhoneTreeActionType = keyof PhoneTreeActions 
+export type PhoneTreeActionType = keyof PhoneTreeActions
 export type PhoneTreeAction = PhoneTreeActions[PhoneTreeActionType]
 
 export type PhoneTreeNode = {
@@ -5691,6 +5708,10 @@ export type AICOnversationMessageContent = {
   type: 'text' | 'image' | 'file',
   text?: string,
 }
+// Status of a metered (voice agent) Bedrock invocation. A pair of messages that stays
+// 'pending' permanently is the durable record of a crashed invocation (never rated/charged).
+export type AIConversationMessageStatus =
+  'pending' | 'completed' | 'errored_pre_stream' | 'errored_mid_stream' | 'rejected_pre_request'
 export type AIConversationMessage = {
   role: 'user' | 'assistant',
   text: string,
@@ -5699,6 +5720,20 @@ export type AIConversationMessage = {
   content?: AICOnversationMessageContent[],
   userId?: string, // for user messages
   systemPrompt?: string, // system prompt used for this API call (typically on last input message)
+  // metering fields (voice agent) — all optional; existing chat messages are unaffected.
+  // Voice-agent entries are content-free (text: '') and exist for billing/audit only.
+  invocationId?: string, // UUID minted before the Bedrock call; shared by the user/assistant pair — idempotency key
+  turnId?: string, // shared by all invocations of one tool-loop turn
+  toolRound?: number, // 0 for the first invocation of a turn; increments per tool-loop round
+  status?: AIConversationMessageStatus,
+  estimated?: boolean, // true when usage metadata never arrived and tokens are a conservative estimate
+  stopReason?: string,
+  interrupted?: boolean, // barge-in / hangup mid-stream (usage still authoritative via drain)
+  latencyMs?: number,
+  cacheReadInputTokens?: number, // captured from day one, default 0 (assistant entry)
+  cacheWriteInputTokens?: number,
+  ratedAt?: Date, // set once when credits were deducted for this pair (assistant entry)
+  creditsCharged?: number, // credits actually deducted (assistant entry) — raw tokens above are never rewritten
 }
 export interface AIConversation_readonly extends ClientRecord {}
 export interface AIConversation_required {
@@ -5712,6 +5747,9 @@ export interface AIConversation extends AIConversation_readonly, AIConversation_
   enduserId?: string, // optional patient this conversation is about (e.g. AI patient summaries / decisions)
   journeyId?: string, // optional journey that produced this conversation (audit trail)
   automationStepId?: string, // optional automation step that produced this conversation (audit trail)
+  callSid?: string, // voice agent: the Twilio call this usage-only conversation belongs to
+  phoneTreeId?: string, // voice agent: tree containing the AI Agent node
+  nodeId?: string, // voice agent: the AI Agent node id
 }
 
 export interface InboxThread_readonly extends ClientRecord {

@@ -7167,7 +7167,18 @@ exports.schema = (0, exports.build_schema)({
                         relationship: 'foreignKey',
                         onDependencyDelete: 'nop', // keep the audit record even if the step is deleted
                     }],
-            }, messages: {
+            }, 
+            // voice agent (type: 'voice_agent') usage-only conversations — content-free entries for billing/audit
+            callSid: { validator: validation_1.stringValidator250 }, phoneTreeId: {
+                validator: validation_1.mongoIdStringOptional,
+                examples: [constants_1.PLACEHOLDER_ID],
+                dependencies: [{
+                        dependsOn: ['phone_trees'],
+                        dependencyField: '_id',
+                        relationship: 'foreignKey',
+                        onDependencyDelete: 'nop', // retain the billing audit record even if the tree is deleted
+                    }],
+            }, nodeId: { validator: validation_1.stringValidator250 }, messages: {
                 validator: (0, validation_1.listValidatorEmptyOk)((0, validation_1.objectValidator)({
                     role: (0, validation_1.exactMatchValidator)(['user', 'assistant']),
                     text: validation_1.stringValidator25000,
@@ -7179,6 +7190,19 @@ exports.schema = (0, exports.build_schema)({
                     })),
                     userId: validation_1.mongoIdStringOptional,
                     systemPrompt: validation_1.stringValidator5000OptionalEmptyOkay,
+                    // metering fields (voice agent) — optional on every message; see types-models AIConversationMessage
+                    invocationId: validation_1.stringValidatorOptional,
+                    turnId: validation_1.stringValidatorOptional,
+                    toolRound: validation_1.nonNegNumberValidatorOptional,
+                    status: (0, validation_1.exactMatchValidatorOptional)(['pending', 'completed', 'errored_pre_stream', 'errored_mid_stream', 'rejected_pre_request']),
+                    estimated: validation_1.booleanValidatorOptional,
+                    stopReason: validation_1.stringValidatorOptional,
+                    interrupted: validation_1.booleanValidatorOptional,
+                    latencyMs: validation_1.nonNegNumberValidatorOptional,
+                    cacheReadInputTokens: validation_1.nonNegNumberValidatorOptional,
+                    cacheWriteInputTokens: validation_1.nonNegNumberValidatorOptional,
+                    ratedAt: validation_1.dateValidatorOptional,
+                    creditsCharged: validation_1.nonNegNumberValidatorOptional,
                 }))
             } })
     },

@@ -7162,7 +7162,18 @@ export var schema = build_schema({
                         relationship: 'foreignKey',
                         onDependencyDelete: 'nop', // keep the audit record even if the step is deleted
                     }],
-            }, messages: {
+            }, 
+            // voice agent (type: 'voice_agent') usage-only conversations — content-free entries for billing/audit
+            callSid: { validator: stringValidator250 }, phoneTreeId: {
+                validator: mongoIdStringOptional,
+                examples: [PLACEHOLDER_ID],
+                dependencies: [{
+                        dependsOn: ['phone_trees'],
+                        dependencyField: '_id',
+                        relationship: 'foreignKey',
+                        onDependencyDelete: 'nop', // retain the billing audit record even if the tree is deleted
+                    }],
+            }, nodeId: { validator: stringValidator250 }, messages: {
                 validator: listValidatorEmptyOk(objectValidator({
                     role: exactMatchValidator(['user', 'assistant']),
                     text: stringValidator25000,
@@ -7174,6 +7185,19 @@ export var schema = build_schema({
                     })),
                     userId: mongoIdStringOptional,
                     systemPrompt: stringValidator5000OptionalEmptyOkay,
+                    // metering fields (voice agent) — optional on every message; see types-models AIConversationMessage
+                    invocationId: stringValidatorOptional,
+                    turnId: stringValidatorOptional,
+                    toolRound: nonNegNumberValidatorOptional,
+                    status: exactMatchValidatorOptional(['pending', 'completed', 'errored_pre_stream', 'errored_mid_stream', 'rejected_pre_request']),
+                    estimated: booleanValidatorOptional,
+                    stopReason: stringValidatorOptional,
+                    interrupted: booleanValidatorOptional,
+                    latencyMs: nonNegNumberValidatorOptional,
+                    cacheReadInputTokens: nonNegNumberValidatorOptional,
+                    cacheWriteInputTokens: nonNegNumberValidatorOptional,
+                    ratedAt: dateValidatorOptional,
+                    creditsCharged: nonNegNumberValidatorOptional,
                 }))
             } })
     },

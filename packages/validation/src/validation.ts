@@ -6637,6 +6637,13 @@ export const phoneTreeEventValidator = orValidator<{ [K in PhoneTreeEventType]: 
     info: optionalEmptyObjectValidator,
     parentId: stringValidator1000Optional,
   }),
+  "On Agent Outcome": objectValidator<PhoneTreeEvents["On Agent Outcome"]>({
+    type: exactMatchValidator(['On Agent Outcome']),
+    parentId: stringValidator100,
+    info: objectValidator<PhoneTreeEvents["On Agent Outcome"]['info']>({
+      outcome: stringValidator250,
+    }),
+  }),
 })
 export const phoneTreeEventsValidator = listValidatorEmptyOk(phoneTreeEventValidator)
 
@@ -6786,6 +6793,24 @@ export const phoneTreeActionValidator = orValidator<{ [K in PhoneTreeActionType]
     type: exactMatchValidator(['Add to Journey']),
     info: objectValidator<PhoneTreeActions["Add to Journey"]['info']>({
       journeyId: mongoIdStringRequired,
+    }),
+  }),
+  "AI Agent": objectValidator<PhoneTreeActions["AI Agent"]>({
+    type: exactMatchValidator(['AI Agent']),
+    info: objectValidator<PhoneTreeActions["AI Agent"]['info']>({
+      prompt: stringValidator5000,
+      greeting: stringValidatorOptional,
+      voice: stringValidatorOptional,
+      language: stringValidatorOptional,
+      interruptible: booleanValidatorOptional,
+      maxTokensPerTurn: numberValidatorOptional,
+      maxTurns: numberValidatorOptional,
+      maxDurationSeconds: numberValidatorOptional,
+      maxCreditsPerCall: numberValidatorOptional,
+      outcomes: listValidator(objectValidator({
+        value: stringValidator250,
+        description: stringValidator1000,
+      })),
     }),
   }),
 })

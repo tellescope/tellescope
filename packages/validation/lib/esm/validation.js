@@ -5567,6 +5567,13 @@ export var phoneTreeEventValidator = orValidator({
         info: optionalEmptyObjectValidator,
         parentId: stringValidator1000Optional,
     }),
+    "On Agent Outcome": objectValidator({
+        type: exactMatchValidator(['On Agent Outcome']),
+        parentId: stringValidator100,
+        info: objectValidator({
+            outcome: stringValidator250,
+        }),
+    }),
 });
 export var phoneTreeEventsValidator = listValidatorEmptyOk(phoneTreeEventValidator);
 export var phonePlaybackValidator = orValidator({
@@ -5712,6 +5719,24 @@ export var phoneTreeActionValidator = orValidator({
         type: exactMatchValidator(['Add to Journey']),
         info: objectValidator({
             journeyId: mongoIdStringRequired,
+        }),
+    }),
+    "AI Agent": objectValidator({
+        type: exactMatchValidator(['AI Agent']),
+        info: objectValidator({
+            prompt: stringValidator5000,
+            greeting: stringValidatorOptional,
+            voice: stringValidatorOptional,
+            language: stringValidatorOptional,
+            interruptible: booleanValidatorOptional,
+            maxTokensPerTurn: numberValidatorOptional,
+            maxTurns: numberValidatorOptional,
+            maxDurationSeconds: numberValidatorOptional,
+            maxCreditsPerCall: numberValidatorOptional,
+            outcomes: listValidator(objectValidator({
+                value: stringValidator250,
+                description: stringValidator1000,
+            })),
         }),
     }),
 });
