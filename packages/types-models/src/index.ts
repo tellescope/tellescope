@@ -5721,7 +5721,8 @@ export type AIConversationMessage = {
   userId?: string, // for user messages
   systemPrompt?: string, // system prompt used for this API call (typically on last input message)
   // metering fields (voice agent) — all optional; existing chat messages are unaffected.
-  // Voice-agent entries are content-free (text: '') and exist for billing/audit only.
+  // Voice-agent entries carry the real transcript `text` (like the chat path) plus these billing
+  // fields. `ai_conversations` is provider-only (no enduserActions), same as chat transcripts.
   invocationId?: string, // UUID minted before the Bedrock call; shared by the user/assistant pair — idempotency key
   turnId?: string, // shared by all invocations of one tool-loop turn
   toolRound?: number, // 0 for the first invocation of a turn; increments per tool-loop round

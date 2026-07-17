@@ -1202,7 +1202,14 @@ exports.VOICE_AGENT_MAX_TOOL_ROUNDS = 5; // hard cap on tool-loop rounds within 
 exports.VOICE_AGENT_MAX_RECONNECT_ATTEMPTS = 2; // reconnect-TwiML attempts before falling back to the tree
 exports.VOICE_AGENT_CALL_SESSION_TTL_MINUTES = 30; // CallSession TTL, comfortably past max call duration
 exports.DEFAULT_VOICE_AGENT_MAX_CALL_DURATION_SECONDS = 600;
-exports.DEFAULT_VOICE_AGENT_MAX_CREDITS_PER_CALL = 25000; // per-call spend circuit breaker
+// Default per-call spend circuit breaker (a node may override via maxCreditsPerCall). Credit units
+// are tiny: TELLESCOPE_COST_PER_1000_CREDITS = $0.001, and at the 4x markup a single input token
+// ≈ 12 credits / output token ≈ 60 credits (Claude Sonnet pricing). Because the full conversation
+// history is resent every turn, per-turn cost grows, so cumulative spend is roughly: ~1M @ 10 min,
+// ~5M @ 30 min, ~15-20M @ 60 min. 5,000,000 (~$5 billed/call, ~30 min) comfortably covers the 10-min
+// default duration and typical calls; customers who configure a longer maxDurationSeconds and want
+// the full duration honored should raise the node's maxCreditsPerCall accordingly.
+exports.DEFAULT_VOICE_AGENT_MAX_CREDITS_PER_CALL = 5000000;
 exports.VOICE_AGENT_TOOL_TIMEOUT_MS = 2500; // tool execution timeout (error toolResult on expiry)
 exports.DEFAULT_VOICE_AGENT_VOICE = "en-US-Journey-O"; // ConversationRelay voice id
 exports.DEFAULT_VOICE_AGENT_LANGUAGE = "en-US";
