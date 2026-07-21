@@ -133,6 +133,7 @@ import { mdi_case_offerings_tests } from "./api_tests/mdi_case_offerings.test";
 import { beluga_manual_sync_tests } from "./api_tests/beluga_manual_sync.test";
 import { mdi_webhooks_tests } from "./api_tests/mdi_webhooks.test";
 import { account_switcher_tests } from "./api_tests/account_switcher.test";
+import { totp_mfa_tests } from "./api_tests/totp_mfa.test";
 import { set_fields_order_templates_tests } from "./api_tests/set_fields_order_templates.test";
 import { date_string_validation_tests } from "./api_tests/date_string_validation.test";
 import { enduser_session_invalidation_tests } from "./api_tests/enduser_session_invalidation.test";
@@ -15072,6 +15073,7 @@ const ip_address_form_tests = async () => {
     await sanitize_user_html_xss_tests()
     await prototype_pollution_tests()
     await account_switcher_tests({ sdk, sdkNonAdmin })
+    await totp_mfa_tests({ sdk, sdkNonAdmin })
     await enduser_login_tests({ sdk, sdkNonAdmin })
     await outbound_chat_sent_trigger_tests({ sdk })
     await enduser_cross_access_isolation_tests({ sdk, sdkNonAdmin })

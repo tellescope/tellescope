@@ -695,6 +695,7 @@ export interface UserSession extends Session, OrganizationLimits {
     actorUserId?: string;
     actorEmail?: string;
     actorBusinessId?: string;
+    allowedMFAMethods?: MFAMethod[];
 }
 export type StateCredentialInfo = {
     state: string;
@@ -731,7 +732,10 @@ export type AccountType = string;
 export type UserCallRoutingBehavior = ('' | 'Assigned' | 'Unassigned' | 'All');
 export type MFASettings = {
     email?: boolean;
+    authenticator?: boolean;
 };
+export type MFAMethod = 'email' | 'authenticator';
+export declare const MFA_METHODS: MFAMethod[];
 export interface LinkedAccount {
     id: string;
     email: string;
@@ -844,6 +848,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
     dashboardView?: CustomDashboardView;
     hideFromCalendarView?: boolean;
     requireSSO?: string[];
+    allowedMFAMethods?: MFAMethod[];
     linkedAccountAccess?: LinkedAccountAccessEntry[];
 }
 export type Preference = 'email' | 'sms' | 'call' | 'chat';
@@ -4192,6 +4197,7 @@ export interface PhoneCall extends PhoneCall_readonly, PhoneCall_required, Phone
     timestamp?: Date;
     dialedUserIds?: string[][];
     ignoredUserIds?: string[][];
+    lastDialedUserIds?: string[];
     ticketId?: string;
     hungUpByCaller?: boolean;
     archivedAt?: Date | '';

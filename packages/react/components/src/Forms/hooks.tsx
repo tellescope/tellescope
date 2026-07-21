@@ -190,14 +190,14 @@ export const useTreeForFormFields = (_fields: FormField[]) => {
       if (childId === parentId) continue
       const child = nodesForId[childId]
 
-      if ((child.value.previousFields).find(p => (p.info as any)?.fieldId === parentId)) {
+      if ((child.value.previousFields ?? []).find(p => (p.info as any)?.fieldId === parentId)) {
         parent.children.push(child)
       }
     }
   }
 
   // find and return root
-  return nodesForId[fields.find(s => s.previousFields.find(p => p.type === 'root'))?.id ?? '']
+  return nodesForId[fields.find(s => (s.previousFields ?? []).find(p => p.type === 'root'))?.id ?? '']
 }
 
 export type NextFieldLogicOptions = {

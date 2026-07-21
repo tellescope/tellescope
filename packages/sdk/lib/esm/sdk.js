@@ -469,6 +469,8 @@ var Session = /** @class */ (function (_super) {
         queries.users.switch_account = function (a) { return _this._POST("/v1/".concat(schema.users.customActions.switch_account.path), a); };
         queries.users.request_linked_account_access = function (a) { return _this._POST("/v1/".concat(schema.users.customActions.request_linked_account_access.path), a); };
         queries.users.configure_MFA = function (a) { return _this._POST("/v1/".concat(schema.users.customActions.configure_MFA.path), a); };
+        queries.users.begin_TOTP_configuration = function (a) { return _this._POST("/v1/".concat(schema.users.customActions.begin_TOTP_configuration.path), a); };
+        queries.users.confirm_TOTP_configuration = function (a) { return _this._POST("/v1/".concat(schema.users.customActions.confirm_TOTP_configuration.path), a); };
         queries.users.generate_MFA_challenge = function (a) { return _this._POST("/v1/".concat(schema.users.customActions.generate_MFA_challenge.path), a); };
         queries.users.submit_MFA_challenge = function (a) { return _this._POST("/v1/".concat(schema.users.customActions.submit_MFA_challenge.path), a); };
         /** @deprecated */ //  keep here as well for backwards compatibility

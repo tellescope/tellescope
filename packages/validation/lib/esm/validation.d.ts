@@ -233,6 +233,7 @@ export declare const listOfMongoIdStringValidatorOptional: ValidatorDefinition<s
 export declare const listOfMongoIdStringValidatorEmptyOk: ValidatorDefinition<string[]>;
 export declare const listOfMongoIdStringValidatorOptionalOrEmptyOk: ValidatorDefinition<string[]>;
 export declare const sharedWithOrganizationIdsValidator: ValidatorDefinition<string[][]>;
+export declare const listOfListsOfMongoIdStringsValidatorOptionalOrEmptyOk: ValidatorDefinition<string[][]>;
 export declare const slugValidator: ValidatorDefinition<string>;
 export declare const first_letter_capitalized: (s?: string) => string;
 export declare const escape_name: (namestring: string) => string;

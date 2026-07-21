@@ -712,6 +712,7 @@ export interface UserSession extends Session, OrganizationLimits { // User joine
   actorUserId?: string,
   actorEmail?: string,
   actorBusinessId?: string,
+  allowedMFAMethods?: MFAMethod[],
 }
 
 export type StateCredentialInfo = {
@@ -759,7 +760,10 @@ export type UserCallRoutingBehavior = (
 | 'All'
 )
 
-export type MFASettings = { email?: boolean }
+export type MFASettings = { email?: boolean, authenticator?: boolean }
+
+export type MFAMethod = 'email' | 'authenticator'
+export const MFA_METHODS: MFAMethod[] = ['email', 'authenticator']
 
 export interface LinkedAccount {
   id: string,
@@ -875,6 +879,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
   dashboardView?: CustomDashboardView,
   hideFromCalendarView?: boolean,
   requireSSO?: string[],
+  allowedMFAMethods?: MFAMethod[],
   linkedAccountAccess?: LinkedAccountAccessEntry[],
 }
 
@@ -4229,6 +4234,7 @@ export interface PhoneCall extends PhoneCall_readonly, PhoneCall_required, Phone
   timestamp?: Date,
   dialedUserIds?: string[][],  // might ring multiple stages, so use list of users dialed at each step
   ignoredUserIds?: string[][], // might ring multiple stages, so use list of users dialed at each step
+  lastDialedUserIds?: string[], // flat copy of the final dialedUserIds stage, for indexed "dialed me" queries
   ticketId?: string,
   hungUpByCaller?: boolean,
   archivedAt?: Date | '',

@@ -1216,6 +1216,7 @@ export const listOfMongoIdStringValidatorOptional = listValidator(mongoIdStringR
 export const listOfMongoIdStringValidatorEmptyOk = listValidatorEmptyOk(mongoIdStringRequired)
 export const listOfMongoIdStringValidatorOptionalOrEmptyOk = listValidatorOptionalOrEmptyOk(mongoIdStringRequired)
 export const sharedWithOrganizationIdsValidator = listValidatorEmptyOk(listValidator(mongoIdStringRequired))
+export const listOfListsOfMongoIdStringsValidatorOptionalOrEmptyOk = listValidatorOptionalOrEmptyOk(listValidator(mongoIdStringRequired))
 
 export const slugValidator: ValidatorDefinition<string> = {
   validate: (o={}) => build_validator(

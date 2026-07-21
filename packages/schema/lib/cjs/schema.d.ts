@@ -1,7 +1,7 @@
 import { ServerModelForName, DatabaseModel, DatabaseRecord, ObjectId, ModelName, User } from "@tellescope/types-server";
 import { ErrorInfo, Indexable, Operation, JSONType, CRUD, HTTPMethod, UserIdentity, SessionType } from "@tellescope/types-utilities";
 import * as Utilities from "@tellescope/utilities";
-import { EnduserSession, ChatRoom, UserSession, MeetingStatus, WebhookSubscriptionsType, Attendee, FormResponseValue, MeetingInfo, OrganizationTheme, WithLinkOpenTrackingIds, CommunicationsChannel, AppointmentTerm, JourneyContext, AnalyticsQuery, AnalyticsQueryResult, AnalyticsAggregationRequest, DateRange, BaseAvailabilityBlock, IndexUpdate, Timezone, UserCallRoutingBehavior, ExternalChatGPTMessage, StripeCheckoutInfo, StripeCountryCode, JourneyStatistics, FormStatistics, CustomFields, TicketsReport, EndusersReportQueries, EndusersReport, Report, FormResponsesReportQueries, PhoneCallsReportQueries, ListOfStringsWithQualifier, GoGoMedsPet, InsuranceType, SmartMeterOrderLineItem, PhoneCallsReport, AthenaSubscription, TellescopeGender, LabeledField, HealthieSendChatAutomationAction, TwilioQueue, SendWebhookAutomationAction, FormResponseProcedureCode, FormResponseDiagnosisCode, DevelopHealthRunBenefitVerificationBaseArguments, WeeklyAvailability, CanvasCreateNoteAutomationAction, CanvasCoding, InboxThread, AIDecisionAutomationAction, LinkedAccount } from "@tellescope/types-models";
+import { EnduserSession, ChatRoom, UserSession, MeetingStatus, WebhookSubscriptionsType, Attendee, FormResponseValue, MeetingInfo, OrganizationTheme, WithLinkOpenTrackingIds, CommunicationsChannel, AppointmentTerm, JourneyContext, AnalyticsQuery, AnalyticsQueryResult, AnalyticsAggregationRequest, DateRange, BaseAvailabilityBlock, IndexUpdate, Timezone, UserCallRoutingBehavior, ExternalChatGPTMessage, StripeCheckoutInfo, StripeCountryCode, JourneyStatistics, FormStatistics, CustomFields, TicketsReport, EndusersReportQueries, EndusersReport, Report, FormResponsesReportQueries, PhoneCallsReportQueries, ListOfStringsWithQualifier, GoGoMedsPet, InsuranceType, SmartMeterOrderLineItem, PhoneCallsReport, AthenaSubscription, TellescopeGender, LabeledField, HealthieSendChatAutomationAction, TwilioQueue, SendWebhookAutomationAction, FormResponseProcedureCode, FormResponseDiagnosisCode, DevelopHealthRunBenefitVerificationBaseArguments, WeeklyAvailability, CanvasCreateNoteAutomationAction, CanvasCoding, InboxThread, AIDecisionAutomationAction, LinkedAccount, MFAMethod } from "@tellescope/types-models";
 import { AppointmentBookingPage as AppointmentBookingPageClient, UserDisplayInfo, Enduser, Journey, FormResponse, FormField, Form, Meeting, Email, File, CalendarEvent, Organization, User as UserClient, EnduserObservation as EnduserObservationClient, AppointmentLocation, CalendarEventTemplate, Product, ManagedContentRecord, DatabaseRecord as DatabaseRecordClient, Ticket, GroupMMSConversation, EnduserOrder, EnduserEncounter, Purchase, Integration, TicketQueue, SMSMessage, EnduserEligibilityResult, Waitlist, PhoneCall, TicketThreadComment, ChatRoom as ChatRoomClient, AIConversation } from "@tellescope/types-client";
 import { ValidatorDefinition, LoginFlowResult, IntegrationsTitleType } from "@tellescope/validation";
 export declare const get_next_reminder_timestamp_for_ticket: ({ dueDateInMS, reminders, closedAt }: Pick<Ticket, 'dueDateInMS' | 'reminders' | 'closedAt'>) => number;
@@ -832,6 +832,18 @@ export type CustomActions = {
         }>;
         configure_MFA: CustomAction<{
             disable?: boolean;
+            method?: MFAMethod;
+        }, {
+            recoveryCodes: string[];
+            authToken: string;
+            user: UserSession;
+        }>;
+        begin_TOTP_configuration: CustomAction<{}, {
+            otpauthURL: string;
+            secret: string;
+        }>;
+        confirm_TOTP_configuration: CustomAction<{
+            code: string;
         }, {
             recoveryCodes: string[];
             authToken: string;

@@ -781,6 +781,7 @@ export var listOfMongoIdStringValidatorOptional = listValidator(mongoIdStringReq
 export var listOfMongoIdStringValidatorEmptyOk = listValidatorEmptyOk(mongoIdStringRequired);
 export var listOfMongoIdStringValidatorOptionalOrEmptyOk = listValidatorOptionalOrEmptyOk(mongoIdStringRequired);
 export var sharedWithOrganizationIdsValidator = listValidatorEmptyOk(listValidator(mongoIdStringRequired));
+export var listOfListsOfMongoIdStringsValidatorOptionalOrEmptyOk = listValidatorOptionalOrEmptyOk(listValidator(mongoIdStringRequired));
 export var slugValidator = {
     validate: function (o) {
         if (o === void 0) { o = {}; }

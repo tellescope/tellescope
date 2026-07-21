@@ -2072,6 +2072,21 @@ exports.schema = (0, exports.build_schema)({
                     }
                 },
                 {
+                    explanation: "Only admin users can update allowedMFAMethods",
+                    evaluate: function (_a, _, session, method, _b) {
+                        var _c;
+                        var roles = _a.roles;
+                        var updates = _b.updates;
+                        if ((_c = session === null || session === void 0 ? void 0 : session.roles) === null || _c === void 0 ? void 0 : _c.includes('Admin'))
+                            return; // admin can do this
+                        if (method === 'create')
+                            return; // create already admin restricted
+                        if (!(updates === null || updates === void 0 ? void 0 : updates.allowedMFAMethods))
+                            return; // allowedMFAMethods not provided
+                        return "Only admin users can update allowedMFAMethods";
+                    }
+                },
+                {
                     explanation: "User organizationIds are readonly",
                     evaluate: function (_a, _, session, method, _b) {
                         var updates = _b.updates;
@@ -2241,6 +2256,32 @@ exports.schema = (0, exports.build_schema)({
                 description: "Configures MFA (or removes it, when allowed by an organization)",
                 parameters: {
                     disable: { validator: validation_1.booleanValidator },
+                    method: { validator: (0, validation_1.exactMatchValidator)(['email', 'authenticator']) },
+                },
+                returns: {
+                    recoveryCodes: { validator: validation_1.listOfStringsValidator, required: true },
+                    authToken: { validator: validation_1.stringValidator, required: true },
+                    user: { validator: 'user', required: true },
+                }
+            },
+            begin_TOTP_configuration: {
+                op: "custom", access: 'update', method: "post",
+                name: 'Begin TOTP Configuration',
+                path: '/users/begin-totp-configuration',
+                description: "Begins authenticator-app (TOTP) MFA enrollment, returning the otpauth URL and secret to display",
+                parameters: {},
+                returns: {
+                    otpauthURL: { validator: validation_1.stringValidator, required: true },
+                    secret: { validator: validation_1.stringValidator, required: true },
+                }
+            },
+            confirm_TOTP_configuration: {
+                op: "custom", access: 'update', method: "post",
+                name: 'Confirm TOTP Configuration',
+                path: '/users/confirm-totp-configuration',
+                description: "Completes authenticator-app (TOTP) MFA enrollment by verifying a code from the authenticator app",
+                parameters: {
+                    code: { validator: validation_1.stringValidator100, required: true },
                 },
                 returns: {
                     recoveryCodes: { validator: validation_1.listOfStringsValidator, required: true },
@@ -2547,7 +2588,7 @@ exports.schema = (0, exports.build_schema)({
                     field: validation_1.stringValidator100,
                     value: validation_1.stringValidator5000,
                 }))
-            }, canvasId: { validator: validation_1.stringValidator100 }, medplumId: { validator: validation_1.stringValidator100 }, athenaId: { validator: validation_1.stringValidator100 }, dashboardView: { validator: validation_1.customDashboardViewValidator }, hideFromCalendarView: { validator: validation_1.booleanValidator }, requireSSO: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, linkedAccountAccess: { validator: validation_1.linkedAccountAccessValidator } })
+            }, canvasId: { validator: validation_1.stringValidator100 }, medplumId: { validator: validation_1.stringValidator100 }, athenaId: { validator: validation_1.stringValidator100 }, dashboardView: { validator: validation_1.customDashboardViewValidator }, hideFromCalendarView: { validator: validation_1.booleanValidator }, requireSSO: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, allowedMFAMethods: { validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.exactMatchValidator)(['email', 'authenticator'])) }, linkedAccountAccess: { validator: validation_1.linkedAccountAccessValidator } })
     },
     templates: {
         info: {},
@@ -3240,6 +3281,7 @@ exports.schema = (0, exports.build_schema)({
                 examples: ['number'],
             }, previousFields: {
                 validator: validation_1.previousFormFieldsValidator,
+                initializer: function () { return []; },
                 examples: [[{ type: 'root', info: {} }]]
             }, flowchartUI: { validator: validation_1.flowchartUIValidator }, options: { validator: validation_1.formFieldOptionsValidator }, description: { validator: validation_1.stringValidator25000EmptyOkay }, htmlDescription: { validator: validation_1.stringValidator25000EmptyOkay }, intakeField: { validator: validation_1.stringValidator5000EmptyOkay }, isOptional: { validator: validation_1.booleanValidator }, fullZIP: { validator: validation_1.booleanValidator }, isInGroup: { validator: validation_1.booleanValidator }, externalId: { validator: validation_1.stringValidator1000 }, sharedWithEnduser: { validator: validation_1.booleanValidator }, calloutConditions: { validator: validation_1.formFieldCalloutConditionsValidator }, mdiImportantValues: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, mdiCriticalValues: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, highlightOnTimeline: { validator: validation_1.booleanValidator }, prepopulateFromFields: { validator: validation_1.booleanValidator }, prepopulateFromDatabase: {
                 validator: (0, validation_1.objectValidator)({
@@ -5729,7 +5771,7 @@ exports.schema = (0, exports.build_schema)({
                         relationship: 'foreignKey',
                         onDependencyDelete: 'delete',
                     }]
-            }, inbound: { validator: validation_1.booleanValidator, required: true, examples: [true] }, externalId: { validator: validation_1.stringValidator100 }, to: { validator: validation_1.stringValidator100 }, from: { validator: validation_1.stringValidator100 }, isVoicemail: { validator: validation_1.booleanValidator }, recordingURI: { validator: validation_1.stringValidator1000 }, recordingId: { validator: validation_1.stringValidator100 }, transcriptionId: { validator: validation_1.stringValidator100 }, recordingDurationInSeconds: { validator: validation_1.nonNegNumberValidator }, transcription: { validator: validation_1.stringValidator25000 }, translations: { validator: validation_1.translationsValidator }, recordingTranscriptionData: { validator: validation_1.stringValidator25000 }, aiSummary: { validator: validation_1.stringValidator5000 }, note: { validator: validation_1.stringValidator5000EmptyOkay }, unread: { validator: validation_1.booleanValidator }, userId: { validator: validation_1.mongoIdStringRequired }, ticketId: { validator: validation_1.mongoIdStringRequired }, pinnedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, readBy: { validator: validation_1.idStringToDateValidator }, hiddenBy: { validator: validation_1.idStringToDateValidator }, hiddenForAll: { validator: validation_1.booleanValidator }, ticketIds: { validator: validation_1.listOfStringsValidatorEmptyOk }, tags: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, assignedTo: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, callDurationInSeconds: { validator: validation_1.numberValidator }, timestamp: { validator: validation_1.dateValidator }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, trashedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator } }),
+            }, inbound: { validator: validation_1.booleanValidator, required: true, examples: [true] }, externalId: { validator: validation_1.stringValidator100 }, to: { validator: validation_1.stringValidator100 }, from: { validator: validation_1.stringValidator100 }, isVoicemail: { validator: validation_1.booleanValidator }, recordingURI: { validator: validation_1.stringValidator1000 }, recordingId: { validator: validation_1.stringValidator100 }, transcriptionId: { validator: validation_1.stringValidator100 }, recordingDurationInSeconds: { validator: validation_1.nonNegNumberValidator }, transcription: { validator: validation_1.stringValidator25000 }, translations: { validator: validation_1.translationsValidator }, recordingTranscriptionData: { validator: validation_1.stringValidator25000 }, aiSummary: { validator: validation_1.stringValidator5000 }, note: { validator: validation_1.stringValidator5000EmptyOkay }, unread: { validator: validation_1.booleanValidator }, userId: { validator: validation_1.mongoIdStringRequired }, dialedUserIds: { validator: validation_1.listOfListsOfMongoIdStringsValidatorOptionalOrEmptyOk, updatesDisabled: true }, ignoredUserIds: { validator: validation_1.listOfListsOfMongoIdStringsValidatorOptionalOrEmptyOk, updatesDisabled: true }, lastDialedUserIds: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk, updatesDisabled: true }, ticketId: { validator: validation_1.mongoIdStringRequired }, pinnedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, readBy: { validator: validation_1.idStringToDateValidator }, hiddenBy: { validator: validation_1.idStringToDateValidator }, hiddenForAll: { validator: validation_1.booleanValidator }, ticketIds: { validator: validation_1.listOfStringsValidatorEmptyOk }, tags: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, assignedTo: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, callDurationInSeconds: { validator: validation_1.numberValidator }, timestamp: { validator: validation_1.dateValidator }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, trashedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator } }),
     },
     analytics_frames: {
         info: {},
@@ -7140,7 +7182,7 @@ exports.schema = (0, exports.build_schema)({
                 returns: {},
             },
         },
-        fields: __assign(__assign({}, BuiltInFields), { type: { validator: validation_1.stringValidator, required: true, examples: ['HTML Template Generation'] }, modelName: { validator: validation_1.stringValidator, required: true, examples: ['Claude Sonnet 4', 'Claude Sonnet 4.5', 'Claude Sonnet 4.6'] }, orchestrationId: { validator: validation_1.stringValidatorOptional, examples: ['workflow-123', 'batch-456'] }, enduserId: {
+        fields: __assign(__assign({}, BuiltInFields), { type: { validator: validation_1.stringValidator, required: true, examples: ['HTML Template Generation'] }, modelName: { validator: validation_1.stringValidator, required: true, examples: ['Claude Sonnet 4', 'Claude Sonnet 4.5', 'Claude Sonnet 4.6', 'Claude Sonnet 5'] }, orchestrationId: { validator: validation_1.stringValidatorOptional, examples: ['workflow-123', 'batch-456'] }, enduserId: {
                 validator: validation_1.mongoIdStringOptional,
                 examples: [constants_1.PLACEHOLDER_ID],
                 dependencies: [{

@@ -2021,7 +2021,7 @@ export const URIDecodeEmail = (content: string, verbose?: boolean) => (
 )
 
 export const mfa_is_enabled = (u: { mfa?: User['mfa'] }) => (
-  !!u?.mfa?.email
+  !!u?.mfa?.email || !!u?.mfa?.authenticator
 )
 
 export const get_next_reminder_timestamp = ({ startTimeInMS, reminders: _reminders, attendees=[] } : Pick<CalendarEvent, 'attendees' | 'startTimeInMS' | 'reminders'>): number => {

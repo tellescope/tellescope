@@ -435,6 +435,12 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     configure_MFA: (args: extractFields<CustomActions['users']['configure_MFA']['parameters']>) => (
       Promise<extractFields<CustomActions['users']['configure_MFA']['returns']>>
     ),
+    begin_TOTP_configuration: (args: extractFields<CustomActions['users']['begin_TOTP_configuration']['parameters']>) => (
+      Promise<extractFields<CustomActions['users']['begin_TOTP_configuration']['returns']>>
+    ),
+    confirm_TOTP_configuration: (args: extractFields<CustomActions['users']['confirm_TOTP_configuration']['parameters']>) => (
+      Promise<extractFields<CustomActions['users']['confirm_TOTP_configuration']['returns']>>
+    ),
     generate_MFA_challenge: (args: extractFields<CustomActions['users']['generate_MFA_challenge']['parameters']>) => (
       Promise<extractFields<CustomActions['users']['generate_MFA_challenge']['returns']>>
     ),
@@ -1025,6 +1031,8 @@ export class Session extends SessionManager {
     queries.users.request_linked_account_access = a => this._POST(`/v1/${schema.users.customActions.request_linked_account_access.path}`, a)
 
     queries.users.configure_MFA = a => this._POST(`/v1/${schema.users.customActions.configure_MFA.path}`, a)
+    queries.users.begin_TOTP_configuration = a => this._POST(`/v1/${schema.users.customActions.begin_TOTP_configuration.path}`, a)
+    queries.users.confirm_TOTP_configuration = a => this._POST(`/v1/${schema.users.customActions.confirm_TOTP_configuration.path}`, a)
     queries.users.generate_MFA_challenge = a => this._POST(`/v1/${schema.users.customActions.generate_MFA_challenge.path}`, a)
     queries.users.submit_MFA_challenge = a => this._POST(`/v1/${schema.users.customActions.submit_MFA_challenge.path}`, a)
 

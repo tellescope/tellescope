@@ -3857,6 +3857,8 @@ type Queries = {
         configure_inbox: (args: extractFields<CustomActions['users']['configure_inbox']['parameters']>) => (Promise<extractFields<CustomActions['users']['configure_inbox']['returns']>>);
         consent: (args: extractFields<CustomActions['users']['consent']['parameters']>) => (Promise<extractFields<CustomActions['users']['consent']['returns']>>);
         configure_MFA: (args: extractFields<CustomActions['users']['configure_MFA']['parameters']>) => (Promise<extractFields<CustomActions['users']['configure_MFA']['returns']>>);
+        begin_TOTP_configuration: (args: extractFields<CustomActions['users']['begin_TOTP_configuration']['parameters']>) => (Promise<extractFields<CustomActions['users']['begin_TOTP_configuration']['returns']>>);
+        confirm_TOTP_configuration: (args: extractFields<CustomActions['users']['confirm_TOTP_configuration']['parameters']>) => (Promise<extractFields<CustomActions['users']['confirm_TOTP_configuration']['returns']>>);
         generate_MFA_challenge: (args: extractFields<CustomActions['users']['generate_MFA_challenge']['parameters']>) => (Promise<extractFields<CustomActions['users']['generate_MFA_challenge']['returns']>>);
         submit_MFA_challenge: (args: extractFields<CustomActions['users']['submit_MFA_challenge']['parameters']>) => (Promise<extractFields<CustomActions['users']['submit_MFA_challenge']['returns']>>);
         get_engagement_report: (args: extractFields<CustomActions['users']['get_engagement_report']['parameters']>) => (Promise<extractFields<CustomActions['users']['get_engagement_report']['returns']>>);
@@ -4184,6 +4186,7 @@ export declare class Session extends SessionManager {
         actorUserId?: string | undefined;
         actorEmail?: string | undefined;
         actorBusinessId?: string | undefined;
+        allowedMFAMethods?: import("@tellescope/types-models").MFAMethod[] | undefined;
         iat: number;
         exp: number;
         allowedPaths?: string[] | undefined;
@@ -4346,6 +4349,7 @@ export declare class Session extends SessionManager {
         actorUserId?: string | undefined;
         actorEmail?: string | undefined;
         actorBusinessId?: string | undefined;
+        allowedMFAMethods?: import("@tellescope/types-models").MFAMethod[] | undefined;
         iat: number;
         exp: number;
         allowedPaths?: string[] | undefined;

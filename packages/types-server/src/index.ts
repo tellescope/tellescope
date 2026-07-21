@@ -270,6 +270,13 @@ export interface MFACode extends InternalBusinessRecord {
   expiresAt?: Date, // will not expire by TTL index if left blank
 }
 
+export interface MFATOTPSecret extends InternalBusinessRecord {
+  userId: string,
+  encryptedSecret: string, // AES-256-GCM "<iv>.<ciphertext>.<authTag>" (base64)
+  verifiedAt?: Date, // unset = pending enrollment (not yet confirmed with a valid code)
+  lastUsedTimestep?: number, // replay protection: reject codes from timesteps <= this value
+}
+
 export interface CustomAggregation extends InternalBusinessRecord {
   key: string,
   modelName: ModelName,

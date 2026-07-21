@@ -238,6 +238,12 @@ export interface MFACode extends InternalBusinessRecord {
     userId: string;
     expiresAt?: Date;
 }
+export interface MFATOTPSecret extends InternalBusinessRecord {
+    userId: string;
+    encryptedSecret: string;
+    verifiedAt?: Date;
+    lastUsedTimestep?: number;
+}
 export interface CustomAggregation extends InternalBusinessRecord {
     key: string;
     modelName: ModelName;

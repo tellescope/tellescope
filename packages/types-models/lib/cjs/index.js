@@ -12,9 +12,10 @@ var __assign = (this && this.__assign) || function () {
 };
 var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.USA_STATE_TO_TIMEZONE = exports.VALID_STATES = exports.TIMEZONES_USA = exports.TIMEZONES = exports.TIMEZONE_MAP = exports.isModelName = exports.is_webhook_supported_model = exports.WEBHOOK_MODELS = exports.modelNameChecker = exports.DIAGNOSIS_TYPE_MAPPING = exports.resource_to_modelName = exports.DEFAULT_PATIENT_PORTAL_BOTTOM_NAVIGATION_POSITIONS = exports.MOBILE_BOTTOM_NAVIGATION_DISABLED_POSITION = exports.EmbeddingInfo = exports.TEXT_EMBEDDING_ADA_002 = exports.AI_DECISION_NO_MATCH_OUTCOME = exports.FilterKeys = exports.SORT_BY_OPTIONS = void 0;
+exports.USA_STATE_TO_TIMEZONE = exports.VALID_STATES = exports.TIMEZONES_USA = exports.TIMEZONES = exports.TIMEZONE_MAP = exports.isModelName = exports.is_webhook_supported_model = exports.WEBHOOK_MODELS = exports.modelNameChecker = exports.DIAGNOSIS_TYPE_MAPPING = exports.resource_to_modelName = exports.DEFAULT_PATIENT_PORTAL_BOTTOM_NAVIGATION_POSITIONS = exports.MOBILE_BOTTOM_NAVIGATION_DISABLED_POSITION = exports.EmbeddingInfo = exports.TEXT_EMBEDDING_ADA_002 = exports.AI_DECISION_NO_MATCH_OUTCOME = exports.MFA_METHODS = exports.FilterKeys = exports.SORT_BY_OPTIONS = void 0;
 exports.SORT_BY_OPTIONS = ['updatedAt', 'dueDateInMS', 'closedAt', 'timestamp'];
 exports.FilterKeys = ['_exists', '_gt', '_gte', '_lt', '_lte', '_all', "_ne", "_nin"];
+exports.MFA_METHODS = ['email', 'authenticator'];
 // Reserved outcome for onAIDecision events: a child step listing this in its outcomes acts as the
 // fallback branch when the AI's answer matches no configured outcome. Never shown to users — the
 // Journey Editor renders it as a first-class "Fallback" option ("No Matching Outcome").

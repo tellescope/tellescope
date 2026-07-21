@@ -224,7 +224,7 @@ var useGraphForFormFields = function (fields) {
 };
 exports.useGraphForFormFields = useGraphForFormFields;
 var useTreeForFormFields = function (_fields) {
-    var _a, _b;
+    var _a, _b, _c;
     // ensure all fields actually belong to the same form
     var fields = _fields.filter(function (f) { return f.formId === _fields[0].formId; });
     var nodesForId = {};
@@ -241,7 +241,7 @@ var useTreeForFormFields = function (_fields) {
             if (childId === parentId)
                 continue;
             var child = nodesForId[childId];
-            if ((child.value.previousFields).find(function (p) { var _a; return ((_a = p.info) === null || _a === void 0 ? void 0 : _a.fieldId) === parentId; })) {
+            if (((_a = child.value.previousFields) !== null && _a !== void 0 ? _a : []).find(function (p) { var _a; return ((_a = p.info) === null || _a === void 0 ? void 0 : _a.fieldId) === parentId; })) {
                 parent_2.children.push(child);
             }
         }
@@ -250,7 +250,7 @@ var useTreeForFormFields = function (_fields) {
         _loop_3(parentId);
     }
     // find and return root
-    return nodesForId[(_b = (_a = fields.find(function (s) { return s.previousFields.find(function (p) { return p.type === 'root'; }); })) === null || _a === void 0 ? void 0 : _a.id) !== null && _b !== void 0 ? _b : ''];
+    return nodesForId[(_c = (_b = fields.find(function (s) { var _a; return ((_a = s.previousFields) !== null && _a !== void 0 ? _a : []).find(function (p) { return p.type === 'root'; }); })) === null || _b === void 0 ? void 0 : _b.id) !== null && _c !== void 0 ? _c : ''];
 };
 exports.useTreeForFormFields = useTreeForFormFields;
 var getNextField = function (activeField, currentValue, responses, options) {

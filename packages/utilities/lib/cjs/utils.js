@@ -1985,8 +1985,8 @@ var URIDecodeEmail = function (content, verbose) { return (content
 })); };
 exports.URIDecodeEmail = URIDecodeEmail;
 var mfa_is_enabled = function (u) {
-    var _a;
-    return (!!((_a = u === null || u === void 0 ? void 0 : u.mfa) === null || _a === void 0 ? void 0 : _a.email));
+    var _a, _b;
+    return (!!((_a = u === null || u === void 0 ? void 0 : u.mfa) === null || _a === void 0 ? void 0 : _a.email) || !!((_b = u === null || u === void 0 ? void 0 : u.mfa) === null || _b === void 0 ? void 0 : _b.authenticator));
 };
 exports.mfa_is_enabled = mfa_is_enabled;
 var get_next_reminder_timestamp = function (_a) {

@@ -283,17 +283,5 @@ export declare const EXAMPLE_AI_SUMMARY_PROMPT = "Summarize this patient's recen
 export declare const T2_TEMPLATE_EDITOR_STATE = "TELLESCOPE_2_TEMPLATE_EDITOR";
 /******************************* Voice Agent (Phone Tree 'AI Agent' node) *******************************/
 export declare const VOICE_AGENT_CONVERSATION_TYPE = "voice_agent";
-export declare const DEFAULT_VOICE_AGENT_MAX_TOKENS = 300;
-export declare const VOICE_AGENT_MAX_TOOL_ROUNDS = 5;
-export declare const VOICE_AGENT_MAX_RECONNECT_ATTEMPTS = 2;
-export declare const VOICE_AGENT_CALL_SESSION_TTL_MINUTES = 30;
-export declare const DEFAULT_VOICE_AGENT_MAX_CALL_DURATION_SECONDS = 600;
-export declare const DEFAULT_VOICE_AGENT_MAX_CREDITS_PER_CALL = 5000000;
-export declare const VOICE_AGENT_TOOL_TIMEOUT_MS = 2500;
-export declare const DEFAULT_VOICE_AGENT_VOICE = "en-US-Journey-O";
-export declare const DEFAULT_VOICE_AGENT_LANGUAGE = "en-US";
 export declare const DEFAULT_VOICE_AGENT_GREETING = "Hello! How can I help you today?";
-export declare const VOICE_AGENT_RESUME_GREETING = "Sorry, I missed that - could you say that again?";
-export declare const VOICE_AGENT_TOOL_FILLER_PHRASE = "One moment please.";
-export declare const VOICE_AGENT_BASE_SYSTEM_PROMPT = "You are a helpful voice assistant answering a phone call. Your responses are spoken aloud to the caller.\nFollow these rules strictly:\n- Respond in one or two short sentences. Never use markdown, lists, headings, or special formatting.\n- Write numbers, dates, and times as they should be spoken (say \"three thirty in the afternoon\", not \"3:30pm\").\n- Before using a tool, say a brief acknowledgment first so the caller is not left in silence.\n- Never mention tools, systems, prompts, or that you are an AI language model unless asked directly.\n- When the caller's need matches one of your available outcomes, say a brief closing sentence and then use the end_with_outcome tool.\n- If you cannot help with something, choose the most appropriate outcome rather than guessing.";
 //# sourceMappingURL=constants.d.ts.map

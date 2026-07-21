@@ -99,6 +99,7 @@ import {
   TimeTrack,
   LinkedAccount,
   LinkedAccountAccessEntry,
+  MFAMethod,
 } from "@tellescope/types-models"
 
 import {
@@ -274,6 +275,7 @@ import {
   exactMatchValidator,
   exactMatchValidatorOptional,
   listOfMongoIdStringValidatorOptionalOrEmptyOk,
+  listOfListsOfMongoIdStringsValidatorOptionalOrEmptyOk,
   linkedAccountAccessValidator,
   listOfStringsValidatorOptionalOrEmptyOk,
   stringValidatorOptionalEmptyOkay,
@@ -948,7 +950,9 @@ export type CustomActions = {
       { created: UserClient }
     >
     configure_inbox: CustomAction<{ username: string, fname: string, lname: string }, { user: User, authToken: string }>,
-    configure_MFA: CustomAction<{ disable?: boolean }, { recoveryCodes: string[], authToken: string, user: UserSession }>,
+    configure_MFA: CustomAction<{ disable?: boolean, method?: MFAMethod }, { recoveryCodes: string[], authToken: string, user: UserSession }>,
+    begin_TOTP_configuration: CustomAction<{}, { otpauthURL: string, secret: string }>,
+    confirm_TOTP_configuration: CustomAction<{ code: string }, { recoveryCodes: string[], authToken: string, user: UserSession }>,
     generate_MFA_challenge: CustomAction<{ method: string }, { }>,
     submit_MFA_challenge: CustomAction<{ code: string }, { authToken: string, user: UserSession }>,
     get_engagement_report: CustomAction<{ range?: DateRange, excludeAutomated?: boolean }, { report: Record<string, any> }>,
@@ -3648,7 +3652,17 @@ export const schema: SchemaV1 = build_schema({
 
             return "Only admin users can update requireSSO"
           }
-        }, 
+        },
+        {
+          explanation: "Only admin users can update allowedMFAMethods",
+          evaluate: ({ roles }, _, session, method, { updates }) => {
+            if ((session as UserSession)?.roles?.includes('Admin')) return // admin can do this
+            if (method === 'create') return // create already admin restricted
+            if (!updates?.allowedMFAMethods) return // allowedMFAMethods not provided
+
+            return "Only admin users can update allowedMFAMethods"
+          }
+        },
         {
           explanation: "User organizationIds are readonly",
           evaluate: ({ }, _, session, method, { updates }) => {
@@ -3806,14 +3820,40 @@ export const schema: SchemaV1 = build_schema({
         name: 'Configure MFA',
         path: '/users/configure-mfa',
         description: "Configures MFA (or removes it, when allowed by an organization)",
-        parameters: { 
+        parameters: {
           disable: { validator: booleanValidator },
+          method: { validator: exactMatchValidator<MFAMethod>(['email', 'authenticator']) },
         },
-        returns: { 
+        returns: {
           recoveryCodes: { validator: listOfStringsValidator, required: true },
-          authToken: { validator: stringValidator, required: true }, 
-          user: { validator: 'user' as any, required: true }, 
-        } 
+          authToken: { validator: stringValidator, required: true },
+          user: { validator: 'user' as any, required: true },
+        }
+      },
+      begin_TOTP_configuration: {
+        op: "custom", access: 'update', method: "post",
+        name: 'Begin TOTP Configuration',
+        path: '/users/begin-totp-configuration',
+        description: "Begins authenticator-app (TOTP) MFA enrollment, returning the otpauth URL and secret to display",
+        parameters: { },
+        returns: {
+          otpauthURL: { validator: stringValidator, required: true },
+          secret: { validator: stringValidator, required: true },
+        }
+      },
+      confirm_TOTP_configuration: {
+        op: "custom", access: 'update', method: "post",
+        name: 'Confirm TOTP Configuration',
+        path: '/users/confirm-totp-configuration',
+        description: "Completes authenticator-app (TOTP) MFA enrollment by verifying a code from the authenticator app",
+        parameters: {
+          code: { validator: stringValidator100, required: true },
+        },
+        returns: {
+          recoveryCodes: { validator: listOfStringsValidator, required: true },
+          authToken: { validator: stringValidator, required: true },
+          user: { validator: 'user' as any, required: true },
+        }
       },
       generate_MFA_challenge: {
         op: "custom", access: 'update', method: "post",
@@ -4180,6 +4220,7 @@ export const schema: SchemaV1 = build_schema({
       dashboardView: { validator: customDashboardViewValidator },
       hideFromCalendarView: { validator: booleanValidator },
       requireSSO: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
+      allowedMFAMethods: { validator: listValidatorOptionalOrEmptyOk(exactMatchValidator<MFAMethod>(['email', 'authenticator'])) },
       linkedAccountAccess: { validator: linkedAccountAccessValidator },
     }
   },
@@ -5076,6 +5117,7 @@ export const schema: SchemaV1 = build_schema({
       },
       previousFields: {  // can't be required - nextField may not exist yet on creation
         validator: previousFormFieldsValidator,
+        initializer: () => [], // default to [] on create when client omits it, so previousFields is never persisted as undefined
         examples: [[{ type: 'root', info: { } } as PreviousFormField]]
       },
       flowchartUI: { validator: flowchartUIValidator },
@@ -8251,6 +8293,9 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       unread: { validator: booleanValidator },
 
       userId: { validator: mongoIdStringValidator },
+      dialedUserIds:     { validator: listOfListsOfMongoIdStringsValidatorOptionalOrEmptyOk, updatesDisabled: true },
+      ignoredUserIds:    { validator: listOfListsOfMongoIdStringsValidatorOptionalOrEmptyOk, updatesDisabled: true },
+      lastDialedUserIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk,         updatesDisabled: true },
       ticketId: { validator: mongoIdStringValidator },
       pinnedAt: { validator: dateOptionalOrEmptyStringValidator },
       readBy: { validator: idStringToDateValidator },
@@ -10107,7 +10152,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
     fields: {
       ...BuiltInFields,
       type: { validator: stringValidator, required: true, examples: ['HTML Template Generation'] },
-      modelName: { validator: stringValidator, required: true, examples: ['Claude Sonnet 4', 'Claude Sonnet 4.5', 'Claude Sonnet 4.6'] },
+      modelName: { validator: stringValidator, required: true, examples: ['Claude Sonnet 4', 'Claude Sonnet 4.5', 'Claude Sonnet 4.6', 'Claude Sonnet 5'] },
       orchestrationId: { validator: stringValidatorOptional, examples: ['workflow-123', 'batch-456'] },
       enduserId: {
         validator: mongoIdStringOptional,

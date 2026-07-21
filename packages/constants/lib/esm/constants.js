@@ -1189,25 +1189,8 @@ export var DEFAULT_HISTORICAL_DATA_SOURCE_LIMIT = 100; // matches backend DEFAUL
 export var EXAMPLE_AI_SUMMARY_PROMPT = "Summarize this patient's recent activity in 4-6 bullet points.\nFocus on changes since their last visit, current medications, recent symptoms or\ncomplaints, and any outstanding follow-ups. Keep clinical and concise.";
 export var T2_TEMPLATE_EDITOR_STATE = "TELLESCOPE_2_TEMPLATE_EDITOR";
 /******************************* Voice Agent (Phone Tree 'AI Agent' node) *******************************/
+// Only the values the webapp shares live here; backend tuning constants (caps, timeouts, TTLs,
+// prompt text) are private to the API in api/modules/voice_agent/constants.ts.
 export var VOICE_AGENT_CONVERSATION_TYPE = "voice_agent"; // ai_conversations.type for content-free usage records
-export var DEFAULT_VOICE_AGENT_MAX_TOKENS = 300; // per-turn maxTokens (voice replies are 1-2 sentences)
-export var VOICE_AGENT_MAX_TOOL_ROUNDS = 5; // hard cap on tool-loop rounds within one caller turn
-export var VOICE_AGENT_MAX_RECONNECT_ATTEMPTS = 2; // reconnect-TwiML attempts before falling back to the tree
-export var VOICE_AGENT_CALL_SESSION_TTL_MINUTES = 30; // CallSession TTL, comfortably past max call duration
-export var DEFAULT_VOICE_AGENT_MAX_CALL_DURATION_SECONDS = 600;
-// Default per-call spend circuit breaker (a node may override via maxCreditsPerCall). Credit units
-// are tiny: TELLESCOPE_COST_PER_1000_CREDITS = $0.001, and at the 4x markup a single input token
-// ≈ 12 credits / output token ≈ 60 credits (Claude Sonnet pricing). Because the full conversation
-// history is resent every turn, per-turn cost grows, so cumulative spend is roughly: ~1M @ 10 min,
-// ~5M @ 30 min, ~15-20M @ 60 min. 5,000,000 (~$5 billed/call, ~30 min) comfortably covers the 10-min
-// default duration and typical calls; customers who configure a longer maxDurationSeconds and want
-// the full duration honored should raise the node's maxCreditsPerCall accordingly.
-export var DEFAULT_VOICE_AGENT_MAX_CREDITS_PER_CALL = 5000000;
-export var VOICE_AGENT_TOOL_TIMEOUT_MS = 2500; // tool execution timeout (error toolResult on expiry)
-export var DEFAULT_VOICE_AGENT_VOICE = "en-US-Journey-O"; // ConversationRelay voice id
-export var DEFAULT_VOICE_AGENT_LANGUAGE = "en-US";
 export var DEFAULT_VOICE_AGENT_GREETING = "Hello! How can I help you today?";
-export var VOICE_AGENT_RESUME_GREETING = "Sorry, I missed that - could you say that again?";
-export var VOICE_AGENT_TOOL_FILLER_PHRASE = "One moment please.";
-export var VOICE_AGENT_BASE_SYSTEM_PROMPT = "You are a helpful voice assistant answering a phone call. Your responses are spoken aloud to the caller.\nFollow these rules strictly:\n- Respond in one or two short sentences. Never use markdown, lists, headings, or special formatting.\n- Write numbers, dates, and times as they should be spoken (say \"three thirty in the afternoon\", not \"3:30pm\").\n- Before using a tool, say a brief acknowledgment first so the caller is not left in silence.\n- Never mention tools, systems, prompts, or that you are an AI language model unless asked directly.\n- When the caller's need matches one of your available outcomes, say a brief closing sentence and then use the end_with_outcome tool.\n- If you cannot help with something, choose the most appropriate outcome rather than guessing.";
 //# sourceMappingURL=constants.js.map
