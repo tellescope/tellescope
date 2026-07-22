@@ -269,6 +269,7 @@ import {
   indexUpdatesValidator,
   dateRangeOptionalValidator,
   booleanValidatorOptional,
+  coldTransfersValidator,
   automationTriggerActionValidator,
   automationTriggerEventValidator,
   automatioNTriggerStatusValidator,
@@ -311,6 +312,7 @@ import {
   listValidatorOptionalOrEmptyOk,
   formCustomizationValidator,
   aiSummaryConfigurationValidator,
+  selectableAIModelValidator,
   buildInFieldsValidator,
   customEnduserFieldsValidatorOptionalOrEmpty,
   ticketActionsValidator,
@@ -1126,6 +1128,7 @@ export type CustomActions = {
     }, { report: Report }>,
     get_number_report: CustomAction<{ range?: DateRange }, { report: PhoneCallsReport }>,
     upgrade_to_conference: CustomAction<{ id: string }, { }>,
+    cold_transfer: CustomAction<{ callSid: string, targetUserId: string }, { }>,
     add_conference_attendees: CustomAction<{ conferenceId: string, enduserId?: string, byClientId?: string[], byPhone?: string[] }, { }>,
     remove_conference_attendees: CustomAction<{ conferenceId: string, byClientId?: string[], byPhone?: string[] }, { }>,
     end_conference: CustomAction<{ id: string }, { }>,
@@ -1304,6 +1307,7 @@ export type CustomActions = {
       enduserId?: string, // optional patient this conversation is about
       journeyId?: string, // optional journey that produced this conversation
       automationStepId?: string, // optional automation step that produced this conversation
+      model?: string, // 'Claude Sonnet 5' (default) | 'Claude Opus 4.8'; must match the conversation's model when continuing
     }, { ai_conversation: AIConversation }>,
     generate_ai_decision: CustomAction<
       AIDecisionAutomationAction['info'] & { enduserId: string, automationStepId: string, journeyContext?: JourneyContext },
@@ -6142,7 +6146,7 @@ export const schema: SchemaV1 = build_schema({
       canvasCoding: { validator: canvasCodingValidatorOptional },
       canvasReasonCoding: { validator: canvasCodingValidatorOptional },
       canvasLocationId: { validator: stringValidator100 },
-      references: { validator: listOfRelatedRecordsValidator, updatesDisabled: true },
+      references: { validator: listOfRelatedRecordsValidator, enduserUpdatesDisabled: true },
       completedAt: { validator: dateValidatorOptional },
       completedBy: { validator: stringValidator },
       confirmedAt: { validator: dateValidatorOptional },
@@ -8191,9 +8195,20 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
         },
         returns: {},
       },
+      cold_transfer: {
+        op: "custom", access: 'update', method: "post",
+        name: 'Cold Transfer',
+        path: '/phone-calls/cold-transfer',
+        description: "Cold transfers an active inbound call to another user, falling through to voicemail if unanswered",
+        parameters: {
+          callSid: { validator: stringValidator100, required: true },
+          targetUserId: { validator: mongoIdStringValidator, required: true },
+        },
+        returns: {},
+      },
       add_conference_attendees: {
         op: "custom", access: 'update', method: "post",
-        name: 'Remove Conference Attendees',
+        name: 'Add Conference Attendees',
         path: '/phone-calls/add-conference-attendees',
         description: "Adds attendees to conference call",
         parameters: {
@@ -8296,6 +8311,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       dialedUserIds:     { validator: listOfListsOfMongoIdStringsValidatorOptionalOrEmptyOk, updatesDisabled: true },
       ignoredUserIds:    { validator: listOfListsOfMongoIdStringsValidatorOptionalOrEmptyOk, updatesDisabled: true },
       lastDialedUserIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk,         updatesDisabled: true },
+      coldTransfers: { validator: coldTransfersValidator, updatesDisabled: true },
       ticketId: { validator: mongoIdStringValidator },
       pinnedAt: { validator: dateOptionalOrEmptyStringValidator },
       readBy: { validator: idStringToDateValidator },
@@ -10126,6 +10142,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           enduserId: { validator: mongoIdStringValidator }, // optional patient this conversation is about
           journeyId: { validator: mongoIdStringValidator }, // optional journey that produced this conversation
           automationStepId: { validator: mongoIdStringValidator }, // optional automation step that produced this conversation
+          model: { validator: selectableAIModelValidator }, // 'Claude Sonnet 5' (default) | 'Claude Opus 4.8'; must match the conversation's model when continuing
         },
         returns: {
           ai_conversation: { validator: 'ai_conversation' as any, required: true },
@@ -10152,7 +10169,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
     fields: {
       ...BuiltInFields,
       type: { validator: stringValidator, required: true, examples: ['HTML Template Generation'] },
-      modelName: { validator: stringValidator, required: true, examples: ['Claude Sonnet 4', 'Claude Sonnet 4.5', 'Claude Sonnet 4.6', 'Claude Sonnet 5'] },
+      modelName: { validator: stringValidator, required: true, examples: ['Claude Sonnet 4', 'Claude Sonnet 4.5', 'Claude Sonnet 4.6', 'Claude Sonnet 5', 'Claude Opus 4.8'] },
       orchestrationId: { validator: stringValidatorOptional, examples: ['workflow-123', 'batch-456'] },
       enduserId: {
         validator: mongoIdStringOptional,

@@ -2132,6 +2132,7 @@ export type AISummaryConfiguration = {
   dataSources?: AISummaryDataSourceConfig[],
   maxOutputTokens?: number,
   includeProfileFields?: boolean, // include the enduser profile block (name/DOB/fields/custom fields) in the AI context
+  model?: string, // 'Claude Sonnet 5' (default) | 'Claude Opus 4.8'
 }
 
 export type FormCustomization = {
@@ -2823,7 +2824,6 @@ export type VideoCallParticipantEvent = {
 export interface CalendarEvent_readonly extends ClientRecord {
   meetingId?: string
   meetingStatus?: MeetingStatus,
-  references?: RelatedRecord[]
   videoCallAttendance?: VideoCallParticipantEvent[], // server-written join/leave log for video calls
 }
 export interface CalendarEvent_required {
@@ -2834,6 +2834,7 @@ export interface CalendarEvent_required {
 export interface CalendarEvent_updatesDisabled {}
 export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_required, CalendarEvent_updatesDisabled {
   updateKey?: string,
+  references?: RelatedRecord[],
   dontSyncToElation?: boolean,
   createAndBookAthenaSlot?: boolean,
   athenaDepartmentId?: string,
@@ -4235,6 +4236,7 @@ export interface PhoneCall extends PhoneCall_readonly, PhoneCall_required, Phone
   dialedUserIds?: string[][],  // might ring multiple stages, so use list of users dialed at each step
   ignoredUserIds?: string[][], // might ring multiple stages, so use list of users dialed at each step
   lastDialedUserIds?: string[], // flat copy of the final dialedUserIds stage, for indexed "dialed me" queries
+  coldTransfers?: { transferredAt: Date, userId: string }[], // audit log of cold transfers; non-empty indicates the call was answered then transferred (may roll to voicemail despite answeredAt)
   ticketId?: string,
   hungUpByCaller?: boolean,
   archivedAt?: Date | '',
@@ -5080,6 +5082,8 @@ export type PhoneTreeEvents = {
   'After Action': PhoneTreeEventBuilder<'After Action', { }>,
   // branches from an 'AI Agent' node when the agent ends with this outcome (the AI sibling of 'On Gather')
   'On Agent Outcome': PhoneTreeEventBuilder<'On Agent Outcome', { outcome: string }>,
+  // branches from an 'Enduser Condition Split' node when the caller matches the branch with this name
+  'On Condition Branch': PhoneTreeEventBuilder<'On Condition Branch', { branch: string }>,
 }
 export type PhoneTreeEventType = keyof PhoneTreeEvents
 export type PhoneTreeEvent = PhoneTreeEvents[PhoneTreeEventType]
@@ -5120,11 +5124,18 @@ export type PhoneTreeActions = {
     sipPassword?: string,       // optional SIP auth
     playback?: Partial<PhonePlayback>,
   }>
-  'Conditional Split': PhoneTreeActionBuilder<"Conditional Split", { 
+  'Conditional Split': PhoneTreeActionBuilder<"Conditional Split", {
     timezone?: Timezone,
     weeklyAvailabilities?: WeeklyAvailability[],
     hasCareTeam?: boolean,
     hasOneCareTeamMember?: boolean,
+  }>
+  // N-ary branching on enduser fields/tags — ordered branches, first match wins, wired via 'On Condition Branch' edges
+  'Enduser Condition Split': PhoneTreeActionBuilder<"Enduser Condition Split", {
+    branches: {
+      name: string,
+      enduserCondition?: Record<string, any>, // CompoundFilter on enduser fields/tags (same shape as AutomationTrigger.enduserCondition); empty/omitted = always matches (catch-all)
+    }[],
   }>
   'Add to Queue': PhoneTreeActionBuilder<"Add to Queue", {
     queueId: string,
@@ -5149,6 +5160,7 @@ export type PhoneTreeActions = {
     maxTurns?: number,
     maxDurationSeconds?: number,
     maxCreditsPerCall?: number, // per-call spend circuit breaker, default from constants
+    model?: string, // friendly AI model name, see SELECTABLE_AI_MODELS (constants); defaults to Claude Sonnet 5
     outcomes: { value: string, description: string }[], // the agent must end with one of these
   }>
 }

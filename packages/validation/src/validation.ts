@@ -413,6 +413,8 @@ import {
   NO_ACCESS,
   OUTLOOK_INTEGRATIONS_TITLE,
   PAGER_DUTY_TITLE,
+  SELECTABLE_AI_MODELS,
+  SelectableAIModel,
   SMART_METER_TITLE,
   SQUARE_INTEGRATIONS_TITLE,
   STRIPE_TITLE,
@@ -2803,6 +2805,11 @@ export const cancelConditionsValidatorOptional = listValidatorOptionalOrEmptyOk(
   }, { emptyOk: false }),
 }))
 
+export const coldTransfersValidator = listValidatorOptionalOrEmptyOk(objectValidator<{ transferredAt: Date, userId: string }>({
+  transferredAt: dateValidator,
+  userId: mongoIdStringRequired,
+}, { emptyOk: false }))
+
 const delayValidation = { 
   automationStepId: mongoIdStringRequired, 
   delayInMS: nonNegNumberValidator, // use 0 when no delay
@@ -3056,12 +3063,15 @@ export const aiSummaryDataSourceConfigValidator = objectValidator<AISummaryDataS
   filter: objectAnyFieldsAnyValuesValidator,
 })
 
+export const selectableAIModelValidator = exactMatchValidatorOptional<SelectableAIModel>([...SELECTABLE_AI_MODELS])
+
 export const aiSummaryConfigurationValidator = objectValidator<AISummaryConfiguration>({
   enabled: booleanValidatorOptional,
   prompt: stringValidator5000OptionalEmptyOkay,
   dataSources: listValidatorOptionalOrEmptyOk(aiSummaryDataSourceConfigValidator),
   maxOutputTokens: nonNegNumberValidatorOptional,
   includeProfileFields: booleanValidatorOptional,
+  model: selectableAIModelValidator,
 }, { isOptional: true, emptyOk: true })
 
 export const AIDecisionSourceValidator = objectValidator<AIContextSource>({
@@ -6591,7 +6601,7 @@ export const customDashboardBlockValidator = objectValidator<CustomDashboardBloc
   responsive: objectAnyFieldsAnyValuesValidator,
   style: objectAnyFieldsAnyValuesValidator,
 }, { emptyOk: true })
-export const customDashboardBlocksValidator = listValidator(customDashboardBlockValidator)
+export const customDashboardBlocksValidator = listValidatorEmptyOk(customDashboardBlockValidator)
 
 const insuranceValidator = objectValidator<Insurance>({
   name: stringValidator100,
@@ -6643,6 +6653,13 @@ export const phoneTreeEventValidator = orValidator<{ [K in PhoneTreeEventType]: 
     parentId: stringValidator100,
     info: objectValidator<PhoneTreeEvents["On Agent Outcome"]['info']>({
       outcome: stringValidator250,
+    }),
+  }),
+  "On Condition Branch": objectValidator<PhoneTreeEvents["On Condition Branch"]>({
+    type: exactMatchValidator(['On Condition Branch']),
+    parentId: stringValidator100,
+    info: objectValidator<PhoneTreeEvents["On Condition Branch"]['info']>({
+      branch: stringValidator250,
     }),
   }),
 })
@@ -6765,6 +6782,15 @@ export const phoneTreeActionValidator = orValidator<{ [K in PhoneTreeActionType]
       hasOneCareTeamMember: booleanValidatorOptional,
     }),
   }),
+  "Enduser Condition Split": objectValidator<PhoneTreeActions["Enduser Condition Split"]>({
+    type: exactMatchValidator(['Enduser Condition Split']),
+    info: objectValidator<PhoneTreeActions["Enduser Condition Split"]['info']>({
+      branches: listValidator(objectValidator({
+        name: stringValidator250,
+        enduserCondition: optionalAnyObjectValidator,
+      })),
+    }),
+  }),
   "Select Care Team Member": objectValidator<PhoneTreeActions["Select Care Team Member"]>({
     type: exactMatchValidator(['Select Care Team Member']),
     info: objectValidator<PhoneTreeActions["Select Care Team Member"]['info']>({ 
@@ -6808,6 +6834,7 @@ export const phoneTreeActionValidator = orValidator<{ [K in PhoneTreeActionType]
       maxTurns: numberValidatorOptional,
       maxDurationSeconds: numberValidatorOptional,
       maxCreditsPerCall: numberValidatorOptional,
+      model: selectableAIModelValidator,
       outcomes: listValidator(objectValidator({
         value: stringValidator250,
         description: stringValidator1000,

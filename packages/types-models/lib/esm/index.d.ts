@@ -2061,6 +2061,7 @@ export type AISummaryConfiguration = {
     dataSources?: AISummaryDataSourceConfig[];
     maxOutputTokens?: number;
     includeProfileFields?: boolean;
+    model?: string;
 };
 export type FormCustomization = {
     publicFormHTMLDescription?: string;
@@ -2718,7 +2719,6 @@ export type VideoCallParticipantEvent = {
 export interface CalendarEvent_readonly extends ClientRecord {
     meetingId?: string;
     meetingStatus?: MeetingStatus;
-    references?: RelatedRecord[];
     videoCallAttendance?: VideoCallParticipantEvent[];
 }
 export interface CalendarEvent_required {
@@ -2730,6 +2730,7 @@ export interface CalendarEvent_updatesDisabled {
 }
 export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_required, CalendarEvent_updatesDisabled {
     updateKey?: string;
+    references?: RelatedRecord[];
     dontSyncToElation?: boolean;
     createAndBookAthenaSlot?: boolean;
     athenaDepartmentId?: string;
@@ -4198,6 +4199,10 @@ export interface PhoneCall extends PhoneCall_readonly, PhoneCall_required, Phone
     dialedUserIds?: string[][];
     ignoredUserIds?: string[][];
     lastDialedUserIds?: string[];
+    coldTransfers?: {
+        transferredAt: Date;
+        userId: string;
+    }[];
     ticketId?: string;
     hungUpByCaller?: boolean;
     archivedAt?: Date | '';
@@ -5091,6 +5096,9 @@ export type PhoneTreeEvents = {
     'On Agent Outcome': PhoneTreeEventBuilder<'On Agent Outcome', {
         outcome: string;
     }>;
+    'On Condition Branch': PhoneTreeEventBuilder<'On Condition Branch', {
+        branch: string;
+    }>;
 };
 export type PhoneTreeEventType = keyof PhoneTreeEvents;
 export type PhoneTreeEvent = PhoneTreeEvents[PhoneTreeEventType];
@@ -5167,6 +5175,12 @@ export type PhoneTreeActions = {
         hasCareTeam?: boolean;
         hasOneCareTeamMember?: boolean;
     }>;
+    'Enduser Condition Split': PhoneTreeActionBuilder<"Enduser Condition Split", {
+        branches: {
+            name: string;
+            enduserCondition?: Record<string, any>;
+        }[];
+    }>;
     'Add to Queue': PhoneTreeActionBuilder<"Add to Queue", {
         queueId: string;
         playback?: Partial<PhonePlayback>;
@@ -5192,6 +5206,7 @@ export type PhoneTreeActions = {
         maxTurns?: number;
         maxDurationSeconds?: number;
         maxCreditsPerCall?: number;
+        model?: string;
         outcomes: {
             value: string;
             description: string;

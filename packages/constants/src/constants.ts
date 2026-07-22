@@ -1294,6 +1294,11 @@ export const MAX_AI_SUMMARY_DATA_SOURCES = 25
 
 export const DEFAULT_HISTORICAL_DATA_SOURCE_LIMIT = 100 // matches backend DEFAULT_LIMIT — non-breaking
 
+// Friendly names of Bedrock models customers may select (must match AI_MODEL_PRICING rows in the API)
+export const SELECTABLE_AI_MODELS = ['Claude Sonnet 5', 'Claude Opus 4.8'] as const
+export type SelectableAIModel = (typeof SELECTABLE_AI_MODELS)[number]
+export const DEFAULT_AI_MODEL: SelectableAIModel = 'Claude Sonnet 5'
+
 export const EXAMPLE_AI_SUMMARY_PROMPT =
 `Summarize this patient's recent activity in 4-6 bullet points.
 Focus on changes since their last visit, current medications, recent symptoms or

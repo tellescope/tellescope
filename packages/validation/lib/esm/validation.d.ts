@@ -747,6 +747,10 @@ export declare const cancelConditionValidator: ValidatorDefinition<({
 })>;
 export declare const cancelConditionsValidator: ValidatorDefinition<CancelCondition[]>;
 export declare const cancelConditionsValidatorOptional: ValidatorDefinition<CancelCondition[]>;
+export declare const coldTransfersValidator: ValidatorDefinition<{
+    transferredAt: Date;
+    userId: string;
+}[]>;
 export declare const automationEventValidator: ValidatorDefinition<(FormResponseAutomationEvent & {
     type: "formResponse";
 }) | (FormResponsesAutomationEvent & {
@@ -874,6 +878,7 @@ export declare const canvasCodingValidatorOptional: ValidatorDefinition<CanvasCo
 export declare const AI_SUMMARY_DATA_SOURCES: AISummaryDataSource[];
 export declare const aiSummaryDataSourceTypeValidator: ValidatorDefinition<AISummaryDataSource>;
 export declare const aiSummaryDataSourceConfigValidator: ValidatorDefinition<AISummaryDataSourceConfig>;
+export declare const selectableAIModelValidator: ValidatorDefinition<"Claude Sonnet 5" | "Claude Opus 4.8">;
 export declare const aiSummaryConfigurationValidator: ValidatorDefinition<AISummaryConfiguration>;
 export declare const AIDecisionSourceValidator: ValidatorDefinition<AIContextSource>;
 export declare const AIMessageInputValidator: ValidatorDefinition<{
@@ -2536,6 +2541,8 @@ export declare const phoneTreeEventValidator: ValidatorDefinition<import("@telle
     handleNoInput?: boolean | undefined;
 }> | import("@tellescope/types-models").PhoneTreeEventBuilder<"If True", {}> | import("@tellescope/types-models").PhoneTreeEventBuilder<"If False", {}> | import("@tellescope/types-models").PhoneTreeEventBuilder<"If No Users Match", {}> | import("@tellescope/types-models").PhoneTreeEventBuilder<"If No Users Answer", {}> | import("@tellescope/types-models").PhoneTreeEventBuilder<"After Action", {}> | import("@tellescope/types-models").PhoneTreeEventBuilder<"On Agent Outcome", {
     outcome: string;
+}> | import("@tellescope/types-models").PhoneTreeEventBuilder<"On Condition Branch", {
+    branch: string;
 }>>;
 export declare const phoneTreeEventsValidator: ValidatorDefinition<(import("@tellescope/types-models").PhoneTreeEventBuilder<"Start", {}> | import("@tellescope/types-models").PhoneTreeEventBuilder<"On Gather", {
     digits?: string | undefined;
@@ -2543,6 +2550,8 @@ export declare const phoneTreeEventsValidator: ValidatorDefinition<(import("@tel
     handleNoInput?: boolean | undefined;
 }> | import("@tellescope/types-models").PhoneTreeEventBuilder<"If True", {}> | import("@tellescope/types-models").PhoneTreeEventBuilder<"If False", {}> | import("@tellescope/types-models").PhoneTreeEventBuilder<"If No Users Match", {}> | import("@tellescope/types-models").PhoneTreeEventBuilder<"If No Users Answer", {}> | import("@tellescope/types-models").PhoneTreeEventBuilder<"After Action", {}> | import("@tellescope/types-models").PhoneTreeEventBuilder<"On Agent Outcome", {
     outcome: string;
+}> | import("@tellescope/types-models").PhoneTreeEventBuilder<"On Condition Branch", {
+    branch: string;
 }>)[]>;
 export declare const phonePlaybackValidator: ValidatorDefinition<{
     type: "Play";
@@ -2609,6 +2618,11 @@ export declare const phoneTreeActionValidator: ValidatorDefinition<import("@tell
     weeklyAvailabilities?: WeeklyAvailability[] | undefined;
     hasCareTeam?: boolean | undefined;
     hasOneCareTeamMember?: boolean | undefined;
+}> | import("@tellescope/types-models").PhoneTreeActionBuilder<"Enduser Condition Split", {
+    branches: {
+        name: string;
+        enduserCondition?: Record<string, any> | undefined;
+    }[];
 }> | import("@tellescope/types-models").PhoneTreeActionBuilder<"Select Care Team Member", {
     playback?: Partial<import("@tellescope/types-models").PhonePlayback> | undefined;
     playbackVoicemail?: Partial<import("@tellescope/types-models").PhonePlayback> | undefined;
@@ -2634,6 +2648,7 @@ export declare const phoneTreeActionValidator: ValidatorDefinition<import("@tell
     maxTurns?: number | undefined;
     maxDurationSeconds?: number | undefined;
     maxCreditsPerCall?: number | undefined;
+    model?: string | undefined;
     outcomes: {
         value: string;
         description: string;

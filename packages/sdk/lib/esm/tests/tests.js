@@ -100,6 +100,7 @@ import { assert, async_test, handleAnyError, log_header, passOnAnyResult, wait, 
 import { objects_equivalent, url_safe_path, } from "@tellescope/utilities";
 import fs from "fs";
 import { load_inbox_data_tests } from "./api_tests/load_inbox_data.test";
+import { phone_calls_cold_transfer_tests } from "./api_tests/phone_calls_cold_transfer.test";
 import { enduser_login_tests } from "./api_tests/enduser_login.test";
 import { enduser_login_rate_limits_tests } from "./api_tests/enduser_login_rate_limits.test";
 import { eom_procedure_codes_tests } from "./api_tests/eom_procedure_codes.test";
@@ -146,6 +147,7 @@ import { conditional_logic_medication_unit_tests } from "./unit_tests/conditiona
 import { elation_user_id_tests } from "./api_tests/elation_user_id.test";
 import { organization_settings_duplicates_tests } from "./api_tests/organization_settings_duplicates.test";
 import { calendar_events_bulk_update_tests } from "./api_tests/calendar_events_bulk_update.test";
+import { calendar_event_references_update_tests } from "./api_tests/calendar_event_references_update.test";
 import { openloop_webhooks_tests } from "./api_tests/openloop_webhooks.test";
 import { beluga_pharmacy_mappings_tests } from "./api_tests/beluga_pharmacy_mappings.test";
 import { mdi_case_offerings_tests } from "./api_tests/mdi_case_offerings.test";
@@ -159,6 +161,7 @@ import { enduser_session_invalidation_tests } from "./api_tests/enduser_session_
 import { enduser_cross_access_isolation_tests } from "./api_tests/enduser_cross_access_isolation.test";
 import { calendar_event_webhook_template_tests } from "./api_tests/calendar_event_webhook_template.test";
 import { webhook_error_handling_tests } from "./api_tests/webhook_error_handling.test";
+import { phone_tree_enduser_condition_tests } from "./api_tests/phone_tree_enduser_condition.test";
 var UniquenessViolationMessage = 'Uniqueness Violation';
 var host = process.env.API_URL || 'http://localhost:8080';
 var _a = [process.env.TEST_EMAIL, process.env.TEST_PASSWORD], email = _a[0], password = _a[1];
@@ -16955,7 +16958,7 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                 assert(truncate_string(null, { length: 4, showEllipsis: false }) === '', 'truncate doesnt work for non string', 'trucate works for non-string');
                 _l.label = 2;
             case 2:
-                _l.trys.push([2, 163, , 164]);
+                _l.trys.push([2, 166, , 167]);
                 get_next_reminder_timestamp_tests();
                 form_conditional_logic_tests();
                 return [4 /*yield*/, test_weighted_round_robin()];
@@ -17222,324 +17225,333 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                 return [4 /*yield*/, date_string_validation_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 58:
                 _l.sent();
-                return [4 /*yield*/, openloop_webhooks_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, phone_tree_enduser_condition_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 59:
                 _l.sent();
-                return [4 /*yield*/, mdi_webhooks_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, openloop_webhooks_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 60:
                 _l.sent();
-                return [4 /*yield*/, integrations_redacted_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, mdi_webhooks_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 61:
                 _l.sent();
-                return [4 /*yield*/, healthie_multi_integration_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, integrations_redacted_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 62:
                 _l.sent();
-                return [4 /*yield*/, mdb_sort_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, healthie_multi_integration_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 63:
                 _l.sent();
-                return [4 /*yield*/, search_tests()];
+                return [4 /*yield*/, mdb_sort_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 64:
                 _l.sent();
-                return [4 /*yield*/, time_tracks_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, search_tests()];
             case 65:
                 _l.sent();
-                return [4 /*yield*/, time_tracks_historical_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, time_tracks_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 66:
                 _l.sent();
-                return [4 /*yield*/, time_tracks_correction_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, time_tracks_historical_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 67:
                 _l.sent();
-                return [4 /*yield*/, time_tracks_review_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, time_tracks_correction_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 68:
                 _l.sent();
-                return [4 /*yield*/, time_tracks_lock_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, time_tracks_review_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 69:
                 _l.sent();
-                return [4 /*yield*/, time_tracks_edge_case_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, time_tracks_lock_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 70:
                 _l.sent();
-                return [4 /*yield*/, time_tracks_resubmit_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, time_tracks_edge_case_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 71:
                 _l.sent();
-                return [4 /*yield*/, time_tracks_appointment_duration_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, time_tracks_resubmit_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 72:
                 _l.sent();
-                return [4 /*yield*/, calendar_event_limits_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, time_tracks_appointment_duration_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 73:
                 _l.sent();
-                return [4 /*yield*/, get_some_projection_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, calendar_event_limits_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 74:
                 _l.sent();
-                return [4 /*yield*/, elation_user_id_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, get_some_projection_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 75:
                 _l.sent();
-                return [4 /*yield*/, concurrent_build_threads_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, elation_user_id_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 76:
                 _l.sent();
-                return [4 /*yield*/, custom_aggregation_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, concurrent_build_threads_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 77:
                 _l.sent();
-                return [4 /*yield*/, no_access_permission_checks_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, custom_aggregation_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 78:
                 _l.sent();
-                return [4 /*yield*/, enduser_tests()];
+                return [4 /*yield*/, no_access_permission_checks_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 79:
                 _l.sent();
-                return [4 /*yield*/, form_started_trigger_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, enduser_tests()];
             case 80:
                 _l.sent();
-                return [4 /*yield*/, load_team_chat_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, form_started_trigger_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 81:
                 _l.sent();
-                return [4 /*yield*/, ai_conversations_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, load_team_chat_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 82:
                 _l.sent();
-                return [4 /*yield*/, inbox_thread_assignment_updates_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, ai_conversations_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 83:
                 _l.sent();
-                return [4 /*yield*/, inbox_thread_draft_scheduled_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, inbox_thread_assignment_updates_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 84:
                 _l.sent();
-                return [4 /*yield*/, load_threads_autobuild_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, inbox_thread_draft_scheduled_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 85:
                 _l.sent();
-                return [4 /*yield*/, inbox_threads_new_fields_tests()];
+                return [4 /*yield*/, load_threads_autobuild_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 86:
                 _l.sent();
-                return [4 /*yield*/, auto_merge_form_submission_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, inbox_threads_new_fields_tests()];
             case 87:
                 _l.sent();
-                return [4 /*yield*/, threadKeyTests()];
+                return [4 /*yield*/, auto_merge_form_submission_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 88:
                 _l.sent();
-                return [4 /*yield*/, managed_content_enduser_access_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, threadKeyTests()];
             case 89:
                 _l.sent();
-                return [4 /*yield*/, managed_content_file_access_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, managed_content_enduser_access_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 90:
                 _l.sent();
-                return [4 /*yield*/, afteraction_day_of_month_delay_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, managed_content_file_access_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 91:
                 _l.sent();
-                return [4 /*yield*/, bulk_assignment_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, afteraction_day_of_month_delay_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 92:
                 _l.sent();
-                return [4 /*yield*/, formsort_tests()];
+                return [4 /*yield*/, bulk_assignment_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 93:
                 _l.sent();
-                return [4 /*yield*/, self_serve_appointment_booking_tests()];
+                return [4 /*yield*/, formsort_tests()];
             case 94:
                 _l.sent();
-                return [4 /*yield*/, test_ticket_automation_assignment_and_optimization()];
+                return [4 /*yield*/, self_serve_appointment_booking_tests()];
             case 95:
                 _l.sent();
-                return [4 /*yield*/, monthly_availability_restrictions_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, test_ticket_automation_assignment_and_optimization()];
             case 96:
                 _l.sent();
-                return [4 /*yield*/, journey_error_branching_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, monthly_availability_restrictions_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 97:
                 _l.sent();
-                return [4 /*yield*/, journey_delete_cancels_actions_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, journey_error_branching_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 98:
                 _l.sent();
-                return [4 /*yield*/, message_assignment_trigger_tests({ sdk: sdk })];
+                return [4 /*yield*/, journey_delete_cancels_actions_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 99:
                 _l.sent();
-                return [4 /*yield*/, inbox_threads_building_tests()];
+                return [4 /*yield*/, message_assignment_trigger_tests({ sdk: sdk })];
             case 100:
                 _l.sent();
-                return [4 /*yield*/, inbox_threads_loading_tests()];
+                return [4 /*yield*/, inbox_threads_building_tests()];
             case 101:
                 _l.sent();
-                return [4 /*yield*/, load_inbox_data_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, inbox_threads_loading_tests()];
             case 102:
                 _l.sent();
-                return [4 /*yield*/, enduser_observations_acknowledge_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, load_inbox_data_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 103:
                 _l.sent();
-                return [4 /*yield*/, nutrition_tracking_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, phone_calls_cold_transfer_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 104:
                 _l.sent();
-                return [4 /*yield*/, translations_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, enduser_observations_acknowledge_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 105:
                 _l.sent();
-                return [4 /*yield*/, create_user_notifications_trigger_tests({ sdk: sdk })];
+                return [4 /*yield*/, nutrition_tracking_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 106:
                 _l.sent();
-                return [4 /*yield*/, group_mms_active_tests()];
+                return [4 /*yield*/, translations_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 107:
                 _l.sent();
-                return [4 /*yield*/, auto_reply_tests()];
+                return [4 /*yield*/, create_user_notifications_trigger_tests({ sdk: sdk })];
             case 108:
                 _l.sent();
-                return [4 /*yield*/, relationships_tests()];
+                return [4 /*yield*/, group_mms_active_tests()];
             case 109:
                 _l.sent();
-                return [4 /*yield*/, rate_limit_tests()];
+                return [4 /*yield*/, auto_reply_tests()];
             case 110:
                 _l.sent();
-                return [4 /*yield*/, ip_address_form_tests()];
+                return [4 /*yield*/, relationships_tests()];
             case 111:
                 _l.sent();
-                return [4 /*yield*/, bulk_update_tests()];
+                return [4 /*yield*/, rate_limit_tests()];
             case 112:
                 _l.sent();
-                return [4 /*yield*/, calendar_events_bulk_update_tests({ sdk: sdk })];
+                return [4 /*yield*/, ip_address_form_tests()];
             case 113:
                 _l.sent();
-                return [4 /*yield*/, cancel_upcoming_appointments_journey_action_test()];
+                return [4 /*yield*/, bulk_update_tests()];
             case 114:
                 _l.sent();
-                return [4 /*yield*/, multi_tenant_tests()]; // should come right after setup tests
+                return [4 /*yield*/, calendar_events_bulk_update_tests({ sdk: sdk })];
             case 115:
+                _l.sent();
+                return [4 /*yield*/, calendar_event_references_update_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+            case 116:
+                _l.sent();
+                return [4 /*yield*/, cancel_upcoming_appointments_journey_action_test()];
+            case 117:
+                _l.sent();
+                return [4 /*yield*/, multi_tenant_tests()]; // should come right after setup tests
+            case 118:
                 _l.sent(); // should come right after setup tests
                 return [4 /*yield*/, sync_tests_with_access_tags()]; // should come directly after setup to avoid extra sync values
-            case 116:
+            case 119:
                 _l.sent(); // should come directly after setup to avoid extra sync values
                 return [4 /*yield*/, sync_tests()]; // should come directly after setup to avoid extra sync values
-            case 117:
+            case 120:
                 _l.sent(); // should come directly after setup to avoid extra sync values
                 return [4 /*yield*/, get_templated_message_tests()];
-            case 118:
-                _l.sent();
-                return [4 /*yield*/, updatedAt_tests()];
-            case 119:
-                _l.sent();
-                return [4 /*yield*/, file_source_tests()];
-            case 120:
-                _l.sent();
-                return [4 /*yield*/, enduser_access_tags_tests()];
             case 121:
                 _l.sent();
-                return [4 /*yield*/, enduserAccessTests()];
+                return [4 /*yield*/, updatedAt_tests()];
             case 122:
                 _l.sent();
-                return [4 /*yield*/, test_form_response_search()];
+                return [4 /*yield*/, file_source_tests()];
             case 123:
                 _l.sent();
-                return [4 /*yield*/, date_parsing_tests()];
+                return [4 /*yield*/, enduser_access_tags_tests()];
             case 124:
                 _l.sent();
-                return [4 /*yield*/, fromEmailOverride_tests()];
+                return [4 /*yield*/, enduserAccessTests()];
             case 125:
                 _l.sent();
-                return [4 /*yield*/, ticket_tests()];
+                return [4 /*yield*/, test_form_response_search()];
             case 126:
                 _l.sent();
-                return [4 /*yield*/, uniqueness_tests()];
+                return [4 /*yield*/, date_parsing_tests()];
             case 127:
                 _l.sent();
-                return [4 /*yield*/, enduser_orders_tests()];
+                return [4 /*yield*/, fromEmailOverride_tests()];
             case 128:
                 _l.sent();
-                return [4 /*yield*/, calendar_event_care_team_tests()];
+                return [4 /*yield*/, ticket_tests()];
             case 129:
                 _l.sent();
-                return [4 /*yield*/, merge_enduser_tests()];
+                return [4 /*yield*/, uniqueness_tests()];
             case 130:
                 _l.sent();
-                return [4 /*yield*/, input_modifier_tests()];
+                return [4 /*yield*/, enduser_orders_tests()];
             case 131:
                 _l.sent();
-                return [4 /*yield*/, switch_to_related_contacts_tests()];
+                return [4 /*yield*/, calendar_event_care_team_tests()];
             case 132:
                 _l.sent();
-                return [4 /*yield*/, redaction_tests()];
+                return [4 /*yield*/, merge_enduser_tests()];
             case 133:
                 _l.sent();
-                return [4 /*yield*/, no_chained_triggers_tests()];
+                return [4 /*yield*/, input_modifier_tests()];
             case 134:
                 _l.sent();
-                return [4 /*yield*/, mdb_filter_tests()];
+                return [4 /*yield*/, switch_to_related_contacts_tests()];
             case 135:
                 _l.sent();
-                return [4 /*yield*/, superadmin_tests()];
+                return [4 /*yield*/, redaction_tests()];
             case 136:
                 _l.sent();
-                return [4 /*yield*/, ticket_queue_tests()];
+                return [4 /*yield*/, no_chained_triggers_tests()];
             case 137:
                 _l.sent();
-                return [4 /*yield*/, vital_trigger_tests()];
+                return [4 /*yield*/, mdb_filter_tests()];
             case 138:
                 _l.sent();
-                return [4 /*yield*/, close_reasons_no_duplicates_tests()];
+                return [4 /*yield*/, superadmin_tests()];
             case 139:
                 _l.sent();
-                return [4 /*yield*/, register_as_enduser_tests()];
+                return [4 /*yield*/, ticket_queue_tests()];
             case 140:
                 _l.sent();
-                return [4 /*yield*/, lockout_tests()];
+                return [4 /*yield*/, vital_trigger_tests()];
             case 141:
+                _l.sent();
+                return [4 /*yield*/, close_reasons_no_duplicates_tests()];
+            case 142:
+                _l.sent();
+                return [4 /*yield*/, register_as_enduser_tests()];
+            case 143:
+                _l.sent();
+                return [4 /*yield*/, lockout_tests()];
+            case 144:
                 _l.sent();
                 return [4 /*yield*/, delete_user_tests()
                     // await test_send_with_template()
                 ];
-            case 142:
+            case 145:
                 _l.sent();
                 // await test_send_with_template()
                 return [4 /*yield*/, bulk_read_tests()];
-            case 143:
+            case 146:
                 // await test_send_with_template()
                 _l.sent();
                 return [4 /*yield*/, ticket_reminder_tests()];
-            case 144:
-                _l.sent();
-                return [4 /*yield*/, marketing_email_unsubscribe_tests()];
-            case 145:
-                _l.sent();
-                return [4 /*yield*/, unique_strings_tests()];
-            case 146:
-                _l.sent();
-                return [4 /*yield*/, alternate_phones_tests()];
             case 147:
                 _l.sent();
-                return [4 /*yield*/, role_based_access_tests()];
+                return [4 /*yield*/, marketing_email_unsubscribe_tests()];
             case 148:
                 _l.sent();
-                return [4 /*yield*/, enduser_session_tests()];
+                return [4 /*yield*/, unique_strings_tests()];
             case 149:
                 _l.sent();
-                return [4 /*yield*/, nextReminderInMS_tests()];
+                return [4 /*yield*/, alternate_phones_tests()];
             case 150:
                 _l.sent();
-                return [4 /*yield*/, wait_for_trigger_tests()];
+                return [4 /*yield*/, role_based_access_tests()];
             case 151:
                 _l.sent();
-                return [4 /*yield*/, pdf_generation()];
+                return [4 /*yield*/, enduser_session_tests()];
             case 152:
                 _l.sent();
-                return [4 /*yield*/, remove_from_journey_on_incoming_comms_tests().catch(console.error)]; // timing is unreliable, uncomment if changing logic
+                return [4 /*yield*/, nextReminderInMS_tests()];
             case 153:
-                _l.sent(); // timing is unreliable, uncomment if changing logic
-                return [4 /*yield*/, sub_organization_enduser_tests()];
+                _l.sent();
+                return [4 /*yield*/, wait_for_trigger_tests()];
             case 154:
                 _l.sent();
-                return [4 /*yield*/, sub_organization_tests()];
+                return [4 /*yield*/, pdf_generation()];
             case 155:
                 _l.sent();
-                return [4 /*yield*/, filter_by_date_tests()];
+                return [4 /*yield*/, remove_from_journey_on_incoming_comms_tests().catch(console.error)]; // timing is unreliable, uncomment if changing logic
             case 156:
-                _l.sent();
-                return [4 /*yield*/, generate_user_auth_tests()];
+                _l.sent(); // timing is unreliable, uncomment if changing logic
+                return [4 /*yield*/, sub_organization_enduser_tests()];
             case 157:
                 _l.sent();
-                return [4 /*yield*/, generateEnduserAuthTests()];
+                return [4 /*yield*/, sub_organization_tests()];
             case 158:
                 _l.sent();
-                return [4 /*yield*/, public_form_tests()];
+                return [4 /*yield*/, filter_by_date_tests()];
             case 159:
                 _l.sent();
-                return [4 /*yield*/, badInputTests()];
+                return [4 /*yield*/, generate_user_auth_tests()];
             case 160:
                 _l.sent();
-                return [4 /*yield*/, filterTests()];
+                return [4 /*yield*/, generateEnduserAuthTests()];
             case 161:
                 _l.sent();
-                return [4 /*yield*/, updatesTests()];
+                return [4 /*yield*/, public_form_tests()];
             case 162:
                 _l.sent();
-                return [3 /*break*/, 164];
+                return [4 /*yield*/, badInputTests()];
             case 163:
+                _l.sent();
+                return [4 /*yield*/, filterTests()];
+            case 164:
+                _l.sent();
+                return [4 /*yield*/, updatesTests()];
+            case 165:
+                _l.sent();
+                return [3 /*break*/, 167];
+            case 166:
                 err_1 = _l.sent();
                 console.error("Failed during custom test");
                 if (err_1.message && err_1.info) {
@@ -17549,18 +17561,18 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                     console.error(err_1);
                 }
                 process.exit(1);
-                return [3 /*break*/, 164];
-            case 164:
+                return [3 /*break*/, 167];
+            case 167:
                 _a = schema;
                 _b = [];
                 for (_c in _a)
                     _b.push(_c);
                 _i = 0;
-                _l.label = 165;
-            case 165:
-                if (!(_i < _b.length)) return [3 /*break*/, 168];
+                _l.label = 168;
+            case 168:
+                if (!(_i < _b.length)) return [3 /*break*/, 171];
                 _c = _b[_i];
-                if (!(_c in _a)) return [3 /*break*/, 167];
+                if (!(_c in _a)) return [3 /*break*/, 170];
                 n = _c;
                 returnValidation = (_k = (_j = schema[n].customActions) === null || _j === void 0 ? void 0 : _j.create) === null || _k === void 0 ? void 0 : _k.returns;
                 return [4 /*yield*/, run_generated_tests({
@@ -17571,41 +17583,41 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                             create: returnValidation // ModelFields<ClientModel>,
                         }
                     })];
-            case 166:
+            case 169:
                 _l.sent();
-                _l.label = 167;
-            case 167:
+                _l.label = 170;
+            case 170:
                 _i++;
-                return [3 /*break*/, 165];
-            case 168:
+                return [3 /*break*/, 168];
+            case 171:
                 _d = tests;
                 _f = [];
                 for (_g in _d)
                     _f.push(_g);
                 _h = 0;
-                _l.label = 169;
-            case 169:
-                if (!(_h < _f.length)) return [3 /*break*/, 174];
-                _g = _f[_h];
-                if (!(_g in _d)) return [3 /*break*/, 173];
-                t = _g;
-                _l.label = 170;
-            case 170:
-                _l.trys.push([170, 172, , 173]);
-                return [4 /*yield*/, tests[t]()];
-            case 171:
-                _l.sent();
-                return [3 /*break*/, 173];
+                _l.label = 172;
             case 172:
+                if (!(_h < _f.length)) return [3 /*break*/, 177];
+                _g = _f[_h];
+                if (!(_g in _d)) return [3 /*break*/, 176];
+                t = _g;
+                _l.label = 173;
+            case 173:
+                _l.trys.push([173, 175, , 176]);
+                return [4 /*yield*/, tests[t]()];
+            case 174:
+                _l.sent();
+                return [3 /*break*/, 176];
+            case 175:
                 err_2 = _l.sent();
                 console.error("Error running test:");
                 console.error(err_2);
                 process.exit(1);
-                return [3 /*break*/, 173];
-            case 173:
+                return [3 /*break*/, 176];
+            case 176:
                 _h++;
-                return [3 /*break*/, 169];
-            case 174:
+                return [3 /*break*/, 172];
+            case 177:
                 process.exit();
                 return [2 /*return*/];
         }

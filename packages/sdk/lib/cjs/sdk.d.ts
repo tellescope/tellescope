@@ -3990,6 +3990,7 @@ type Queries = {
         authenticate_calling: (args: extractFields<CustomActions['phone_calls']['authenticate_calling']['parameters']>) => (Promise<extractFields<CustomActions['phone_calls']['authenticate_calling']['returns']>>);
         get_report: (args: extractFields<CustomActions['phone_calls']['get_report']['parameters']>) => (Promise<extractFields<CustomActions['phone_calls']['get_report']['returns']>>);
         upgrade_to_conference: (args: extractFields<CustomActions['phone_calls']['upgrade_to_conference']['parameters']>) => (Promise<extractFields<CustomActions['phone_calls']['upgrade_to_conference']['returns']>>);
+        cold_transfer: (args: extractFields<CustomActions['phone_calls']['cold_transfer']['parameters']>) => (Promise<extractFields<CustomActions['phone_calls']['cold_transfer']['returns']>>);
         add_conference_attendees: (args: extractFields<CustomActions['phone_calls']['add_conference_attendees']['parameters']>) => (Promise<extractFields<CustomActions['phone_calls']['add_conference_attendees']['returns']>>);
         remove_conference_attendees: (args: extractFields<CustomActions['phone_calls']['remove_conference_attendees']['parameters']>) => (Promise<extractFields<CustomActions['phone_calls']['remove_conference_attendees']['returns']>>);
         end_conference: (args: extractFields<CustomActions['phone_calls']['end_conference']['parameters']>) => (Promise<extractFields<CustomActions['phone_calls']['end_conference']['returns']>>);

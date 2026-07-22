@@ -37,7 +37,7 @@ export var isDate = v.isDate, isEmail = v.isEmail, isMobilePhone = v.isMobilePho
 //   BUSINESS_TYPE,
 // } from "@tellescope/constants"
 import { filter_object, is_defined, is_object, is_whitespace, object_is_empty, to_object_id, } from "@tellescope/utilities";
-import { ACTIVE_CAMPAIGN_TITLE, ALL_ACCESS, ASSIGNED_ACCESS, ATHENA_TITLE, BRIDGE_TITLE, CANDID_TITLE, CANVAS_TITLE, DEFAULT_ACCESS, DEVELOP_HEALTH_TITLE, DOCSUMO_TITLE, DOSESPOT_TITLE, EMOTII_TITLE, ENDUSER_FIELD_TYPES, FULLSCRIPT_INTEGRATIONS_TITLE, GOGO_MEDS_TITLE, INSURANCE_RELATIONSHIPS, MFAX_TITLE, NO_ACCESS, OUTLOOK_INTEGRATIONS_TITLE, PAGER_DUTY_TITLE, SMART_METER_TITLE, SQUARE_INTEGRATIONS_TITLE, STRIPE_TITLE, ZENDESK_INTEGRATIONS_TITLE, ZOHO_TITLE, ZOOM_TITLE, ZUS_TITLE, } from "@tellescope/constants";
+import { ACTIVE_CAMPAIGN_TITLE, ALL_ACCESS, ASSIGNED_ACCESS, ATHENA_TITLE, BRIDGE_TITLE, CANDID_TITLE, CANVAS_TITLE, DEFAULT_ACCESS, DEVELOP_HEALTH_TITLE, DOCSUMO_TITLE, DOSESPOT_TITLE, EMOTII_TITLE, ENDUSER_FIELD_TYPES, FULLSCRIPT_INTEGRATIONS_TITLE, GOGO_MEDS_TITLE, INSURANCE_RELATIONSHIPS, MFAX_TITLE, NO_ACCESS, OUTLOOK_INTEGRATIONS_TITLE, PAGER_DUTY_TITLE, SELECTABLE_AI_MODELS, SMART_METER_TITLE, SQUARE_INTEGRATIONS_TITLE, STRIPE_TITLE, ZENDESK_INTEGRATIONS_TITLE, ZOHO_TITLE, ZOOM_TITLE, ZUS_TITLE, } from "@tellescope/constants";
 var EXAMPLE_OBJECT_ID = '60398b0231a295e64f084fd9';
 var getTypeString = function () { return "string"; };
 var getTypeNumber = function () { return "number"; };
@@ -2218,6 +2218,10 @@ export var cancelConditionsValidatorOptional = listValidatorOptionalOrEmptyOk(ob
         automationStepId: mongoIdStringRequired,
     }, { emptyOk: false }),
 }));
+export var coldTransfersValidator = listValidatorOptionalOrEmptyOk(objectValidator({
+    transferredAt: dateValidator,
+    userId: mongoIdStringRequired,
+}, { emptyOk: false }));
 var delayValidation = {
     automationStepId: mongoIdStringRequired,
     delayInMS: nonNegNumberValidator,
@@ -2441,12 +2445,14 @@ export var aiSummaryDataSourceConfigValidator = objectValidator({
     lookbackMS: nonNegNumberValidatorOptional,
     filter: objectAnyFieldsAnyValuesValidator,
 });
+export var selectableAIModelValidator = exactMatchValidatorOptional(__spreadArray([], SELECTABLE_AI_MODELS, true));
 export var aiSummaryConfigurationValidator = objectValidator({
     enabled: booleanValidatorOptional,
     prompt: stringValidator5000OptionalEmptyOkay,
     dataSources: listValidatorOptionalOrEmptyOk(aiSummaryDataSourceConfigValidator),
     maxOutputTokens: nonNegNumberValidatorOptional,
     includeProfileFields: booleanValidatorOptional,
+    model: selectableAIModelValidator,
 }, { isOptional: true, emptyOk: true });
 export var AIDecisionSourceValidator = objectValidator({
     limit: numberValidator,
@@ -5523,7 +5529,7 @@ export var customDashboardBlockValidator = objectValidator({
     responsive: objectAnyFieldsAnyValuesValidator,
     style: objectAnyFieldsAnyValuesValidator,
 }, { emptyOk: true });
-export var customDashboardBlocksValidator = listValidator(customDashboardBlockValidator);
+export var customDashboardBlocksValidator = listValidatorEmptyOk(customDashboardBlockValidator);
 var insuranceValidator = objectValidator({
     name: stringValidator100,
 });
@@ -5573,6 +5579,13 @@ export var phoneTreeEventValidator = orValidator({
         parentId: stringValidator100,
         info: objectValidator({
             outcome: stringValidator250,
+        }),
+    }),
+    "On Condition Branch": objectValidator({
+        type: exactMatchValidator(['On Condition Branch']),
+        parentId: stringValidator100,
+        info: objectValidator({
+            branch: stringValidator250,
         }),
     }),
 });
@@ -5691,6 +5704,15 @@ export var phoneTreeActionValidator = orValidator({
             hasOneCareTeamMember: booleanValidatorOptional,
         }),
     }),
+    "Enduser Condition Split": objectValidator({
+        type: exactMatchValidator(['Enduser Condition Split']),
+        info: objectValidator({
+            branches: listValidator(objectValidator({
+                name: stringValidator250,
+                enduserCondition: optionalAnyObjectValidator,
+            })),
+        }),
+    }),
     "Select Care Team Member": objectValidator({
         type: exactMatchValidator(['Select Care Team Member']),
         info: objectValidator({
@@ -5734,6 +5756,7 @@ export var phoneTreeActionValidator = orValidator({
             maxTurns: numberValidatorOptional,
             maxDurationSeconds: numberValidatorOptional,
             maxCreditsPerCall: numberValidatorOptional,
+            model: selectableAIModelValidator,
             outcomes: listValidator(objectValidator({
                 value: stringValidator250,
                 description: stringValidator1000,

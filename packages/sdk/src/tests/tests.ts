@@ -81,6 +81,7 @@ import {
 
 import fs from "fs"
 import { load_inbox_data_tests } from "./api_tests/load_inbox_data.test";
+import { phone_calls_cold_transfer_tests } from "./api_tests/phone_calls_cold_transfer.test";
 import { enduser_login_tests } from "./api_tests/enduser_login.test";
 import { enduser_login_rate_limits_tests } from "./api_tests/enduser_login_rate_limits.test";
 import { eom_procedure_codes_tests } from "./api_tests/eom_procedure_codes.test";
@@ -127,6 +128,7 @@ import { conditional_logic_medication_unit_tests } from "./unit_tests/conditiona
 import { elation_user_id_tests } from "./api_tests/elation_user_id.test";
 import { organization_settings_duplicates_tests } from "./api_tests/organization_settings_duplicates.test";
 import { calendar_events_bulk_update_tests } from "./api_tests/calendar_events_bulk_update.test";
+import { calendar_event_references_update_tests } from "./api_tests/calendar_event_references_update.test";
 import { openloop_webhooks_tests } from "./api_tests/openloop_webhooks.test";
 import { beluga_pharmacy_mappings_tests } from "./api_tests/beluga_pharmacy_mappings.test";
 import { mdi_case_offerings_tests } from "./api_tests/mdi_case_offerings.test";
@@ -140,6 +142,7 @@ import { enduser_session_invalidation_tests } from "./api_tests/enduser_session_
 import { enduser_cross_access_isolation_tests } from "./api_tests/enduser_cross_access_isolation.test";
 import { calendar_event_webhook_template_tests } from "./api_tests/calendar_event_webhook_template.test";
 import { webhook_error_handling_tests } from "./api_tests/webhook_error_handling.test";
+import { phone_tree_enduser_condition_tests } from "./api_tests/phone_tree_enduser_condition.test";
 
 const UniquenessViolationMessage = 'Uniqueness Violation'
 
@@ -15087,6 +15090,7 @@ const ip_address_form_tests = async () => {
     await form_submitted_trigger_tests({ sdk, sdkNonAdmin })
     await dont_sync_to_elation_form_submission_tests({ sdk, sdkNonAdmin })
     await date_string_validation_tests({ sdk, sdkNonAdmin })
+    await phone_tree_enduser_condition_tests({ sdk, sdkNonAdmin })
     await openloop_webhooks_tests({ sdk, sdkNonAdmin })
     await mdi_webhooks_tests({ sdk, sdkNonAdmin })
     await integrations_redacted_tests({ sdk, sdkNonAdmin })
@@ -15131,6 +15135,7 @@ const ip_address_form_tests = async () => {
     await inbox_threads_building_tests()
     await inbox_threads_loading_tests()
     await load_inbox_data_tests({ sdk, sdkNonAdmin })
+    await phone_calls_cold_transfer_tests({ sdk, sdkNonAdmin })
     await enduser_observations_acknowledge_tests({ sdk, sdkNonAdmin })
     await nutrition_tracking_tests({ sdk, sdkNonAdmin })
     await translations_tests({ sdk, sdkNonAdmin })
@@ -15142,6 +15147,7 @@ const ip_address_form_tests = async () => {
     await ip_address_form_tests()
     await bulk_update_tests()
     await calendar_events_bulk_update_tests({ sdk })
+    await calendar_event_references_update_tests({ sdk, sdkNonAdmin })
     await cancel_upcoming_appointments_journey_action_test()
     await multi_tenant_tests() // should come right after setup tests
     await sync_tests_with_access_tags() // should come directly after setup to avoid extra sync values

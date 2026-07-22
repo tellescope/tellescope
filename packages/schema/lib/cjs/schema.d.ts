@@ -1377,6 +1377,10 @@ export type CustomActions = {
         upgrade_to_conference: CustomAction<{
             id: string;
         }, {}>;
+        cold_transfer: CustomAction<{
+            callSid: string;
+            targetUserId: string;
+        }, {}>;
         add_conference_attendees: CustomAction<{
             conferenceId: string;
             enduserId?: string;
@@ -1757,6 +1761,7 @@ export type CustomActions = {
             enduserId?: string;
             journeyId?: string;
             automationStepId?: string;
+            model?: string;
         }, {
             ai_conversation: AIConversation;
         }>;
