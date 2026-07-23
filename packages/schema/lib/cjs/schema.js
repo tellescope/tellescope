@@ -870,6 +870,9 @@ exports.schema = (0, exports.build_schema)({
             }, approvedBusinessIds: {
                 validator: validation_1.listOfMongoIdStringValidator,
                 readonly: true,
+            }, scopes: {
+                validator: (0, validation_1.exactMatchListValidator)(__spreadArray([], types_models_1.API_KEY_SCOPES, true)),
+                readonly: true,
             } }),
         constraints: { unique: [], relationship: [], access: [{ type: constants_1.CREATOR_ONLY_ACCESS }] },
         defaultActions: { read: {}, readMany: {}, delete: {} },
@@ -877,8 +880,10 @@ exports.schema = (0, exports.build_schema)({
             create: {
                 op: 'create', access: 'create',
                 name: 'Generate ApiKey',
-                description: "Generates and returns a new ApiKey. The returned key is not stored in Tellescope and cannot be retrieved later.",
-                parameters: {},
+                description: "Generates and returns a new ApiKey. The returned key is not stored in Tellescope and cannot be retrieved later. Setting scopes restricts the key to only the corresponding endpoints (e.g. form-ingestion) and requires an Admin role.",
+                parameters: {
+                    scopes: { validator: (0, validation_1.exactMatchListValidator)(__spreadArray([], types_models_1.API_KEY_SCOPES, true)) },
+                },
                 returns: {
                     id: {
                         validator: validation_1.mongoIdStringRequired,

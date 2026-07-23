@@ -100,6 +100,8 @@ import {
   LinkedAccount,
   LinkedAccountAccessEntry,
   MFAMethod,
+  APIKeyScope,
+  API_KEY_SCOPES,
 } from "@tellescope/types-models"
 
 import {
@@ -275,6 +277,7 @@ import {
   automatioNTriggerStatusValidator,
   exactMatchValidator,
   exactMatchValidatorOptional,
+  exactMatchListValidator,
   listOfMongoIdStringValidatorOptionalOrEmptyOk,
   listOfListsOfMongoIdStringsValidatorOptionalOrEmptyOk,
   linkedAccountAccessValidator,
@@ -694,8 +697,8 @@ export type CustomActions = {
     handle_autoreply: CustomAction<AutoreplyInfo, { }>,
   },
   api_keys: {
-    create: CustomAction<{}, { id: string, key: string}>,
-    get_organization_api_keys: CustomAction<{}, { apiKeys: { id: string, creator: string, businessId: string, updatedAt: Date }[] }>,
+    create: CustomAction<{ scopes?: APIKeyScope[] }, { id: string, key: string}>,
+    get_organization_api_keys: CustomAction<{}, { apiKeys: { id: string, creator: string, businessId: string, updatedAt: Date, scopes?: APIKeyScope[] }[] }>,
     delete_organization_api_key: CustomAction<{ id: string }, { }>,
   },
   templates: {
@@ -2307,6 +2310,10 @@ export const schema: SchemaV1 = build_schema({
         validator: listOfMongoIdStringValidator,
         readonly: true,
       },
+      scopes: {
+        validator: exactMatchListValidator<APIKeyScope>([...API_KEY_SCOPES]),
+        readonly: true,
+      },
     },
     constraints: { unique: [], relationship: [], access: [{ type: CREATOR_ONLY_ACCESS }] },
     defaultActions: { read: {}, readMany: {}, delete: {} },
@@ -2314,8 +2321,10 @@ export const schema: SchemaV1 = build_schema({
       create: {
         op: 'create', access: 'create',
         name: 'Generate ApiKey',
-        description: "Generates and returns a new ApiKey. The returned key is not stored in Tellescope and cannot be retrieved later.",
-        parameters: {},
+        description: "Generates and returns a new ApiKey. The returned key is not stored in Tellescope and cannot be retrieved later. Setting scopes restricts the key to only the corresponding endpoints (e.g. form-ingestion) and requires an Admin role.",
+        parameters: {
+          scopes: { validator: exactMatchListValidator<APIKeyScope>([...API_KEY_SCOPES]) },
+        },
         returns: { 
           id: {
             validator: mongoIdStringValidator,

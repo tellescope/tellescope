@@ -1,6 +1,6 @@
 {
   "name": "@tellescope/chat",
-  "version": "1.255.14",
+  "version": "1.255.17",
   "description": "",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",
@@ -38,20 +38,20 @@
     "@fontsource/roboto": "4.5.8",
     "@mui/icons-material": "5.15.0",
     "@mui/material": "5.15.0",
-    "@tellescope/constants": "1.255.14",
-    "@tellescope/react-components": "1.255.14",
-    "@tellescope/sdk": "1.255.14",
-    "@tellescope/types-client": "1.255.14",
-    "@tellescope/types-models": "1.255.14",
+    "@tellescope/constants": "1.255.17",
+    "@tellescope/react-components": "1.255.17",
+    "@tellescope/sdk": "1.255.17",
+    "@tellescope/types-client": "1.255.17",
+    "@tellescope/types-models": "1.255.17",
     "@tellescope/types-utilities": "1.255.14",
-    "@tellescope/utilities": "1.255.14",
+    "@tellescope/utilities": "1.255.17",
     "react-native-image-picker": "7.0.2"
   },
   "peerDependencies": {
     "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0",
     "react-dom": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
   },
-  "gitHead": "7606871137cb5b6a173d03f0fc066bf3aa037d17",
+  "gitHead": "0cd46493b0e0c577a94ce28488d8c351d971d6ad",
   "publishConfig": {
     "access": "public"
   }

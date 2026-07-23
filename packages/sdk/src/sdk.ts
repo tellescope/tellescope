@@ -264,6 +264,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     ),
   },
   api_keys: {
+    createOne: (args?: extractFields<CustomActions['api_keys']['create']['parameters']>) => (
+      Promise<extractFields<CustomActions['api_keys']['create']['returns']>>
+    ),
     get_organization_api_keys: (args?: extractFields<CustomActions['api_keys']['get_organization_api_keys']['parameters']>) => (
       Promise<extractFields<CustomActions['api_keys']['get_organization_api_keys']['returns']>>
     ),

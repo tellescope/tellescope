@@ -1161,9 +1161,13 @@ export interface EnduserMedication extends EnduserMedication_readonly, EnduserMe
         controlledSubstance?: ControlledSubstanceCode;
     };
 }
+export declare const FORM_INGESTION_API_KEY_SCOPE: "form-ingestion";
+export declare const API_KEY_SCOPES: readonly ["form-ingestion"];
+export type APIKeyScope = typeof API_KEY_SCOPES[number];
 export interface APIKey_readonly extends ClientRecord {
     hashedKey: string;
     approvedBusinessIds?: string[];
+    scopes?: APIKeyScope[];
 }
 export interface APIKey_required {
 }

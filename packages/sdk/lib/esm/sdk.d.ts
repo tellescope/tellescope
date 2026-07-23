@@ -3770,6 +3770,7 @@ type Queries = {
         get_journey_statistics: (args: extractFields<CustomActions['journeys']['get_journey_statistics']['parameters']>) => (Promise<extractFields<CustomActions['journeys']['get_journey_statistics']['returns']>>);
     };
     api_keys: {
+        createOne: (args?: extractFields<CustomActions['api_keys']['create']['parameters']>) => (Promise<extractFields<CustomActions['api_keys']['create']['returns']>>);
         get_organization_api_keys: (args?: extractFields<CustomActions['api_keys']['get_organization_api_keys']['parameters']>) => (Promise<extractFields<CustomActions['api_keys']['get_organization_api_keys']['returns']>>);
         delete_organization_api_key: (args: extractFields<CustomActions['api_keys']['delete_organization_api_key']['parameters']>) => (Promise<extractFields<CustomActions['api_keys']['delete_organization_api_key']['returns']>>);
     };

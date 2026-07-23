@@ -87,6 +87,7 @@ import { enduser_login_rate_limits_tests } from "./api_tests/enduser_login_rate_
 import { eom_procedure_codes_tests } from "./api_tests/eom_procedure_codes.test";
 import { cross_org_api_key_tests } from "./api_tests/cross_org_api_key.test";
 import { organization_api_keys_tests } from "./api_tests/organization_api_keys.test";
+import { scoped_api_keys_tests } from "./api_tests/scoped_api_keys.test";
 import { custom_dashboards_tests } from "./api_tests/custom_dashboards.test";
 import { message_assignment_trigger_tests } from "./api_tests/message_assignment_trigger.test";
 import { outbound_chat_sent_trigger_tests } from "./api_tests/outbound_chat_sent_trigger.test";
@@ -121,6 +122,7 @@ import { database_cascade_delete_tests } from "./api_tests/database_cascade_dele
 import { ai_conversations_tests } from "./api_tests/ai_conversations.test";
 import { load_team_chat_tests } from "./api_tests/load_team_chat.test";
 import { form_started_trigger_tests } from "./api_tests/form_started_trigger.test";
+import { formsort_header_auth_tests } from "./api_tests/formsort_header_auth.test";
 import { form_submitted_trigger_tests } from "./api_tests/form_submitted_trigger.test";
 import { dont_sync_to_elation_form_submission_tests } from "./api_tests/dont_sync_to_elation_form_submission.test";
 import { medication_added_trigger_tests } from "./api_tests/medication_added_trigger.test";
@@ -15083,6 +15085,7 @@ const ip_address_form_tests = async () => {
     await eom_procedure_codes_tests({ sdk, sdkNonAdmin })
     await cross_org_api_key_tests({ sdk, sdkNonAdmin })
     await organization_api_keys_tests({ sdk, sdkNonAdmin })
+    await scoped_api_keys_tests({ sdk, sdkNonAdmin })
     await organization_settings_duplicates_tests({ sdk, sdkNonAdmin })
     await enduser_session_invalidation_tests({ sdk, sdkNonAdmin })
     await chats_analytics_tests({ sdk, sdkNonAdmin })
@@ -15126,6 +15129,7 @@ const ip_address_form_tests = async () => {
     await afteraction_day_of_month_delay_tests({ sdk, sdkNonAdmin })
     await bulk_assignment_tests({ sdk, sdkNonAdmin })
     await formsort_tests()
+    await formsort_header_auth_tests({ sdk, sdkNonAdmin })
     await self_serve_appointment_booking_tests()
     await test_ticket_automation_assignment_and_optimization()
     await monthly_availability_restrictions_tests({ sdk, sdkNonAdmin })

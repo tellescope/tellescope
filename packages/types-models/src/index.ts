@@ -1245,9 +1245,14 @@ export interface EnduserMedication extends EnduserMedication_readonly, EnduserMe
   },
 }
 
+export const FORM_INGESTION_API_KEY_SCOPE = 'form-ingestion' as const
+export const API_KEY_SCOPES = [FORM_INGESTION_API_KEY_SCOPE] as const
+export type APIKeyScope = typeof API_KEY_SCOPES[number]
+
 export interface APIKey_readonly extends ClientRecord {
   hashedKey: string, // stored as hash
   approvedBusinessIds?: string[], // org IDs this key can target via header
+  scopes?: APIKeyScope[], // non-empty ⇒ key ONLY authenticates its scoped endpoints (currently just the form-ingestion webhook)
 }
 export interface APIKey_required {}
 export interface APIKey_updatesDisabled {}

@@ -12,7 +12,7 @@ import { setup_tests } from "../setup"
 const host = process.env.API_URL || 'http://localhost:8080' as const
 
 // fields that the admin org-wide list endpoint is allowed to return
-const ALLOWED_FIELDS = ['id', 'creator', 'businessId', 'updatedAt'].sort()
+const ALLOWED_FIELDS = ['id', 'creator', 'businessId', 'updatedAt', 'scopes'].sort()
 
 export const organization_api_keys_tests = async (
   { sdk, sdkNonAdmin }: { sdk: Session, sdkNonAdmin: Session }
@@ -104,7 +104,7 @@ export const organization_api_keys_tests = async (
     assert(
       offending === undefined,
       `a returned record exposed non-allowlisted fields: ${JSON.stringify(offending)}`,
-      "returned records contain only allowlisted fields (subset of id, creator, businessId, updatedAt)"
+      "returned records contain only allowlisted fields (subset of id, creator, businessId, updatedAt, scopes)"
     )
 
     // =============================================

@@ -13,6 +13,8 @@ var _a;
 export var SORT_BY_OPTIONS = ['updatedAt', 'dueDateInMS', 'closedAt', 'timestamp'];
 export var FilterKeys = ['_exists', '_gt', '_gte', '_lt', '_lte', '_all', "_ne", "_nin"];
 export var MFA_METHODS = ['email', 'authenticator'];
+export var FORM_INGESTION_API_KEY_SCOPE = 'form-ingestion';
+export var API_KEY_SCOPES = [FORM_INGESTION_API_KEY_SCOPE];
 // Reserved outcome for onAIDecision events: a child step listing this in its outcomes acts as the
 // fallback branch when the AI's answer matches no configured outcome. Never shown to users — the
 // Journey Editor renders it as a first-class "Fallback" option ("No Matching Outcome").

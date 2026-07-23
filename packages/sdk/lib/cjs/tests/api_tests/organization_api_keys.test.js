@@ -43,7 +43,7 @@ var testing_1 = require("@tellescope/testing");
 var setup_1 = require("../setup");
 var host = process.env.API_URL || 'http://localhost:8080';
 // fields that the admin org-wide list endpoint is allowed to return
-var ALLOWED_FIELDS = ['id', 'creator', 'businessId', 'updatedAt'].sort();
+var ALLOWED_FIELDS = ['id', 'creator', 'businessId', 'updatedAt', 'scopes'].sort();
 var organization_api_keys_tests = function (_a) {
     var sdk = _a.sdk, sdkNonAdmin = _a.sdkNonAdmin;
     return __awaiter(void 0, void 0, void 0, function () {
@@ -111,7 +111,7 @@ var organization_api_keys_tests = function (_a) {
                     offending = apiKeys
                         .map(function (k) { return Object.keys(k).filter(function (key) { return !ALLOWED_FIELDS.includes(key); }); })
                         .find(function (extra) { return extra.length > 0; });
-                    (0, testing_1.assert)(offending === undefined, "a returned record exposed non-allowlisted fields: ".concat(JSON.stringify(offending)), "returned records contain only allowlisted fields (subset of id, creator, businessId, updatedAt)");
+                    (0, testing_1.assert)(offending === undefined, "a returned record exposed non-allowlisted fields: ".concat(JSON.stringify(offending)), "returned records contain only allowlisted fields (subset of id, creator, businessId, updatedAt, scopes)");
                     // =============================================
                     // CROSS-ORG ISOLATION (no leakage across businesses)
                     // =============================================
