@@ -35,6 +35,7 @@ export const scoped_api_keys_tests = async ({ sdk, sdkNonAdmin } : { sdk: Sessio
 
   const keyIds: string[] = []
   const formResponseIds: string[] = []
+  const fileIds: string[] = []
   let throwawayUserId: string | undefined
   let throwawayRoleId: string | undefined
 
@@ -100,6 +101,44 @@ export const scoped_api_keys_tests = async ({ sdk, sdkNonAdmin } : { sdk: Sessio
       "scoped key authenticates the form-ingestion webhook via path segment",
     )
     if (pathResult.data?.formResponseId) formResponseIds.push(pathResult.data.formResponseId)
+
+    // =============================================
+    // (c2) Scoped key CAN run the file-upload flow (prepare + confirm) — needed for intake forms with files
+    // =============================================
+    const scopedSession = new Session({ host, apiKey: scoped.key })
+    const { file: uploadedFile } = await scopedSession.api.files.prepare_file_upload({
+      name: 'scoped-intake-file.txt', size: 12, type: 'text/plain',
+    })
+    assert(
+      !!uploadedFile?.id,
+      "scoped key prepare_file_upload returned no file",
+      "scoped key can call POST /prepare-file-upload",
+    )
+    if (uploadedFile?.id) fileIds.push(uploadedFile.id)
+
+    await async_test(
+      "scoped key can call POST /files/confirm-upload",
+      () => scopedSession.api.files.confirm_file_upload({ id: uploadedFile.id }),
+      { onResult: () => true },
+    )
+
+    // ...but is blocked from EVERY other endpoint in the files domain — proving the two allowed paths are the
+    // ONLY files access, and that the '/files/confirm-upload' allow-prefix does not open the '/files/*' namespace.
+    const blockedFileEndpoints: [string, () => Promise<any>][] = [
+      ['GET /v1/files (readMany)', () => axios.get(`${host}/v1/files`, { headers: { Authorization: `API_KEY ${scoped.key}` } })],
+      ['GET /v1/file/:id (read one)', () => axios.get(`${host}/v1/file/000000000000000000000000`, { headers: { Authorization: `API_KEY ${scoped.key}` } })],
+      ['DELETE /v1/file/:id (destructive)', () => axios.delete(`${host}/v1/file/000000000000000000000000`, { headers: { Authorization: `API_KEY ${scoped.key}` } })],
+      ['POST /v1/files/send-fax (/files/* sibling)', () => axios.post(`${host}/v1/files/send-fax`, {}, { headers: { Authorization: `API_KEY ${scoped.key}` } })],
+      ['POST /v1/files/ocr (/files/* sibling)', () => axios.post(`${host}/v1/files/ocr`, {}, { headers: { Authorization: `API_KEY ${scoped.key}` } })],
+      ['POST /v1/files/push (/files/* sibling)', () => axios.post(`${host}/v1/files/push`, {}, { headers: { Authorization: `API_KEY ${scoped.key}` } })],
+    ]
+    for (const [label, call] of blockedFileEndpoints) {
+      await async_test(
+        `scoped key blocked on ${label}`,
+        call,
+        { shouldError: true, onError: (e: any) => e.response?.status === 401 || e.response?.status === 403 },
+      )
+    }
 
     // =============================================
     // (d) Non-admin cannot create a scoped key (throwaway user, never mutate existing roles)
@@ -186,6 +225,46 @@ export const scoped_api_keys_tests = async ({ sdk, sdkNonAdmin } : { sdk: Sessio
     )
 
     // =============================================
+    // (g) Legacy non-/v1 funnel (app.js requireLoginAndAccess → is_logged_in_API_key with NO requestPath).
+    // Proves scoped keys fail closed on every non-/v1 caller (also stands in for the Medplum webhook path),
+    // and that unscoped keys still authenticate the legacy funnel after this work.
+    // NOTE: the legacy middleware reads the key from ?apiKey= / body only (never the Authorization header).
+    // =============================================
+    await async_test(
+      "unscoped key authenticates a legacy non-/v1 route",
+      () => axios.get(`${host}/API-keys-for-user?apiKey=${encodeURIComponent(unscopedKeyValue)}`),
+      { onResult: (r: any) => r.status === 200 },
+    )
+    await async_test(
+      "scoped key rejected on a legacy non-/v1 route (fail closed, no requestPath)",
+      () => axios.get(`${host}/API-keys-for-user?apiKey=${encodeURIComponent(scoped.key)}`),
+      { shouldError: true, onError: (e: any) => e.response?.status === 401 },
+    )
+
+    // =============================================
+    // (h) Data-egress adjacency: the scope's allowed paths must NOT leak to the file DOWNLOAD endpoint.
+    // =============================================
+    await async_test(
+      "scoped key cannot call file_download_URL (no PHI egress)",
+      () => axios.get(`${host}/v1/file-download-URL?secureName=nonexistent`, { headers: { Authorization: `API_KEY ${scoped.key}` } }),
+      { shouldError: true, onError: (e: any) => e.response?.status === 401 || e.response?.status === 403 },
+    )
+
+    // =============================================
+    // (i) Transport independence: the scope gate applies whether the key is in the header or the ?apiKey= query.
+    // =============================================
+    await async_test(
+      "scoped key via ?apiKey= query param still rejected on a disallowed /v1 endpoint",
+      () => axios.get(`${host}/v1/endusers?apiKey=${encodeURIComponent(scoped.key)}`),
+      { shouldError: true, onError: (e: any) => e.response?.status === 401 || e.response?.status === 403 },
+    )
+    await async_test(
+      "unscoped key via ?apiKey= query param still authenticates /v1 (regression)",
+      () => axios.get(`${host}/v1/test-authenticated?apiKey=${encodeURIComponent(unscopedKeyValue)}`),
+      { onResult: (r: any) => r.status === 200 },
+    )
+
+    // =============================================
     // Validation: unknown scope values are rejected
     // =============================================
     await async_test(
@@ -199,6 +278,9 @@ export const scoped_api_keys_tests = async ({ sdk, sdkNonAdmin } : { sdk: Sessio
     }
     for (const id of formResponseIds) {
       await sdk.api.form_responses.deleteOne(id).catch(() => {})
+    }
+    for (const id of fileIds) {
+      await sdk.api.files.deleteOne(id).catch(() => {})
     }
     try {
       const enduser = await sdk.api.endusers.getOne({ email: TEST_EMAIL })

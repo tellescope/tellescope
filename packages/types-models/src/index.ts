@@ -1251,6 +1251,7 @@ export type APIKeyScope = typeof API_KEY_SCOPES[number]
 
 export interface APIKey_readonly extends ClientRecord {
   hashedKey: string, // stored as hash
+  key?: string, // deprecated
   approvedBusinessIds?: string[], // org IDs this key can target via header
   scopes?: APIKeyScope[], // non-empty ⇒ key ONLY authenticates its scoped endpoints (currently just the form-ingestion webhook)
 }

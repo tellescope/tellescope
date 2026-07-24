@@ -1166,6 +1166,7 @@ export declare const API_KEY_SCOPES: readonly ["form-ingestion"];
 export type APIKeyScope = typeof API_KEY_SCOPES[number];
 export interface APIKey_readonly extends ClientRecord {
     hashedKey: string;
+    key?: string;
     approvedBusinessIds?: string[];
     scopes?: APIKeyScope[];
 }
