@@ -1508,7 +1508,7 @@ var URIReplacements = {
     "=28": "(",
     "=29": ")",
     "=2A": "*",
-    "=2B": "=+",
+    "=2B": "+",
     "=2C": ",",
     "=2D": "-",
     "=2E": ".",
@@ -1847,6 +1847,8 @@ var URIReplacements = {
     "=FF": "",
     "=C3=BF": "", // "ÿ"
 };
+// raw quoted-printable decoder - display code must go through decode_email_for_display instead,
+// which only applies this to inbound bodies (outbound bodies are never QP encoded)
 export var URIDecodeEmail = function (content, verbose) { return (content
     .replace(/=\s/gi, '')
     .replaceAll("\r\n", '')
@@ -1868,6 +1870,15 @@ export var URIDecodeEmail = function (content, verbose) { return (content
     // }
     return toReturn;
 })); };
+/* Outbound email bodies are stored exactly as handed to the mail provider (worker/app.js
+   handleOutgoingEmail persists message.htmlmessage verbatim; SES/Gmail/Outlook/Paubox apply
+   their own transfer encoding), so they are never quoted-printable encoded. Only inbound MIME
+   bodies, parsed by worker/modules/email_parser.js, can be. Decoding an outbound body corrupts
+   it: `?id=500044` -> `?idP0044`, `&sid=3El` -> `&sid>l`. */
+export var decode_email_for_display = function (content, _a) {
+    var inbound = _a.inbound;
+    return (inbound === true ? URIDecodeEmail(content) : content);
+};
 export var mfa_is_enabled = function (u) {
     var _a, _b;
     return (!!((_a = u === null || u === void 0 ? void 0 : u.mfa) === null || _a === void 0 ? void 0 : _a.email) || !!((_b = u === null || u === void 0 ? void 0 : u.mfa) === null || _b === void 0 ? void 0 : _b.authenticator));

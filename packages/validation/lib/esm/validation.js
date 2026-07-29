@@ -1067,6 +1067,21 @@ export var phoneValidatorOptional = {
     getExample: function () { return "+15555555555"; },
     getType: getTypeString,
 };
+// phoneValidator throws on anything unparseable, which is right for API input and wrong for
+// integration payloads — a junk phone number from a webhook must not fail the whole request.
+// Returns the normalized +1XXXXXXXXXX form, or undefined when the value is missing or unusable.
+// Callers that need a string can use `|| ''`; callers that should leave a field unset can test
+// for undefined.
+export var parse_phone_number = function (phone) {
+    if (!phone)
+        return undefined;
+    try {
+        return phoneValidator.validate()(phone);
+    }
+    catch (err) {
+        return undefined;
+    }
+};
 export var fileTypeValidator = {
     validate: function (options) {
         if (options === void 0) { options = {}; }

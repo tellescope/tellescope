@@ -1414,7 +1414,7 @@ var useTellescopeForm = function (_a) {
                             })
                             // initializeFields leverages filter_stale_choices to strip answers whose options are no longer visible in multiple choice type questions
                             // existingResponses may still carry stale values for fields the user didn't interact with this session, but preserving them as-is avoids unexpected data loss
-                            , true), _l.automationStepId = automationStepId, _l.customerId = customerId, _l.productIds = responsesToSubmit_3.flatMap(function (r) { var _a, _b, _c; return (_c = (_b = (_a = r.field) === null || _a === void 0 ? void 0 : _a.options) === null || _b === void 0 ? void 0 : _b.productIds) !== null && _c !== void 0 ? _c : []; }), _l.utm = (0, utilities_1.get_utm_params)(), _l), (getEnduserAISummary ? { enduserAISummary: getEnduserAISummary() } : {})])])
+                            , true), _l.automationStepId = automationStepId, _l.customerId = customerId, _l.productIds = responsesToSubmit_3.flatMap(function (r) { var _a, _b, _c; return (_c = (_b = (_a = r.field) === null || _a === void 0 ? void 0 : _a.options) === null || _b === void 0 ? void 0 : _b.productIds) !== null && _c !== void 0 ? _c : []; }), _l.utm = (0, utilities_1.get_utm_params)(), _l), (getEnduserAISummary && eId === enduserId ? { enduserAISummary: getEnduserAISummary() } : {})])])
                     // do actual redirect later to prevent popup
                 ];
                 case 14:

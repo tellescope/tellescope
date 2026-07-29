@@ -15,6 +15,21 @@ export var FilterKeys = ['_exists', '_gt', '_gte', '_lt', '_lte', '_all', "_ne",
 export var MFA_METHODS = ['email', 'authenticator'];
 export var FORM_INGESTION_API_KEY_SCOPE = 'form-ingestion';
 export var API_KEY_SCOPES = [FORM_INGESTION_API_KEY_SCOPE];
+/**
+ * Confinement scopes for limited-purpose SESSIONS (video links, public forms, booking pages, ics
+ * links). Each name resolves server-side to a fixed set of method+path grants.
+ *
+ * Distinct from APIKeyScope above, and NOT interchangeable — note the inverted empty-array
+ * semantics: `scopes: []` on an API key means unrestricted, whereas a session confined to no scopes
+ * reaches nothing. The route table is intentionally backend-only; only the names are public.
+ */
+export var SESSION_SCOPES = [
+    'video-join-link',
+    'video-start-link',
+    'public-form',
+    'appointment-booking',
+    'ics-download',
+];
 // Reserved outcome for onAIDecision events: a child step listing this in its outcomes acts as the
 // fallback branch when the AI's answer matches no configured outcome. Never shown to users — the
 // Journey Editor renders it as a first-class "Fallback" option ("No Matching Outcome").

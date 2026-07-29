@@ -291,6 +291,9 @@ export declare const MM_DD_YYYY_to_YYYY_MM_DD: (MMDDYYYY: string, delimiter?: st
 export declare const get_recent_engagement_date: (e: Enduser) => Date | undefined;
 export declare const get_recent_outbound_communication_date: (e: Enduser) => Date | undefined;
 export declare const URIDecodeEmail: (content: string, verbose?: boolean) => string;
+export declare const decode_email_for_display: (content: string, { inbound }: {
+    inbound?: boolean | undefined;
+}) => string;
 export declare const mfa_is_enabled: (u: {
     mfa?: User['mfa'];
 }) => boolean;

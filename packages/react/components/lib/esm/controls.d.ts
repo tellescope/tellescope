@@ -11,7 +11,7 @@ export interface LabeledIconButtonProps extends WithOffset {
     id?: string;
     ariaLabel?: string;
     disabled?: boolean;
-    color?: "primary" | "secondary" | "inherit" | 'default' | 'white' | 'error';
+    color?: "primary" | "secondary" | "inherit" | 'default' | 'white' | 'error' | 'warning';
     placement?: TooltipPlacement;
     onClick?: (e: any) => void;
     showArrow?: boolean;
@@ -76,7 +76,7 @@ export declare const useModalIconButton: (props: UseModalIconButtonProps) => {
     id?: string | undefined;
     ariaLabel?: string | undefined;
     disabled?: boolean | undefined;
-    color?: "primary" | "secondary" | "error" | "inherit" | "default" | "white" | undefined;
+    color?: "primary" | "secondary" | "warning" | "error" | "inherit" | "default" | "white" | undefined;
     placement?: TooltipPlacement | undefined;
     onClick?: ((e: any) => void) | undefined;
     showArrow?: boolean | undefined;
@@ -97,7 +97,7 @@ export declare const IconModal: ({ open, setOpen, children, disabled, onClick, s
     id?: string | undefined;
     ariaLabel?: string | undefined;
     disabled?: boolean | undefined;
-    color?: "primary" | "secondary" | "error" | "inherit" | "default" | "white" | undefined;
+    color?: "primary" | "secondary" | "warning" | "error" | "inherit" | "default" | "white" | undefined;
     placement?: TooltipPlacement | undefined;
     onClick?: ((e: any) => void) | undefined;
     showArrow?: boolean | undefined;

@@ -642,16 +642,24 @@ export interface RecordInfo {
 
 export interface ClientRecord extends RecordInfo { id: string }
 
-export interface WithAllowedPaths {
-  allowedPaths?: string[],
+// Ids a session scope pins itself to, substituted into the scope's route shapes server-side.
+export interface SessionScopeContext {
+  calendarEventId?: string,
 }
-  
-export interface Session {
+
+export interface WithSessionConfinement {
+  sessionScopes?: SessionScope[], // named scopes, resolved to routes server-side
+  scopeContext?: SessionScopeContext,
+  allowedPaths?: string[], // LEGACY — superseded by sessionScopes, honored until old tokens expire
+}
+
+export interface WithAllowedPaths extends WithSessionConfinement {}
+
+export interface Session extends WithSessionConfinement {
   type: "user" | "enduser",
   businessId: string,
   iat: number,
   exp: number,
-  allowedPaths?: string[],
   requiresMFA?: boolean,
 }
   
@@ -1249,6 +1257,23 @@ export const FORM_INGESTION_API_KEY_SCOPE = 'form-ingestion' as const
 export const API_KEY_SCOPES = [FORM_INGESTION_API_KEY_SCOPE] as const
 export type APIKeyScope = typeof API_KEY_SCOPES[number]
 
+/**
+ * Confinement scopes for limited-purpose SESSIONS (video links, public forms, booking pages, ics
+ * links). Each name resolves server-side to a fixed set of method+path grants.
+ *
+ * Distinct from APIKeyScope above, and NOT interchangeable — note the inverted empty-array
+ * semantics: `scopes: []` on an API key means unrestricted, whereas a session confined to no scopes
+ * reaches nothing. The route table is intentionally backend-only; only the names are public.
+ */
+export const SESSION_SCOPES = [
+  'video-join-link',
+  'video-start-link',
+  'public-form',
+  'appointment-booking',
+  'ics-download',
+] as const
+export type SessionScope = typeof SESSION_SCOPES[number]
+
 export interface APIKey_readonly extends ClientRecord {
   hashedKey: string, // stored as hash
   key?: string, // deprecated
@@ -1527,6 +1552,8 @@ export interface SMSMessage extends SMSMessage_readonly, SMSMessage_required, SM
   replyToTemplateId?: string,
   assignedTo?: string[],
   templatedMessage?: string,
+  // AI translations of the message body, keyed by language code (inbound messages, Timeline)
+  translations?: Translations<'message'>,
   canvasId?: string,
   discussionRoomId?: string,
   mediaURLs?: string[],
@@ -2660,6 +2687,12 @@ export interface FormResponse_required {
   formTitle: string,
   responses?: FormResponseValue[], // some cases where undefined (not intended but now need to handle)
   publicSubmit?: boolean,
+  // Backend-managed. When set, `email` and `phone` are not written from this response's intake
+  // answers; all other intake fields are unaffected. Set when the response is attached to a contact
+  // that already existed, and left unset when the response created the contact. Once set it stays
+  // set for the life of the response. Intentionally absent from schema.ts, so it cannot be set or
+  // cleared through the API.
+  authFieldIntakeDisabled?: boolean,
   submittedBy?: string,
   submittedByIsPlaceholder?: boolean,
   markedAsSubmitted?: boolean,

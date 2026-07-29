@@ -1134,6 +1134,7 @@ export type CustomActions = {
     cold_transfer: CustomAction<{ callSid: string, targetUserId: string }, { }>,
     add_conference_attendees: CustomAction<{ conferenceId: string, enduserId?: string, byClientId?: string[], byPhone?: string[] }, { }>,
     remove_conference_attendees: CustomAction<{ conferenceId: string, byClientId?: string[], byPhone?: string[] }, { }>,
+    modify_conference_attendee_status: CustomAction<{ conferenceId: string, label?: string, hold?: boolean }, { }>,
     end_conference: CustomAction<{ id: string }, { }>,
     cancel_recording: CustomAction<{ enduserId: string }, { }>,
     delete_recordings: CustomAction<{ callIds: string[] }, { }>,
@@ -1169,7 +1170,7 @@ export type CustomActions = {
     get_distribution_report: CustomAction<{  range?: DateRange }, { report: Report[keyof Report] }>,
     assign_from_queue: CustomAction<{ userId?: string, ticketId?: string, queueId?: string, overrideRestrictions?: boolean, }, { ticket: Ticket, queue: TicketQueue, enduser: Enduser }>,
     bulk_delete: CustomAction<{ ids: string[] }, {  }>,
-    bulk_assign: CustomAction<{ ids: string[], userId: string, }, {  }>,
+    bulk_assign: CustomAction<{ ids: string[], userId: string, addToCareTeam?: boolean, }, {  }>,
   },
   ticket_threads: {
     send_message: CustomAction<{
@@ -3173,6 +3174,7 @@ export const schema: SchemaV1 = build_schema({
         initializer: () => false,
       },
       templatedMessage: { validator: stringValidator5000EmptyOkay },
+      translations: { validator: translationsValidator },
       message: {
         validator: SMSMessageValidator,
         required: true,
@@ -4534,10 +4536,11 @@ export const schema: SchemaV1 = build_schema({
         op: "custom", access: 'update', method: "patch",
         name: 'Bulk Assign Tickets',
         path: '/tickets/bulk-assign',
-        description: "Assigns a list of tickets by id (does not send webhooks)",
-        parameters: { 
+        description: "Assigns a list of tickets by id (does not send webhooks). When addToCareTeam is true, the new owner is also added to the care team of each ticket's enduser.",
+        parameters: {
           ids: { validator: listOfMongoIdStringValidator, required: true },
           userId: { validator: mongoIdStringValidator, required: true },
+          addToCareTeam: { validator: booleanValidatorOptional },
         },
         returns: {},
       },
@@ -5187,6 +5190,10 @@ export const schema: SchemaV1 = build_schema({
       }, 
       enduserId: {
         validator: mongoIdStringValidator,
+        // staff may repoint a response to correct a mistake, but an enduser may not: this field
+        // chooses who save_enduser_updates_for_form_response writes the intake answers to, and the
+        // foreign key is only checked for existence, not for access
+        enduserUpdatesDisabled: true,
         dependencies: [{
           dependsOn: ['endusers'],
           dependencyField: '_id',
@@ -5261,7 +5268,7 @@ export const schema: SchemaV1 = build_schema({
         }))
       },
       startedViaPinnedForm: { validator: booleanValidator },
-      enduserAISummary: { validator: stringValidator25000, enduserUpdatesDisabled: true },
+      enduserAISummary: { validator: stringValidator25000, redactions: ['enduser'], enduserUpdatesDisabled: true },
       procedureCodes: { validator: procedureCodesValidator, enduserUpdatesDisabled: true },
       diagnosisCodes: { validator: diagnosisCodesValidator, enduserUpdatesDisabled: true },
     },
@@ -8237,6 +8244,18 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           conferenceId: { validator: stringValidator100, required: true },
           byClientId: { validator: listOfStringsValidatorOptionalOrEmptyOk },
           byPhone: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+        },
+        returns: {},
+      },
+      modify_conference_attendee_status: {
+        op: "custom", access: 'update', method: "post",
+        name: 'Modify Conference Attendee Status',
+        path: '/phone-calls/modify-conference-attendee-status',
+        description: "Modifies a conference attendee's status (e.g. places them on or off hold with hold music). Defaults to the patient (enduser) leg when no label is provided. At least one status field must be provided.",
+        parameters: {
+          conferenceId: { validator: stringValidator100, required: true },
+          label: { validator: stringValidator100 },
+          hold: { validator: booleanValidator },
         },
         returns: {},
       },

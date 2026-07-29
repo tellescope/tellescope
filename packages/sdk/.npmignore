@@ -1,1 +1,17 @@
 **set_vars.sh
+
+# Never publish tests. The security tests under src/tests/api_tests/security describe
+# vulnerabilities, and `npm publish` runs BEFORE the production deploy — shipping them opens a
+# window where a fix is documented publicly but not yet live.
+# gitignore semantics: this matches a `tests` directory at any depth, so it covers src/tests,
+# lib/cjs/tests and lib/esm/tests. Nothing outside src/tests imports from it, and local test runs
+# use the repo rather than an installed package, so excluding it is behaviour-neutral.
+# NOTE: this does NOT cover deployment/publish_public_repository.sh, which is a raw `cp -R` —
+# that channel is handled separately in that script.
+tests/
+
+# Test env file. The main repo gitignores it (`**.env`), but that protection does not survive the
+# publish paths — npm packs it, and publish_public_repository.sh copies it with `cp -R`. Contents are
+# test accounts and local businessIds rather than production secrets, but businessId is a live
+# parameter of the public session endpoints and test emails are probeable, so deny it here too.
+.env

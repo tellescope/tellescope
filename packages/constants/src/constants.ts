@@ -97,6 +97,7 @@ export const ENDUSER_FIELD_TYPES = {
   'pronouns': ['string', 'multiple_choice', 'Select'],
   'timezone': ['Timezone'],
   'preferredPharmacy': ['Pharmacy Search'],
+  'healthieIntegrationId': ['Hidden Value', 'Dropdown', 'multiple_choice', 'string'],
 }  as { [K in EnduserField | 'Insurance' | 'preferredPharmacy'] : FormFieldType[]}
 
 export const PRIMARY_HEX = "#1564bf"
@@ -1295,7 +1296,7 @@ export const MAX_AI_SUMMARY_DATA_SOURCES = 25
 export const DEFAULT_HISTORICAL_DATA_SOURCE_LIMIT = 100 // matches backend DEFAULT_LIMIT — non-breaking
 
 // Friendly names of Bedrock models customers may select (must match AI_MODEL_PRICING rows in the API)
-export const SELECTABLE_AI_MODELS = ['Claude Sonnet 5', 'Claude Opus 4.8'] as const
+export const SELECTABLE_AI_MODELS = ['Claude Sonnet 5', 'Claude Opus 5', 'Claude Opus 4.8'] as const
 export type SelectableAIModel = (typeof SELECTABLE_AI_MODELS)[number]
 export const DEFAULT_AI_MODEL: SelectableAIModel = 'Claude Sonnet 5'
 

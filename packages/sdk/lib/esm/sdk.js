@@ -578,6 +578,7 @@ var Session = /** @class */ (function (_super) {
         queries.phone_calls.cold_transfer = function (a) { return _this._POST("/v1".concat(schema.phone_calls.customActions.cold_transfer.path), a); };
         queries.phone_calls.add_conference_attendees = function (a) { return _this._POST("/v1".concat(schema.phone_calls.customActions.add_conference_attendees.path), a); };
         queries.phone_calls.remove_conference_attendees = function (a) { return _this._POST("/v1".concat(schema.phone_calls.customActions.remove_conference_attendees.path), a); };
+        queries.phone_calls.modify_conference_attendee_status = function (a) { return _this._POST("/v1".concat(schema.phone_calls.customActions.modify_conference_attendee_status.path), a); };
         queries.phone_calls.end_conference = function (a) { return _this._POST("/v1".concat(schema.phone_calls.customActions.end_conference.path), a); };
         queries.phone_calls.cancel_recording = function (a) { return _this._POST("/v1".concat(schema.phone_calls.customActions.cancel_recording.path), a); };
         queries.phone_calls.delete_recordings = function (a) { return _this._POST("/v1".concat(schema.phone_calls.customActions.delete_recordings.path), a); };

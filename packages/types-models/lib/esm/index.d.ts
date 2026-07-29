@@ -631,15 +631,21 @@ export interface RecordInfo {
 export interface ClientRecord extends RecordInfo {
     id: string;
 }
-export interface WithAllowedPaths {
+export interface SessionScopeContext {
+    calendarEventId?: string;
+}
+export interface WithSessionConfinement {
+    sessionScopes?: SessionScope[];
+    scopeContext?: SessionScopeContext;
     allowedPaths?: string[];
 }
-export interface Session {
+export interface WithAllowedPaths extends WithSessionConfinement {
+}
+export interface Session extends WithSessionConfinement {
     type: "user" | "enduser";
     businessId: string;
     iat: number;
     exp: number;
-    allowedPaths?: string[];
     requiresMFA?: boolean;
 }
 export type SessionType = "user" | "enduser";
@@ -1164,6 +1170,16 @@ export interface EnduserMedication extends EnduserMedication_readonly, EnduserMe
 export declare const FORM_INGESTION_API_KEY_SCOPE: "form-ingestion";
 export declare const API_KEY_SCOPES: readonly ["form-ingestion"];
 export type APIKeyScope = typeof API_KEY_SCOPES[number];
+/**
+ * Confinement scopes for limited-purpose SESSIONS (video links, public forms, booking pages, ics
+ * links). Each name resolves server-side to a fixed set of method+path grants.
+ *
+ * Distinct from APIKeyScope above, and NOT interchangeable — note the inverted empty-array
+ * semantics: `scopes: []` on an API key means unrestricted, whereas a session confined to no scopes
+ * reaches nothing. The route table is intentionally backend-only; only the names are public.
+ */
+export declare const SESSION_SCOPES: readonly ["video-join-link", "video-start-link", "public-form", "appointment-booking", "ics-download"];
+export type SessionScope = typeof SESSION_SCOPES[number];
 export interface APIKey_readonly extends ClientRecord {
     hashedKey: string;
     key?: string;
@@ -1438,6 +1454,7 @@ export interface SMSMessage extends SMSMessage_readonly, SMSMessage_required, SM
     replyToTemplateId?: string;
     assignedTo?: string[];
     templatedMessage?: string;
+    translations?: Translations<'message'>;
     canvasId?: string;
     discussionRoomId?: string;
     mediaURLs?: string[];
@@ -2544,6 +2561,7 @@ export interface FormResponse_required {
     formTitle: string;
     responses?: FormResponseValue[];
     publicSubmit?: boolean;
+    authFieldIntakeDisabled?: boolean;
     submittedBy?: string;
     submittedByIsPlaceholder?: boolean;
     markedAsSubmitted?: boolean;

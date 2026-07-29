@@ -1,3 +1,4 @@
+/// <reference types="react" />
 import { DefaultTheme } from 'react-native-paper';
 import { ThemeProvider } from './theme';
 type DefaultTheme_T = typeof DefaultTheme;

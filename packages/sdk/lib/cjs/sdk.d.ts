@@ -3994,6 +3994,7 @@ type Queries = {
         cold_transfer: (args: extractFields<CustomActions['phone_calls']['cold_transfer']['parameters']>) => (Promise<extractFields<CustomActions['phone_calls']['cold_transfer']['returns']>>);
         add_conference_attendees: (args: extractFields<CustomActions['phone_calls']['add_conference_attendees']['parameters']>) => (Promise<extractFields<CustomActions['phone_calls']['add_conference_attendees']['returns']>>);
         remove_conference_attendees: (args: extractFields<CustomActions['phone_calls']['remove_conference_attendees']['parameters']>) => (Promise<extractFields<CustomActions['phone_calls']['remove_conference_attendees']['returns']>>);
+        modify_conference_attendee_status: (args: extractFields<CustomActions['phone_calls']['modify_conference_attendee_status']['parameters']>) => (Promise<extractFields<CustomActions['phone_calls']['modify_conference_attendee_status']['returns']>>);
         end_conference: (args: extractFields<CustomActions['phone_calls']['end_conference']['parameters']>) => (Promise<extractFields<CustomActions['phone_calls']['end_conference']['returns']>>);
         cancel_recording: (args: extractFields<CustomActions['phone_calls']['cancel_recording']['parameters']>) => (Promise<extractFields<CustomActions['phone_calls']['cancel_recording']['returns']>>);
         delete_recordings: (args: extractFields<CustomActions['phone_calls']['delete_recordings']['parameters']>) => (Promise<extractFields<CustomActions['phone_calls']['delete_recordings']['returns']>>);
@@ -4191,8 +4192,10 @@ export declare class Session extends SessionManager {
         allowedMFAMethods?: import("@tellescope/types-models").MFAMethod[] | undefined;
         iat: number;
         exp: number;
-        allowedPaths?: string[] | undefined;
         requiresMFA?: boolean | undefined;
+        sessionScopes?: ("video-join-link" | "video-start-link" | "public-form" | "appointment-booking" | "ics-download")[] | undefined;
+        scopeContext?: import("@tellescope/types-models").SessionScopeContext | undefined;
+        allowedPaths?: string[] | undefined;
         users?: number | undefined;
         inbox_threads?: number | undefined;
         ai_conversations?: number | undefined;
@@ -4354,8 +4357,10 @@ export declare class Session extends SessionManager {
         allowedMFAMethods?: import("@tellescope/types-models").MFAMethod[] | undefined;
         iat: number;
         exp: number;
-        allowedPaths?: string[] | undefined;
         requiresMFA?: boolean | undefined;
+        sessionScopes?: ("video-join-link" | "video-start-link" | "public-form" | "appointment-booking" | "ics-download")[] | undefined;
+        scopeContext?: import("@tellescope/types-models").SessionScopeContext | undefined;
+        allowedPaths?: string[] | undefined;
         users?: number | undefined;
         inbox_threads?: number | undefined;
         ai_conversations?: number | undefined;

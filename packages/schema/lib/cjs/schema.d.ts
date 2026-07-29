@@ -1395,6 +1395,11 @@ export type CustomActions = {
             byClientId?: string[];
             byPhone?: string[];
         }, {}>;
+        modify_conference_attendee_status: CustomAction<{
+            conferenceId: string;
+            label?: string;
+            hold?: boolean;
+        }, {}>;
         end_conference: CustomAction<{
             id: string;
         }, {}>;
@@ -1512,6 +1517,7 @@ export type CustomActions = {
         bulk_assign: CustomAction<{
             ids: string[];
             userId: string;
+            addToCareTeam?: boolean;
         }, {}>;
     };
     ticket_threads: {

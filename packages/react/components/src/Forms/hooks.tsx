@@ -1518,7 +1518,10 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
             customerId,
             productIds: responsesToSubmit.flatMap(r => r.field?.options?.productIds ?? []),
             utm: get_utm_params(),
-            ...(getEnduserAISummary ? { enduserAISummary: getEnduserAISummary() } : {}),
+            // only the primary enduser's response may carry the AI summary — otherEnduserIds
+            // (bulk-for-event / bulk submit) are DIFFERENT patients, and the summary was
+            // generated for `enduserId` only.
+            ...(getEnduserAISummary && eId === enduserId ? { enduserAISummary: getEnduserAISummary() } : {}),
           })
 
           // do actual redirect later to prevent popup

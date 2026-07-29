@@ -1621,7 +1621,7 @@ export var schema = build_schema({
                 validator: booleanValidator,
                 examples: [true],
                 initializer: function () { return false; },
-            }, templatedMessage: { validator: stringValidator5000EmptyOkay }, message: {
+            }, templatedMessage: { validator: stringValidator5000EmptyOkay }, translations: { validator: translationsValidator }, message: {
                 validator: SMSMessageValidator,
                 required: true,
                 examples: ["Test message"],
@@ -2852,10 +2852,11 @@ export var schema = build_schema({
                 op: "custom", access: 'update', method: "patch",
                 name: 'Bulk Assign Tickets',
                 path: '/tickets/bulk-assign',
-                description: "Assigns a list of tickets by id (does not send webhooks)",
+                description: "Assigns a list of tickets by id (does not send webhooks). When addToCareTeam is true, the new owner is also added to the care team of each ticket's enduser.",
                 parameters: {
                     ids: { validator: listOfMongoIdStringValidator, required: true },
                     userId: { validator: mongoIdStringValidator, required: true },
+                    addToCareTeam: { validator: booleanValidatorOptional },
                 },
                 returns: {},
             },
@@ -3311,6 +3312,10 @@ export var schema = build_schema({
                 examples: [PLACEHOLDER_ID],
             }, enduserId: {
                 validator: mongoIdStringValidator,
+                // staff may repoint a response to correct a mistake, but an enduser may not: this field
+                // chooses who save_enduser_updates_for_form_response writes the intake answers to, and the
+                // foreign key is only checked for existence, not for access
+                enduserUpdatesDisabled: true,
                 dependencies: [{
                         dependsOn: ['endusers'],
                         dependencyField: '_id',
@@ -3341,7 +3346,7 @@ export var schema = build_schema({
                     fieldTitle: stringValidator250,
                     timestamp: dateValidator,
                 }))
-            }, startedViaPinnedForm: { validator: booleanValidator }, enduserAISummary: { validator: stringValidator25000, enduserUpdatesDisabled: true }, procedureCodes: { validator: procedureCodesValidator, enduserUpdatesDisabled: true }, diagnosisCodes: { validator: diagnosisCodesValidator, enduserUpdatesDisabled: true } }),
+            }, startedViaPinnedForm: { validator: booleanValidator }, enduserAISummary: { validator: stringValidator25000, redactions: ['enduser'], enduserUpdatesDisabled: true }, procedureCodes: { validator: procedureCodesValidator, enduserUpdatesDisabled: true }, diagnosisCodes: { validator: diagnosisCodesValidator, enduserUpdatesDisabled: true } }),
         defaultActions: DEFAULT_OPERATIONS,
         enduserActions: {
             prepare_form_response: {}, info_for_access_code: {}, submit_form_response: {}, stripe_details: {}, chargebee_details: {},
@@ -5725,6 +5730,18 @@ export var schema = build_schema({
                     conferenceId: { validator: stringValidator100, required: true },
                     byClientId: { validator: listOfStringsValidatorOptionalOrEmptyOk },
                     byPhone: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+                },
+                returns: {},
+            },
+            modify_conference_attendee_status: {
+                op: "custom", access: 'update', method: "post",
+                name: 'Modify Conference Attendee Status',
+                path: '/phone-calls/modify-conference-attendee-status',
+                description: "Modifies a conference attendee's status (e.g. places them on or off hold with hold music). Defaults to the patient (enduser) leg when no label is provided. At least one status field must be provided.",
+                parameters: {
+                    conferenceId: { validator: stringValidator100, required: true },
+                    label: { validator: stringValidator100 },
+                    hold: { validator: booleanValidator },
                 },
                 returns: {},
             },

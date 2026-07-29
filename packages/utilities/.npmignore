@@ -1,1 +1,7 @@
 **set_vars.sh
+
+# Never publish tests. See packages/public/sdk/.npmignore for the full rationale — publishes run
+# BEFORE the production deploy, so anything describing a not-yet-deployed fix is a disclosure window.
+# There is currently no src/tests here; lib/cjs/tests and lib/esm/tests are stale build output from a
+# since-removed source directory, and shipping them serves no purpose either way.
+tests/

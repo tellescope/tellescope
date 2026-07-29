@@ -81,6 +81,7 @@ exports.ENDUSER_FIELD_TYPES = {
     'pronouns': ['string', 'multiple_choice', 'Select'],
     'timezone': ['Timezone'],
     'preferredPharmacy': ['Pharmacy Search'],
+    'healthieIntegrationId': ['Hidden Value', 'Dropdown', 'multiple_choice', 'string'],
 };
 exports.PRIMARY_HEX = "#1564bf";
 exports.SECONDARY_HEX = "#1c4378";
@@ -1193,7 +1194,7 @@ exports.DEFAULT_AI_SUMMARY_MAX_OUTPUT_TOKENS = 600;
 exports.MAX_AI_SUMMARY_DATA_SOURCES = 25;
 exports.DEFAULT_HISTORICAL_DATA_SOURCE_LIMIT = 100; // matches backend DEFAULT_LIMIT — non-breaking
 // Friendly names of Bedrock models customers may select (must match AI_MODEL_PRICING rows in the API)
-exports.SELECTABLE_AI_MODELS = ['Claude Sonnet 5', 'Claude Opus 4.8'];
+exports.SELECTABLE_AI_MODELS = ['Claude Sonnet 5', 'Claude Opus 5', 'Claude Opus 4.8'];
 exports.DEFAULT_AI_MODEL = 'Claude Sonnet 5';
 exports.EXAMPLE_AI_SUMMARY_PROMPT = "Summarize this patient's recent activity in 4-6 bullet points.\nFocus on changes since their last visit, current medications, recent symptoms or\ncomplaints, and any outstanding follow-ups. Keep clinical and concise.";
 exports.T2_TEMPLATE_EDITOR_STATE = "TELLESCOPE_2_TEMPLATE_EDITOR";

@@ -31,7 +31,7 @@ export interface LabeledIconButtonProps extends WithOffset {
   id?: string, 
   ariaLabel?: string, 
   disabled?: boolean, 
-  color?: "primary" | "secondary" | "inherit" | 'default' | 'white' | 'error', 
+  color?: "primary" | "secondary" | "inherit" | 'default' | 'white' | 'error' | 'warning',
   placement?: TooltipPlacement, 
   onClick?: (e:any) => void, 
   showArrow?: boolean, 

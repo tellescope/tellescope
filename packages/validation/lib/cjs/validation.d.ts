@@ -276,6 +276,7 @@ export declare const journeysValidator: ValidatorDefinition<Indexable>;
 export declare const escape_phone_number: (p?: string) => string;
 export declare const phoneValidator: ValidatorDefinition<string>;
 export declare const phoneValidatorOptional: ValidatorDefinition<string>;
+export declare const parse_phone_number: (phone?: string | null) => string | undefined;
 export declare const fileTypeValidator: ValidatorDefinition<string>;
 export declare const urlValidator: ValidatorDefinition<string>;
 export declare const sipUrlValidator: ValidatorDefinition<string>;
@@ -878,7 +879,7 @@ export declare const canvasCodingValidatorOptional: ValidatorDefinition<CanvasCo
 export declare const AI_SUMMARY_DATA_SOURCES: AISummaryDataSource[];
 export declare const aiSummaryDataSourceTypeValidator: ValidatorDefinition<AISummaryDataSource>;
 export declare const aiSummaryDataSourceConfigValidator: ValidatorDefinition<AISummaryDataSourceConfig>;
-export declare const selectableAIModelValidator: ValidatorDefinition<"Claude Sonnet 5" | "Claude Opus 4.8">;
+export declare const selectableAIModelValidator: ValidatorDefinition<"Claude Sonnet 5" | "Claude Opus 5" | "Claude Opus 4.8">;
 export declare const aiSummaryConfigurationValidator: ValidatorDefinition<AISummaryConfiguration>;
 export declare const AIDecisionSourceValidator: ValidatorDefinition<AIContextSource>;
 export declare const AIMessageInputValidator: ValidatorDefinition<{
