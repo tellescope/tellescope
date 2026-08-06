@@ -1197,6 +1197,8 @@ export var T2_TEMPLATE_EDITOR_STATE = "TELLESCOPE_2_TEMPLATE_EDITOR";
 // prompt text) are private to the API in api/modules/voice_agent/constants.ts.
 export var VOICE_AGENT_CONVERSATION_TYPE = "voice_agent"; // ai_conversations.type for content-free usage records
 export var DEFAULT_VOICE_AGENT_GREETING = "Hello! How can I help you today?";
+export var SMS_AGENT_CONVERSATION_TYPE = "sms_agent"; // ai_conversations.type for SMS agent conversations (Start AI Conversation journey action)
+export var SMS_AGENT_FORM_RESPONSE_SOURCE = "AI Text Agent"; // form_responses.source + booking provenance for SMS-agent-collected data
 // Form field types the voice agent can collect for a 'Submit Form' agent tool. Shared so the
 // step editor's skipped-questions warning matches what the backend actually asks.
 export var VOICE_FORM_SUPPORTED_FIELD_TYPES = [

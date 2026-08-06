@@ -1086,7 +1086,20 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
     preferredPharmacy?: Pharmacy;
     aiSummary?: string;
     aiSummaryUpdatedAt?: Date;
+    aiConversations?: EnduserAIConversation[];
 }
+export type EnduserAIConversation = {
+    channel: 'SMS';
+    aiConversationId: string;
+    source: string;
+    destination: string;
+    active: boolean;
+    startedAt: Date;
+    endedAt?: Date;
+    endedReason?: string;
+    journeyId?: string;
+    automationStepId?: string;
+};
 export interface EnduserCustomType_readonly extends ClientRecord {
 }
 export interface EnduserCustomType_required {
@@ -3127,7 +3140,7 @@ export interface WebhookCall {
     integrity: string;
     description?: string;
 }
-export type AutomationEventType = 'onJourneyStart' | 'afterAction' | "formResponse" | "formResponses" | "formUnsubmitted" | "formsUnsubmitted" | "ticketCompleted" | 'waitForTrigger' | "onCallOutcome" | "onAIDecision" | "onError";
+export type AutomationEventType = 'onJourneyStart' | 'afterAction' | "formResponse" | "formResponses" | "formUnsubmitted" | "formsUnsubmitted" | "ticketCompleted" | 'waitForTrigger' | "onCallOutcome" | "onAIDecision" | "onAIConversationOutcome" | "onError";
 interface AutomationEventBuilder<T extends AutomationEventType, V extends object> {
     type: T;
     info: V;
@@ -3273,6 +3286,10 @@ export type OnAIDecisionAutomationEvent = AutomationEventBuilder<'onAIDecision',
     automationStepId: string;
     outcomes: string[];
 }>;
+export type OnAIConversationOutcomeAutomationEvent = AutomationEventBuilder<'onAIConversationOutcome', {
+    automationStepId: string;
+    outcome: string;
+}>;
 export type OnErrorEventInfo = {
     automationStepId: string;
 };
@@ -3288,6 +3305,7 @@ export type AutomationEventForType = {
     'waitForTrigger': WaitForTriggerAutomationEvent;
     'onCallOutcome': OnCallOutcomeAutomationEvent;
     'onAIDecision': OnAIDecisionAutomationEvent;
+    'onAIConversationOutcome': OnAIConversationOutcomeAutomationEvent;
     'onError': OnErrorAutomationEvent;
 };
 export type AutomationEvent = AutomationEventForType[keyof AutomationEventForType];
@@ -3482,6 +3500,15 @@ export type BelugaAutomationMappingEntry = {
     patientPreferences: BelugaUpdateVisitPatientPreferenceItem[];
     pharmacyId: string;
 };
+export type BelugaTriggerRefillPatientPreferenceItem = {
+    medId: string;
+};
+export type BelugaTriggerRefillAutomationAction = AutomationActionBuilder<'belugaTriggerRefill', {
+    formId: string;
+    patientPreferences?: BelugaTriggerRefillPatientPreferenceItem[];
+    useOrganizationMapping?: boolean;
+    customFieldName?: string;
+}>;
 export type SendChatAutomationAction = AutomationActionBuilder<'sendChat', {
     templateId: string;
     identifier: string;
@@ -3637,9 +3664,18 @@ export type CreateScriptSureDraftAutomationAction = AutomationActionBuilder<'cre
     matchMedicationTitle?: string;
     matchEnduserState?: boolean;
 }>;
+export type StartAIConversationActionInfo = AIAgentBaseConfig & {
+    channel: 'SMS';
+    senderId: string;
+    fromNumber?: string;
+    initialMessage: string;
+    inactivityTimeoutHours?: number;
+};
+export type StartAIConversationAutomationAction = AutomationActionBuilder<'startAIConversation', StartAIConversationActionInfo>;
 export type AutomationActionForType = {
     'aiDecision': AIDecisionAutomationAction;
     'generateEnduserSummary': GenerateEnduserSummaryAutomationAction;
+    'startAIConversation': StartAIConversationAutomationAction;
     'assignInboxItem': AssignInboxItemAutomationAction;
     'stripeChargeCardOnFile': StripeChargeCardOnFileAutomationAction;
     'stripeCancelSubscription': StripeCancelSubscriptionAutomationAction;
@@ -3675,6 +3711,7 @@ export type AutomationActionForType = {
     'smartMeterPlaceOrder': SmartMeterPlaceOrderAutomationAction;
     'belugaAutoRx': BelugaAutoRxAutomationAction;
     'belugaUpdateVisit': BelugaUpdateVisitAutomationAction;
+    'belugaTriggerRefill': BelugaTriggerRefillAutomationAction;
     'healthieSync': HealthieSyncAutomationAction;
     healthieAddToCourse: HealthieAddToCourseAutomationAction;
     healthieSendChat: HealthieSendChatAutomationAction;
@@ -5160,6 +5197,18 @@ export type PhoneTreeAgentTools = {
 };
 export type PhoneTreeAgentToolType = keyof PhoneTreeAgentTools;
 export type PhoneTreeAgentTool = PhoneTreeAgentTools[PhoneTreeAgentToolType];
+export type AIAgentBaseConfig = {
+    prompt: string;
+    outcomes: {
+        value: string;
+        description: string;
+    }[];
+    tools?: PhoneTreeAgentTool[];
+    model?: string;
+    maxTokensPerTurn?: number;
+    maxTurns?: number;
+    maxCreditsPerCall?: number;
+};
 export type PhoneTreeActionBuilder<T, V> = {
     type: T;
     info: V;
@@ -5236,22 +5285,12 @@ export type PhoneTreeActions = {
     'Add to Journey': PhoneTreeActionBuilder<"Add to Journey", {
         journeyId: string;
     }>;
-    'AI Agent': PhoneTreeActionBuilder<"AI Agent", {
-        prompt: string;
+    'AI Agent': PhoneTreeActionBuilder<"AI Agent", AIAgentBaseConfig & {
         greeting?: string;
         voice?: string;
         language?: string;
         interruptible?: boolean;
-        maxTokensPerTurn?: number;
-        maxTurns?: number;
         maxDurationSeconds?: number;
-        maxCreditsPerCall?: number;
-        model?: string;
-        outcomes: {
-            value: string;
-            description: string;
-        }[];
-        tools?: PhoneTreeAgentTool[];
     }>;
 };
 export type PhoneTreeActionType = keyof PhoneTreeActions;

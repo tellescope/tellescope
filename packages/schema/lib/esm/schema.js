@@ -318,6 +318,24 @@ export var schema = build_schema({
                     note: stringValidator5000EmptyOkay,
                 })),
                 redactions: ['enduser'],
+            }, 
+            // AI agent conversations (Start AI Conversation journey action) — one entry per
+            // (channel, source, destination) pairing, managed by the backend
+            aiConversations: {
+                validator: listValidatorOptionalOrEmptyOk(objectValidator({
+                    channel: exactMatchValidator(['SMS']),
+                    aiConversationId: mongoIdStringRequired,
+                    source: stringValidator100,
+                    destination: stringValidator100,
+                    active: booleanValidator,
+                    startedAt: dateValidator,
+                    endedAt: dateValidatorOptional,
+                    endedReason: stringValidatorOptional,
+                    journeyId: mongoIdStringOptional,
+                    automationStepId: mongoIdStringOptional,
+                })),
+                redactions: ['enduser'],
+                enduserUpdatesDisabled: true,
             }, devices: {
                 validator: listValidatorOptionalOrEmptyOk(objectValidator({
                     title: stringValidatorOptional,

@@ -350,13 +350,18 @@ import {
   MetriportSyncAutomationAction,
   AIDecisionAutomationAction,
   GenerateEnduserSummaryAutomationAction,
+  StartAIConversationAutomationAction,
+  StartAIConversationActionInfo,
   AssignInboxItemAutomationAction,
   CreateScriptSureDraftAutomationAction,
   BelugaAutoRxAutomationAction,
   BelugaAutoRxPatientPreferenceItem,
   BelugaUpdateVisitAutomationAction,
   BelugaUpdateVisitPatientPreferenceItem,
+  BelugaTriggerRefillAutomationAction,
+  BelugaTriggerRefillPatientPreferenceItem,
   OnAIDecisionAutomationEvent,
+  OnAIConversationOutcomeAutomationEvent,
   OnErrorEventInfo,
   OnErrorAutomationEvent,
   AIContextSource,
@@ -2647,6 +2652,7 @@ const _AUTOMATION_EVENTS: { [K in AutomationEventType]: any } = {
   waitForTrigger: '',
   onCallOutcome: '',
   onAIDecision: '',
+  onAIConversationOutcome: '',
   onError: '',
 }
 export const AUTOMATION_EVENTS = Object.keys(_AUTOMATION_EVENTS) as AutomationEventType[]
@@ -2681,6 +2687,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   smartMeterPlaceOrder: '',
   belugaAutoRx: '',
   belugaUpdateVisit: '',
+  belugaTriggerRefill: '',
   healthieSync: '',
   healthieAddToCourse: '',
   healthieSendChat: '',
@@ -2713,6 +2720,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   metriportSync: '',
   aiDecision: '',
   generateEnduserSummary: '',
+  startAIConversation: '',
   assignInboxItem: '',
   createScriptSureDraft: '',
 }
@@ -2921,6 +2929,13 @@ export const automationEventValidator = orValidator<{ [K in AutomationEventType]
       outcomes: listOfStringsValidator,
     }, { emptyOk: false }),
   }),
+  onAIConversationOutcome: objectValidator<OnAIConversationOutcomeAutomationEvent>({
+    type: exactMatchValidator(['onAIConversationOutcome']),
+    info: objectValidator<OnAIConversationOutcomeAutomationEvent['info']>({
+      automationStepId: mongoIdStringRequired,
+      outcome: stringValidator,
+    }, { emptyOk: false }),
+  }),
   onError: objectValidator<OnErrorAutomationEvent>({
     type: exactMatchValidator(['onError']),
     info: objectValidator<OnErrorEventInfo>({
@@ -3100,6 +3115,26 @@ export const AIMessageInputValidator = objectValidator<{ role: 'user' | 'assista
   role: exactMatchValidator(['user', 'assistant']),
   text: stringValidator100000,
 }, { emptyOk: false })
+
+// capabilities granted to an AI agent (phone tree 'AI Agent' node or 'startAIConversation' journey
+// action) — extensible like phoneTreeActionValidator (one branch per tool type). Defined ABOVE
+// automationActionValidator, which references it (const TDZ — declaration order matters at module load).
+export const phoneTreeAgentToolValidator = orValidator<{ [K in PhoneTreeAgentToolType]: PhoneTreeAgentTools[K] }>({
+  "Submit Form": objectValidator<PhoneTreeAgentTools["Submit Form"]>({
+    type: exactMatchValidator(['Submit Form']),
+    info: objectValidator<PhoneTreeAgentTools["Submit Form"]['info']>({
+      formId: mongoIdStringRequired,
+      useWhen: stringValidator1000Optional,
+    }),
+  }),
+  "Book Appointment": objectValidator<PhoneTreeAgentTools["Book Appointment"]>({
+    type: exactMatchValidator(['Book Appointment']),
+    info: objectValidator<PhoneTreeAgentTools["Book Appointment"]['info']>({
+      appointmentBookingPageId: mongoIdStringRequired,
+      useWhen: stringValidator1000Optional,
+    }),
+  }),
+})
 
 export const automationActionValidator = orValidator<{ [K in AutomationActionType]: AutomationAction & { type: K } } | { [K in BrandedWebhookActions]: SendWebhookAutomationAction } >({
   developHealthMedEligibility: objectValidator<DevelopHealthMedicationEligibilityAutomationAction>({
@@ -3438,6 +3473,18 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       customFieldName: stringValidatorOptional,
     }),
   }),
+  belugaTriggerRefill: objectValidator<BelugaTriggerRefillAutomationAction>({
+    ...sharedAutomationActionValidators,
+    type: exactMatchValidator(['belugaTriggerRefill']),
+    info: objectValidator<BelugaTriggerRefillAutomationAction['info']>({
+      formId: mongoIdStringRequired,
+      patientPreferences: listValidatorOptionalOrEmptyOk(objectValidator<BelugaTriggerRefillPatientPreferenceItem>({
+        medId: stringValidatorOptional,
+      })),
+      useOrganizationMapping: booleanValidatorOptional,
+      customFieldName: stringValidatorOptional,
+    }),
+  }),
   sendChat: objectValidator<SendChatAutomationAction>({
     ...sharedAutomationActionValidators,
     type: exactMatchValidator(['sendChat']),
@@ -3660,6 +3707,27 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     info: objectValidator<GenerateEnduserSummaryAutomationAction['info']>({
       aiSummaryConfiguration: aiSummaryConfigurationValidator, // optional shared config
     }, { emptyOk: true }) // config is optional; an empty info is valid
+  }),
+  startAIConversation: objectValidator<StartAIConversationAutomationAction>({
+    ...sharedAutomationActionValidators,
+    type: exactMatchValidator(['startAIConversation']),
+    info: objectValidator<StartAIConversationActionInfo>({
+      channel: exactMatchValidator(['SMS']),
+      senderId: mongoIdStringRequired,
+      fromNumber: phoneValidatorOptional,
+      initialMessage: SMSMessageValidator, // required, ≤1200 chars (SMS cap)
+      prompt: stringValidator5000,
+      outcomes: listValidator(objectValidator({
+        value: stringValidator250,
+        description: stringValidator1000,
+      })),
+      tools: listValidatorOptionalOrEmptyOk(phoneTreeAgentToolValidator),
+      model: selectableAIModelValidator,
+      maxTokensPerTurn: numberValidatorOptional,
+      maxTurns: numberValidatorOptional,
+      maxCreditsPerCall: numberValidatorOptional,
+      inactivityTimeoutHours: numberValidatorOptional,
+    }, { emptyOk: false }),
   }),
   assignInboxItem: objectValidator<AssignInboxItemAutomationAction>({
     ...sharedAutomationActionValidators,
@@ -6717,24 +6785,6 @@ export const phonePlaybackValidatorOptional = orValidator<{
   }), 
   optional: optionalEmptyObjectValidator, 
 }, { isOptional: true })
-
-// capabilities granted to an 'AI Agent' node — extensible like phoneTreeActionValidator (one branch per tool type)
-export const phoneTreeAgentToolValidator = orValidator<{ [K in PhoneTreeAgentToolType]: PhoneTreeAgentTools[K] }>({
-  "Submit Form": objectValidator<PhoneTreeAgentTools["Submit Form"]>({
-    type: exactMatchValidator(['Submit Form']),
-    info: objectValidator<PhoneTreeAgentTools["Submit Form"]['info']>({
-      formId: mongoIdStringRequired,
-      useWhen: stringValidator1000Optional,
-    }),
-  }),
-  "Book Appointment": objectValidator<PhoneTreeAgentTools["Book Appointment"]>({
-    type: exactMatchValidator(['Book Appointment']),
-    info: objectValidator<PhoneTreeAgentTools["Book Appointment"]['info']>({
-      appointmentBookingPageId: mongoIdStringRequired,
-      useWhen: stringValidator1000Optional,
-    }),
-  }),
-})
 
 export const phoneTreeActionValidator = orValidator<{ [K in PhoneTreeActionType]: PhoneTreeActions[K] }>({
   // "Play": objectValidator<PhoneTreeActions["Play"]>({

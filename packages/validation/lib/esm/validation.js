@@ -2091,6 +2091,7 @@ var _AUTOMATION_EVENTS = {
     waitForTrigger: '',
     onCallOutcome: '',
     onAIDecision: '',
+    onAIConversationOutcome: '',
     onError: '',
 };
 export var AUTOMATION_EVENTS = Object.keys(_AUTOMATION_EVENTS);
@@ -2124,6 +2125,7 @@ var _AUTOMATION_ACTIONS = {
     smartMeterPlaceOrder: '',
     belugaAutoRx: '',
     belugaUpdateVisit: '',
+    belugaTriggerRefill: '',
     healthieSync: '',
     healthieAddToCourse: '',
     healthieSendChat: '',
@@ -2156,6 +2158,7 @@ var _AUTOMATION_ACTIONS = {
     metriportSync: '',
     aiDecision: '',
     generateEnduserSummary: '',
+    startAIConversation: '',
     assignInboxItem: '',
     createScriptSureDraft: '',
 };
@@ -2315,6 +2318,13 @@ export var automationEventValidator = orValidator({
         info: objectValidator({
             automationStepId: mongoIdStringRequired,
             outcomes: listOfStringsValidator,
+        }, { emptyOk: false }),
+    }),
+    onAIConversationOutcome: objectValidator({
+        type: exactMatchValidator(['onAIConversationOutcome']),
+        info: objectValidator({
+            automationStepId: mongoIdStringRequired,
+            outcome: stringValidator,
         }, { emptyOk: false }),
     }),
     onError: objectValidator({
@@ -2477,6 +2487,25 @@ export var AIMessageInputValidator = objectValidator({
     role: exactMatchValidator(['user', 'assistant']),
     text: stringValidator100000,
 }, { emptyOk: false });
+// capabilities granted to an AI agent (phone tree 'AI Agent' node or 'startAIConversation' journey
+// action) — extensible like phoneTreeActionValidator (one branch per tool type). Defined ABOVE
+// automationActionValidator, which references it (const TDZ — declaration order matters at module load).
+export var phoneTreeAgentToolValidator = orValidator({
+    "Submit Form": objectValidator({
+        type: exactMatchValidator(['Submit Form']),
+        info: objectValidator({
+            formId: mongoIdStringRequired,
+            useWhen: stringValidator1000Optional,
+        }),
+    }),
+    "Book Appointment": objectValidator({
+        type: exactMatchValidator(['Book Appointment']),
+        info: objectValidator({
+            appointmentBookingPageId: mongoIdStringRequired,
+            useWhen: stringValidator1000Optional,
+        }),
+    }),
+});
 export var automationActionValidator = orValidator({
     developHealthMedEligibility: objectValidator(__assign({ type: exactMatchValidator(['developHealthMedEligibility']), info: objectValidator({
             drugs: developHealthDrugsValidator,
@@ -2689,6 +2718,14 @@ export var automationActionValidator = orValidator({
             useOrganizationMapping: booleanValidatorOptional,
             customFieldName: stringValidatorOptional,
         }) })),
+    belugaTriggerRefill: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['belugaTriggerRefill']), info: objectValidator({
+            formId: mongoIdStringRequired,
+            patientPreferences: listValidatorOptionalOrEmptyOk(objectValidator({
+                medId: stringValidatorOptional,
+            })),
+            useOrganizationMapping: booleanValidatorOptional,
+            customFieldName: stringValidatorOptional,
+        }) })),
     sendChat: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['sendChat']), info: objectValidator({
             templateId: mongoIdStringRequired,
             identifier: stringValidator100,
@@ -2797,6 +2834,23 @@ export var automationActionValidator = orValidator({
             aiSummaryConfiguration: aiSummaryConfigurationValidator, // optional shared config
         }, { emptyOk: true }) // config is optional; an empty info is valid
      })),
+    startAIConversation: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['startAIConversation']), info: objectValidator({
+            channel: exactMatchValidator(['SMS']),
+            senderId: mongoIdStringRequired,
+            fromNumber: phoneValidatorOptional,
+            initialMessage: SMSMessageValidator,
+            prompt: stringValidator5000,
+            outcomes: listValidator(objectValidator({
+                value: stringValidator250,
+                description: stringValidator1000,
+            })),
+            tools: listValidatorOptionalOrEmptyOk(phoneTreeAgentToolValidator),
+            model: selectableAIModelValidator,
+            maxTokensPerTurn: numberValidatorOptional,
+            maxTurns: numberValidatorOptional,
+            maxCreditsPerCall: numberValidatorOptional,
+            inactivityTimeoutHours: numberValidatorOptional,
+        }, { emptyOk: false }) })),
     assignInboxItem: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['assignInboxItem']), info: objectValidator({
             tags: listOfStringsWithQualifierValidator,
             limit: nonNegNumberValidator,
@@ -5638,23 +5692,6 @@ export var phonePlaybackValidatorOptional = orValidator({
     }),
     optional: optionalEmptyObjectValidator,
 }, { isOptional: true });
-// capabilities granted to an 'AI Agent' node — extensible like phoneTreeActionValidator (one branch per tool type)
-export var phoneTreeAgentToolValidator = orValidator({
-    "Submit Form": objectValidator({
-        type: exactMatchValidator(['Submit Form']),
-        info: objectValidator({
-            formId: mongoIdStringRequired,
-            useWhen: stringValidator1000Optional,
-        }),
-    }),
-    "Book Appointment": objectValidator({
-        type: exactMatchValidator(['Book Appointment']),
-        info: objectValidator({
-            appointmentBookingPageId: mongoIdStringRequired,
-            useWhen: stringValidator1000Optional,
-        }),
-    }),
-});
 export var phoneTreeActionValidator = orValidator({
     // "Play": objectValidator<PhoneTreeActions["Play"]>({
     //   type: exactMatchValidator(['Play']),

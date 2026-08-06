@@ -1172,8 +1172,25 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   preferredPharmacy?: Pharmacy,
   aiSummary?: string, // AI-generated patient profile summary (e.g. from the Generate Patient Summary journey action)
   aiSummaryUpdatedAt?: Date,
+  // AI agent conversations (Start AI Conversation journey action). One entry per
+  // (channel, source, destination) pairing, updated in place — an active entry means inbound
+  // messages on that pairing are answered by the AI instead of the out-of-office autoreply.
+  aiConversations?: EnduserAIConversation[],
   // unsubscribedFromEmail?: boolean,
   // unsubscribedFromSMS?: boolean,
+}
+
+export type EnduserAIConversation = {
+  channel: 'SMS', // v1: SMS only
+  aiConversationId: string, // the ai_conversations transcript/billing record
+  source: string, // our number (inbound body.To)
+  destination: string, // the enduser number in the conversation (inbound body.From)
+  active: boolean,
+  startedAt: Date,
+  endedAt?: Date,
+  endedReason?: string, // 'outcome' | 'staff-takeover' | 'unsubscribed' | 'expired' | 'max-turns' | 'credit-cap' | 'superseded' | 'error'
+  journeyId?: string,
+  automationStepId?: string, // the startAIConversation step — outcome events reference it
 }
 
 export interface EnduserCustomType_readonly extends ClientRecord {}
@@ -3252,6 +3269,7 @@ export type AutomationEventType =
   | 'waitForTrigger'
   | "onCallOutcome"
   | "onAIDecision"
+  | "onAIConversationOutcome"
   | "onError"
 
 interface AutomationEventBuilder <T extends AutomationEventType, V extends object> {
@@ -3367,8 +3385,10 @@ export type FormsUnsubmittedEvent = AutomationEventBuilder<'formsUnsubmitted', F
 export type OnJourneyStartAutomationEvent = AutomationEventBuilder<'onJourneyStart', {}> 
 export type TicketCompletedAutomationEvent = AutomationEventBuilder<'ticketCompleted', TicketCompletedEventInfo>
 export type WaitForTriggerAutomationEvent = AutomationEventBuilder<'waitForTrigger', { automationStepId: string, triggerId: string }> 
-export type OnCallOutcomeAutomationEvent = AutomationEventBuilder<'onCallOutcome', { automationStepId: string, outcome: string }> 
+export type OnCallOutcomeAutomationEvent = AutomationEventBuilder<'onCallOutcome', { automationStepId: string, outcome: string }>
 export type OnAIDecisionAutomationEvent = AutomationEventBuilder<'onAIDecision', { automationStepId: string, outcomes: string[] }>
+// branches from a 'startAIConversation' step when the AI conversation ends with this outcome (the SMS sibling of 'onCallOutcome')
+export type OnAIConversationOutcomeAutomationEvent = AutomationEventBuilder<'onAIConversationOutcome', { automationStepId: string, outcome: string }>
 
 export type OnErrorEventInfo = {
   automationStepId: string,
@@ -3386,6 +3406,7 @@ export type AutomationEventForType = {
   'waitForTrigger': WaitForTriggerAutomationEvent
   'onCallOutcome': OnCallOutcomeAutomationEvent,
   'onAIDecision': OnAIDecisionAutomationEvent
+  'onAIConversationOutcome': OnAIConversationOutcomeAutomationEvent
   'onError': OnErrorAutomationEvent
 }
 export type AutomationEvent = AutomationEventForType[keyof AutomationEventForType]
@@ -3551,6 +3572,15 @@ export type BelugaAutomationMappingEntry = {
   patientPreferences: BelugaUpdateVisitPatientPreferenceItem[],
   pharmacyId: string,
 }
+export type BelugaTriggerRefillPatientPreferenceItem = {
+  medId: string,
+}
+export type BelugaTriggerRefillAutomationAction = AutomationActionBuilder<'belugaTriggerRefill', {
+  formId: string,
+  patientPreferences?: BelugaTriggerRefillPatientPreferenceItem[],
+  useOrganizationMapping?: boolean,
+  customFieldName?: string,
+}>
 export type SendChatAutomationAction = AutomationActionBuilder<'sendChat', { 
   templateId: string, 
   identifier: string, 
@@ -3698,10 +3728,23 @@ export type CreateScriptSureDraftAutomationAction = AutomationActionBuilder<'cre
   matchMedicationTitle?: string,          // when set, restrict to routes with this exact title
   matchEnduserState?: boolean,            // when true, restrict to routes whose state === enduser.state
 }>
+// Starts an AI agent conversation with the enduser over a messaging channel (SMS v1) — the
+// messaging sibling of the phone tree 'AI Agent' step. The step's automated_action completes
+// immediately; the journey branches later via 'onAIConversationOutcome' events when the agent
+// ends the conversation with an outcome.
+export type StartAIConversationActionInfo = AIAgentBaseConfig & {
+  channel: 'SMS', // v1: SMS only; conversations are scoped per (channel, source, destination)
+  senderId: string, // user the AI's messages are attributed to (message userId + merge-field context)
+  fromNumber?: string, // source number — must be one of the organization's numbers; defaults to organization.twilioNumber
+  initialMessage: string, // opening SMS, sent immediately; supports merge fields like {{enduser.fname}}
+  inactivityTimeoutHours?: number, // conversation auto-ends after this idle window (default 72)
+}
+export type StartAIConversationAutomationAction = AutomationActionBuilder<'startAIConversation', StartAIConversationActionInfo>
 
 export type AutomationActionForType = {
   'aiDecision': AIDecisionAutomationAction,
   'generateEnduserSummary': GenerateEnduserSummaryAutomationAction,
+  'startAIConversation': StartAIConversationAutomationAction,
   'assignInboxItem': AssignInboxItemAutomationAction,
   'stripeChargeCardOnFile': StripeChargeCardOnFileAutomationAction,
   'stripeCancelSubscription': StripeCancelSubscriptionAutomationAction,
@@ -3737,6 +3780,7 @@ export type AutomationActionForType = {
   'smartMeterPlaceOrder': SmartMeterPlaceOrderAutomationAction,
   'belugaAutoRx': BelugaAutoRxAutomationAction,
   'belugaUpdateVisit': BelugaUpdateVisitAutomationAction,
+  'belugaTriggerRefill': BelugaTriggerRefillAutomationAction,
   'healthieSync': HealthieSyncAutomationAction,
   healthieAddToCourse: HealthieAddToCourseAutomationAction,
   healthieSendChat: HealthieSendChatAutomationAction,
@@ -5154,6 +5198,18 @@ export type PhoneTreeAgentTools = {
 export type PhoneTreeAgentToolType = keyof PhoneTreeAgentTools
 export type PhoneTreeAgentTool = PhoneTreeAgentTools[PhoneTreeAgentToolType]
 
+// The channel-agnostic AI agent configuration — shared by the phone tree 'AI Agent' step (voice)
+// and the 'startAIConversation' journey action (SMS). Channel-specific settings extend this.
+export type AIAgentBaseConfig = {
+  prompt: string, // org-authored additions to the channel's base system prompt
+  outcomes: { value: string, description: string }[], // the agent must end with one of these
+  tools?: PhoneTreeAgentTool[], // capabilities the agent may use mid-conversation (e.g. 'Submit Form', 'Book Appointment')
+  model?: string, // friendly AI model name, see SELECTABLE_AI_MODELS (constants); defaults to Claude Sonnet 5
+  maxTokensPerTurn?: number,
+  maxTurns?: number,
+  maxCreditsPerCall?: number, // per-call/per-conversation spend circuit breaker, default from constants
+}
+
 export type PhoneTreeActionBuilder <T, V> = { type: T, info: V }
 export type PhoneTreeActions = {
   // 'Play': PhoneTreeActionBuilder<"Play", { playback: PhonePlayback }>
@@ -5209,19 +5265,14 @@ export type PhoneTreeActions = {
   // Conversational AI agent (Twilio ConversationRelay + Bedrock). A generic "end call with outcome"
   // step: the agent converses, then ends with one of the configured outcomes; the tree branches on
   // the outcome via 'On Agent Outcome' events, like 'On Gather' branches on input.
-  'AI Agent': PhoneTreeActionBuilder<"AI Agent", {
-    prompt: string, // org-authored additions to the base voice system prompt
+  // The field set is AIAgentBaseConfig + voice-only settings — structurally identical to the
+  // pre-split inline shape, so validators, editors, and stored trees are unaffected.
+  'AI Agent': PhoneTreeActionBuilder<"AI Agent", AIAgentBaseConfig & {
     greeting?: string, // ConversationRelay welcomeGreeting
     voice?: string,
     language?: string,
     interruptible?: boolean, // barge-in, default true
-    maxTokensPerTurn?: number,
-    maxTurns?: number,
     maxDurationSeconds?: number,
-    maxCreditsPerCall?: number, // per-call spend circuit breaker, default from constants
-    model?: string, // friendly AI model name, see SELECTABLE_AI_MODELS (constants); defaults to Claude Sonnet 5
-    outcomes: { value: string, description: string }[], // the agent must end with one of these
-    tools?: PhoneTreeAgentTool[], // capabilities the agent may use mid-call (e.g. 'Submit Form')
   }>
 }
 export type PhoneTreeActionType = keyof PhoneTreeActions

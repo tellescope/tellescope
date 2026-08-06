@@ -287,6 +287,8 @@ export declare const T2_TEMPLATE_EDITOR_STATE = "TELLESCOPE_2_TEMPLATE_EDITOR";
 /******************************* Voice Agent (Phone Tree 'AI Agent' node) *******************************/
 export declare const VOICE_AGENT_CONVERSATION_TYPE = "voice_agent";
 export declare const DEFAULT_VOICE_AGENT_GREETING = "Hello! How can I help you today?";
+export declare const SMS_AGENT_CONVERSATION_TYPE = "sms_agent";
+export declare const SMS_AGENT_FORM_RESPONSE_SOURCE = "AI Text Agent";
 export declare const VOICE_FORM_SUPPORTED_FIELD_TYPES: readonly ["string", "stringLong", "email", "phone", "multiple_choice", "Dropdown", "number", "rating", "date", "dateString"];
 export declare const VOICE_AGENT_FORM_RESPONSE_SOURCE = "AI Voice Agent";
 //# sourceMappingURL=constants.d.ts.map
