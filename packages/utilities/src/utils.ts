@@ -791,6 +791,158 @@ export const sanitize_user_html = (html: string) => {
   })
 }
 
+/**
+ * Sandbox forced onto an `<iframe>` by {@link sanitize_user_html_with_iframes} when its author did
+ * not supply one.
+ *
+ * `allow-same-origin` is required in practice: without it the frame gets an opaque origin, where
+ * `localStorage` access throws and the embed's own CSP `'self'` matches nothing. Real embeds break —
+ * a Loom embed renders as a blank box, verified in Chrome. Since the sanitizer requires an absolute
+ * cross-origin `https` src, granting it gives the frame nothing an unsandboxed frame wouldn't have.
+ *
+ * What is deliberately withheld matters more than what is granted. Above all `allow-top-navigation`:
+ * a hostile embed cannot navigate the patient's page elsewhere. Also withheld: `allow-downloads`,
+ * `allow-modals`, `allow-pointer-lock`, `allow-orientation-lock`, `allow-top-navigation-by-user-activation`.
+ */
+export const DEFAULT_IFRAME_SANDBOX =
+  'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation'
+
+/**
+ * Same as {@link sanitize_user_html}, but additionally permits `<iframe>` so authored content can
+ * embed video, scheduling widgets, etc. `sanitize_user_html` remains the default — only reach for
+ * this variant on a surface that specifically needs framing.
+ *
+ * Preconditions for any new caller:
+ * - **Admin/staff-authored HTML only.** Never use this for patient-authored content (form answers
+ *   where `answerIsHTML`, chat messages, community posts) or for inbound email.
+ * - **Any patient-derived substring templated into the HTML must be entity-escaped first** — see
+ *   `escapeHTMLValues` on {@link replace_form_field_template_values}. Otherwise "admin-authored"
+ *   isn't actually true and a patient can inject a frame into an admin's description.
+ *
+ * How the frame is contained — the two controls work together, do not weaken either alone:
+ *
+ * 1. `src` must be an absolute `https://host` URL. Relative, protocol-relative (`//host`),
+ *    `javascript:`, `data:` and `srcdoc` frames are dropped, so the frame is always cross-origin
+ *    and the same-origin policy alone already prevents it from touching this document. Note that
+ *    sanitize-html does NOT reject protocol-relative iframe srcs on its own when
+ *    `allowProtocolRelative` is set, so that check lives in `transformTags` below.
+ * 2. {@link DEFAULT_IFRAME_SANDBOX} is forced when the author supplied none. Critically it withholds
+ *    `allow-top-navigation`, so a hostile or compromised embed cannot redirect the patient's page to
+ *    a phishing site — the realistic threat for an embed in a patient-facing form. It also withholds
+ *    downloads, modals, pointer-lock, plugins and orientation-lock. It is therefore strictly more
+ *    restrictive than rendering the same cross-origin iframe with no sandbox at all.
+ *
+ * It DOES grant `allow-same-origin`, which for a cross-origin `src` grants nothing a normal
+ * unsandboxed frame wouldn't already have (its own origin, its own storage) — see
+ * DEFAULT_IFRAME_SANDBOX for why that is necessary in practice. `allow-same-origin` would only be
+ * dangerous for a *same-origin* `src`, since such a frame could script this document; control 1 is
+ * what rules that out, which is why the src check must not be relaxed.
+ *
+ * An author-supplied `sandbox` is honored verbatim as an escape hatch (including `sandbox=""`, the
+ * most restrictive value), so a surface can tighten or loosen per embed.
+ *
+ * Current callers: the live form's field description (`Forms/forms.tsx`, `Forms/forms.v2.tsx`).
+ * The read-only submitted-response views intentionally stay on `sanitize_user_html`.
+ */
+export const sanitize_user_html_with_iframes = (html: string) => {
+  if (typeof html !== 'string' || !html) return ''
+  return sanitizeHtml(html, {
+    allowedTags: [
+      // text & inline
+      'a', 'abbr', 'b', 'bdi', 'bdo', 'br', 'cite', 'code', 'data', 'dfn', 'em', 'i', 'kbd',
+      'mark', 'q', 'rp', 'rt', 'ruby', 's', 'samp', 'small', 'span', 'strong', 'sub', 'sup',
+      'time', 'u', 'var', 'wbr', 'del', 'ins', 'abbr',
+      // block & structure
+      'address', 'article', 'aside', 'blockquote', 'caption', 'details', 'summary', 'div',
+      'figcaption', 'figure', 'footer', 'header', 'hgroup', 'hr', 'main', 'nav', 'p', 'pre',
+      'section',
+      // headings
+      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      // lists
+      'dd', 'dl', 'dt', 'li', 'ol', 'ul',
+      // tables
+      'col', 'colgroup', 'table', 'tbody', 'td', 'tfoot', 'th', 'thead', 'tr',
+      // media (still no object/embed — those can execute arbitrary plugin content)
+      'img', 'audio', 'video', 'source', 'picture', 'track',
+      'iframe',
+    ],
+    allowedAttributes: {
+      // NOTE: `id`/`name` are intentionally omitted — caller-controlled id/name enable DOM
+      // clobbering (shadowing document/global properties) and duplicate-id breakage, with no
+      // legitimate need in rendered user content.
+      '*': [
+        'style', 'class', 'title', 'dir', 'lang', 'align', 'valign', 'width', 'height',
+        'color', 'bgcolor', 'aria-*', 'data-*', 'role',
+      ],
+      a: ['href', 'target', 'rel'],
+      img: ['src', 'srcset', 'sizes', 'alt', 'loading', 'decoding'],
+      audio: ['controls', 'src', 'preload', 'loop', 'muted'],
+      video: ['controls', 'src', 'poster', 'preload', 'loop', 'muted', 'playsinline'],
+      source: ['src', 'srcset', 'type', 'media', 'sizes'],
+      track: ['src', 'kind', 'srclang', 'label', 'default'],
+      // No `srcdoc` (an inline document is arbitrary markup) and no `name` (named-window
+      // clobbering). `sandbox`/`referrerpolicy` MUST be listed here: transformTags runs BEFORE
+      // attribute filtering, so the values forced below are filtered too and would be dropped.
+      iframe: [
+        'src', 'sandbox', 'referrerpolicy', 'allow', 'allowfullscreen', 'frameborder', 'loading',
+      ],
+      col: ['span'],
+      colgroup: ['span'],
+      td: ['colspan', 'rowspan', 'headers'],
+      th: ['colspan', 'rowspan', 'headers', 'scope'],
+      ol: ['start', 'reversed', 'type'],
+      time: ['datetime'],
+      data: ['value'],
+      del: ['datetime'],
+      ins: ['datetime'],
+    },
+    // Only safe protocols. javascript:/vbscript: are not listed and are stripped.
+    allowedSchemes: ['http', 'https', 'mailto', 'tel'],
+    allowedSchemesByTag: {
+      img: ['http', 'https', 'data'],
+      source: ['http', 'https', 'data'],
+      video: ['http', 'https', 'data'],
+      audio: ['http', 'https', 'data'],
+      iframe: ['https'],
+    },
+    allowedSchemesAppliedToAttributes: ['href', 'src', 'srcset'],
+    allowProtocolRelative: true,
+    allowIframeRelativeUrls: false,
+    transformTags: {
+      // Harden external links against reverse-tabnabbing.
+      a: (tagName, attribs) => {
+        const href = attribs.href || ''
+        if (href.startsWith('http://') || href.startsWith('https://')) {
+          return { tagName, attribs: { ...attribs, target: '_blank', rel: 'noopener noreferrer' } }
+        }
+        return { tagName, attribs }
+      },
+      iframe: (tagName, attribs) => {
+        // Strip the characters browsers ignore in URLs, matching sanitize-html's own naughtyHref.
+        const src = (attribs.src || '').replace(/[\x00-\x20]+/g, '')
+        // Absolute https with a non-empty host, only. Dropping `src` hands the element to
+        // exclusiveFilter below, which removes it along with its fallback content.
+        if (!/^https:\/\/[^\s/?#\\]+/i.test(src)) return { tagName, attribs: {} }
+
+        return {
+          tagName,
+          attribs: {
+            ...attribs,
+            src,
+            // `??` rather than `||`: sandbox="" serializes as a bare `sandbox`, which is the MOST
+            // restrictive value, so an explicit empty string must be honored rather than replaced.
+            sandbox: attribs.sandbox ?? DEFAULT_IFRAME_SANDBOX,
+            referrerpolicy: attribs.referrerpolicy || 'strict-origin-when-cross-origin',
+          },
+        }
+      },
+    },
+    // Removes src-less iframes AND their fallback content. Returning a non-allowlisted tagName from
+    // transformTags does NOT do this — sanitize-html drops the tag but emits the text inside it.
+    exclusiveFilter: frame => frame.tag === 'iframe' && !frame.attribs.src,
+  })
+}
+
 export const query_string_for_object = (query: Indexable) => {
   let queryString = ''
 
@@ -3024,18 +3176,36 @@ export const replace_order_template_values = (s: string, order?: Omit<EnduserOrd
   return replaced
 }
 
+// Entity-escapes a value being spliced into an HTML string. `&` must be replaced first.
+const escape_html_text = (s: string) => s
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#39;')
+
 export const replace_form_field_template_values = (
   s: string,
   options: {
     enduser?: Partial<Enduser>,
     responses?: FormResponseValue[],
     escapeNewlinesAsHTMLBreaks?: boolean,
+    /**
+     * Entity-escape the substituted `{{enduser.*}}` values. Set this whenever the result is
+     * rendered through a sanitizer that permits iframes ({@link sanitize_user_html_with_iframes}):
+     * these values come from the patient's own intake answers / enduser record, so without escaping
+     * a patient could inject a frame into an otherwise admin-authored description.
+     *
+     * Off by default because most callers substitute into plain text rendered by React (which
+     * escapes already), where escaping here would corrupt the output — e.g. a name containing `&`.
+     */
+    escapeHTMLValues?: boolean,
   }
 ) => {
   if (!s) return s
   if (typeof s !== 'string') return s
 
-  const { enduser, responses = [], escapeNewlinesAsHTMLBreaks } = options
+  const { enduser, responses = [], escapeNewlinesAsHTMLBreaks, escapeHTMLValues } = options
 
   let i = 0
   let start = 0
@@ -3129,6 +3299,11 @@ export const replace_form_field_template_values = (
       }
     }
 
+    // Must run before the newline conversion below, or the injected breaks are escaped too
+    // and render as literal '&lt;br /&gt;'.
+    if (escapeHTMLValues) {
+      replacement = escape_html_text(replacement)
+    }
     if (escapeNewlinesAsHTMLBreaks) {
       replacement = replacement.replace(/\r\n|\r|\n|\\n/g, '<br />')
     }

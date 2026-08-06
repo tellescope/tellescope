@@ -7539,6 +7539,17 @@ export const schema: SchemaV1 = build_schema({
       hasConnectedMDIntegrations: { validator: booleanValidator },
       hasConnectedSeason: { validator: booleanValidator },
       createEnduserForms: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
+      defaultSummaryJourneyId: {
+        validator: mongoIdStringOptional, // optional => '' allowed, which clears the setting
+        dependencies: [
+          {
+            dependsOn: ['journeys'],
+            dependencyField: '_id',
+            relationship: 'foreignKey',
+            onDependencyDelete: 'unset',
+          },
+        ],
+      },
       skipActivePatientBilling: { validator: booleanValidator },
       portalV2SchemaURL: { validator: stringValidator },
       timeTrackingPrograms: {

@@ -71,7 +71,7 @@ import { Button, CircularProgress, Flex, LoadingButton, Modal, Typography, WithT
 import { useListForFormFields, useOrganizationTheme, WithOrganizationTheme } from "./hooks";
 import { AddressInput, AllergiesInput, AppointmentBookingInput, BelugaPatientPreferenceInput, BridgeEligibilityInput, CandidEligibilityInput, ChargeebeeInput, ConditionsInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, EmotiiInput, FileInput, FilesInput, HeightInput, HiddenValueInput, InsuranceInput, LanguageSelect, MedicationsInput, MultipleChoiceInput, NumberInput, PharmacySearchInput, PhoneInput, Progress, RankingInput, RatingInput, RedirectInput, RelatedContactsInput, RichTextInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, TimezoneInput, defaultButtonStyles } from "./inputs.v2";
 import { PRIMARY_HEX } from "@tellescope/constants";
-import { calculate_form_scoring, field_can_autosubmit, form_response_value_to_string, formatted_date, object_is_empty, objects_equivalent, read_local_storage, sanitize_user_html, responses_satisfy_conditions, truncate_string } from "@tellescope/utilities";
+import { calculate_form_scoring, field_can_autosubmit, form_response_value_to_string, formatted_date, object_is_empty, objects_equivalent, read_local_storage, sanitize_user_html, sanitize_user_html_with_iframes, responses_satisfy_conditions, truncate_string } from "@tellescope/utilities";
 import { Divider } from "@mui/material";
 export var TellescopeFormContainerV2 = function (_a) {
     var businessId = _a.businessId, organizationIds = _a.organizationIds, props = __rest(_a, ["businessId", "organizationIds"]);
@@ -619,7 +619,10 @@ export var Description = function (_a) {
     if (!field.htmlDescription)
         return null;
     return (_jsx("span", { style: style, dangerouslySetInnerHTML: {
-            __html: sanitize_user_html(field.htmlDescription)
+            // _with_iframes so admins can embed video/scheduling widgets in a question's description.
+            // Safe here because the description is admin-authored: any {{enduser.*}} value templated
+            // into it is entity-escaped first (escapeHTMLValues in Forms/hooks.tsx).
+            __html: sanitize_user_html_with_iframes(field.htmlDescription)
         } }));
 };
 export var TellescopeSinglePageForm = function (_a) {

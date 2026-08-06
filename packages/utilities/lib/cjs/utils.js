@@ -49,9 +49,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.fullMonth_day_year = exports.calculate_date_difference_for_set_fields = exports.calculate_days_between_dates_from_enduser = exports.resolve_date_value = exports.calculate_days_between_dates = exports.parse_date_string = exports.mm_dd_yyyy = exports.yyyy_mm_dd_numeric = exports.yyyy_mm_dd = exports.formatted_date_hh_mm = exports.get_add_to_gcal_link = exports.formatted_date = exports.get_time_values = exports.MONTHS = exports.MONTHS_FULL = exports.sorted_records = exports.wait = exports.findFirstUnansweredField = exports.throwFunction = exports.ensure_https_url = exports.to_absolute_url = exports.build_portal_link_string = exports.build_content_link_string = exports.build_file_link_string = exports.build_form_group_link_string = exports.build_form_link_string = exports.build_link_string = exports.getTemplatedData = exports.parse_link_template = exports.map_object = exports.format_stripe_subscription_interval = exports.truncate_string = exports.defined_fields = exports.user_is_active = exports.user_display_name = exports.objects_equivalent = exports.to_object_id = exports.url_safe_path = exports.is_whitespace = exports.matching_fields = exports.is_object = exports.filter_object = exports.is_defined = exports.is_truthy = exports.object_is_empty = exports.first_letter_lowercase = exports.first_letter_capitalized = exports.user_is_locked_out = exports.user_is_admin = exports.ObjectId = void 0;
-exports.URIDecodeEmail = exports.get_recent_outbound_communication_date = exports.get_recent_engagement_date = exports.MM_DD_YYYY_to_YYYY_MM_DD = exports.YYYY_MM_DD_to_MM_DD_YYYY = exports.getLocalTimezone = exports.string_matches_key_or_value = exports.evaluate_conditional_logic_for_enduser_fields = exports.UPCOMING_EVENT_COUNT_KEY = exports.get_enduser_field_value_for_key = exports.age_for_dob_mmddyyyy = exports.replace_keys_and_values_in_object = exports.get_conditional_logic_values = exports.evaluate_conditional_logic_for_medication_title = exports.evaluate_string_field_comparison = exports.evaluate_conditional_logic = exports.shuffle_array_in_place = exports.plaintext_for_managed_content_record = exports.sanitize_html = exports.timezone_for_enduser = exports.safeJSONParse = exports.payment_cost_to_string = exports.read_local_storage = exports.update_local_storage = exports.is_organization_owner = exports.form_response_value_to_string = exports.is_table_input_response = exports.user_has_record_access = exports.is_suborganization = exports.matches_organization = exports.getDefaultPortalURL = exports.getPublicFileURL = exports.getOrgnizationFaviconURL = exports.getOrgnizationLogoURL = exports.getBuiltInPublicFileName = exports.getGoogleClientAPIKey = exports.getGoogleClientId = exports.getApiURL = exports.getEnvironment = exports.TEST_API_URL = exports.STAGING_API_URL = exports.PROD_API_URL = exports.query_string_for_object = exports.sanitize_user_html = exports.sanitize_html_for_cms = exports.sanitize_html_with_links = exports.remove_image_tags = exports.remove_style_tags = exports.remove_script_tags = exports.time_for_calendar_event = void 0;
-exports.add_value_for_dotted_key = exports.value_for_dotted_key = exports.get_flattened_fields = exports.skip_due_date_as_needed = exports.is_full_iso_string_heuristic = exports.display_time_for_seconds = exports.replace_enduser_template_values = exports.replace_secret_values = exports.get_secret_names = exports.replace_sms_template_values = exports.replace_form_field_template_values = exports.replace_order_template_values = exports.replace_medication_template_values = exports.replace_calendar_event_template_values = exports.replace_purchase_template_values = exports.replace_tag_template_values_for_enduser = exports.append_current_utm_params = exports.get_utm_params = exports.is_out_of_office = exports.color_for_classification = exports.classification_for_vital = exports.SMS_UNSUBSCRIBE_KEYWORDS = exports.satisfies_vital_comparison = exports.field_can_autosubmit = exports.field_can_autoadvance = exports.decodeJWT = exports.validate_organization_for_develop_health = exports.validate_user_for_develop_health = exports.validate_enduser_for_develop_health = exports.validate_enduser_for_script_sure = exports.validate_enduser_for_dose_spot = exports.validate_enduser_for_smart_meter = exports.validate_enduser_for_gogo = exports.json_error_string = exports.validate_enduser_for_candid = exports.validate_provider_for_candid = exports.validate_organization_for_candid = exports.validate_insurance_for_eligibility = exports.weighted_round_robin = exports.responses_satisfy_conditions = exports.calculate_bmi_from_responses = exports.calculate_bmi = exports.FORM_LOGIC_URL_PARAMETER = exports.FORM_LOGIC_CALCULATED_FIELDS = exports.calculate_form_scoring = exports.batch_array = exports.capture_is_supported = exports.get_next_reminder_timestamp = exports.mfa_is_enabled = exports.decode_email_for_display = void 0;
-exports.constructT2BaseURL = exports.formatDuration = exports.calculateTimeTrackDuration = exports.validate_custom_field_references = exports.slot_violates_calendar_event_limits = exports.replace_form_response_template_values = exports.resolve_integration_id = exports.replace_snippet_template_values = exports.get_snippet_keys = exports.emit_gtm_event = exports.get_care_team_primary = exports.is_checkbox_custom_field_value = exports.enrich_doxy_url = exports.to_human_readable_phone_number = exports.get_canvas_id = exports.should_show_unsubmitted_form_response_for_interval = exports.enduser_insurance_string = exports.enduser_address_string = exports.is_timezone = exports.downloadFile = exports.get_prepopulated_responses = exports.INVALID_PREPOPULATION_TYPES = void 0;
+exports.get_recent_engagement_date = exports.MM_DD_YYYY_to_YYYY_MM_DD = exports.YYYY_MM_DD_to_MM_DD_YYYY = exports.getLocalTimezone = exports.string_matches_key_or_value = exports.evaluate_conditional_logic_for_enduser_fields = exports.UPCOMING_EVENT_COUNT_KEY = exports.get_enduser_field_value_for_key = exports.age_for_dob_mmddyyyy = exports.replace_keys_and_values_in_object = exports.get_conditional_logic_values = exports.evaluate_conditional_logic_for_medication_title = exports.evaluate_string_field_comparison = exports.evaluate_conditional_logic = exports.shuffle_array_in_place = exports.plaintext_for_managed_content_record = exports.sanitize_html = exports.timezone_for_enduser = exports.safeJSONParse = exports.payment_cost_to_string = exports.read_local_storage = exports.update_local_storage = exports.is_organization_owner = exports.form_response_value_to_string = exports.is_table_input_response = exports.user_has_record_access = exports.is_suborganization = exports.matches_organization = exports.getDefaultPortalURL = exports.getPublicFileURL = exports.getOrgnizationFaviconURL = exports.getOrgnizationLogoURL = exports.getBuiltInPublicFileName = exports.getGoogleClientAPIKey = exports.getGoogleClientId = exports.getApiURL = exports.getEnvironment = exports.TEST_API_URL = exports.STAGING_API_URL = exports.PROD_API_URL = exports.query_string_for_object = exports.sanitize_user_html_with_iframes = exports.DEFAULT_IFRAME_SANDBOX = exports.sanitize_user_html = exports.sanitize_html_for_cms = exports.sanitize_html_with_links = exports.remove_image_tags = exports.remove_style_tags = exports.remove_script_tags = exports.time_for_calendar_event = void 0;
+exports.get_flattened_fields = exports.skip_due_date_as_needed = exports.is_full_iso_string_heuristic = exports.display_time_for_seconds = exports.replace_enduser_template_values = exports.replace_secret_values = exports.get_secret_names = exports.replace_sms_template_values = exports.replace_form_field_template_values = exports.replace_order_template_values = exports.replace_medication_template_values = exports.replace_calendar_event_template_values = exports.replace_purchase_template_values = exports.replace_tag_template_values_for_enduser = exports.append_current_utm_params = exports.get_utm_params = exports.is_out_of_office = exports.color_for_classification = exports.classification_for_vital = exports.SMS_UNSUBSCRIBE_KEYWORDS = exports.satisfies_vital_comparison = exports.field_can_autosubmit = exports.field_can_autoadvance = exports.decodeJWT = exports.validate_organization_for_develop_health = exports.validate_user_for_develop_health = exports.validate_enduser_for_develop_health = exports.validate_enduser_for_script_sure = exports.validate_enduser_for_dose_spot = exports.validate_enduser_for_smart_meter = exports.validate_enduser_for_gogo = exports.json_error_string = exports.validate_enduser_for_candid = exports.validate_provider_for_candid = exports.validate_organization_for_candid = exports.validate_insurance_for_eligibility = exports.weighted_round_robin = exports.responses_satisfy_conditions = exports.calculate_bmi_from_responses = exports.calculate_bmi = exports.FORM_LOGIC_URL_PARAMETER = exports.FORM_LOGIC_CALCULATED_FIELDS = exports.calculate_form_scoring = exports.batch_array = exports.capture_is_supported = exports.get_next_reminder_timestamp = exports.mfa_is_enabled = exports.decode_email_for_display = exports.URIDecodeEmail = exports.get_recent_outbound_communication_date = void 0;
+exports.constructT2BaseURL = exports.formatDuration = exports.calculateTimeTrackDuration = exports.validate_custom_field_references = exports.slot_violates_calendar_event_limits = exports.replace_form_response_template_values = exports.resolve_integration_id = exports.replace_snippet_template_values = exports.get_snippet_keys = exports.emit_gtm_event = exports.get_care_team_primary = exports.is_checkbox_custom_field_value = exports.enrich_doxy_url = exports.to_human_readable_phone_number = exports.get_canvas_id = exports.should_show_unsubmitted_form_response_for_interval = exports.enduser_insurance_string = exports.enduser_address_string = exports.is_timezone = exports.downloadFile = exports.get_prepopulated_responses = exports.INVALID_PREPOPULATION_TYPES = exports.add_value_for_dotted_key = exports.value_for_dotted_key = void 0;
 var types_models_1 = require("@tellescope/types-models");
 var constants_1 = require("@tellescope/constants");
 var sanitize_html_1 = __importDefault(require("sanitize-html"));
@@ -832,6 +832,154 @@ var sanitize_user_html = function (html) {
     });
 };
 exports.sanitize_user_html = sanitize_user_html;
+/**
+ * Sandbox forced onto an `<iframe>` by {@link sanitize_user_html_with_iframes} when its author did
+ * not supply one.
+ *
+ * `allow-same-origin` is required in practice: without it the frame gets an opaque origin, where
+ * `localStorage` access throws and the embed's own CSP `'self'` matches nothing. Real embeds break —
+ * a Loom embed renders as a blank box, verified in Chrome. Since the sanitizer requires an absolute
+ * cross-origin `https` src, granting it gives the frame nothing an unsandboxed frame wouldn't have.
+ *
+ * What is deliberately withheld matters more than what is granted. Above all `allow-top-navigation`:
+ * a hostile embed cannot navigate the patient's page elsewhere. Also withheld: `allow-downloads`,
+ * `allow-modals`, `allow-pointer-lock`, `allow-orientation-lock`, `allow-top-navigation-by-user-activation`.
+ */
+exports.DEFAULT_IFRAME_SANDBOX = 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation';
+/**
+ * Same as {@link sanitize_user_html}, but additionally permits `<iframe>` so authored content can
+ * embed video, scheduling widgets, etc. `sanitize_user_html` remains the default — only reach for
+ * this variant on a surface that specifically needs framing.
+ *
+ * Preconditions for any new caller:
+ * - **Admin/staff-authored HTML only.** Never use this for patient-authored content (form answers
+ *   where `answerIsHTML`, chat messages, community posts) or for inbound email.
+ * - **Any patient-derived substring templated into the HTML must be entity-escaped first** — see
+ *   `escapeHTMLValues` on {@link replace_form_field_template_values}. Otherwise "admin-authored"
+ *   isn't actually true and a patient can inject a frame into an admin's description.
+ *
+ * How the frame is contained — the two controls work together, do not weaken either alone:
+ *
+ * 1. `src` must be an absolute `https://host` URL. Relative, protocol-relative (`//host`),
+ *    `javascript:`, `data:` and `srcdoc` frames are dropped, so the frame is always cross-origin
+ *    and the same-origin policy alone already prevents it from touching this document. Note that
+ *    sanitize-html does NOT reject protocol-relative iframe srcs on its own when
+ *    `allowProtocolRelative` is set, so that check lives in `transformTags` below.
+ * 2. {@link DEFAULT_IFRAME_SANDBOX} is forced when the author supplied none. Critically it withholds
+ *    `allow-top-navigation`, so a hostile or compromised embed cannot redirect the patient's page to
+ *    a phishing site — the realistic threat for an embed in a patient-facing form. It also withholds
+ *    downloads, modals, pointer-lock, plugins and orientation-lock. It is therefore strictly more
+ *    restrictive than rendering the same cross-origin iframe with no sandbox at all.
+ *
+ * It DOES grant `allow-same-origin`, which for a cross-origin `src` grants nothing a normal
+ * unsandboxed frame wouldn't already have (its own origin, its own storage) — see
+ * DEFAULT_IFRAME_SANDBOX for why that is necessary in practice. `allow-same-origin` would only be
+ * dangerous for a *same-origin* `src`, since such a frame could script this document; control 1 is
+ * what rules that out, which is why the src check must not be relaxed.
+ *
+ * An author-supplied `sandbox` is honored verbatim as an escape hatch (including `sandbox=""`, the
+ * most restrictive value), so a surface can tighten or loosen per embed.
+ *
+ * Current callers: the live form's field description (`Forms/forms.tsx`, `Forms/forms.v2.tsx`).
+ * The read-only submitted-response views intentionally stay on `sanitize_user_html`.
+ */
+var sanitize_user_html_with_iframes = function (html) {
+    if (typeof html !== 'string' || !html)
+        return '';
+    return (0, sanitize_html_1.default)(html, {
+        allowedTags: [
+            // text & inline
+            'a', 'abbr', 'b', 'bdi', 'bdo', 'br', 'cite', 'code', 'data', 'dfn', 'em', 'i', 'kbd',
+            'mark', 'q', 'rp', 'rt', 'ruby', 's', 'samp', 'small', 'span', 'strong', 'sub', 'sup',
+            'time', 'u', 'var', 'wbr', 'del', 'ins', 'abbr',
+            // block & structure
+            'address', 'article', 'aside', 'blockquote', 'caption', 'details', 'summary', 'div',
+            'figcaption', 'figure', 'footer', 'header', 'hgroup', 'hr', 'main', 'nav', 'p', 'pre',
+            'section',
+            // headings
+            'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+            // lists
+            'dd', 'dl', 'dt', 'li', 'ol', 'ul',
+            // tables
+            'col', 'colgroup', 'table', 'tbody', 'td', 'tfoot', 'th', 'thead', 'tr',
+            // media (still no object/embed — those can execute arbitrary plugin content)
+            'img', 'audio', 'video', 'source', 'picture', 'track',
+            'iframe',
+        ],
+        allowedAttributes: {
+            // NOTE: `id`/`name` are intentionally omitted — caller-controlled id/name enable DOM
+            // clobbering (shadowing document/global properties) and duplicate-id breakage, with no
+            // legitimate need in rendered user content.
+            '*': [
+                'style', 'class', 'title', 'dir', 'lang', 'align', 'valign', 'width', 'height',
+                'color', 'bgcolor', 'aria-*', 'data-*', 'role',
+            ],
+            a: ['href', 'target', 'rel'],
+            img: ['src', 'srcset', 'sizes', 'alt', 'loading', 'decoding'],
+            audio: ['controls', 'src', 'preload', 'loop', 'muted'],
+            video: ['controls', 'src', 'poster', 'preload', 'loop', 'muted', 'playsinline'],
+            source: ['src', 'srcset', 'type', 'media', 'sizes'],
+            track: ['src', 'kind', 'srclang', 'label', 'default'],
+            // No `srcdoc` (an inline document is arbitrary markup) and no `name` (named-window
+            // clobbering). `sandbox`/`referrerpolicy` MUST be listed here: transformTags runs BEFORE
+            // attribute filtering, so the values forced below are filtered too and would be dropped.
+            iframe: [
+                'src', 'sandbox', 'referrerpolicy', 'allow', 'allowfullscreen', 'frameborder', 'loading',
+            ],
+            col: ['span'],
+            colgroup: ['span'],
+            td: ['colspan', 'rowspan', 'headers'],
+            th: ['colspan', 'rowspan', 'headers', 'scope'],
+            ol: ['start', 'reversed', 'type'],
+            time: ['datetime'],
+            data: ['value'],
+            del: ['datetime'],
+            ins: ['datetime'],
+        },
+        // Only safe protocols. javascript:/vbscript: are not listed and are stripped.
+        allowedSchemes: ['http', 'https', 'mailto', 'tel'],
+        allowedSchemesByTag: {
+            img: ['http', 'https', 'data'],
+            source: ['http', 'https', 'data'],
+            video: ['http', 'https', 'data'],
+            audio: ['http', 'https', 'data'],
+            iframe: ['https'],
+        },
+        allowedSchemesAppliedToAttributes: ['href', 'src', 'srcset'],
+        allowProtocolRelative: true,
+        allowIframeRelativeUrls: false,
+        transformTags: {
+            // Harden external links against reverse-tabnabbing.
+            a: function (tagName, attribs) {
+                var href = attribs.href || '';
+                if (href.startsWith('http://') || href.startsWith('https://')) {
+                    return { tagName: tagName, attribs: __assign(__assign({}, attribs), { target: '_blank', rel: 'noopener noreferrer' }) };
+                }
+                return { tagName: tagName, attribs: attribs };
+            },
+            iframe: function (tagName, attribs) {
+                var _a;
+                // Strip the characters browsers ignore in URLs, matching sanitize-html's own naughtyHref.
+                var src = (attribs.src || '').replace(/[\x00-\x20]+/g, '');
+                // Absolute https with a non-empty host, only. Dropping `src` hands the element to
+                // exclusiveFilter below, which removes it along with its fallback content.
+                if (!/^https:\/\/[^\s/?#\\]+/i.test(src))
+                    return { tagName: tagName, attribs: {} };
+                return {
+                    tagName: tagName,
+                    attribs: __assign(__assign({}, attribs), { src: src, 
+                        // `??` rather than `||`: sandbox="" serializes as a bare `sandbox`, which is the MOST
+                        // restrictive value, so an explicit empty string must be honored rather than replaced.
+                        sandbox: (_a = attribs.sandbox) !== null && _a !== void 0 ? _a : exports.DEFAULT_IFRAME_SANDBOX, referrerpolicy: attribs.referrerpolicy || 'strict-origin-when-cross-origin' }),
+                };
+            },
+        },
+        // Removes src-less iframes AND their fallback content. Returning a non-allowlisted tagName from
+        // transformTags does NOT do this — sanitize-html drops the tag but emits the text inside it.
+        exclusiveFilter: function (frame) { return frame.tag === 'iframe' && !frame.attribs.src; },
+    });
+};
+exports.sanitize_user_html_with_iframes = sanitize_user_html_with_iframes;
 var query_string_for_object = function (query) {
     var queryString = '';
     if (query && !(0, exports.object_is_empty)(query)) {
@@ -2997,13 +3145,20 @@ var replace_order_template_values = function (s, order) {
     return replaced;
 };
 exports.replace_order_template_values = replace_order_template_values;
+// Entity-escapes a value being spliced into an HTML string. `&` must be replaced first.
+var escape_html_text = function (s) { return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;'); };
 var replace_form_field_template_values = function (s, options) {
     var _a, _b, _d, _e, _f, _g, _h, _j;
     if (!s)
         return s;
     if (typeof s !== 'string')
         return s;
-    var enduser = options.enduser, _k = options.responses, responses = _k === void 0 ? [] : _k, escapeNewlinesAsHTMLBreaks = options.escapeNewlinesAsHTMLBreaks;
+    var enduser = options.enduser, _k = options.responses, responses = _k === void 0 ? [] : _k, escapeNewlinesAsHTMLBreaks = options.escapeNewlinesAsHTMLBreaks, escapeHTMLValues = options.escapeHTMLValues;
     var i = 0;
     var start = 0;
     var templates = [];
@@ -3085,6 +3240,11 @@ var replace_form_field_template_values = function (s, options) {
                     || '');
                 replacement = value;
             }
+        }
+        // Must run before the newline conversion below, or the injected breaks are escaped too
+        // and render as literal '&lt;br /&gt;'.
+        if (escapeHTMLValues) {
+            replacement = escape_html_text(replacement);
         }
         if (escapeNewlinesAsHTMLBreaks) {
             replacement = replacement.replace(/\r\n|\r|\n|\\n/g, '<br />');

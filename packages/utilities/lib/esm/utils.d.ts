@@ -204,6 +204,58 @@ export declare const sanitize_html_for_cms: (html: string) => string;
  * for that surface rather than loosening this shared function.
  */
 export declare const sanitize_user_html: (html: string) => string;
+/**
+ * Sandbox forced onto an `<iframe>` by {@link sanitize_user_html_with_iframes} when its author did
+ * not supply one.
+ *
+ * `allow-same-origin` is required in practice: without it the frame gets an opaque origin, where
+ * `localStorage` access throws and the embed's own CSP `'self'` matches nothing. Real embeds break —
+ * a Loom embed renders as a blank box, verified in Chrome. Since the sanitizer requires an absolute
+ * cross-origin `https` src, granting it gives the frame nothing an unsandboxed frame wouldn't have.
+ *
+ * What is deliberately withheld matters more than what is granted. Above all `allow-top-navigation`:
+ * a hostile embed cannot navigate the patient's page elsewhere. Also withheld: `allow-downloads`,
+ * `allow-modals`, `allow-pointer-lock`, `allow-orientation-lock`, `allow-top-navigation-by-user-activation`.
+ */
+export declare const DEFAULT_IFRAME_SANDBOX = "allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation";
+/**
+ * Same as {@link sanitize_user_html}, but additionally permits `<iframe>` so authored content can
+ * embed video, scheduling widgets, etc. `sanitize_user_html` remains the default — only reach for
+ * this variant on a surface that specifically needs framing.
+ *
+ * Preconditions for any new caller:
+ * - **Admin/staff-authored HTML only.** Never use this for patient-authored content (form answers
+ *   where `answerIsHTML`, chat messages, community posts) or for inbound email.
+ * - **Any patient-derived substring templated into the HTML must be entity-escaped first** — see
+ *   `escapeHTMLValues` on {@link replace_form_field_template_values}. Otherwise "admin-authored"
+ *   isn't actually true and a patient can inject a frame into an admin's description.
+ *
+ * How the frame is contained — the two controls work together, do not weaken either alone:
+ *
+ * 1. `src` must be an absolute `https://host` URL. Relative, protocol-relative (`//host`),
+ *    `javascript:`, `data:` and `srcdoc` frames are dropped, so the frame is always cross-origin
+ *    and the same-origin policy alone already prevents it from touching this document. Note that
+ *    sanitize-html does NOT reject protocol-relative iframe srcs on its own when
+ *    `allowProtocolRelative` is set, so that check lives in `transformTags` below.
+ * 2. {@link DEFAULT_IFRAME_SANDBOX} is forced when the author supplied none. Critically it withholds
+ *    `allow-top-navigation`, so a hostile or compromised embed cannot redirect the patient's page to
+ *    a phishing site — the realistic threat for an embed in a patient-facing form. It also withholds
+ *    downloads, modals, pointer-lock, plugins and orientation-lock. It is therefore strictly more
+ *    restrictive than rendering the same cross-origin iframe with no sandbox at all.
+ *
+ * It DOES grant `allow-same-origin`, which for a cross-origin `src` grants nothing a normal
+ * unsandboxed frame wouldn't already have (its own origin, its own storage) — see
+ * DEFAULT_IFRAME_SANDBOX for why that is necessary in practice. `allow-same-origin` would only be
+ * dangerous for a *same-origin* `src`, since such a frame could script this document; control 1 is
+ * what rules that out, which is why the src check must not be relaxed.
+ *
+ * An author-supplied `sandbox` is honored verbatim as an escape hatch (including `sandbox=""`, the
+ * most restrictive value), so a surface can tighten or loosen per embed.
+ *
+ * Current callers: the live form's field description (`Forms/forms.tsx`, `Forms/forms.v2.tsx`).
+ * The read-only submitted-response views intentionally stay on `sanitize_user_html`.
+ */
+export declare const sanitize_user_html_with_iframes: (html: string) => string;
 export declare const query_string_for_object: (query: Indexable) => string;
 export declare const PROD_API_URL = "https://api.tellescope.com";
 export declare const STAGING_API_URL = "https://staging-api.tellescope.com";
@@ -363,6 +415,16 @@ export declare const replace_form_field_template_values: (s: string, options: {
     enduser?: Partial<Enduser> | undefined;
     responses?: FormResponseValue[] | undefined;
     escapeNewlinesAsHTMLBreaks?: boolean | undefined;
+    /**
+     * Entity-escape the substituted `{{enduser.*}}` values. Set this whenever the result is
+     * rendered through a sanitizer that permits iframes ({@link sanitize_user_html_with_iframes}):
+     * these values come from the patient's own intake answers / enduser record, so without escaping
+     * a patient could inject a frame into an otherwise admin-authored description.
+     *
+     * Off by default because most callers substitute into plain text rendered by React (which
+     * escapes already), where escaping here would corrupt the output — e.g. a name containing `&`.
+     */
+    escapeHTMLValues?: boolean | undefined;
 }) => string;
 export declare const replace_sms_template_values: (s: string, sms?: Omit<SMSMessage, 'id'> | null) => string;
 export declare const get_secret_names: (s: string) => string[];

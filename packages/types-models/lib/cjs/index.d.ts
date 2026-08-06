@@ -586,6 +586,7 @@ export interface Organization extends Organization_readonly, Organization_requir
     customerIOFields?: string[];
     customerIOIdField?: string;
     createEnduserForms?: string[];
+    defaultSummaryJourneyId?: string;
     creditCount?: number;
     creditTrialStartedAt?: Date;
     hasIntegrations?: string[];
@@ -5143,6 +5144,22 @@ export type PhonePlaybackInfo = {
 };
 export type PhonePlaybackType = keyof PhonePlaybackInfo;
 export type PhonePlayback = PhonePlaybackInfo[PhonePlaybackType];
+export type PhoneTreeAgentToolBuilder<T extends string, V> = {
+    type: T;
+    info: V;
+};
+export type PhoneTreeAgentTools = {
+    'Submit Form': PhoneTreeAgentToolBuilder<'Submit Form', {
+        formId: string;
+        useWhen?: string;
+    }>;
+    'Book Appointment': PhoneTreeAgentToolBuilder<'Book Appointment', {
+        appointmentBookingPageId: string;
+        useWhen?: string;
+    }>;
+};
+export type PhoneTreeAgentToolType = keyof PhoneTreeAgentTools;
+export type PhoneTreeAgentTool = PhoneTreeAgentTools[PhoneTreeAgentToolType];
 export type PhoneTreeActionBuilder<T, V> = {
     type: T;
     info: V;
@@ -5234,6 +5251,7 @@ export type PhoneTreeActions = {
             value: string;
             description: string;
         }[];
+        tools?: PhoneTreeAgentTool[];
     }>;
 };
 export type PhoneTreeActionType = keyof PhoneTreeActions;
@@ -6956,6 +6974,7 @@ export type DataSyncRecord = {
     data: 'deleted' | string;
     userIds: string[];
     enduserIds: string[];
+    visibleToAllUsers?: boolean;
 };
 export type InsuranceType = "Primary" | "Secondary";
 export type TwilioQueue = {

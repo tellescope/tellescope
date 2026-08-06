@@ -652,7 +652,10 @@ var Description = function (_a) {
     if (!field.htmlDescription)
         return null;
     return ((0, jsx_runtime_1.jsx)("span", { style: style, dangerouslySetInnerHTML: {
-            __html: (0, utilities_1.sanitize_user_html)(field.htmlDescription)
+            // _with_iframes so admins can embed video/scheduling widgets in a question's description.
+            // Safe here because the description is admin-authored: any {{enduser.*}} value templated
+            // into it is entity-escaped first (escapeHTMLValues in Forms/hooks.tsx).
+            __html: (0, utilities_1.sanitize_user_html_with_iframes)(field.htmlDescription)
         } }));
 };
 exports.Description = Description;

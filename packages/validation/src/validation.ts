@@ -211,6 +211,8 @@ import {
   PhoneTreeNode,
   PhoneTreeActionType,
   PhoneTreeActions,
+  PhoneTreeAgentToolType,
+  PhoneTreeAgentTools,
   PhonePlaybackType,
   PhonePlaybackInfo,
   Enduser,
@@ -6716,6 +6718,24 @@ export const phonePlaybackValidatorOptional = orValidator<{
   optional: optionalEmptyObjectValidator, 
 }, { isOptional: true })
 
+// capabilities granted to an 'AI Agent' node — extensible like phoneTreeActionValidator (one branch per tool type)
+export const phoneTreeAgentToolValidator = orValidator<{ [K in PhoneTreeAgentToolType]: PhoneTreeAgentTools[K] }>({
+  "Submit Form": objectValidator<PhoneTreeAgentTools["Submit Form"]>({
+    type: exactMatchValidator(['Submit Form']),
+    info: objectValidator<PhoneTreeAgentTools["Submit Form"]['info']>({
+      formId: mongoIdStringRequired,
+      useWhen: stringValidator1000Optional,
+    }),
+  }),
+  "Book Appointment": objectValidator<PhoneTreeAgentTools["Book Appointment"]>({
+    type: exactMatchValidator(['Book Appointment']),
+    info: objectValidator<PhoneTreeAgentTools["Book Appointment"]['info']>({
+      appointmentBookingPageId: mongoIdStringRequired,
+      useWhen: stringValidator1000Optional,
+    }),
+  }),
+})
+
 export const phoneTreeActionValidator = orValidator<{ [K in PhoneTreeActionType]: PhoneTreeActions[K] }>({
   // "Play": objectValidator<PhoneTreeActions["Play"]>({
   //   type: exactMatchValidator(['Play']),
@@ -6854,6 +6874,7 @@ export const phoneTreeActionValidator = orValidator<{ [K in PhoneTreeActionType]
         value: stringValidator250,
         description: stringValidator1000,
       })),
+      tools: listValidatorOptionalOrEmptyOk(phoneTreeAgentToolValidator),
     }),
   }),
 })

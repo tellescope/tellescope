@@ -593,6 +593,9 @@ export interface Organization extends Organization_readonly, Organization_requir
   customerIOFields?: string[],
   customerIOIdField?: string,
   createEnduserForms?: string[],
+  // Journey containing a "Generate Patient Summary" action; enables the Regenerate button on the
+  // AI Summary panel of the patient profile. Unset automatically if the journey is deleted.
+  defaultSummaryJourneyId?: string,
   creditCount?: number,
   creditTrialStartedAt?: Date,
   hasIntegrations?: string[],
@@ -5134,6 +5137,23 @@ export type PhonePlaybackInfo = {
 export type PhonePlaybackType = keyof PhonePlaybackInfo
 export type PhonePlayback = PhonePlaybackInfo[PhonePlaybackType]
 
+// Capabilities granted to an 'AI Agent' node — each entry enables tool(s) the agent may use
+// mid-call (e.g. collecting and submitting a form). Extensible the same way PhoneTreeActions is:
+// future capabilities (e.g. appointment booking) are new entries in PhoneTreeAgentTools.
+export type PhoneTreeAgentToolBuilder <T extends string, V> = { type: T, info: V }
+export type PhoneTreeAgentTools = {
+  'Submit Form': PhoneTreeAgentToolBuilder<'Submit Form', {
+    formId: string,
+    useWhen?: string, // guidance for when the agent should collect this form (disambiguates when several forms are configured)
+  }>,
+  'Book Appointment': PhoneTreeAgentToolBuilder<'Book Appointment', {
+    appointmentBookingPageId: string,
+    useWhen?: string, // guidance for when the agent should offer booking
+  }>,
+}
+export type PhoneTreeAgentToolType = keyof PhoneTreeAgentTools
+export type PhoneTreeAgentTool = PhoneTreeAgentTools[PhoneTreeAgentToolType]
+
 export type PhoneTreeActionBuilder <T, V> = { type: T, info: V }
 export type PhoneTreeActions = {
   // 'Play': PhoneTreeActionBuilder<"Play", { playback: PhonePlayback }>
@@ -5201,6 +5221,7 @@ export type PhoneTreeActions = {
     maxCreditsPerCall?: number, // per-call spend circuit breaker, default from constants
     model?: string, // friendly AI model name, see SELECTABLE_AI_MODELS (constants); defaults to Claude Sonnet 5
     outcomes: { value: string, description: string }[], // the agent must end with one of these
+    tools?: PhoneTreeAgentTool[], // capabilities the agent may use mid-call (e.g. 'Submit Form')
   }>
 }
 export type PhoneTreeActionType = keyof PhoneTreeActions
@@ -7104,6 +7125,7 @@ export type DataSyncRecord = {
   data: 'deleted' | string, // when not deleted, stringified JSON
   userIds: string[], // Default access
   enduserIds: string[], // Assigned access
+  visibleToAllUsers?: boolean, // 'visibleToAllUsers' schema access constraint (staff users only)
 }
 
 export type InsuranceType = "Primary" | "Secondary"

@@ -2580,6 +2580,13 @@ export declare const phonePlaybackValidatorOptional: ValidatorDefinition<{} | {
         url?: string | undefined;
     };
 }>;
+export declare const phoneTreeAgentToolValidator: ValidatorDefinition<import("@tellescope/types-models").PhoneTreeAgentToolBuilder<"Submit Form", {
+    formId: string;
+    useWhen?: string | undefined;
+}> | import("@tellescope/types-models").PhoneTreeAgentToolBuilder<"Book Appointment", {
+    appointmentBookingPageId: string;
+    useWhen?: string | undefined;
+}>>;
 export declare const phoneTreeActionValidator: ValidatorDefinition<import("@tellescope/types-models").PhoneTreeActionBuilder<"Gather", {
     digits: boolean;
     speech: boolean;
@@ -2654,6 +2661,7 @@ export declare const phoneTreeActionValidator: ValidatorDefinition<import("@tell
         value: string;
         description: string;
     }[];
+    tools?: import("@tellescope/types-models").PhoneTreeAgentTool[] | undefined;
 }>>;
 export declare const phoneTreeNodeValidator: ValidatorDefinition<PhoneTreeNode>;
 export declare const phoneTreeNodesValidator: ValidatorDefinition<PhoneTreeNode[]>;

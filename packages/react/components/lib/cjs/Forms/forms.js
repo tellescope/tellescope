@@ -750,7 +750,10 @@ var Description = function (_a) {
     var _b, _c;
     var field = _a.field, _d = _a.color, color = _d === void 0 ? "primary" : _d, style = _a.style, enduserId = _a.enduserId, onFieldChange = _a.onFieldChange;
     var existingContent = (!field.htmlDescription && field.description ? ((0, jsx_runtime_1.jsx)(index_1.Typography, __assign({ color: color, style: style }, { children: field.description }))) : field.htmlDescription ? ((0, jsx_runtime_1.jsx)("span", { dangerouslySetInnerHTML: {
-            __html: (0, utilities_1.sanitize_user_html)(field.htmlDescription)
+            // _with_iframes so admins can embed video/scheduling widgets in a question's description.
+            // Safe here because the description is admin-authored: any {{enduser.*}} value templated
+            // into it is entity-escaped first (escapeHTMLValues in Forms/hooks.tsx).
+            __html: (0, utilities_1.sanitize_user_html_with_iframes)(field.htmlDescription)
         } })) : null);
     return ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [existingContent, field.type === 'description' && ((_c = (_b = field.options) === null || _b === void 0 ? void 0 : _b.historicalDataSources) === null || _c === void 0 ? void 0 : _c.length) && enduserId ? ((0, jsx_runtime_1.jsx)(exports.HistoricalDataSection, { sources: field.options.historicalDataSources, enduserId: enduserId, onDataLoaded: onFieldChange ? function (jsonString) { return onFieldChange(jsonString, field.id); } : undefined })) : null] }));
 };

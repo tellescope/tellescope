@@ -16,7 +16,7 @@ export declare const TellescopeFormContainerV2: ({ businessId, organizationIds, 
     showLogo?: boolean | undefined;
     logoURL?: string | undefined;
     logoHeight?: number | undefined;
-    logoAlignment?: "center" | "left" | "right" | undefined;
+    logoAlignment?: "left" | "right" | "center" | undefined;
     language?: string | undefined;
     onChangeLanguage?: ((l: string) => void) | undefined;
     paperMinHeight?: React.CSSProperties['minHeight'];
@@ -75,7 +75,7 @@ export declare const QuestionForField: ({ form, value, field, file, responses, s
         createdAt: Date;
     })[] | undefined;
     AddToDatabase?: React.JSXElementConstructor<import("./inputs").AddToDatabaseProps> | undefined;
-} & Pick<TellescopeFormProps, "enduserId" | "enduser" | "formResponseId" | "fields" | "rootResponseId" | "groupId" | "groupInstance" | "responses" | "submit" | "selectedFiles" | "goToPreviousField" | "goToNextField" | "isPreviousDisabled" | "lastNavigationDirectionRef" | "handleDatabaseSelect" | "onAddFile" | "onFieldChange" | "customInputs" | "validateField">) => JSX.Element | null;
+} & Pick<TellescopeFormProps, "submit" | "fields" | "enduser" | "enduserId" | "formResponseId" | "rootResponseId" | "groupId" | "groupInstance" | "responses" | "goToNextField" | "isPreviousDisabled" | "goToPreviousField" | "handleDatabaseSelect" | "onAddFile" | "onFieldChange" | "customInputs" | "selectedFiles" | "validateField" | "lastNavigationDirectionRef">) => JSX.Element | null;
 export declare const TellescopeSingleQuestionFlowV2: typeof TellescopeFormV2;
 export declare const DEFAULT_THANKS_MESSAGE = "Your response was successfully recorded";
 export declare const ThanksMessage: ({ thanksMessage, htmlThanksMessage, showRestartAtEnd, downloadComponent, }: {
@@ -84,7 +84,7 @@ export declare const ThanksMessage: ({ thanksMessage, htmlThanksMessage, showRes
     showRestartAtEnd?: boolean | undefined;
     downloadComponent?: React.ReactNode;
 }) => JSX.Element;
-export declare const SaveDraft: ({ selectedFiles, enduserId, responses, existingResponses, fields, onSuccess, formResponseId, includedFieldIds, formId, style, disabled, getResponsesWithQuestionGroupAnswers, isInternalNote, formTitle, rootResponseId, parentResponseId, }: Styled & Pick<TellescopeFormProps, "enduserId" | "onSuccess" | "fields" | "responses" | "existingResponses" | "selectedFiles" | "getResponsesWithQuestionGroupAnswers"> & {
+export declare const SaveDraft: ({ selectedFiles, enduserId, responses, existingResponses, fields, onSuccess, formResponseId, includedFieldIds, formId, style, disabled, getResponsesWithQuestionGroupAnswers, isInternalNote, formTitle, rootResponseId, parentResponseId, }: Styled & Pick<TellescopeFormProps, "fields" | "enduserId" | "responses" | "onSuccess" | "existingResponses" | "selectedFiles" | "getResponsesWithQuestionGroupAnswers"> & {
     disabled?: boolean | undefined;
     formResponseId?: string | undefined;
     formId: string;
@@ -94,7 +94,7 @@ export declare const SaveDraft: ({ selectedFiles, enduserId, responses, existing
     rootResponseId?: string | undefined;
     parentResponseId?: string | undefined;
 }) => JSX.Element;
-export declare const UpdateResponse: ({ selectedFiles, enduserId, responses, onSuccess, formResponseId, includedFieldIds, formId, style, disabled, getResponsesWithQuestionGroupAnswers, existingResponses, fields, }: Styled & Pick<TellescopeFormProps, "enduserId" | "onSuccess" | "fields" | "responses" | "existingResponses" | "selectedFiles" | "getResponsesWithQuestionGroupAnswers"> & {
+export declare const UpdateResponse: ({ selectedFiles, enduserId, responses, onSuccess, formResponseId, includedFieldIds, formId, style, disabled, getResponsesWithQuestionGroupAnswers, existingResponses, fields, }: Styled & Pick<TellescopeFormProps, "fields" | "enduserId" | "responses" | "onSuccess" | "existingResponses" | "selectedFiles" | "getResponsesWithQuestionGroupAnswers"> & {
     disabled?: boolean | undefined;
     formResponseId?: string | undefined;
     formId: string;

@@ -779,12 +779,18 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
         ...response,
         fieldTitle: replace_form_field_template_values(originalField.title || '', { enduser, responses }),
         fieldDescription: replace_form_field_template_values(originalField.description || '', { enduser, responses }),
+        // No escapeHTMLValues here: this value is persisted with the submission and is only ever
+        // read back by sanitize_user_html (staff + portal submitted-response views), which strips
+        // iframes, so patient-supplied markup cannot become a frame.
         fieldHtmlDescription: replace_form_field_template_values(originalField.htmlDescription || '', { enduser, responses, escapeNewlinesAsHTMLBreaks: true }),
         field: {
           ...response.field,
           title: replace_form_field_template_values(originalField.title || '', { enduser, responses }),
           description: replace_form_field_template_values(originalField.description || '', { enduser, responses }),
-          htmlDescription: replace_form_field_template_values(originalField.htmlDescription || '', { enduser, responses, escapeNewlinesAsHTMLBreaks: true }),
+          // escapeHTMLValues is required here: this is what the live form renders via
+          // sanitize_user_html_with_iframes, so an unescaped patient answer spliced in from
+          // {{enduser.*}} could otherwise inject an iframe into an admin-authored description.
+          htmlDescription: replace_form_field_template_values(originalField.htmlDescription || '', { enduser, responses, escapeNewlinesAsHTMLBreaks: true, escapeHTMLValues: true }),
         }
       }
     })

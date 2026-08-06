@@ -6,7 +6,7 @@ import { AddToDatabaseProps, AddressInput, AllergiesInput, AppointmentBookingInp
 import { PRIMARY_HEX, DEFAULT_HISTORICAL_DATA_SOURCE_LIMIT } from "@tellescope/constants"
 import { FormResponse, FormField, Form, Enduser } from "@tellescope/types-client"
 import { FormResponseAnswerFileValue, OrganizationTheme, HistoricalDataSource } from "@tellescope/types-models"
-import { calculate_form_scoring, field_can_autosubmit, form_response_value_to_string, formatted_date, object_is_empty, objects_equivalent, read_local_storage, sanitize_user_html, responses_satisfy_conditions, truncate_string } from "@tellescope/utilities"
+import { calculate_form_scoring, field_can_autosubmit, form_response_value_to_string, formatted_date, object_is_empty, objects_equivalent, read_local_storage, sanitize_user_html, sanitize_user_html_with_iframes, responses_satisfy_conditions, truncate_string } from "@tellescope/utilities"
 import { Divider } from "@mui/material"
 
 export const TellescopeFormContainer = ({ businessId, organizationIds, ...props } : {
@@ -1239,7 +1239,10 @@ export const Description = ({ field, color="primary", style, enduserId, onFieldC
       </Typography>
     ) : field.htmlDescription ? (
       <span dangerouslySetInnerHTML={{
-        __html: sanitize_user_html(field.htmlDescription)
+        // _with_iframes so admins can embed video/scheduling widgets in a question's description.
+        // Safe here because the description is admin-authored: any {{enduser.*}} value templated
+        // into it is entity-escaped first (escapeHTMLValues in Forms/hooks.tsx).
+        __html: sanitize_user_html_with_iframes(field.htmlDescription)
       }} />
     ) : null
   )

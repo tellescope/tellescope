@@ -5638,6 +5638,23 @@ export var phonePlaybackValidatorOptional = orValidator({
     }),
     optional: optionalEmptyObjectValidator,
 }, { isOptional: true });
+// capabilities granted to an 'AI Agent' node — extensible like phoneTreeActionValidator (one branch per tool type)
+export var phoneTreeAgentToolValidator = orValidator({
+    "Submit Form": objectValidator({
+        type: exactMatchValidator(['Submit Form']),
+        info: objectValidator({
+            formId: mongoIdStringRequired,
+            useWhen: stringValidator1000Optional,
+        }),
+    }),
+    "Book Appointment": objectValidator({
+        type: exactMatchValidator(['Book Appointment']),
+        info: objectValidator({
+            appointmentBookingPageId: mongoIdStringRequired,
+            useWhen: stringValidator1000Optional,
+        }),
+    }),
+});
 export var phoneTreeActionValidator = orValidator({
     // "Play": objectValidator<PhoneTreeActions["Play"]>({
     //   type: exactMatchValidator(['Play']),
@@ -5776,6 +5793,7 @@ export var phoneTreeActionValidator = orValidator({
                 value: stringValidator250,
                 description: stringValidator1000,
             })),
+            tools: listValidatorOptionalOrEmptyOk(phoneTreeAgentToolValidator),
         }),
     }),
 });

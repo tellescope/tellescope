@@ -5197,7 +5197,17 @@ exports.schema = (0, exports.build_schema)({
                     id: validation_1.stringValidator100,
                     name: validation_1.stringValidator,
                 }))
-            }, groups: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, canvasURL: { validator: validation_1.stringValidator }, healthiePortalURL: { validator: validation_1.stringValidator }, observationInvalidationReasons: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customNotificationTypes: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOFields: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOIdField: { validator: validation_1.stringValidator }, hasConnectedPaubox: { validator: validation_1.booleanValidator }, hasConnectedBridge: { validator: validation_1.booleanValidator }, hasConnectedMDIntegrations: { validator: validation_1.booleanValidator }, hasConnectedSeason: { validator: validation_1.booleanValidator }, createEnduserForms: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, skipActivePatientBilling: { validator: validation_1.booleanValidator }, portalV2SchemaURL: { validator: validation_1.stringValidator }, timeTrackingPrograms: {
+            }, groups: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, canvasURL: { validator: validation_1.stringValidator }, healthiePortalURL: { validator: validation_1.stringValidator }, observationInvalidationReasons: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customNotificationTypes: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOFields: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOIdField: { validator: validation_1.stringValidator }, hasConnectedPaubox: { validator: validation_1.booleanValidator }, hasConnectedBridge: { validator: validation_1.booleanValidator }, hasConnectedMDIntegrations: { validator: validation_1.booleanValidator }, hasConnectedSeason: { validator: validation_1.booleanValidator }, createEnduserForms: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, defaultSummaryJourneyId: {
+                validator: validation_1.mongoIdStringOptional,
+                dependencies: [
+                    {
+                        dependsOn: ['journeys'],
+                        dependencyField: '_id',
+                        relationship: 'foreignKey',
+                        onDependencyDelete: 'unset',
+                    },
+                ],
+            }, skipActivePatientBilling: { validator: validation_1.booleanValidator }, portalV2SchemaURL: { validator: validation_1.stringValidator }, timeTrackingPrograms: {
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     title: validation_1.stringValidator100,
                     billingCodes: (0, validation_1.listValidatorEmptyOk)((0, validation_1.objectValidator)({

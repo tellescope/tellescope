@@ -673,7 +673,15 @@ export var useTellescopeForm = function (_a) {
     var templatedResponses = useMemo(function () {
         return responses.map(function (response) {
             var originalField = fields.find(function (f) { return f.id === response.fieldId; }) || response.field;
-            return __assign(__assign({}, response), { fieldTitle: replace_form_field_template_values(originalField.title || '', { enduser: enduser, responses: responses }), fieldDescription: replace_form_field_template_values(originalField.description || '', { enduser: enduser, responses: responses }), fieldHtmlDescription: replace_form_field_template_values(originalField.htmlDescription || '', { enduser: enduser, responses: responses, escapeNewlinesAsHTMLBreaks: true }), field: __assign(__assign({}, response.field), { title: replace_form_field_template_values(originalField.title || '', { enduser: enduser, responses: responses }), description: replace_form_field_template_values(originalField.description || '', { enduser: enduser, responses: responses }), htmlDescription: replace_form_field_template_values(originalField.htmlDescription || '', { enduser: enduser, responses: responses, escapeNewlinesAsHTMLBreaks: true }) }) });
+            return __assign(__assign({}, response), { fieldTitle: replace_form_field_template_values(originalField.title || '', { enduser: enduser, responses: responses }), fieldDescription: replace_form_field_template_values(originalField.description || '', { enduser: enduser, responses: responses }), 
+                // No escapeHTMLValues here: this value is persisted with the submission and is only ever
+                // read back by sanitize_user_html (staff + portal submitted-response views), which strips
+                // iframes, so patient-supplied markup cannot become a frame.
+                fieldHtmlDescription: replace_form_field_template_values(originalField.htmlDescription || '', { enduser: enduser, responses: responses, escapeNewlinesAsHTMLBreaks: true }), field: __assign(__assign({}, response.field), { title: replace_form_field_template_values(originalField.title || '', { enduser: enduser, responses: responses }), description: replace_form_field_template_values(originalField.description || '', { enduser: enduser, responses: responses }), 
+                    // escapeHTMLValues is required here: this is what the live form renders via
+                    // sanitize_user_html_with_iframes, so an unescaped patient answer spliced in from
+                    // {{enduser.*}} could otherwise inject an iframe into an admin-authored description.
+                    htmlDescription: replace_form_field_template_values(originalField.htmlDescription || '', { enduser: enduser, responses: responses, escapeNewlinesAsHTMLBreaks: true, escapeHTMLValues: true }) }) });
         });
     }, [responses, fields, enduser]);
     // placeholders for initial files, reset when fields prop changes, since questions are now different (e.g. different form selected) 
