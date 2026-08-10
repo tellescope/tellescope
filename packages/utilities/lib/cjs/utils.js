@@ -3483,15 +3483,17 @@ exports.INVALID_PREPOPULATION_TYPES = [
     // now supported
     // "Address", // split into different patient fields and non-trivial to pre-load  
 ];
-var get_prepopulated_responses = function (fields, enduser, existingResponses) { return (fields
+var get_prepopulated_responses = function (fields, enduser, existingResponses, options) { return (fields
     .filter(function (v) {
-    var _a;
-    return (v.prepopulateFromFields && !exports.INVALID_PREPOPULATION_TYPES.includes(v.type) && v.intakeField
+    var _a, _b;
+    return ((v.prepopulateFromFields
+        || (!!v.intakeField && !!((_a = options === null || options === void 0 ? void 0 : options.alwaysPrepopulateIntakeFields) === null || _a === void 0 ? void 0 : _a.includes(v.intakeField))))
+        && !exports.INVALID_PREPOPULATION_TYPES.includes(v.type) && v.intakeField
         && ((v.intakeField === 'Address' &&
             (enduser.addressLineOne || enduser.addressLineTwo || enduser.zipCode || enduser.city || enduser.zipCode || enduser.state))
             || (v.intakeField === 'insurance.details' && enduser.insurance)
             || (v.intakeField === 'insuranceSecondary.details' && enduser.insuranceSecondary)
-            || ((enduser === null || enduser === void 0 ? void 0 : enduser[v.intakeField]) || ((_a = enduser === null || enduser === void 0 ? void 0 : enduser.fields) === null || _a === void 0 ? void 0 : _a[v.intakeField]))));
+            || ((enduser === null || enduser === void 0 ? void 0 : enduser[v.intakeField]) || ((_b = enduser === null || enduser === void 0 ? void 0 : enduser.fields) === null || _b === void 0 ? void 0 : _b[v.intakeField]))));
 })
     .map(function (v) {
     var _a, _b, _d, _e, _f, _g, _h, _j;
@@ -3594,6 +3596,11 @@ exports.get_canvas_id = get_canvas_id;
 var to_human_readable_phone_number = function (phone) {
     if (!phone) {
         return '';
+    }
+    // short codes and other sub-national-length values have no (XXX) XXX-XXXX form. Without this,
+    // the country code slice below goes negative and '894546' renders as '+ (894) 546-'
+    if (phone.replace(/\D/g, '').length < 10) {
+        return phone;
     }
     if (phone.length === 10) {
         return "(".concat(phone.substring(0, 3), ") ").concat(phone.substring(3, 6), "-").concat(phone.substring(6));

@@ -1056,6 +1056,10 @@ var escape_phone_number = function (p) {
     return p.replace(/[^\d+]/g, '');
 };
 exports.escape_phone_number = escape_phone_number;
+// SMS short codes are valid message endpoints but not E.164: no country code and no leading '+'.
+// escape_phone_number preserves '+', so '+1894546' fails this and falls through to the strict
+// path below — which is what keeps short codes stored in the bare form inbound matching expects.
+var SHORT_CODE_REGEX = /^\d{5,6}$/;
 exports.phoneValidator = {
     validate: function (options) {
         if (options === void 0) { options = {}; }
@@ -1064,6 +1068,8 @@ exports.phoneValidator = {
                 throw new Error("Expecting phone to be string but got ".concat(phone));
             var escaped = (0, exports.escape_phone_number)(phone);
             if (escaped === '311')
+                return escaped;
+            if (SHORT_CODE_REGEX.test(escaped))
                 return escaped;
             if (escaped.length < 10)
                 throw new Error("Phone number must be at least 10 digits");
@@ -1091,6 +1097,8 @@ exports.phoneValidatorOptional = {
                 throw new Error("Expecting phone to be string but got ".concat(phone));
             var escaped = (0, exports.escape_phone_number)(phone);
             if (escaped === '311')
+                return escaped;
+            if (SHORT_CODE_REGEX.test(escaped))
                 return escaped;
             if (escaped.length < 10)
                 throw new Error("Phone number must be at least 10 digits");

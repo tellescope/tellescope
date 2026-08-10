@@ -3551,10 +3551,19 @@ export const INVALID_PREPOPULATION_TYPES: FormFieldType[] = [
   // "Address", // split into different patient fields and non-trivial to pre-load  
 ]
 
-export const get_prepopulated_responses = (fields: FormField[], enduser: Enduser, existingResponses?: FormResponseValue[]) => (
+export const get_prepopulated_responses = (
+  fields: FormField[],
+  enduser: Enduser,
+  existingResponses?: FormResponseValue[],
+  options?: { alwaysPrepopulateIntakeFields?: string[] },
+) => (
   fields
   .filter(v => (
-    v.prepopulateFromFields && !INVALID_PREPOPULATION_TYPES.includes(v.type) && v.intakeField 
+    (
+      v.prepopulateFromFields
+      || (!!v.intakeField && !!options?.alwaysPrepopulateIntakeFields?.includes(v.intakeField))
+    )
+    && !INVALID_PREPOPULATION_TYPES.includes(v.type) && v.intakeField
     && (
       (v.intakeField === 'Address' && 
         (enduser.addressLineOne || enduser.addressLineTwo || enduser.zipCode || enduser.city || enduser.zipCode || enduser.state)
@@ -3666,7 +3675,11 @@ export const get_canvas_id = (v: Pick<Enduser, 'source' | 'externalId' | 'refere
 
 export const to_human_readable_phone_number = (phone?: string) => {
   if (!phone) { return '' }
-  
+
+  // short codes and other sub-national-length values have no (XXX) XXX-XXXX form. Without this,
+  // the country code slice below goes negative and '894546' renders as '+ (894) 546-'
+  if (phone.replace(/\D/g, '').length < 10) { return phone }
+
   if (phone.length === 10) {
     return `(${phone.substring(0, 3)}) ${phone.substring(3, 6)}-${phone.substring(6)}`
   }

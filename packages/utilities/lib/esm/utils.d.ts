@@ -444,7 +444,9 @@ export declare const value_for_dotted_key: (v: any, key: string, o?: {
 }) => any;
 export declare const add_value_for_dotted_key: (_object: Record<any, any>, field: string, value: any) => void;
 export declare const INVALID_PREPOPULATION_TYPES: FormFieldType[];
-export declare const get_prepopulated_responses: (fields: FormField[], enduser: Enduser, existingResponses?: FormResponseValue[]) => {
+export declare const get_prepopulated_responses: (fields: FormField[], enduser: Enduser, existingResponses?: FormResponseValue[], options?: {
+    alwaysPrepopulateIntakeFields?: string[];
+}) => {
     fieldId: string;
     fieldTitle: string;
     externalId: string | undefined;

@@ -1458,13 +1458,19 @@ export const journeysValidator: ValidatorDefinition<Indexable> = {
 
 export const escape_phone_number = (p='') => p.replace(/[^\d+]/g, '')
 
+// SMS short codes are valid message endpoints but not E.164: no country code and no leading '+'.
+// escape_phone_number preserves '+', so '+1894546' fails this and falls through to the strict
+// path below — which is what keeps short codes stored in the bare form inbound matching expects.
+const SHORT_CODE_REGEX = /^\d{5,6}$/
+
 export const phoneValidator: ValidatorDefinition<string> = {
   validate: (options={}) => build_validator(
     phone => {
       if (typeof phone !== "string") throw new Error(`Expecting phone to be string but got ${phone}`)
 
-      let escaped = escape_phone_number(phone) 
+      let escaped = escape_phone_number(phone)
       if (escaped === '311') return escaped
+      if (SHORT_CODE_REGEX.test(escaped)) return escaped
       if (escaped.length < 10) throw new Error(`Phone number must be at least 10 digits`)
 
       escaped = escaped.startsWith('+') ? escaped
@@ -1492,8 +1498,9 @@ export const phoneValidatorOptional: ValidatorDefinition<string> = {
     phone => {
       if (typeof phone !== "string") throw new Error(`Expecting phone to be string but got ${phone}`)
 
-      let escaped = escape_phone_number(phone) 
+      let escaped = escape_phone_number(phone)
       if (escaped === '311') return escaped
+      if (SHORT_CODE_REGEX.test(escaped)) return escaped
       if (escaped.length < 10) throw new Error(`Phone number must be at least 10 digits`)
 
       escaped = escaped.startsWith('+') ? escaped
@@ -1510,7 +1517,7 @@ export const phoneValidatorOptional: ValidatorDefinition<string> = {
       }
 
       return escaped
-    }, 
+    },
     { ...options, maxLength: 25, listOf: false, isOptional: true, emptyStringOk: true }
   ),
   getExample: () => "+15555555555",

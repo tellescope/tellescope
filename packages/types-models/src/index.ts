@@ -1291,6 +1291,7 @@ export const SESSION_SCOPES = [
   'public-form',
   'appointment-booking',
   'ics-download',
+  'embeddables-token',
 ] as const
 export type SessionScope = typeof SESSION_SCOPES[number]
 

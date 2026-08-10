@@ -29,6 +29,7 @@ export var SESSION_SCOPES = [
     'public-form',
     'appointment-booking',
     'ics-download',
+    'embeddables-token',
 ];
 // Reserved outcome for onAIDecision events: a child step listing this in its outcomes acts as the
 // fallback branch when the AI's answer matches no configured outcome. Never shown to users — the

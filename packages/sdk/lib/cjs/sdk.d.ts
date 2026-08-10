@@ -4193,7 +4193,7 @@ export declare class Session extends SessionManager {
         iat: number;
         exp: number;
         requiresMFA?: boolean | undefined;
-        sessionScopes?: ("video-join-link" | "video-start-link" | "public-form" | "appointment-booking" | "ics-download")[] | undefined;
+        sessionScopes?: ("video-join-link" | "video-start-link" | "public-form" | "appointment-booking" | "ics-download" | "embeddables-token")[] | undefined;
         scopeContext?: import("@tellescope/types-models").SessionScopeContext | undefined;
         allowedPaths?: string[] | undefined;
         users?: number | undefined;
@@ -4358,7 +4358,7 @@ export declare class Session extends SessionManager {
         iat: number;
         exp: number;
         requiresMFA?: boolean | undefined;
-        sessionScopes?: ("video-join-link" | "video-start-link" | "public-form" | "appointment-booking" | "ics-download")[] | undefined;
+        sessionScopes?: ("video-join-link" | "video-start-link" | "public-form" | "appointment-booking" | "ics-download" | "embeddables-token")[] | undefined;
         scopeContext?: import("@tellescope/types-models").SessionScopeContext | undefined;
         allowedPaths?: string[] | undefined;
         users?: number | undefined;
