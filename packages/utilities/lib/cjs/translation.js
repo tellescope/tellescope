@@ -5,7 +5,7 @@
 // can be reused by the webapp UI and any backend caller. Must stay free of any SDK/DB/React imports —
 // only plain types from types-models. Mirrors the ai_summary.ts convention.
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateTranslationSystemPrompt = exports.languageLabelForCode = exports.TRANSLATION_LANGUAGES = void 0;
+exports.translationLanguageCodeForLanguage = exports.generateTranslationSystemPrompt = exports.languageLabelForCode = exports.TRANSLATION_LANGUAGES = void 0;
 // Preset list of common languages offered in the translate UI. `code` is the key used under
 // translations.<field>.<code>; `label` is the human-readable name passed to the AI prompt.
 exports.TRANSLATION_LANGUAGES = [
@@ -27,10 +27,40 @@ var languageLabelForCode = function (code) { var _a, _b; return (_b = (_a = expo
 exports.languageLabelForCode = languageLabelForCode;
 // Builds the system prompt for translating arbitrary text into the target language. The caller sends
 // the source text as the user message and this as the `prompt` (system) to the chat completion endpoint.
-var generateTranslationSystemPrompt = function (targetLanguageLabel) {
+var generateTranslationSystemPrompt = function (targetLanguageLabel, options) {
     return "You are a professional medical translator. Translate the user's text into ".concat(targetLanguageLabel, ". ")
         + "Preserve meaning, names, numbers, dates, and medical terminology. "
+        + ((options === null || options === void 0 ? void 0 : options.preserveTemplateSyntax)
+            ? ("The text is a message draft containing markup that must survive translation exactly as written. "
+                + "Translate only the human-readable text. Copy the following character-for-character without translating, "
+                + "reordering, reformatting, escaping, or removing them: (1) HTML tags, attributes, and attribute values \u2014 "
+                + "translate only the visible text between tags; (2) any placeholder in double curly braces, such as "
+                + "{{enduser.fname}} or {{forms.abc123.link:Sign Here}}; (3) any link template of the form {url}[label], "
+                + "including the square brackets and their contents. Keep the original whitespace, line breaks, and paragraph "
+                + "structure. Do not add a greeting, sign-off, note, explanation, or markdown code fences. ")
+            : '')
         + "Respond with only the translated text and nothing else.";
 };
 exports.generateTranslationSystemPrompt = generateTranslationSystemPrompt;
+// Resolves an Enduser's language preference to one of TRANSLATION_LANGUAGES, for defaulting the target
+// language of a translation. Handles the shapes that exist in real data: bare codes ('es'), regional codes
+// ('es-ES'), and records with an empty iso6391 but a populated displayName ('Spanish').
+//
+// Drafts are assumed to be written in English, so a preference that resolves to English falls through to
+// the fallback (Spanish) — translating English into English is never the intent.
+var translationLanguageCodeForLanguage = function (language, options) {
+    var _a, _b, _c, _d;
+    var fallback = (_a = options === null || options === void 0 ? void 0 : options.fallback) !== null && _a !== void 0 ? _a : 'es';
+    var code = (_c = (_b = language === null || language === void 0 ? void 0 : language.iso6391) === null || _b === void 0 ? void 0 : _b.split('-')[0]) === null || _c === void 0 ? void 0 : _c.trim().toLowerCase();
+    if (code && code !== 'en' && exports.TRANSLATION_LANGUAGES.some(function (l) { return l.code === code; }))
+        return code;
+    var displayName = (_d = language === null || language === void 0 ? void 0 : language.displayName) === null || _d === void 0 ? void 0 : _d.trim().toLowerCase();
+    if (displayName) {
+        var byLabel = exports.TRANSLATION_LANGUAGES.find(function (l) { return l.label.toLowerCase() === displayName; });
+        if (byLabel && byLabel.code !== 'en')
+            return byLabel.code;
+    }
+    return fallback;
+};
+exports.translationLanguageCodeForLanguage = translationLanguageCodeForLanguage;
 //# sourceMappingURL=translation.js.map

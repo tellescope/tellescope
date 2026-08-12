@@ -2164,6 +2164,7 @@ var _AUTOMATION_ACTIONS = {
     stripeCancelSubscription: '',
     chargebeeChargeCardOnFile: '',
     metriportSync: '',
+    metriportPushFormResponse: '',
     aiDecision: '',
     generateEnduserSummary: '',
     startAIConversation: '',
@@ -2682,6 +2683,10 @@ export var automationActionValidator = orValidator({
     completeCarePlan: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['completeCarePlan']), info: objectValidator({}, { emptyOk: true }) })),
     metriportSync: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['metriportSync']), info: objectValidator({
             facilityId: stringValidator1000,
+            integrationTitle: stringValidatorOptionalEmptyOkay,
+        }, { emptyOk: true }) })),
+    metriportPushFormResponse: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['metriportPushFormResponse']), info: objectValidator({
+            formId: mongoIdStringOptional,
             integrationTitle: stringValidatorOptionalEmptyOkay,
         }, { emptyOk: true }) })),
     zusSync: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['zusSync']), info: objectValidator({}, { emptyOk: true }) })),
@@ -4063,6 +4068,8 @@ var _AUTOMATION_TRIGGER_EVENT_TYPES = {
     "Refund Issued": true,
     "Subscription Ended": true,
     "Subscription Payment Failed": true,
+    "Subscription Paused": true,
+    "Subscription Resumed": true,
     "Stripe: Payment Intent Failed": true,
     "Appointment No-Showed": true,
     "Appointment Created": true,
@@ -4194,7 +4201,27 @@ export var automationTriggerEventValidator = orValidator({
     }),
     "Subscription Payment Failed": objectValidator({
         type: exactMatchValidator(['Subscription Payment Failed']),
-        info: optionalEmptyObjectValidator,
+        // isOptional/emptyOk keeps an omitted or empty info valid, as it was under
+        // optionalEmptyObjectValidator (which hardcodes isOptional, unlike a bare objectValidator)
+        info: objectValidator({
+            productIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+        }, { isOptional: true, emptyOk: true }),
+        conditions: optionalEmptyObjectValidator,
+    }),
+    "Subscription Paused": objectValidator({
+        type: exactMatchValidator(['Subscription Paused']),
+        // isOptional/emptyOk so that an omitted or empty info stays valid, matching every other
+        // productIds-only event (a bare objectValidator would require info to be present)
+        info: objectValidator({
+            productIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+        }, { isOptional: true, emptyOk: true }),
+        conditions: optionalEmptyObjectValidator,
+    }),
+    "Subscription Resumed": objectValidator({
+        type: exactMatchValidator(['Subscription Resumed']),
+        info: objectValidator({
+            productIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+        }, { isOptional: true, emptyOk: true }),
         conditions: optionalEmptyObjectValidator,
     }),
     "Stripe: Payment Intent Failed": objectValidator({
@@ -5224,7 +5251,10 @@ export var analyticsQueryValidator = orValidator({
     }),
     "Phone Calls": objectValidator({
         resource: exactMatchValidator(['Phone Calls']),
-        filter: objectValidator({}, { isOptional: true, emptyOk: true }),
+        filter: objectValidator({
+            direction: stringValidatorOptional,
+            "Phone Call Tags": listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
+        }, { isOptional: true, emptyOk: true }),
         info: orValidator({
             "Total": objectValidator({
                 method: exactMatchValidator(['Total']),
@@ -5249,6 +5279,7 @@ export var analyticsQueryValidator = orValidator({
             Age: booleanValidatorOptional,
             State: booleanValidatorOptional,
             Phone: booleanValidatorOptional,
+            "Phone Call Tags": booleanValidatorOptional,
         }, { isOptional: true, emptyOk: true }),
         range: objectValidator({
             interval: exactMatchValidator(['Daily', 'Weekly', 'Monthly', 'Hourly']),
@@ -5587,6 +5618,7 @@ export var enduserProfileViewBlockValidator = orValidator({
         }) })),
     "Timeline": objectValidator(__assign(__assign({}, sharedEnduserProfileViewBlockFields), { type: exactMatchValidator(['Timeline']), info: objectValidator({
             title: stringValidator100,
+            filterTo: listOfStringsValidatorOptionalOrEmptyOk,
         }) })),
     "Shared Content": objectValidator(__assign(__assign({}, sharedEnduserProfileViewBlockFields), { type: exactMatchValidator(['Shared Content']), info: objectValidator({
             title: stringValidator100,

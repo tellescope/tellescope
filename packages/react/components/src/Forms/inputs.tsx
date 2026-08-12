@@ -2758,13 +2758,16 @@ export const MultipleChoiceInput = ({ field, form, value: _value, onChange, resp
 }
 
 // Helper to emit GTM purchase event for Stripe payments (single source of truth)
-const emitStripePurchaseEvent = (field: FormField, cost: number) => {
+const emitStripePurchaseEvent = (field: FormField, purchase: { amount: number, currency?: string, name?: string }) => {
+  const dollars = Number((purchase.amount / 100).toFixed(2)) // NB: /100 assumes a 2-decimal currency
   emit_gtm_event({
     event: 'form_purchase',
     productIds: field.options?.productIds || [],
     fieldId: field.id,
-    value: cost / 100, // Convert cents to dollars
-    currency: 'USD',
+    value: dollars,
+    currency: (purchase.currency || 'USD').toUpperCase(),
+    purchaseName: purchase.name || '',
+    purchaseCost: dollars,
   })
 }
 
@@ -2777,6 +2780,8 @@ export const StripeInput = ({ field, value, onChange, setCustomerId, enduserId, 
   const [isCheckout, setIsCheckout] = useState(false)
   const [stripePromise, setStripePromise] = useState<ReturnType<typeof loadStripe>>()
   const [answertext, setAnswertext] = useState('')
+  // set only when the server reports an amount for a real charge, which is what gates the GTM purchase event
+  const [purchase, setPurchase] = useState<{ amount: number, currency?: string }>()
   const [error, setError] = useState('')
   const [selectedProducts, setSelectedProducts] = useState<string[]>([])
   const [showProductSelection, setShowProductSelection] = useState(false)
@@ -2853,8 +2858,9 @@ export const StripeInput = ({ field, value, onChange, setCustomerId, enduserId, 
     fetchRef.current = true
 
     session.api.form_responses.stripe_details({ fieldId: field.id, enduserId })
-    .then(({ clientSecret, publishableKey, stripeAccount, businessName, customerId, isCheckout, answerText }) => {
+    .then(({ clientSecret, publishableKey, stripeAccount, businessName, customerId, isCheckout, answerText, amount, currency }) => {
       setAnswertext(answerText || '')
+      setPurchase(typeof amount === 'number' ? { amount, currency } : undefined)
       setIsCheckout(!!isCheckout)
       setClientSecret(clientSecret)
       setStripePromise(loadStripe(publishableKey, { stripeAccount }))
@@ -2881,15 +2887,17 @@ export const StripeInput = ({ field, value, onChange, setCustomerId, enduserId, 
       : 0 // Will be calculated by existing Stripe flow when not in selection mode
   )
 
-  // Emit GTM purchase event once when success screen is displayed
+  // Emit the GTM purchase event from the payment success callbacks, so it fires exactly once per real charge
   const purchaseEmittedRef = useRef(false)
-  useEffect(() => {
-    // Only emit for actual purchases (chargeImmediately), not for saving card details
-    if (value && field.options?.chargeImmediately && !purchaseEmittedRef.current) {
-      emitStripePurchaseEvent(field, cost)
+  const handlePaymentSuccess = (fallbackText: string) => {
+    // purchase is only set when the server reported an amount for a real charge, so a saved card or a
+    // misconfigured field (chargeImmediately with no products) doesn't emit
+    if (field.options?.chargeImmediately && purchase && !purchaseEmittedRef.current) {
       purchaseEmittedRef.current = true
+      emitStripePurchaseEvent(field, { ...purchase, name: answertext })
     }
-  }, [value, field, cost])
+    onChange(answertext || fallbackText, field.id)
+  }
 
   // Handle product selection step
   if (showProductSelection) {
@@ -2961,8 +2969,9 @@ export const StripeInput = ({ field, value, onChange, setCustomerId, enduserId, 
         enduserId,
         ...(selectedProducts.length > 0 && { selectedProductIds: selectedProducts }) // Pass selected products to Stripe checkout
       })
-      .then(({ clientSecret, publishableKey, stripeAccount, businessName, customerId, isCheckout, answerText }) => {
+      .then(({ clientSecret, publishableKey, stripeAccount, businessName, customerId, isCheckout, answerText, amount, currency }) => {
         setAnswertext(answerText || '')
+        setPurchase(typeof amount === 'number' ? { amount, currency } : undefined)
         setIsCheckout(!!isCheckout)
         setClientSecret(clientSecret)
         setStripePromise(loadStripe(publishableKey, { stripeAccount }))
@@ -3067,7 +3076,7 @@ export const StripeInput = ({ field, value, onChange, setCustomerId, enduserId, 
     <EmbeddedCheckoutProvider stripe={stripePromise}
       options={{ 
         clientSecret, 
-        onComplete: () => onChange(answertext || 'Completed checkout', field.id),        
+        onComplete: () => handlePaymentSuccess('Completed checkout'),
       }}
     >
       <EmbeddedCheckout />
@@ -3077,7 +3086,7 @@ export const StripeInput = ({ field, value, onChange, setCustomerId, enduserId, 
     <Elements stripe={stripePromise} options={{
       clientSecret,
     }}>
-      <StripeForm businessName={businessName} onSuccess={() => onChange(answertext || 'Saved card details', field.id)}
+      <StripeForm businessName={businessName} onSuccess={() => handlePaymentSuccess('Saved card details')}
         cost={cost}
         field={field}
         form={form}

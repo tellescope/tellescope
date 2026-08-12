@@ -3519,6 +3519,8 @@ exports.schema = (0, exports.build_schema)({
                     stripeAccount: { validator: validation_1.stringValidator, required: true },
                     businessName: { validator: validation_1.stringValidator, required: true },
                     isCheckout: { validator: validation_1.booleanValidator },
+                    amount: { validator: validation_1.nonNegNumberValidator },
+                    currency: { validator: validation_1.stringValidator100 },
                 },
             },
             chargebee_details: {
@@ -5215,7 +5217,7 @@ exports.schema = (0, exports.build_schema)({
                     id: validation_1.stringValidator100,
                     name: validation_1.stringValidator,
                 }))
-            }, groups: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, canvasURL: { validator: validation_1.stringValidator }, healthiePortalURL: { validator: validation_1.stringValidator }, observationInvalidationReasons: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customNotificationTypes: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOFields: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOIdField: { validator: validation_1.stringValidator }, hasConnectedPaubox: { validator: validation_1.booleanValidator }, hasConnectedBridge: { validator: validation_1.booleanValidator }, hasConnectedMDIntegrations: { validator: validation_1.booleanValidator }, hasConnectedSeason: { validator: validation_1.booleanValidator }, createEnduserForms: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, defaultSummaryJourneyId: {
+            }, groups: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, canvasURL: { validator: validation_1.stringValidator }, healthiePortalURL: { validator: validation_1.stringValidator }, observationInvalidationReasons: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customNotificationTypes: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOFields: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOIdField: { validator: validation_1.stringValidator }, hasConnectedPaubox: { validator: validation_1.booleanValidator }, hasConnectedBridge: { validator: validation_1.booleanValidator }, hasConnectedMDIntegrations: { validator: validation_1.booleanValidator }, hasConnectedSeason: { validator: validation_1.booleanValidator }, hasConnectedWelle: { validator: validation_1.booleanValidator }, createEnduserForms: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, defaultSummaryJourneyId: {
                 validator: validation_1.mongoIdStringOptional,
                 dependencies: [
                     {
@@ -5795,6 +5797,7 @@ exports.schema = (0, exports.build_schema)({
                 description: "Stops recording an active phone call",
                 parameters: {
                     enduserId: { validator: validation_1.mongoIdStringRequired, required: true },
+                    callId: { validator: validation_1.mongoIdStringRequired },
                 },
                 returns: {},
             },

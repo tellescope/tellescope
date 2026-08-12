@@ -3514,6 +3514,8 @@ export var schema = build_schema({
                     stripeAccount: { validator: stringValidator, required: true },
                     businessName: { validator: stringValidator, required: true },
                     isCheckout: { validator: booleanValidator },
+                    amount: { validator: nonNegNumberValidator },
+                    currency: { validator: stringValidator100 },
                 },
             },
             chargebee_details: {
@@ -5210,7 +5212,7 @@ export var schema = build_schema({
                     id: stringValidator100,
                     name: stringValidator,
                 }))
-            }, groups: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, canvasURL: { validator: stringValidator }, healthiePortalURL: { validator: stringValidator }, observationInvalidationReasons: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customNotificationTypes: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOFields: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOIdField: { validator: stringValidator }, hasConnectedPaubox: { validator: booleanValidator }, hasConnectedBridge: { validator: booleanValidator }, hasConnectedMDIntegrations: { validator: booleanValidator }, hasConnectedSeason: { validator: booleanValidator }, createEnduserForms: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk }, defaultSummaryJourneyId: {
+            }, groups: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, canvasURL: { validator: stringValidator }, healthiePortalURL: { validator: stringValidator }, observationInvalidationReasons: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customNotificationTypes: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOFields: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOIdField: { validator: stringValidator }, hasConnectedPaubox: { validator: booleanValidator }, hasConnectedBridge: { validator: booleanValidator }, hasConnectedMDIntegrations: { validator: booleanValidator }, hasConnectedSeason: { validator: booleanValidator }, hasConnectedWelle: { validator: booleanValidator }, createEnduserForms: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk }, defaultSummaryJourneyId: {
                 validator: mongoIdStringOptional,
                 dependencies: [
                     {
@@ -5790,6 +5792,7 @@ export var schema = build_schema({
                 description: "Stops recording an active phone call",
                 parameters: {
                     enduserId: { validator: mongoIdStringValidator, required: true },
+                    callId: { validator: mongoIdStringValidator },
                 },
                 returns: {},
             },

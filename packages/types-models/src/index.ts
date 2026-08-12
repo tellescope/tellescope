@@ -511,6 +511,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   hasScriptSure?: boolean,
   hasConnectedPagerDuty?: boolean,
   hasConnectedSeason?: boolean,
+  hasConnectedWelle?: boolean,
   hasConnectedSmartMeter?: boolean,
   hasConnectedAthena?: boolean,
   hasConnectedActiveCampaign?: boolean,
@@ -3530,6 +3531,10 @@ export type CompleteCarePlanAutomationAction = AutomationActionBuilder<'complete
 export type ZusSyncAutomationAction = AutomationActionBuilder<'zusSync', {}>
 export type ZusPullAutomationAction = AutomationActionBuilder<'zusPull', {}>
 export type MetriportSyncAutomationAction = AutomationActionBuilder<'metriportSync', { facilityId: string, integrationTitle?: string }>
+export type MetriportPushFormResponseAutomationAction = AutomationActionBuilder<'metriportPushFormResponse', {
+  formId?: string,
+  integrationTitle?: string,
+}>
 export type ZusSubscribeAutomationAction = AutomationActionBuilder<'zusSubscribe', { practitionerId: string, packageIds: string[] }>
 export type PagerDutyCreateIncidentAutomationAction = AutomationActionBuilder<'pagerDutyCreateIncident', { type: string, title: string, serviceId: string }>
 export type SmartMeterOrderLineItem = { quantity: number, sku: string }
@@ -3776,6 +3781,7 @@ export type AutomationActionForType = {
   'zusSync': ZusSyncAutomationAction,
   'zusPull': ZusPullAutomationAction,
   'metriportSync': MetriportSyncAutomationAction,
+  'metriportPushFormResponse': MetriportPushFormResponseAutomationAction,
   'zusSubscribe': ZusSubscribeAutomationAction,
   'pagerDutyCreateIncident': PagerDutyCreateIncidentAutomationAction,
   'smartMeterPlaceOrder': SmartMeterPlaceOrderAutomationAction,
@@ -4490,7 +4496,10 @@ export type AnalyticsQueryFilterForType = {
     enduserFields?: AnalyticsEnduserFilterField[],
     closedAtRange?: DateRange,
   },
-  "Phone Calls": { },
+  "Phone Calls": {
+    direction?: string,
+    "Phone Call Tags"?: ListOfStringsWithQualifier,
+  },
   "Meetings": { },
   "SMS Messages": {
     direction?: string,
@@ -4554,7 +4563,9 @@ export type AnalyticsQueryGroupingForType = {
     Title?: boolean,
     Outcome?: boolean,
   } & EnduserGrouping & { Enduser: string },
-  "Phone Calls": {} & EnduserGrouping & { Enduser: string },
+  "Phone Calls": {
+    "Phone Call Tags"?: boolean,
+  } & EnduserGrouping & { Enduser: string },
   "SMS Messages": { 
     "SMS Tags"?: boolean,
     Score?: boolean,
@@ -4852,7 +4863,7 @@ export type EnduserProfileViewBlocks = {
   "Labs": EnduserProfileViewBlockBuilder<"Labs", { title: string }>,
   "Medications": EnduserProfileViewBlockBuilder<"Medications", { title: string }>,
   "Diagnoses": EnduserProfileViewBlockBuilder<"Diagnoses", { title: string }>,
-  "Timeline": EnduserProfileViewBlockBuilder<"Timeline", { title: string }>,
+  "Timeline": EnduserProfileViewBlockBuilder<"Timeline", { title: string, filterTo?: string[] }>,
   "Shared Content": EnduserProfileViewBlockBuilder<"Shared Content", { title: string }>,
   "iFrame": EnduserProfileViewBlockBuilder<"iFrame", {
     title: string,
@@ -4965,7 +4976,9 @@ export type AutomationTriggerEvents = {
   'Purchase Made': AutomationTriggerEventBuilder<"Purchase Made", { titles?: string[], productIds?: string[], titlePartialMatches?: string[] }, {}>,
   'Refund Issued': AutomationTriggerEventBuilder<"Refund Issued", { }, {}>,
   'Subscription Ended': AutomationTriggerEventBuilder<"Subscription Ended", { productIds?: string[] }, {}>,
-  'Subscription Payment Failed': AutomationTriggerEventBuilder<"Subscription Payment Failed", { }, {}>,
+  'Subscription Payment Failed': AutomationTriggerEventBuilder<"Subscription Payment Failed", { productIds?: string[] }, {}>,
+  'Subscription Paused': AutomationTriggerEventBuilder<"Subscription Paused", { productIds?: string[] }, {}>,
+  'Subscription Resumed': AutomationTriggerEventBuilder<"Subscription Resumed", { productIds?: string[] }, {}>,
   'Stripe: Payment Intent Failed': AutomationTriggerEventBuilder<"Stripe: Payment Intent Failed", { }, {}>,
   'Appointment No-Showed': AutomationTriggerEventBuilder<"Appointment No-Showed", { titles?: string[], templateIds?: string[] }, { }>,
   'Field Equals': AutomationTriggerEventBuilder<"Field Equals", { field: string, value: string }, { }>,

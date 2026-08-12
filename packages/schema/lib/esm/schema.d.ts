@@ -479,6 +479,8 @@ export type CustomActions = {
             businessName: string;
             answerText?: string;
             isCheckout?: boolean;
+            amount?: number;
+            currency?: string;
         }>;
         chargebee_details: CustomAction<{
             fieldId: string;
@@ -1405,6 +1407,7 @@ export type CustomActions = {
         }, {}>;
         cancel_recording: CustomAction<{
             enduserId: string;
+            callId?: string;
         }, {}>;
         delete_recordings: CustomAction<{
             callIds: string[];

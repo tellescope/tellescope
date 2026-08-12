@@ -1722,7 +1722,13 @@ export declare const automationTriggerEventValidator: ValidatorDefinition<import
     titlePartialMatches?: string[] | undefined;
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Refund Issued", {}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Subscription Ended", {
     productIds?: string[] | undefined;
-}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Subscription Payment Failed", {}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Stripe: Payment Intent Failed", {}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Message Delivery Failure", {}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Incoming Message", {
+}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Subscription Payment Failed", {
+    productIds?: string[] | undefined;
+}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Subscription Paused", {
+    productIds?: string[] | undefined;
+}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Subscription Resumed", {
+    productIds?: string[] | undefined;
+}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Stripe: Payment Intent Failed", {}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Message Delivery Failure", {}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Incoming Message", {
     noCareTeam?: boolean | undefined;
     destinations?: string[] | undefined;
     channels?: string[] | undefined;
@@ -2075,8 +2081,13 @@ export declare const analyticsQueryValidator: ValidatorDefinition<{
         method: "Wait Time";
         parameters: undefined;
     };
-    filter?: {} | undefined;
-    grouping?: (import("@tellescope/types-models").EnduserGrouping & {
+    filter?: {
+        direction?: string | undefined;
+        "Phone Call Tags"?: ListOfStringsWithQualifier | undefined;
+    } | undefined;
+    grouping?: ({
+        "Phone Call Tags"?: boolean | undefined;
+    } & import("@tellescope/types-models").EnduserGrouping & {
         Enduser: string;
     }) | undefined;
     range?: AnalyticsQueryRange<"Created At" | "Updated At"> | undefined;
@@ -2344,8 +2355,13 @@ export declare const analyticsQueriesValidatorOptional: ValidatorDefinition<({
         method: "Wait Time";
         parameters: undefined;
     };
-    filter?: {} | undefined;
-    grouping?: (import("@tellescope/types-models").EnduserGrouping & {
+    filter?: {
+        direction?: string | undefined;
+        "Phone Call Tags"?: ListOfStringsWithQualifier | undefined;
+    } | undefined;
+    grouping?: ({
+        "Phone Call Tags"?: boolean | undefined;
+    } & import("@tellescope/types-models").EnduserGrouping & {
         Enduser: string;
     }) | undefined;
     range?: AnalyticsQueryRange<"Created At" | "Updated At"> | undefined;
@@ -2501,6 +2517,7 @@ export declare const enduserProfileViewBlockValidator: ValidatorDefinition<impor
     title: string;
 }> | import("@tellescope/types-models").EnduserProfileViewBlockBuilder<"Timeline", {
     title: string;
+    filterTo?: string[] | undefined;
 }> | import("@tellescope/types-models").EnduserProfileViewBlockBuilder<"Shared Content", {
     title: string;
 }> | import("@tellescope/types-models").EnduserProfileViewBlockBuilder<"iFrame", {
@@ -2537,6 +2554,7 @@ export declare const enduserProfileViewBlocksValidator: ValidatorDefinition<(imp
     title: string;
 }> | import("@tellescope/types-models").EnduserProfileViewBlockBuilder<"Timeline", {
     title: string;
+    filterTo?: string[] | undefined;
 }> | import("@tellescope/types-models").EnduserProfileViewBlockBuilder<"Shared Content", {
     title: string;
 }> | import("@tellescope/types-models").EnduserProfileViewBlockBuilder<"iFrame", {

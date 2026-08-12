@@ -786,7 +786,7 @@ export type CustomActions = {
     }>,
     stripe_details: CustomAction<
       { fieldId: string, enduserId?: string, selectedProductIds?: string[] }, 
-      { customerId: string, clientSecret: string, publishableKey: string, stripeAccount: string, businessName: string, answerText?: string, isCheckout?: boolean }
+      { customerId: string, clientSecret: string, publishableKey: string, stripeAccount: string, businessName: string, answerText?: string, isCheckout?: boolean, amount?: number, currency?: string }
     >,
     chargebee_details: CustomAction<{ fieldId: string, enduserId?: string, billingAddress?: { addressLineOne?: string, addressLineTwo?: string, city?: string, state?: string, zipCode?: string }, verify?: boolean }, { url?: string, hasPaymentMethod?: boolean }>,
     generate_pdf: CustomAction<
@@ -1137,7 +1137,7 @@ export type CustomActions = {
     remove_conference_attendees: CustomAction<{ conferenceId: string, byClientId?: string[], byPhone?: string[] }, { }>,
     modify_conference_attendee_status: CustomAction<{ conferenceId: string, label?: string, hold?: boolean }, { }>,
     end_conference: CustomAction<{ id: string }, { }>,
-    cancel_recording: CustomAction<{ enduserId: string }, { }>,
+    cancel_recording: CustomAction<{ enduserId: string, callId?: string }, { }>,
     delete_recordings: CustomAction<{ callIds: string[] }, { }>,
   },
   call_hold_queues: {
@@ -5440,6 +5440,8 @@ export const schema: SchemaV1 = build_schema({
           stripeAccount: { validator: stringValidator, required: true },
           businessName: { validator: stringValidator, required: true },
           isCheckout: { validator: booleanValidator },
+          amount: { validator: nonNegNumberValidator },
+          currency: { validator: stringValidator100 },
         },
       },
       chargebee_details: {
@@ -7557,6 +7559,7 @@ export const schema: SchemaV1 = build_schema({
       hasConnectedBridge: { validator: booleanValidator },
       hasConnectedMDIntegrations: { validator: booleanValidator },
       hasConnectedSeason: { validator: booleanValidator },
+      hasConnectedWelle: { validator: booleanValidator },
       createEnduserForms: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
       defaultSummaryJourneyId: {
         validator: mongoIdStringOptional, // optional => '' allowed, which clears the setting
@@ -8306,6 +8309,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
         description: "Stops recording an active phone call",
         parameters: {
           enduserId: { validator: mongoIdStringValidator, required: true },
+          callId: { validator: mongoIdStringValidator },
         },
         returns: {},
       },

@@ -138,6 +138,7 @@ export var ELATION_TITLE = "Elation";
 export var ZUS_TITLE = "Zus";
 export var OPEN_LOOP_TITLE = "OpenLoop";
 export var SEASON_TITLE = "Season";
+export var WELLE_TITLE = "Welle";
 export var CANVAS_TITLE = "Canvas";
 export var MFAX_TITLE = "mFax";
 export var CANDID_TITLE = "Candid";

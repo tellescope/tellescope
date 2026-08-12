@@ -473,6 +473,7 @@ export interface Organization extends Organization_readonly, Organization_requir
     hasScriptSure?: boolean;
     hasConnectedPagerDuty?: boolean;
     hasConnectedSeason?: boolean;
+    hasConnectedWelle?: boolean;
     hasConnectedSmartMeter?: boolean;
     hasConnectedAthena?: boolean;
     hasConnectedActiveCampaign?: boolean;
@@ -3448,6 +3449,10 @@ export type MetriportSyncAutomationAction = AutomationActionBuilder<'metriportSy
     facilityId: string;
     integrationTitle?: string;
 }>;
+export type MetriportPushFormResponseAutomationAction = AutomationActionBuilder<'metriportPushFormResponse', {
+    formId?: string;
+    integrationTitle?: string;
+}>;
 export type ZusSubscribeAutomationAction = AutomationActionBuilder<'zusSubscribe', {
     practitionerId: string;
     packageIds: string[];
@@ -3706,6 +3711,7 @@ export type AutomationActionForType = {
     'zusSync': ZusSyncAutomationAction;
     'zusPull': ZusPullAutomationAction;
     'metriportSync': MetriportSyncAutomationAction;
+    'metriportPushFormResponse': MetriportPushFormResponseAutomationAction;
     'zusSubscribe': ZusSubscribeAutomationAction;
     'pagerDutyCreateIncident': PagerDutyCreateIncidentAutomationAction;
     'smartMeterPlaceOrder': SmartMeterPlaceOrderAutomationAction;
@@ -4453,7 +4459,10 @@ export type AnalyticsQueryFilterForType = {
         enduserFields?: AnalyticsEnduserFilterField[];
         closedAtRange?: DateRange;
     };
-    "Phone Calls": {};
+    "Phone Calls": {
+        direction?: string;
+        "Phone Call Tags"?: ListOfStringsWithQualifier;
+    };
     "Meetings": {};
     "SMS Messages": {
         direction?: string;
@@ -4525,7 +4534,9 @@ export type AnalyticsQueryGroupingForType = {
     } & EnduserGrouping & {
         Enduser: string;
     };
-    "Phone Calls": {} & EnduserGrouping & {
+    "Phone Calls": {
+        "Phone Call Tags"?: boolean;
+    } & EnduserGrouping & {
         Enduser: string;
     };
     "SMS Messages": {
@@ -4745,6 +4756,7 @@ export type EnduserProfileViewBlocks = {
     }>;
     "Timeline": EnduserProfileViewBlockBuilder<"Timeline", {
         title: string;
+        filterTo?: string[];
     }>;
     "Shared Content": EnduserProfileViewBlockBuilder<"Shared Content", {
         title: string;
@@ -4889,7 +4901,15 @@ export type AutomationTriggerEvents = {
     'Subscription Ended': AutomationTriggerEventBuilder<"Subscription Ended", {
         productIds?: string[];
     }, {}>;
-    'Subscription Payment Failed': AutomationTriggerEventBuilder<"Subscription Payment Failed", {}, {}>;
+    'Subscription Payment Failed': AutomationTriggerEventBuilder<"Subscription Payment Failed", {
+        productIds?: string[];
+    }, {}>;
+    'Subscription Paused': AutomationTriggerEventBuilder<"Subscription Paused", {
+        productIds?: string[];
+    }, {}>;
+    'Subscription Resumed': AutomationTriggerEventBuilder<"Subscription Resumed", {
+        productIds?: string[];
+    }, {}>;
     'Stripe: Payment Intent Failed': AutomationTriggerEventBuilder<"Stripe: Payment Intent Failed", {}, {}>;
     'Appointment No-Showed': AutomationTriggerEventBuilder<"Appointment No-Showed", {
         titles?: string[];

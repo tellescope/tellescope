@@ -1459,14 +1459,17 @@ export var MultipleChoiceInput = function (_a) {
                         } }) }))] })));
 };
 // Helper to emit GTM purchase event for Stripe payments (single source of truth)
-var emitStripePurchaseEvent = function (field, cost) {
+var emitStripePurchaseEvent = function (field, purchase) {
     var _a;
+    var dollars = Number((purchase.amount / 100).toFixed(2)); // NB: /100 assumes a 2-decimal currency
     emit_gtm_event({
         event: 'form_purchase',
         productIds: ((_a = field.options) === null || _a === void 0 ? void 0 : _a.productIds) || [],
         fieldId: field.id,
-        value: cost / 100,
-        currency: 'USD',
+        value: dollars,
+        currency: (purchase.currency || 'USD').toUpperCase(),
+        purchaseName: purchase.name || '',
+        purchaseCost: dollars,
     });
 };
 export var StripeInput = function (_a) {
@@ -1478,11 +1481,13 @@ export var StripeInput = function (_a) {
     var _h = useState(false), isCheckout = _h[0], setIsCheckout = _h[1];
     var _j = useState(), stripePromise = _j[0], setStripePromise = _j[1];
     var _k = useState(''), answertext = _k[0], setAnswertext = _k[1];
-    var _l = useState(''), error = _l[0], setError = _l[1];
-    var _m = useState([]), selectedProducts = _m[0], setSelectedProducts = _m[1];
-    var _o = useState(false), showProductSelection = _o[0], setShowProductSelection = _o[1];
-    var _p = useState([]), availableProducts = _p[0], setAvailableProducts = _p[1];
-    var _q = useState(false), loadingProducts = _q[0], setLoadingProducts = _q[1];
+    // set only when the server reports an amount for a real charge, which is what gates the GTM purchase event
+    var _l = useState(), purchase = _l[0], setPurchase = _l[1];
+    var _m = useState(''), error = _m[0], setError = _m[1];
+    var _o = useState([]), selectedProducts = _o[0], setSelectedProducts = _o[1];
+    var _p = useState(false), showProductSelection = _p[0], setShowProductSelection = _p[1];
+    var _q = useState([]), availableProducts = _q[0], setAvailableProducts = _q[1];
+    var _r = useState(false), loadingProducts = _r[0], setLoadingProducts = _r[1];
     // Compute visible products based on conditional logic
     var visibleProducts = useMemo(function () {
         if (!showProductSelection || availableProducts.length === 0) {
@@ -1550,8 +1555,9 @@ export var StripeInput = function (_a) {
         fetchRef.current = true;
         session.api.form_responses.stripe_details({ fieldId: field.id, enduserId: enduserId })
             .then(function (_a) {
-            var clientSecret = _a.clientSecret, publishableKey = _a.publishableKey, stripeAccount = _a.stripeAccount, businessName = _a.businessName, customerId = _a.customerId, isCheckout = _a.isCheckout, answerText = _a.answerText;
+            var clientSecret = _a.clientSecret, publishableKey = _a.publishableKey, stripeAccount = _a.stripeAccount, businessName = _a.businessName, customerId = _a.customerId, isCheckout = _a.isCheckout, answerText = _a.answerText, amount = _a.amount, currency = _a.currency;
             setAnswertext(answerText || '');
+            setPurchase(typeof amount === 'number' ? { amount: amount, currency: currency } : undefined);
             setIsCheckout(!!isCheckout);
             setClientSecret(clientSecret);
             setStripePromise(loadStripe(publishableKey, { stripeAccount: stripeAccount }));
@@ -1576,16 +1582,18 @@ export var StripeInput = function (_a) {
         }, 0)
         : 0 // Will be calculated by existing Stripe flow when not in selection mode
     );
-    // Emit GTM purchase event once when success screen is displayed
+    // Emit the GTM purchase event from the payment success callbacks, so it fires exactly once per real charge
     var purchaseEmittedRef = useRef(false);
-    useEffect(function () {
+    var handlePaymentSuccess = function (fallbackText) {
         var _a;
-        // Only emit for actual purchases (chargeImmediately), not for saving card details
-        if (value && ((_a = field.options) === null || _a === void 0 ? void 0 : _a.chargeImmediately) && !purchaseEmittedRef.current) {
-            emitStripePurchaseEvent(field, cost);
+        // purchase is only set when the server reported an amount for a real charge, so a saved card or a
+        // misconfigured field (chargeImmediately with no products) doesn't emit
+        if (((_a = field.options) === null || _a === void 0 ? void 0 : _a.chargeImmediately) && purchase && !purchaseEmittedRef.current) {
             purchaseEmittedRef.current = true;
+            emitStripePurchaseEvent(field, __assign(__assign({}, purchase), { name: answertext }));
         }
-    }, [value, field, cost]);
+        onChange(answertext || fallbackText, field.id);
+    };
     // Handle product selection step
     if (showProductSelection) {
         if (error) {
@@ -1620,8 +1628,9 @@ export var StripeInput = function (_a) {
             session.api.form_responses.stripe_details(__assign({ fieldId: field.id, enduserId: enduserId }, (selectedProducts.length > 0 && { selectedProductIds: selectedProducts }) // Pass selected products to Stripe checkout
             ))
                 .then(function (_a) {
-                var clientSecret = _a.clientSecret, publishableKey = _a.publishableKey, stripeAccount = _a.stripeAccount, businessName = _a.businessName, customerId = _a.customerId, isCheckout = _a.isCheckout, answerText = _a.answerText;
+                var clientSecret = _a.clientSecret, publishableKey = _a.publishableKey, stripeAccount = _a.stripeAccount, businessName = _a.businessName, customerId = _a.customerId, isCheckout = _a.isCheckout, answerText = _a.answerText, amount = _a.amount, currency = _a.currency;
                 setAnswertext(answerText || '');
+                setPurchase(typeof amount === 'number' ? { amount: amount, currency: currency } : undefined);
                 setIsCheckout(!!isCheckout);
                 setClientSecret(clientSecret);
                 setStripePromise(loadStripe(publishableKey, { stripeAccount: stripeAccount }));
@@ -1655,11 +1664,11 @@ export var StripeInput = function (_a) {
     if (isCheckout && stripePromise)
         return (_jsx(EmbeddedCheckoutProvider, __assign({ stripe: stripePromise, options: {
                 clientSecret: clientSecret,
-                onComplete: function () { return onChange(answertext || 'Completed checkout', field.id); },
+                onComplete: function () { return handlePaymentSuccess('Completed checkout'); },
             } }, { children: _jsx(EmbeddedCheckout, {}) })));
     return (_jsx(Elements, __assign({ stripe: stripePromise, options: {
             clientSecret: clientSecret,
-        } }, { children: _jsx(StripeForm, { businessName: businessName, onSuccess: function () { return onChange(answertext || 'Saved card details', field.id); }, cost: cost, field: field, form: form }) })));
+        } }, { children: _jsx(StripeForm, { businessName: businessName, onSuccess: function () { return handlePaymentSuccess('Saved card details'); }, cost: cost, field: field, form: form }) })));
 };
 var StripeForm = function (_a) {
     var _b, _d, _e;
