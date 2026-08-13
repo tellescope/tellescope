@@ -213,11 +213,11 @@ export var WYSIWYG = function (_a) {
         return function () { clearTimeout(t); };
     }, [onChange, editorState]);
     var toolbar = useMemo(function () { return getToolbar({ hideEmoji: hideEmoji }); }, [hideEmoji]);
-    return (_jsx(Paper, __assign({ sx: { padding: 1 }, style: style }, { children: _jsx(Editor, { spellCheck: true, ref: editorRef, editorStyle: editorStyle, editorState: editorState, wrapperClassName: "demo-wrapper", editorClassName: "demo-editor", onEditorStateChange: setEditorState, toolbar: toolbar, handleReturn: function (e) {
+    return (_jsx(Paper, __assign({ sx: { padding: 1 }, style: style }, { children: _jsx(Editor, __assign({ spellCheck: true, ref: editorRef, editorStyle: __assign({ overflow: 'visible' }, editorStyle) }, { preventScroll: true }, { editorState: editorState, wrapperClassName: "demo-wrapper", editorClassName: "demo-editor", onEditorStateChange: setEditorState, toolbar: toolbar, handleReturn: function (e) {
                 if (stopEnterPropagation) {
                     e.stopPropagation();
                 }
                 return false; // not handled (allow editor to update)
-            } }) })));
+            } })) })));
 };
 //# sourceMappingURL=wysiwyg.js.map

@@ -219,12 +219,12 @@ var WYSIWYG = function (_a) {
         return function () { clearTimeout(t); };
     }, [onChange, editorState]);
     var toolbar = (0, react_1.useMemo)(function () { return getToolbar({ hideEmoji: hideEmoji }); }, [hideEmoji]);
-    return ((0, jsx_runtime_1.jsx)(material_1.Paper, __assign({ sx: { padding: 1 }, style: style }, { children: (0, jsx_runtime_1.jsx)(react_draft_wysiwyg_1.Editor, { spellCheck: true, ref: editorRef, editorStyle: editorStyle, editorState: editorState, wrapperClassName: "demo-wrapper", editorClassName: "demo-editor", onEditorStateChange: setEditorState, toolbar: toolbar, handleReturn: function (e) {
+    return ((0, jsx_runtime_1.jsx)(material_1.Paper, __assign({ sx: { padding: 1 }, style: style }, { children: (0, jsx_runtime_1.jsx)(react_draft_wysiwyg_1.Editor, __assign({ spellCheck: true, ref: editorRef, editorStyle: __assign({ overflow: 'visible' }, editorStyle) }, { preventScroll: true }, { editorState: editorState, wrapperClassName: "demo-wrapper", editorClassName: "demo-editor", onEditorStateChange: setEditorState, toolbar: toolbar, handleReturn: function (e) {
                 if (stopEnterPropagation) {
                     e.stopPropagation();
                 }
                 return false; // not handled (allow editor to update)
-            } }) })));
+            } })) })));
 };
 exports.WYSIWYG = WYSIWYG;
 //# sourceMappingURL=wysiwyg.js.map

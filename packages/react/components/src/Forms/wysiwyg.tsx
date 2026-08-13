@@ -223,7 +223,17 @@ export const WYSIWYG = ({ stopEnterPropagation, updateHtml, initialHTML: _initia
 
   return (
     <Paper sx={{ padding: 1 }} style={style}>
-      <Editor spellCheck ref={editorRef} editorStyle={editorStyle}
+      {/*
+        overflow MUST NOT be auto/scroll here. react-draft-wysiwyg.css sets overflow: auto on
+        .rdw-editor-main, which makes draft-js (fbjs Style.getScrollParent) treat that div as the
+        scroll container. It never actually scrolls, so every scroll position draft-js snapshots
+        and restores around focus()/restoreEditorDOM() is a no-op, and the real scroll container
+        (e.g. a DraggableWindow body) is left wherever the browser's native scroll-into-view put
+        it - causing the viewport to jump on click/backspace/paste.
+        preventScroll additionally disables DraftEditorBlock's force-scroll-on-mount heuristic.
+      */}
+      <Editor spellCheck ref={editorRef} editorStyle={{ overflow: 'visible', ...editorStyle }}
+        {...({ preventScroll: true } as any)}
         editorState={editorState}
         wrapperClassName="demo-wrapper"
         editorClassName="demo-editor"
