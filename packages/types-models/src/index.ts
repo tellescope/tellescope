@@ -2226,6 +2226,9 @@ export interface Form_updatesDisabled {}
 export interface Form extends Form_readonly, Form_required, Form_updatesDisabled {
   accessTags?: string[],
   gtmTag?: string, // for Google Tag Manager
+  // opt-in: include product/medication titles (as `gtmPurchaseName`) in the GTM form_purchase event.
+  // Off by default — those titles are PHI-adjacent and go to Google, which won't sign a BAA for GA/Ads.
+  sendProductNamesToGTM?: boolean,
   ipAddressCustomField: string,
   archivedAt?: Date | '',
   displayTitle?: string, // for displaying in portal / timeline, but not internally

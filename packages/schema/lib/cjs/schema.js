@@ -3216,7 +3216,7 @@ exports.schema = (0, exports.build_schema)({
                     offering_id: validation_1.stringValidator100,
                     conditions: validation_1.compoundFilterValidator,
                 }))
-            }, autoMergeOnSubmission: { validator: validation_1.booleanValidator }, procedureCodes: { validator: procedureCodesValidator }, diagnosisCodes: { validator: diagnosisCodesValidator }, gtmTag: { validator: validation_1.stringValidator100EscapeHTML }, dontSyncToCanvasOnSubmission: { validator: validation_1.booleanValidator }, dontAssociateCanvasResponsesWithAppointments: { validator: validation_1.booleanValidator }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, title: {
+            }, autoMergeOnSubmission: { validator: validation_1.booleanValidator }, procedureCodes: { validator: procedureCodesValidator }, diagnosisCodes: { validator: diagnosisCodesValidator }, gtmTag: { validator: validation_1.stringValidator100EscapeHTML }, sendProductNamesToGTM: { validator: validation_1.booleanValidator }, dontSyncToCanvasOnSubmission: { validator: validation_1.booleanValidator }, dontAssociateCanvasResponsesWithAppointments: { validator: validation_1.booleanValidator }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, title: {
                 validator: validation_1.stringValidator250,
                 required: true,
                 examples: ["Text"],
@@ -3521,6 +3521,9 @@ exports.schema = (0, exports.build_schema)({
                     isCheckout: { validator: validation_1.booleanValidator },
                     amount: { validator: validation_1.nonNegNumberValidator },
                     currency: { validator: validation_1.stringValidator100 },
+                    // product titles for the GTM form_purchase event, populated only when the form opts in
+                    // (Form.sendProductNamesToGTM); '' otherwise so no product names reach Google
+                    gtmPurchaseName: { validator: validation_1.stringValidator },
                 },
             },
             chargebee_details: {

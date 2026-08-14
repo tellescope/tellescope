@@ -2780,6 +2780,9 @@ export const StripeInput = ({ field, value, onChange, setCustomerId, enduserId, 
   const [isCheckout, setIsCheckout] = useState(false)
   const [stripePromise, setStripePromise] = useState<ReturnType<typeof loadStripe>>()
   const [answertext, setAnswertext] = useState('')
+  // separate from answertext: only populated when the form opts in (Form.sendProductNamesToGTM), so
+  // product/medication titles reach the GTM purchase event only when explicitly enabled
+  const [gtmPurchaseName, setGtmPurchaseName] = useState('')
   // set only when the server reports an amount for a real charge, which is what gates the GTM purchase event
   const [purchase, setPurchase] = useState<{ amount: number, currency?: string }>()
   const [error, setError] = useState('')
@@ -2858,8 +2861,9 @@ export const StripeInput = ({ field, value, onChange, setCustomerId, enduserId, 
     fetchRef.current = true
 
     session.api.form_responses.stripe_details({ fieldId: field.id, enduserId })
-    .then(({ clientSecret, publishableKey, stripeAccount, businessName, customerId, isCheckout, answerText, amount, currency }) => {
+    .then(({ clientSecret, publishableKey, stripeAccount, businessName, customerId, isCheckout, answerText, amount, currency, gtmPurchaseName }) => {
       setAnswertext(answerText || '')
+      setGtmPurchaseName(gtmPurchaseName || '')
       setPurchase(typeof amount === 'number' ? { amount, currency } : undefined)
       setIsCheckout(!!isCheckout)
       setClientSecret(clientSecret)
@@ -2894,7 +2898,7 @@ export const StripeInput = ({ field, value, onChange, setCustomerId, enduserId, 
     // misconfigured field (chargeImmediately with no products) doesn't emit
     if (field.options?.chargeImmediately && purchase && !purchaseEmittedRef.current) {
       purchaseEmittedRef.current = true
-      emitStripePurchaseEvent(field, { ...purchase, name: answertext })
+      emitStripePurchaseEvent(field, { ...purchase, name: gtmPurchaseName })
     }
     onChange(answertext || fallbackText, field.id)
   }
@@ -2969,8 +2973,9 @@ export const StripeInput = ({ field, value, onChange, setCustomerId, enduserId, 
         enduserId,
         ...(selectedProducts.length > 0 && { selectedProductIds: selectedProducts }) // Pass selected products to Stripe checkout
       })
-      .then(({ clientSecret, publishableKey, stripeAccount, businessName, customerId, isCheckout, answerText, amount, currency }) => {
+      .then(({ clientSecret, publishableKey, stripeAccount, businessName, customerId, isCheckout, answerText, amount, currency, gtmPurchaseName }) => {
         setAnswertext(answerText || '')
+        setGtmPurchaseName(gtmPurchaseName || '')
         setPurchase(typeof amount === 'number' ? { amount, currency } : undefined)
         setIsCheckout(!!isCheckout)
         setClientSecret(clientSecret)

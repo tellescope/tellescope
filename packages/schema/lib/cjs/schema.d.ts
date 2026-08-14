@@ -481,6 +481,7 @@ export type CustomActions = {
             isCheckout?: boolean;
             amount?: number;
             currency?: string;
+            gtmPurchaseName?: string;
         }>;
         chargebee_details: CustomAction<{
             fieldId: string;

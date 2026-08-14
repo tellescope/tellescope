@@ -1541,13 +1541,16 @@ var StripeInput = function (_a) {
     var _h = (0, react_2.useState)(false), isCheckout = _h[0], setIsCheckout = _h[1];
     var _j = (0, react_2.useState)(), stripePromise = _j[0], setStripePromise = _j[1];
     var _k = (0, react_2.useState)(''), answertext = _k[0], setAnswertext = _k[1];
+    // separate from answertext: only populated when the form opts in (Form.sendProductNamesToGTM), so
+    // product/medication titles reach the GTM purchase event only when explicitly enabled
+    var _l = (0, react_2.useState)(''), gtmPurchaseName = _l[0], setGtmPurchaseName = _l[1];
     // set only when the server reports an amount for a real charge, which is what gates the GTM purchase event
-    var _l = (0, react_2.useState)(), purchase = _l[0], setPurchase = _l[1];
-    var _m = (0, react_2.useState)(''), error = _m[0], setError = _m[1];
-    var _o = (0, react_2.useState)([]), selectedProducts = _o[0], setSelectedProducts = _o[1];
-    var _p = (0, react_2.useState)(false), showProductSelection = _p[0], setShowProductSelection = _p[1];
-    var _q = (0, react_2.useState)([]), availableProducts = _q[0], setAvailableProducts = _q[1];
-    var _r = (0, react_2.useState)(false), loadingProducts = _r[0], setLoadingProducts = _r[1];
+    var _m = (0, react_2.useState)(), purchase = _m[0], setPurchase = _m[1];
+    var _o = (0, react_2.useState)(''), error = _o[0], setError = _o[1];
+    var _p = (0, react_2.useState)([]), selectedProducts = _p[0], setSelectedProducts = _p[1];
+    var _q = (0, react_2.useState)(false), showProductSelection = _q[0], setShowProductSelection = _q[1];
+    var _r = (0, react_2.useState)([]), availableProducts = _r[0], setAvailableProducts = _r[1];
+    var _s = (0, react_2.useState)(false), loadingProducts = _s[0], setLoadingProducts = _s[1];
     // Compute visible products based on conditional logic
     var visibleProducts = (0, react_2.useMemo)(function () {
         if (!showProductSelection || availableProducts.length === 0) {
@@ -1615,8 +1618,9 @@ var StripeInput = function (_a) {
         fetchRef.current = true;
         session.api.form_responses.stripe_details({ fieldId: field.id, enduserId: enduserId })
             .then(function (_a) {
-            var clientSecret = _a.clientSecret, publishableKey = _a.publishableKey, stripeAccount = _a.stripeAccount, businessName = _a.businessName, customerId = _a.customerId, isCheckout = _a.isCheckout, answerText = _a.answerText, amount = _a.amount, currency = _a.currency;
+            var clientSecret = _a.clientSecret, publishableKey = _a.publishableKey, stripeAccount = _a.stripeAccount, businessName = _a.businessName, customerId = _a.customerId, isCheckout = _a.isCheckout, answerText = _a.answerText, amount = _a.amount, currency = _a.currency, gtmPurchaseName = _a.gtmPurchaseName;
             setAnswertext(answerText || '');
+            setGtmPurchaseName(gtmPurchaseName || '');
             setPurchase(typeof amount === 'number' ? { amount: amount, currency: currency } : undefined);
             setIsCheckout(!!isCheckout);
             setClientSecret(clientSecret);
@@ -1650,7 +1654,7 @@ var StripeInput = function (_a) {
         // misconfigured field (chargeImmediately with no products) doesn't emit
         if (((_a = field.options) === null || _a === void 0 ? void 0 : _a.chargeImmediately) && purchase && !purchaseEmittedRef.current) {
             purchaseEmittedRef.current = true;
-            emitStripePurchaseEvent(field, __assign(__assign({}, purchase), { name: answertext }));
+            emitStripePurchaseEvent(field, __assign(__assign({}, purchase), { name: gtmPurchaseName }));
         }
         onChange(answertext || fallbackText, field.id);
     };
@@ -1688,8 +1692,9 @@ var StripeInput = function (_a) {
             session.api.form_responses.stripe_details(__assign({ fieldId: field.id, enduserId: enduserId }, (selectedProducts.length > 0 && { selectedProductIds: selectedProducts }) // Pass selected products to Stripe checkout
             ))
                 .then(function (_a) {
-                var clientSecret = _a.clientSecret, publishableKey = _a.publishableKey, stripeAccount = _a.stripeAccount, businessName = _a.businessName, customerId = _a.customerId, isCheckout = _a.isCheckout, answerText = _a.answerText, amount = _a.amount, currency = _a.currency;
+                var clientSecret = _a.clientSecret, publishableKey = _a.publishableKey, stripeAccount = _a.stripeAccount, businessName = _a.businessName, customerId = _a.customerId, isCheckout = _a.isCheckout, answerText = _a.answerText, amount = _a.amount, currency = _a.currency, gtmPurchaseName = _a.gtmPurchaseName;
                 setAnswertext(answerText || '');
+                setGtmPurchaseName(gtmPurchaseName || '');
                 setPurchase(typeof amount === 'number' ? { amount: amount, currency: currency } : undefined);
                 setIsCheckout(!!isCheckout);
                 setClientSecret(clientSecret);

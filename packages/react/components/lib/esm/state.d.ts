@@ -1216,13 +1216,10 @@ export declare const useDataSync____internal: () => {
     setLoadTiming: (key: string, loadTimeInMS: number) => void;
     setHandler: (key: string, handler: undefined | (() => void)) => void;
     removeHandler: (key: string, handler: () => void) => void;
-    getLoaded: <T extends string>(modelName: T) => ((import("@tellescope/types-models").File & {
+    getLoaded: <T extends string>(modelName: T) => ((import("@tellescope/types-models").CalendarEvent & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").Enduser & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").User & {
+    }) | (import("@tellescope/types-models").ManagedContentRecord & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AIConversation & {
@@ -1267,9 +1264,6 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").ChatMessage & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").CalendarEvent & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").CalendarEventTemplate & {
         id: string;
         createdAt: Date;
@@ -1288,6 +1282,9 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").UserNotification & {
         id: string;
         createdAt: Date;
+    }) | (import("@tellescope/types-models").Enduser & {
+        id: string;
+        createdAt: Date;
     }) | (import("@tellescope/types-models").TimeTrack & {
         id: string;
         createdAt: Date;
@@ -1295,6 +1292,9 @@ export declare const useDataSync____internal: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Meeting & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").File & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Note & {
@@ -1315,6 +1315,9 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").Journey & {
         id: string;
         createdAt: Date;
+    }) | (import("@tellescope/types-models").User & {
+        id: string;
+        createdAt: Date;
     }) | (import("@tellescope/types-models").AutomationStep & {
         id: string;
         createdAt: Date;
@@ -1325,9 +1328,6 @@ export declare const useDataSync____internal: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Forum & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").ManagedContentRecord & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").ManagedContentRecordAssignment & {
@@ -1494,13 +1494,10 @@ export declare const useDataSync____internal: () => {
         createdAt: Date;
     }))[];
     getDeleted: <T_1 extends string>(modelName: T_1) => string[];
-    popLoaded: <T_2 extends string>(modelName: T_2) => ((import("@tellescope/types-models").File & {
+    popLoaded: <T_2 extends string>(modelName: T_2) => ((import("@tellescope/types-models").CalendarEvent & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").Enduser & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").User & {
+    }) | (import("@tellescope/types-models").ManagedContentRecord & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AIConversation & {
@@ -1545,9 +1542,6 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").ChatMessage & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").CalendarEvent & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").CalendarEventTemplate & {
         id: string;
         createdAt: Date;
@@ -1566,6 +1560,9 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").UserNotification & {
         id: string;
         createdAt: Date;
+    }) | (import("@tellescope/types-models").Enduser & {
+        id: string;
+        createdAt: Date;
     }) | (import("@tellescope/types-models").TimeTrack & {
         id: string;
         createdAt: Date;
@@ -1573,6 +1570,9 @@ export declare const useDataSync____internal: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Meeting & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").File & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Note & {
@@ -1593,6 +1593,9 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").Journey & {
         id: string;
         createdAt: Date;
+    }) | (import("@tellescope/types-models").User & {
+        id: string;
+        createdAt: Date;
     }) | (import("@tellescope/types-models").AutomationStep & {
         id: string;
         createdAt: Date;
@@ -1603,9 +1606,6 @@ export declare const useDataSync____internal: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Forum & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").ManagedContentRecord & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").ManagedContentRecordAssignment & {
@@ -1780,13 +1780,10 @@ export declare const useSyncContext: () => {
     setLoadTiming: (key: string, loadTimeInMS: number) => void;
     setHandler: (key: string, handler: undefined | (() => void)) => void;
     removeHandler: (key: string, handler: () => void) => void;
-    getLoaded: <T extends string>(modelName: T) => ((import("@tellescope/types-models").File & {
+    getLoaded: <T extends string>(modelName: T) => ((import("@tellescope/types-models").CalendarEvent & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").Enduser & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").User & {
+    }) | (import("@tellescope/types-models").ManagedContentRecord & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AIConversation & {
@@ -1831,9 +1828,6 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").ChatMessage & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").CalendarEvent & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").CalendarEventTemplate & {
         id: string;
         createdAt: Date;
@@ -1852,6 +1846,9 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").UserNotification & {
         id: string;
         createdAt: Date;
+    }) | (import("@tellescope/types-models").Enduser & {
+        id: string;
+        createdAt: Date;
     }) | (import("@tellescope/types-models").TimeTrack & {
         id: string;
         createdAt: Date;
@@ -1859,6 +1856,9 @@ export declare const useSyncContext: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Meeting & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").File & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Note & {
@@ -1879,6 +1879,9 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").Journey & {
         id: string;
         createdAt: Date;
+    }) | (import("@tellescope/types-models").User & {
+        id: string;
+        createdAt: Date;
     }) | (import("@tellescope/types-models").AutomationStep & {
         id: string;
         createdAt: Date;
@@ -1889,9 +1892,6 @@ export declare const useSyncContext: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Forum & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").ManagedContentRecord & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").ManagedContentRecordAssignment & {
@@ -2058,13 +2058,10 @@ export declare const useSyncContext: () => {
         createdAt: Date;
     }))[];
     getDeleted: <T_1 extends string>(modelName: T_1) => string[];
-    popLoaded: <T_2 extends string>(modelName: T_2) => ((import("@tellescope/types-models").File & {
+    popLoaded: <T_2 extends string>(modelName: T_2) => ((import("@tellescope/types-models").CalendarEvent & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").Enduser & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").User & {
+    }) | (import("@tellescope/types-models").ManagedContentRecord & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AIConversation & {
@@ -2109,9 +2106,6 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").ChatMessage & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").CalendarEvent & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").CalendarEventTemplate & {
         id: string;
         createdAt: Date;
@@ -2130,6 +2124,9 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").UserNotification & {
         id: string;
         createdAt: Date;
+    }) | (import("@tellescope/types-models").Enduser & {
+        id: string;
+        createdAt: Date;
     }) | (import("@tellescope/types-models").TimeTrack & {
         id: string;
         createdAt: Date;
@@ -2137,6 +2134,9 @@ export declare const useSyncContext: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Meeting & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").File & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Note & {
@@ -2157,6 +2157,9 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").Journey & {
         id: string;
         createdAt: Date;
+    }) | (import("@tellescope/types-models").User & {
+        id: string;
+        createdAt: Date;
     }) | (import("@tellescope/types-models").AutomationStep & {
         id: string;
         createdAt: Date;
@@ -2167,9 +2170,6 @@ export declare const useSyncContext: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Forum & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").ManagedContentRecord & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").ManagedContentRecordAssignment & {

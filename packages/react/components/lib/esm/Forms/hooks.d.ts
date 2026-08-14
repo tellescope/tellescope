@@ -1,4 +1,3 @@
-/// <reference types="react" />
 import { ChangeHandler, FormFieldNode } from "./types";
 import { DatabaseRecord, Enduser, Form, FormField, FormResponse } from "@tellescope/types-client";
 import { FileBlob } from "@tellescope/types-utilities";

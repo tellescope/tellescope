@@ -3211,7 +3211,7 @@ export var schema = build_schema({
                     offering_id: stringValidator100,
                     conditions: compoundFilterValidator,
                 }))
-            }, autoMergeOnSubmission: { validator: booleanValidator }, procedureCodes: { validator: procedureCodesValidator }, diagnosisCodes: { validator: diagnosisCodesValidator }, gtmTag: { validator: stringValidator100EscapeHTML }, dontSyncToCanvasOnSubmission: { validator: booleanValidator }, dontAssociateCanvasResponsesWithAppointments: { validator: booleanValidator }, archivedAt: { validator: dateOptionalOrEmptyStringValidator }, title: {
+            }, autoMergeOnSubmission: { validator: booleanValidator }, procedureCodes: { validator: procedureCodesValidator }, diagnosisCodes: { validator: diagnosisCodesValidator }, gtmTag: { validator: stringValidator100EscapeHTML }, sendProductNamesToGTM: { validator: booleanValidator }, dontSyncToCanvasOnSubmission: { validator: booleanValidator }, dontAssociateCanvasResponsesWithAppointments: { validator: booleanValidator }, archivedAt: { validator: dateOptionalOrEmptyStringValidator }, title: {
                 validator: stringValidator250,
                 required: true,
                 examples: ["Text"],
@@ -3516,6 +3516,9 @@ export var schema = build_schema({
                     isCheckout: { validator: booleanValidator },
                     amount: { validator: nonNegNumberValidator },
                     currency: { validator: stringValidator100 },
+                    // product titles for the GTM form_purchase event, populated only when the form opts in
+                    // (Form.sendProductNamesToGTM); '' otherwise so no product names reach Google
+                    gtmPurchaseName: { validator: stringValidator },
                 },
             },
             chargebee_details: {

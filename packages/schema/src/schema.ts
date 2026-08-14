@@ -786,7 +786,7 @@ export type CustomActions = {
     }>,
     stripe_details: CustomAction<
       { fieldId: string, enduserId?: string, selectedProductIds?: string[] }, 
-      { customerId: string, clientSecret: string, publishableKey: string, stripeAccount: string, businessName: string, answerText?: string, isCheckout?: boolean, amount?: number, currency?: string }
+      { customerId: string, clientSecret: string, publishableKey: string, stripeAccount: string, businessName: string, answerText?: string, isCheckout?: boolean, amount?: number, currency?: string, gtmPurchaseName?: string }
     >,
     chargebee_details: CustomAction<{ fieldId: string, enduserId?: string, billingAddress?: { addressLineOne?: string, addressLineTwo?: string, city?: string, state?: string, zipCode?: string }, verify?: boolean }, { url?: string, hasPaymentMethod?: boolean }>,
     generate_pdf: CustomAction<
@@ -4994,6 +4994,7 @@ export const schema: SchemaV1 = build_schema({
       procedureCodes: { validator: procedureCodesValidator },
       diagnosisCodes: { validator: diagnosisCodesValidator },
       gtmTag: { validator: stringValidator100EscapeHTML },
+      sendProductNamesToGTM: { validator: booleanValidator },
       dontSyncToCanvasOnSubmission: { validator: booleanValidator },
       dontAssociateCanvasResponsesWithAppointments: { validator: booleanValidator },
       archivedAt: { validator: dateOptionalOrEmptyStringValidator },
@@ -5442,6 +5443,9 @@ export const schema: SchemaV1 = build_schema({
           isCheckout: { validator: booleanValidator },
           amount: { validator: nonNegNumberValidator },
           currency: { validator: stringValidator100 },
+          // product titles for the GTM form_purchase event, populated only when the form opts in
+          // (Form.sendProductNamesToGTM); '' otherwise so no product names reach Google
+          gtmPurchaseName: { validator: stringValidator },
         },
       },
       chargebee_details: {
