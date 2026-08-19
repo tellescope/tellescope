@@ -775,6 +775,7 @@ export type CustomActions = {
         markedAsSubmitted?: boolean,
         enduserAISummary?: string,
         dontSyncToElation?: boolean,
+        viewedInLanguage?: string,
       },
       { formResponse: FormResponse, nextFormGroupPublicURL?: string, redirectTo?: string }
     >,
@@ -1036,7 +1037,7 @@ export type CustomActions = {
     }, {  }>, 
     disconnect_zendesk: CustomAction<{}, {}>,
     update_zoom: CustomAction<{ clientId?: string, clientSecret?: string }, { }>,
-    proxy_read: CustomAction<{ integration: string, type: string, id?: string, query?: string, healthieIntegrationId?: string }, { data: any }>,
+    proxy_read: CustomAction<{ integration: string, type: string, id?: string, query?: string, healthieIntegrationId?: string, target?: 'home' | 'plan' | 'results' | 'care' | 'shop' | 'account' }, { data: any }>,
     proxy_write: CustomAction<{ integration: string, type: string, id?: string, query?: Record<string, any>, healthieIntegrationId?: string }, { data: any }>,
     load_redacted: CustomAction<{}, { integrations: Integration[] }>,
     update_settings: CustomAction<{ id: string, updates: Partial<Integration> }, { integration: Integration }>,
@@ -1220,8 +1221,8 @@ export type CustomActions = {
   },
   products: {
     prepare_stripe_checkout: CustomAction<
-      { productIds: string[] }, 
-      { customerId: string, clientSecret: string, publishableKey: string, stripeAccount: string, businessName: string }
+      { productIds: string[], stripeKey?: string },
+      { customerId: string, clientSecret: string, publishableKey: string, stripeAccount?: string, isCheckout?: boolean, businessName: string }
     >,
     get_stripe_portal_session: CustomAction<{ 
       stripeKey?: string,
@@ -1374,7 +1375,7 @@ export type PublicActions = {
     get_theme: CustomAction<{ businessId: string, organizationIds?: string[] }, { theme: OrganizationTheme }>,
   },
   forms: {
-    public_form_details: CustomAction<{ formId: string }, { form: Form }>,
+    public_form_details: CustomAction<{ formId: string, language?: string }, { form: Form, translations?: Record<string, string> }>,
   },
   form_responses: {
     session_for_public_form: CustomAction<{ 
@@ -2455,6 +2456,7 @@ export const schema: SchemaV1 = build_schema({
           id: { validator: stringValidator },
           query: { validator: stringValidator },
           healthieIntegrationId: { validator: stringValidator100 }, // target an additional Healthie integration (Integration.tenantId); absent → primary
+          target: { validator: exactMatchValidatorOptional<'home' | 'plan' | 'results' | 'care' | 'shop' | 'account'>(['home', 'plan', 'results', 'care', 'shop', 'account']) }, // Welle SSO launch deep-link target
         },
         returns: {
           data: { validator: optionalAnyObjectValidator, required: true },
@@ -4960,12 +4962,14 @@ export const schema: SchemaV1 = build_schema({
         op: "custom", access: 'read', method: "get",
         path: '/forms/public-details',
         name: 'Get details for public form',
-        description: "Gets details for public form, e.g. whether to require date of birth",
-        parameters: { 
+        description: "Gets details for public form, e.g. whether to require date of birth. When language is provided and the form has a translation configured for it, also returns the display-text translation map.",
+        parameters: {
           formId: { validator: mongoIdStringValidator, required: true },
+          language: { validator: stringValidator100 },
         },
         returns: {
           form: { validator: 'form' as any, required: true },
+          translations: { validator: objectAnyFieldsAnyValuesValidator as any },
         },
       },
     },
@@ -5040,6 +5044,12 @@ export const schema: SchemaV1 = build_schema({
       lockResponsesOnSubmission: { validator: booleanValidatorOptional },
       tags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       language: { validator: stringValidator },
+      translationConfigurations: {
+        validator: listValidatorOptionalOrEmptyOk(objectValidator<{ language: string, configurationId: string }>({
+          language: stringValidator100,
+          configurationId: mongoIdStringRequired,
+        }))
+      },
       isNonVisitElationNote: { validator: booleanValidator },
       elationVisitNotePractitionerIds: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       elationVisitNoteType: { validator: stringValidator100 },
@@ -5234,6 +5244,7 @@ export const schema: SchemaV1 = build_schema({
       submittedBy: { validator: stringValidator250, enduserUpdatesDisabled: true },
       submittedByIsPlaceholder: { validator: booleanValidator, enduserUpdatesDisabled: true },
       markedAsSubmitted: { validator: booleanValidator, enduserUpdatesDisabled: true }, // endusers submit via the submit_form_response custom action
+      viewedInLanguage: { validator: stringValidator100, enduserUpdatesDisabled: true }, // set via submit_form_response; display language only — stored answers remain English
       accessCode: { validator: stringValidator250 },
       userEmail: { validator: emailValidator, enduserUpdatesDisabled: true },
       submittedAt: { validator: dateValidator, enduserUpdatesDisabled: true },
@@ -5403,6 +5414,7 @@ export const schema: SchemaV1 = build_schema({
           markedAsSubmitted: { validator: booleanValidator },
           enduserAISummary: { validator: stringValidator25000 },
           dontSyncToElation: { validator: booleanValidator },
+          viewedInLanguage: { validator: stringValidator100 },
         },
         returns: {
           formResponse: 'form response' as any,
@@ -7992,14 +8004,16 @@ export const schema: SchemaV1 = build_schema({
         name: 'Prepare Stripe Checkout',
         path: '/products/prepare-stripe-checkout',
         description: "Prepares a Stripe checkout process",
-        parameters: { 
+        parameters: {
           productIds: { validator: listOfMongoIdStringValidator, required: true },
+          stripeKey: { validator: stringValidator250 },
         },
         returns: {
           clientSecret: { validator: stringValidator, required: true },
           customerId: { validator: stringValidator, required: true },
           publishableKey: { validator: stringValidator, required: true },
-          stripeAccount: { validator: stringValidator, required: true },
+          stripeAccount: { validator: stringValidator },
+          isCheckout: { validator: booleanValidator },
           businessName: { validator: stringValidator, required: true },
         },
       }, 
@@ -8144,6 +8158,7 @@ export const schema: SchemaV1 = build_schema({
       cptCode: { validator: billingCodeValidatorOptional },
       notes: { validator: stringValidator5000EmptyOkay },
       stripeProductName: { validator: stringValidator5000EmptyOkay },
+      couponCodes: { validator: listOfStringsValidatorOptionalOrEmptyOk },
     }
   },
   purchase_credits: {
@@ -9270,11 +9285,14 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
     constraints: { unique: [], relationship: [], access: [] },
     defaultActions: DEFAULT_OPERATIONS,
     customActions: {},
-    enduserActions: {},
+    // enduser reads are reduced to records with publicRead: true (see build_enduser_filter in
+    // api database.ts) — integration configs (API keys etc.) never set the flag and stay invisible
+    enduserActions: { read: {}, readMany: {} },
     fields: {
       ...BuiltInFields,
       type: { validator: stringValidator250, examples: ['string'] },
       value: { validator: stringValidator100000OptionalEmptyOkayEscapeHTML, examples: ['string'] },
+      publicRead: { validator: booleanValidator }, // opt-in enduser read access (e.g. form translation maps); staff-only writable since endusers have no create/update on this model
     },
   },
   time_tracks: {

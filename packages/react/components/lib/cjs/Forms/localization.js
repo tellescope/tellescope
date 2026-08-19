@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.booking_display_text_for_language = exports.form_display_text_for_language = void 0;
+exports.booking_display_text_for_language = exports.form_display_text_for_language = exports.FORM_CHROME_ENGLISH_STRINGS = void 0;
 var SPANISH_TRANSLATIONS = {
     // Personal Information
     'First Name': 'Nombre',
@@ -130,10 +130,21 @@ var SPANISH_TRANSLATIONS = {
     'Loading product information...': 'Cargando información del producto...',
     'No eligible users found for booking': 'No se encontraron usuarios elegibles para la reserva',
 };
+// English source strings for form UI chrome (buttons, validation text, built-in labels). Included as
+// keys in AI-generated form translation maps so non-Spanish languages get fully translated chrome.
+exports.FORM_CHROME_ENGLISH_STRINGS = Object.keys(SPANISH_TRANSLATIONS);
+// Display-only translation lookup for form text. `dynamicTranslations` is a per-form, per-language
+// AI-generated map (English source string -> translation) attached client-side to the form object for
+// rendering — it is never persisted on the form and never applied to stored response values.
+// Lookup order: dynamic map, then the static Spanish chrome dictionary, then placeholder/English.
 var form_display_text_for_language = function (form, text, placeholder) {
+    var _a;
     if (!form)
         return text;
-    if (form.language === 'Spanish' || form.language === 'Español') {
+    var dynamicTranslation = (_a = form.dynamicTranslations) === null || _a === void 0 ? void 0 : _a[text];
+    if (dynamicTranslation)
+        return dynamicTranslation;
+    if (form.language === 'Spanish' || form.language === 'Español' || form.language === 'es') {
         var translation = SPANISH_TRANSLATIONS[text];
         if (translation)
             return translation;

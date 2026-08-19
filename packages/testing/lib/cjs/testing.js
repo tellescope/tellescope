@@ -49,7 +49,7 @@ var MAX_NAME_LENGTH = 70;
 var DEFAULT_BENCHMARK = 20;
 var log_header = function (n) {
     if (n === void 0) { n = ''; }
-    return console.log("\x1b[35m", 'Test' + (n ? " (".concat(n, ")") : '') + ' '.repeat(MAX_NAME_LENGTH - n.length - 4) + 'Runtime    Benchmark' // jank based on TS_WIDTH and MAX_NAME_LENGTH
+    return console.log("\x1b[35m", 'Test' + (n ? " (".concat(n, ")") : '') + ' '.repeat(Math.max(MAX_NAME_LENGTH - n.length - 4, 1)) + 'Runtime    Benchmark' // jank based on TS_WIDTH and MAX_NAME_LENGTH
     );
 };
 exports.log_header = log_header;

@@ -2186,6 +2186,7 @@ var _AUTOMATION_ACTIONS = {
     belugaAutoRx: '',
     belugaUpdateVisit: '',
     belugaTriggerRefill: '',
+    mdiTriggerRefill: '',
     healthieSync: '',
     healthieAddToCourse: '',
     healthieSendChat: '',
@@ -2790,6 +2791,9 @@ exports.automationActionValidator = (0, exports.orValidator)({
             })),
             useOrganizationMapping: exports.booleanValidatorOptional,
             customFieldName: exports.stringValidatorOptional,
+        }) })),
+    mdiTriggerRefill: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['mdiTriggerRefill']), info: (0, exports.objectValidator)({
+            onlySubmitWhenDue: exports.booleanValidatorOptional,
         }) })),
     sendChat: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['sendChat']), info: (0, exports.objectValidator)({
             templateId: exports.mongoIdStringRequired,
@@ -4238,6 +4242,7 @@ exports.automationTriggerEventValidator = (0, exports.orValidator)({
             titles: exports.listOfStringsValidatorOptionalOrEmptyOk,
             productIds: exports.listOfMongoIdStringValidatorOptionalOrEmptyOk,
             titlePartialMatches: exports.listOfStringsValidatorOptionalOrEmptyOk,
+            couponCodes: exports.listOfStringsValidatorOptionalOrEmptyOk,
         }),
         conditions: exports.optionalEmptyObjectValidator,
     }),

@@ -1,6 +1,6 @@
 {
   "name": "@tellescope/video-chat",
-  "version": "1.256.5",
+  "version": "1.256.7",
   "description": "",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",
@@ -34,13 +34,13 @@
     "@fontsource/roboto": "4.5.8",
     "@mui/icons-material": "5.15.0",
     "@mui/material": "5.15.0",
-    "@tellescope/constants": "1.256.5",
-    "@tellescope/react-components": "1.256.5",
-    "@tellescope/sdk": "1.256.5",
-    "@tellescope/types-client": "1.256.5",
-    "@tellescope/types-models": "1.256.5",
-    "@tellescope/types-utilities": "1.256.4",
-    "@tellescope/utilities": "1.256.5",
+    "@tellescope/constants": "1.256.7",
+    "@tellescope/react-components": "1.256.7",
+    "@tellescope/sdk": "1.256.7",
+    "@tellescope/types-client": "1.256.7",
+    "@tellescope/types-models": "1.256.7",
+    "@tellescope/types-utilities": "1.256.7",
+    "@tellescope/utilities": "1.256.7",
     "@typescript-eslint/eslint-plugin": "4.33.0",
     "@typescript-eslint/parser": "4.33.0",
     "amazon-chime-sdk-component-library-react": "3.10.0",
@@ -54,7 +54,7 @@
     "react": "^16.8.0 || ^17.0.0 || ^18.0.0",
     "react-dom": "^16.8.0 || ^17.0.0 || ^18.0.0"
   },
-  "gitHead": "0cd46493b0e0c577a94ce28488d8c351d971d6ad",
+  "gitHead": "0e6d5109d104500982d3d8abe20b33965e7fcfeb",
   "publishConfig": {
     "access": "public"
   }

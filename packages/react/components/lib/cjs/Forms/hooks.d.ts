@@ -3,6 +3,117 @@ import { ChangeHandler, FormFieldNode } from "./types";
 import { DatabaseRecord, Enduser, Form, FormField, FormResponse } from "@tellescope/types-client";
 import { FileBlob } from "@tellescope/types-utilities";
 import { CompoundFilter, FormCustomization, FormFieldOptionDetails, FormResponseValue, FormResponseValueAnswer, OrganizationTheme, PreviousFormFieldType } from "@tellescope/types-models";
+export declare const language_code_for_legacy_form_language: (value?: string) => string;
+export type FormDisplayLanguageOption = {
+    code: string;
+    label: string;
+};
+export declare const useFormDisplayLanguage: ({ form, initialLanguage, fetchTranslations }: {
+    form?: (import("@tellescope/types-models").Form & {
+        id: string;
+        createdAt: Date;
+    }) | undefined;
+    initialLanguage?: string | undefined;
+    fetchTranslations?: ((configurationId: string, languageCode: string) => Promise<Record<string, string>>) | undefined;
+}) => {
+    languageCode: string;
+    setLanguageCode: import("react").Dispatch<import("react").SetStateAction<string>>;
+    formForDisplay: {
+        language: string;
+        dynamicTranslations: Record<string, string> | undefined;
+        accessTags?: string[] | undefined;
+        gtmTag?: string | undefined;
+        sendProductNamesToGTM?: boolean | undefined;
+        ipAddressCustomField: string;
+        archivedAt?: "" | Date | undefined;
+        displayTitle?: string | undefined;
+        description?: string | undefined;
+        customSubject?: string | undefined;
+        customGreeting?: string | undefined;
+        customSignature?: string | undefined;
+        allowPublicURL?: boolean | undefined;
+        intakeEmailRequired?: boolean | undefined;
+        intakeEmailHidden?: boolean | undefined;
+        intakePhone?: "hidden" | "required" | "optional" | undefined;
+        intakeDateOfBirth?: "hidden" | "required" | "optional" | undefined;
+        intakeState?: "hidden" | "required" | "optional" | undefined;
+        intakeGender?: "hidden" | "required" | "optional" | undefined;
+        intakeGenderIsSex?: boolean | undefined;
+        thanksMessage?: string | undefined;
+        htmlThanksMessage?: string | undefined;
+        type?: import("@tellescope/types-models").FormType | undefined;
+        scoring?: import("@tellescope/types-models").FormScoring[] | undefined;
+        realTimeScoring?: boolean | undefined;
+        externalId?: string | undefined;
+        ga4measurementId?: string | undefined;
+        backgroundColor?: string | undefined;
+        productIds?: string[] | undefined;
+        redirectToBookedAppointmentOnSubmit?: boolean | undefined;
+        submitRedirectURL?: string | undefined;
+        publicFormIdRedirect?: string | undefined;
+        publicShowLanguage?: boolean | undefined;
+        publicShowDownload?: boolean | undefined;
+        customization?: FormCustomization | undefined;
+        disabled?: boolean | undefined;
+        disableAutomaticIntegrationPush?: boolean | undefined;
+        customTypeIds?: string[] | undefined;
+        lockResponsesOnSubmission?: boolean | undefined;
+        tags?: string[] | undefined;
+        translationConfigurations?: {
+            language: string;
+            configurationId: string;
+        }[] | undefined;
+        isNonVisitElationNote?: boolean | undefined;
+        elationVisitNotePractitionerIds?: string[] | undefined;
+        elationVisitNoteType?: string | undefined;
+        elationSkipBlankResponses?: boolean | undefined;
+        canvasId?: string | undefined;
+        canvasQuestionId?: string | undefined;
+        syncToOLH?: boolean | undefined;
+        syncWithResponsesFromFormIds?: string[] | undefined;
+        scoresSync?: {
+            score: string;
+            externalId: string;
+        }[] | undefined;
+        syncAnswersAsHtml?: boolean | undefined;
+        hideAfterUnsubmittedInMS?: number | undefined;
+        hideFromCompose?: boolean | undefined;
+        hideFromBulkSubmission?: boolean | undefined;
+        enduserFieldsToAppendForSync?: string[] | undefined;
+        allowPortalSubmission?: boolean | undefined;
+        allowPortalSubmissionEnduserCondition?: Record<string, any> | undefined;
+        canvasNoteCoding?: Partial<import("@tellescope/types-models").CanvasCoding> | undefined;
+        syncToCanvasAsDataImport?: boolean | undefined;
+        matchCareTeamTagsForCanvasPractitionerResolution?: import("@tellescope/types-models").ListOfStringsWithQualifier | undefined;
+        dontSyncToCanvasOnSubmission?: boolean | undefined;
+        dontAssociateCanvasResponsesWithAppointments?: boolean | undefined;
+        belugaVisitType?: string | undefined;
+        belugaVerificationId?: string | undefined;
+        belugaPharmacyMappings?: import("@tellescope/types-models").BelugaPharmacyMapping[] | undefined;
+        belugaCombineMatchingPharmacyMappings?: boolean | undefined;
+        showByUserTags?: string[] | undefined;
+        version?: "v1" | "v2" | undefined;
+        mdiCaseOfferings?: {
+            offering_id: string;
+            conditions?: CompoundFilter<string> | undefined;
+        }[] | undefined;
+        autoMergeOnSubmission?: boolean | undefined;
+        aiSummaryConfiguration?: import("@tellescope/types-models").AISummaryConfiguration | undefined;
+        procedureCodes?: import("@tellescope/types-models").FormResponseProcedureCode[] | undefined;
+        diagnosisCodes?: import("@tellescope/types-models").FormResponseDiagnosisCode[] | undefined;
+        numFields: number;
+        id: string;
+        businessId: string;
+        updatedAt: Date;
+        creator: string;
+        organizationIds?: string[] | undefined;
+        sharedWithOrganizations?: string[][] | undefined;
+        originalId?: string | undefined;
+        title: string;
+        createdAt: Date;
+    } | undefined;
+    languageOptions: FormDisplayLanguageOption[];
+};
 export declare const dateFromOffsetMs: (offsetMs: number) => Date;
 export declare const useFlattenedTree: (root?: FormFieldNode) => (import("@tellescope/types-models").FormField & {
     id: string;
@@ -88,6 +199,8 @@ interface UseTellescopeFormOptions {
     groupInstance?: string;
     groupPosition?: number;
     getEnduserAISummary?: () => string | undefined;
+    viewedInLanguage?: string;
+    dynamicTranslations?: Record<string, string>;
 }
 export declare const WithOrganizationTheme: ({ businessId, organizationIds, children }: {
     children: React.ReactNode;
@@ -107,7 +220,7 @@ export type FileResponse = {
     fieldTitle: string;
     blobs?: FileBlob[];
 };
-export declare const useTellescopeForm: ({ dontAutoadvance, isPublicForm, form, urlLogicValue, customization, carePlanId, calendarEventId, context, ga4measurementId, rootResponseId, parentResponseId, accessCode, existingResponses, automationStepId, enduserId, formResponseId, fields, isInternalNote, formTitle, submitRedirectURL, enduser, groupId, groupInstance, groupPosition, startingFieldId, getEnduserAISummary }: UseTellescopeFormOptions) => {
+export declare const useTellescopeForm: ({ dontAutoadvance, isPublicForm, form, urlLogicValue, customization, carePlanId, calendarEventId, context, ga4measurementId, rootResponseId, parentResponseId, accessCode, existingResponses, automationStepId, enduserId, formResponseId, fields, isInternalNote, formTitle, submitRedirectURL, enduser, groupId, groupInstance, groupPosition, startingFieldId, getEnduserAISummary, viewedInLanguage, dynamicTranslations }: UseTellescopeFormOptions) => {
     enduserId: string;
     formResponseId: string | undefined;
     activeField: FormFieldNode;

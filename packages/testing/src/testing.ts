@@ -14,7 +14,7 @@ const TS_WIDTH = 8
 const MAX_NAME_LENGTH = 70 
 const DEFAULT_BENCHMARK = 20
 export const log_header = (n='') => console.log(
-  "\x1b[35m", 'Test' + (n ? ` (${n})` : '') + ' '.repeat(MAX_NAME_LENGTH - n.length - 4) + 'Runtime    Benchmark' // jank based on TS_WIDTH and MAX_NAME_LENGTH
+  "\x1b[35m", 'Test' + (n ? ` (${n})` : '') + ' '.repeat(Math.max(MAX_NAME_LENGTH - n.length - 4, 1)) + 'Runtime    Benchmark' // jank based on TS_WIDTH and MAX_NAME_LENGTH
 )
 const log_and_return = ({ r=PASSED | FAILED, m='', runTime=-1, benchmark=DEFAULT_BENCHMARK }) => { 
   if (r === FAILED) {

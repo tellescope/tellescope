@@ -972,7 +972,8 @@ export var schema = build_schema({
                     type: { validator: stringValidator, required: true },
                     id: { validator: stringValidator },
                     query: { validator: stringValidator },
-                    healthieIntegrationId: { validator: stringValidator100 }, // target an additional Healthie integration (Integration.tenantId); absent → primary
+                    healthieIntegrationId: { validator: stringValidator100 },
+                    target: { validator: exactMatchValidatorOptional(['home', 'plan', 'results', 'care', 'shop', 'account']) }, // Welle SSO launch deep-link target
                 },
                 returns: {
                     data: { validator: optionalAnyObjectValidator, required: true },
@@ -3190,12 +3191,14 @@ export var schema = build_schema({
                 op: "custom", access: 'read', method: "get",
                 path: '/forms/public-details',
                 name: 'Get details for public form',
-                description: "Gets details for public form, e.g. whether to require date of birth",
+                description: "Gets details for public form, e.g. whether to require date of birth. When language is provided and the form has a translation configured for it, also returns the display-text translation map.",
                 parameters: {
                     formId: { validator: mongoIdStringValidator, required: true },
+                    language: { validator: stringValidator100 },
                 },
                 returns: {
                     form: { validator: 'form', required: true },
+                    translations: { validator: objectAnyFieldsAnyValuesValidator },
                 },
             },
         },
@@ -3219,7 +3222,12 @@ export var schema = build_schema({
                 validator: nonNegNumberValidator,
                 initializer: function () { return 0; },
                 examples: [0],
-            }, redirectToBookedAppointmentOnSubmit: { validator: booleanValidator }, displayTitle: { validator: stringValidator1000 }, description: { validator: stringValidator5000EmptyOkay }, customGreeting: { validator: stringValidator5000 }, customSignature: { validator: stringValidator5000 }, customSubject: { validator: stringValidator5000 }, allowPublicURL: { validator: booleanValidator }, intakePhone: { validator: intakePhoneValidator }, intakeEmailRequired: { validator: booleanValidator }, intakeEmailHidden: { validator: booleanValidator }, intakeDateOfBirth: { validator: intakeDateOfBirthValidator }, intakeState: { validator: intakeDateOfBirthValidator }, intakeGender: { validator: intakeDateOfBirthValidator }, intakeGenderIsSex: { validator: booleanValidator }, thanksMessage: { validator: stringValidator5000EmptyOkay }, htmlThanksMessage: { validator: stringValidator5000EmptyOkay }, type: { validator: formTypeValidator }, scoring: { validator: formScoringValidator }, realTimeScoring: { validator: booleanValidator }, externalId: { validator: stringValidator100 }, ga4measurementId: { validator: stringValidator100 }, backgroundColor: { validator: stringValidator100 }, productIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk }, submitRedirectURL: { validator: stringValidator5000 }, customization: { validator: formCustomizationValidator }, publicFormIdRedirect: { validator: mongoIdStringOptional }, disabled: { validator: booleanValidatorOptional }, disableAutomaticIntegrationPush: { validator: booleanValidatorOptional }, customTypeIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk }, lockResponsesOnSubmission: { validator: booleanValidatorOptional }, tags: { validator: listOfStringsValidatorOptionalOrEmptyOk }, language: { validator: stringValidator }, isNonVisitElationNote: { validator: booleanValidator }, elationVisitNotePractitionerIds: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, elationVisitNoteType: { validator: stringValidator100 }, elationSkipBlankResponses: { validator: booleanValidator }, publicShowLanguage: { validator: booleanValidator }, publicShowDownload: { validator: booleanValidator }, canvasId: { validator: stringValidator100 }, canvasQuestionId: { validator: stringValidator100 }, syncToOLH: { validator: booleanValidator }, syncWithResponsesFromFormIds: { validator: listOfUniqueStringsValidatorEmptyOk }, syncAnswersAsHtml: { validator: booleanValidator }, scoresSync: {
+            }, redirectToBookedAppointmentOnSubmit: { validator: booleanValidator }, displayTitle: { validator: stringValidator1000 }, description: { validator: stringValidator5000EmptyOkay }, customGreeting: { validator: stringValidator5000 }, customSignature: { validator: stringValidator5000 }, customSubject: { validator: stringValidator5000 }, allowPublicURL: { validator: booleanValidator }, intakePhone: { validator: intakePhoneValidator }, intakeEmailRequired: { validator: booleanValidator }, intakeEmailHidden: { validator: booleanValidator }, intakeDateOfBirth: { validator: intakeDateOfBirthValidator }, intakeState: { validator: intakeDateOfBirthValidator }, intakeGender: { validator: intakeDateOfBirthValidator }, intakeGenderIsSex: { validator: booleanValidator }, thanksMessage: { validator: stringValidator5000EmptyOkay }, htmlThanksMessage: { validator: stringValidator5000EmptyOkay }, type: { validator: formTypeValidator }, scoring: { validator: formScoringValidator }, realTimeScoring: { validator: booleanValidator }, externalId: { validator: stringValidator100 }, ga4measurementId: { validator: stringValidator100 }, backgroundColor: { validator: stringValidator100 }, productIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk }, submitRedirectURL: { validator: stringValidator5000 }, customization: { validator: formCustomizationValidator }, publicFormIdRedirect: { validator: mongoIdStringOptional }, disabled: { validator: booleanValidatorOptional }, disableAutomaticIntegrationPush: { validator: booleanValidatorOptional }, customTypeIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk }, lockResponsesOnSubmission: { validator: booleanValidatorOptional }, tags: { validator: listOfStringsValidatorOptionalOrEmptyOk }, language: { validator: stringValidator }, translationConfigurations: {
+                validator: listValidatorOptionalOrEmptyOk(objectValidator({
+                    language: stringValidator100,
+                    configurationId: mongoIdStringRequired,
+                }))
+            }, isNonVisitElationNote: { validator: booleanValidator }, elationVisitNotePractitionerIds: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, elationVisitNoteType: { validator: stringValidator100 }, elationSkipBlankResponses: { validator: booleanValidator }, publicShowLanguage: { validator: booleanValidator }, publicShowDownload: { validator: booleanValidator }, canvasId: { validator: stringValidator100 }, canvasQuestionId: { validator: stringValidator100 }, syncToOLH: { validator: booleanValidator }, syncWithResponsesFromFormIds: { validator: listOfUniqueStringsValidatorEmptyOk }, syncAnswersAsHtml: { validator: booleanValidator }, scoresSync: {
                 validator: listValidatorOptionalOrEmptyOk(objectValidator({
                     score: stringValidator100,
                     externalId: stringValidator100,
@@ -3345,7 +3353,7 @@ export var schema = build_schema({
                 updatesDisabled: true,
             }, openedAt: {
                 validator: dateValidator,
-            }, copiedFrom: { validator: mongoIdStringOptional }, copiedFromEnduserId: { validator: mongoIdStringOptional }, publicSubmit: { validator: booleanValidator }, submittedBy: { validator: stringValidator250, enduserUpdatesDisabled: true }, submittedByIsPlaceholder: { validator: booleanValidator, enduserUpdatesDisabled: true }, markedAsSubmitted: { validator: booleanValidator, enduserUpdatesDisabled: true }, accessCode: { validator: stringValidator250 }, userEmail: { validator: emailValidator, enduserUpdatesDisabled: true }, submittedAt: { validator: dateValidator, enduserUpdatesDisabled: true }, formTitle: { validator: stringValidator250, enduserUpdatesDisabled: true }, responses: { validator: formResponsesValidator }, draftSavedAt: { validator: dateValidator }, draftSavedBy: { validator: mongoIdStringValidator }, hideFromEnduserPortal: { validator: booleanValidator }, sharedVia: { validator: communicationsChannelValidator }, isInternalNote: { validator: booleanValidator, enduserUpdatesDisabled: true }, pinnedAt: { validator: dateOptionalOrEmptyStringValidator, enduserUpdatesDisabled: true }, publicIdentifier: { validator: stringValidator250 }, source: { validator: stringValidator250 }, externalId: { validator: stringValidator250 }, rootResponseId: { validator: mongoIdStringValidator }, parentResponseId: { validator: mongoIdStringValidator }, tags: { validator: listOfStringsValidatorOptionalOrEmptyOk, enduserUpdatesDisabled: true }, carePlanId: { validator: mongoIdStringValidator }, context: { validator: stringValidator1000 }, logoURL: { validator: stringValidator5000, enduserUpdatesDisabled: true }, logoHeight: { validator: numberValidator, enduserUpdatesDisabled: true }, calendarEventId: { validator: mongoIdStringValidator }, references: { validator: listOfRelatedRecordsValidator, readonly: true }, groupId: { validator: mongoIdStringValidator }, groupInstance: { validator: stringValidator100 }, groupPosition: { validator: nonNegNumberValidator }, hideAfterUnsubmittedInMS: { validator: numberValidator }, addenda: {
+            }, copiedFrom: { validator: mongoIdStringOptional }, copiedFromEnduserId: { validator: mongoIdStringOptional }, publicSubmit: { validator: booleanValidator }, submittedBy: { validator: stringValidator250, enduserUpdatesDisabled: true }, submittedByIsPlaceholder: { validator: booleanValidator, enduserUpdatesDisabled: true }, markedAsSubmitted: { validator: booleanValidator, enduserUpdatesDisabled: true }, viewedInLanguage: { validator: stringValidator100, enduserUpdatesDisabled: true }, accessCode: { validator: stringValidator250 }, userEmail: { validator: emailValidator, enduserUpdatesDisabled: true }, submittedAt: { validator: dateValidator, enduserUpdatesDisabled: true }, formTitle: { validator: stringValidator250, enduserUpdatesDisabled: true }, responses: { validator: formResponsesValidator }, draftSavedAt: { validator: dateValidator }, draftSavedBy: { validator: mongoIdStringValidator }, hideFromEnduserPortal: { validator: booleanValidator }, sharedVia: { validator: communicationsChannelValidator }, isInternalNote: { validator: booleanValidator, enduserUpdatesDisabled: true }, pinnedAt: { validator: dateOptionalOrEmptyStringValidator, enduserUpdatesDisabled: true }, publicIdentifier: { validator: stringValidator250 }, source: { validator: stringValidator250 }, externalId: { validator: stringValidator250 }, rootResponseId: { validator: mongoIdStringValidator }, parentResponseId: { validator: mongoIdStringValidator }, tags: { validator: listOfStringsValidatorOptionalOrEmptyOk, enduserUpdatesDisabled: true }, carePlanId: { validator: mongoIdStringValidator }, context: { validator: stringValidator1000 }, logoURL: { validator: stringValidator5000, enduserUpdatesDisabled: true }, logoHeight: { validator: numberValidator, enduserUpdatesDisabled: true }, calendarEventId: { validator: mongoIdStringValidator }, references: { validator: listOfRelatedRecordsValidator, readonly: true }, groupId: { validator: mongoIdStringValidator }, groupInstance: { validator: stringValidator100 }, groupPosition: { validator: nonNegNumberValidator }, hideAfterUnsubmittedInMS: { validator: numberValidator }, addenda: {
                 validator: listValidatorOptionalOrEmptyOk(objectValidator({
                     text: stringValidator25000EmptyOkay,
                     timestamp: dateValidator,
@@ -3476,6 +3484,7 @@ export var schema = build_schema({
                     markedAsSubmitted: { validator: booleanValidator },
                     enduserAISummary: { validator: stringValidator25000 },
                     dontSyncToElation: { validator: booleanValidator },
+                    viewedInLanguage: { validator: stringValidator100 },
                 },
                 returns: {
                     formResponse: 'form response',
@@ -5524,12 +5533,14 @@ export var schema = build_schema({
                 description: "Prepares a Stripe checkout process",
                 parameters: {
                     productIds: { validator: listOfMongoIdStringValidator, required: true },
+                    stripeKey: { validator: stringValidator250 },
                 },
                 returns: {
                     clientSecret: { validator: stringValidator, required: true },
                     customerId: { validator: stringValidator, required: true },
                     publishableKey: { validator: stringValidator, required: true },
-                    stripeAccount: { validator: stringValidator, required: true },
+                    stripeAccount: { validator: stringValidator },
+                    isCheckout: { validator: booleanValidator },
                     businessName: { validator: stringValidator, required: true },
                 },
             },
@@ -5639,7 +5650,7 @@ export var schema = build_schema({
                 examples: ['Stripe'],
             }, 
             // for timestamp of old/imported data processed before Tellescope
-            processedAt: { validator: dateOptionalOrEmptyStringValidator }, description: { validator: stringValidator5000EmptyOkay }, refundedAmount: { validator: nonNegNumberValidator }, source: { validator: stringValidatorOptional }, externalId: { validator: stringValidator }, cptCode: { validator: billingCodeValidatorOptional }, notes: { validator: stringValidator5000EmptyOkay }, stripeProductName: { validator: stringValidator5000EmptyOkay } })
+            processedAt: { validator: dateOptionalOrEmptyStringValidator }, description: { validator: stringValidator5000EmptyOkay }, refundedAmount: { validator: nonNegNumberValidator }, source: { validator: stringValidatorOptional }, externalId: { validator: stringValidator }, cptCode: { validator: billingCodeValidatorOptional }, notes: { validator: stringValidator5000EmptyOkay }, stripeProductName: { validator: stringValidator5000EmptyOkay }, couponCodes: { validator: listOfStringsValidatorOptionalOrEmptyOk } })
     },
     purchase_credits: {
         info: {},
@@ -6513,8 +6524,10 @@ export var schema = build_schema({
         constraints: { unique: [], relationship: [], access: [] },
         defaultActions: DEFAULT_OPERATIONS,
         customActions: {},
-        enduserActions: {},
-        fields: __assign(__assign({}, BuiltInFields), { type: { validator: stringValidator250, examples: ['string'] }, value: { validator: stringValidator100000OptionalEmptyOkayEscapeHTML, examples: ['string'] } }),
+        // enduser reads are reduced to records with publicRead: true (see build_enduser_filter in
+        // api database.ts) — integration configs (API keys etc.) never set the flag and stay invisible
+        enduserActions: { read: {}, readMany: {} },
+        fields: __assign(__assign({}, BuiltInFields), { type: { validator: stringValidator250, examples: ['string'] }, value: { validator: stringValidator100000OptionalEmptyOkayEscapeHTML, examples: ['string'] }, publicRead: { validator: booleanValidator } }),
     },
     time_tracks: {
         info: {},

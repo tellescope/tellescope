@@ -2173,6 +2173,10 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
     lockResponsesOnSubmission?: boolean;
     tags?: string[];
     language?: string;
+    translationConfigurations?: {
+        language: string;
+        configurationId: string;
+    }[];
     isNonVisitElationNote?: boolean;
     elationVisitNotePractitionerIds?: string[];
     elationVisitNoteType?: string;
@@ -2660,6 +2664,7 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
     enduserAISummary?: string;
     procedureCodes?: FormResponseProcedureCode[];
     diagnosisCodes?: FormResponseDiagnosisCode[];
+    viewedInLanguage?: string;
 }
 export interface WebHook_readonly extends ClientRecord {
 }
@@ -2925,6 +2930,7 @@ export interface Purchase extends Purchase_readonly, Purchase_required, Purchase
     notes?: string;
     references?: RelatedRecord[];
     stripeProductName?: string;
+    couponCodes?: string[];
 }
 type BuildPurchaseCreditInfo<T, I> = {
     type: T;
@@ -3515,6 +3521,9 @@ export type BelugaTriggerRefillAutomationAction = AutomationActionBuilder<'belug
     useOrganizationMapping?: boolean;
     customFieldName?: string;
 }>;
+export type MdiTriggerRefillAutomationAction = AutomationActionBuilder<'mdiTriggerRefill', {
+    onlySubmitWhenDue?: boolean;
+}>;
 export type SendChatAutomationAction = AutomationActionBuilder<'sendChat', {
     templateId: string;
     identifier: string;
@@ -3719,6 +3728,7 @@ export type AutomationActionForType = {
     'belugaAutoRx': BelugaAutoRxAutomationAction;
     'belugaUpdateVisit': BelugaUpdateVisitAutomationAction;
     'belugaTriggerRefill': BelugaTriggerRefillAutomationAction;
+    'mdiTriggerRefill': MdiTriggerRefillAutomationAction;
     'healthieSync': HealthieSyncAutomationAction;
     healthieAddToCourse: HealthieAddToCourseAutomationAction;
     healthieSendChat: HealthieSendChatAutomationAction;
@@ -4897,6 +4907,7 @@ export type AutomationTriggerEvents = {
         titles?: string[];
         productIds?: string[];
         titlePartialMatches?: string[];
+        couponCodes?: string[];
     }, {}>;
     'Refund Issued': AutomationTriggerEventBuilder<"Refund Issued", {}, {}>;
     'Subscription Ended': AutomationTriggerEventBuilder<"Subscription Ended", {
@@ -5447,6 +5458,7 @@ export interface Configuration_required {
     value: string;
 }
 export interface Configuration extends Configuration_readonly, Configuration_required, Configuration_updatesDisabled {
+    publicRead?: boolean;
 }
 export type TimeTrackTimestamp = {
     type: 'start' | 'pause' | 'resume';

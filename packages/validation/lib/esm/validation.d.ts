@@ -1720,6 +1720,7 @@ export declare const automationTriggerEventValidator: ValidatorDefinition<import
     titles?: string[] | undefined;
     productIds?: string[] | undefined;
     titlePartialMatches?: string[] | undefined;
+    couponCodes?: string[] | undefined;
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Refund Issued", {}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Subscription Ended", {
     productIds?: string[] | undefined;
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Subscription Payment Failed", {

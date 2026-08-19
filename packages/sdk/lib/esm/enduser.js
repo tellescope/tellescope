@@ -117,6 +117,7 @@ var loadDefaultQueries = function (s) { return ({
     allergy_codes: defaultQueries(s, 'allergy_codes'),
     forms: defaultQueries(s, 'forms'),
     enduser_eligibility_results: defaultQueries(s, 'enduser_eligibility_results'),
+    configurations: defaultQueries(s, 'configurations'), // reads reduced to publicRead: true records (form translation maps)
 }); };
 var EnduserSession = /** @class */ (function (_super) {
     __extends(EnduserSession, _super);

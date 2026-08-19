@@ -59,7 +59,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.useConditionalChoices = exports.useTellescopeForm = exports.isDateString = exports.useOrganizationTheme = exports.WithOrganizationTheme = exports.useFieldsForForm = exports.useLoadTreeForFormFields = exports.useListForFormFields = exports.getNextField = exports.useTreeForFormFields = exports.useGraphForFormFields = exports.COMPOUND_LOGIC_LABEL_SENTINEL = exports.default_label_for_compound_logic = exports.loopDetected = exports.useNodeInTree = exports.useFlattenedTree = exports.dateFromOffsetMs = void 0;
+exports.useConditionalChoices = exports.useTellescopeForm = exports.isDateString = exports.useOrganizationTheme = exports.WithOrganizationTheme = exports.useFieldsForForm = exports.useLoadTreeForFormFields = exports.useListForFormFields = exports.getNextField = exports.useTreeForFormFields = exports.useGraphForFormFields = exports.COMPOUND_LOGIC_LABEL_SENTINEL = exports.default_label_for_compound_logic = exports.loopDetected = exports.useNodeInTree = exports.useFlattenedTree = exports.dateFromOffsetMs = exports.useFormDisplayLanguage = exports.language_code_for_legacy_form_language = void 0;
 var jsx_runtime_1 = require("react/jsx-runtime");
 var react_1 = require("react");
 var validation_1 = require("@tellescope/validation");
@@ -68,6 +68,69 @@ var index_1 = require("../index");
 var react_ga4_1 = __importDefault(require("react-ga4"));
 var isEmail_1 = __importDefault(require("validator/lib/isEmail"));
 var utilities_1 = require("@tellescope/utilities");
+// Bridges legacy form-language display names ('English', 'Spanish', 'Español') and raw codes to a
+// TranslationLanguageCode, defaulting to English
+var language_code_for_legacy_form_language = function (value) {
+    var _a, _b;
+    if (!value)
+        return 'en';
+    if (value === 'Español' || value === 'Spanish')
+        return 'es';
+    if (utilities_1.TRANSLATION_LANGUAGES.some(function (l) { return l.code === value; }))
+        return value;
+    return (_b = (_a = utilities_1.TRANSLATION_LANGUAGES.find(function (l) { return l.label.toLowerCase() === value.trim().toLowerCase(); })) === null || _a === void 0 ? void 0 : _a.code) !== null && _b !== void 0 ? _b : 'en';
+};
+exports.language_code_for_legacy_form_language = language_code_for_legacy_form_language;
+// Drives the AI form-translation display language for a form-filling page. Lazily loads the
+// translation map for the selected language via the injected fetchTranslations (each surface provides
+// its own transport: configurations.getOne for authenticated pages, public_form_details for the
+// unauthenticated intake page). The returned formForDisplay carries `dynamicTranslations`, which
+// form_display_text_for_language resolves at RENDER TIME ONLY — stored response values, conditional
+// logic, and templatedResponses always operate on the original English strings.
+var useFormDisplayLanguage = function (_a) {
+    var form = _a.form, initialLanguage = _a.initialLanguage, fetchTranslations = _a.fetchTranslations;
+    var _b = (0, react_1.useState)((0, exports.language_code_for_legacy_form_language)(initialLanguage !== null && initialLanguage !== void 0 ? initialLanguage : form === null || form === void 0 ? void 0 : form.language)), languageCode = _b[0], setLanguageCode = _b[1];
+    var _c = (0, react_1.useState)({}), maps = _c[0], setMaps = _c[1];
+    var translationConfigurations = (0, react_1.useMemo)(function () { var _a; return (_a = form === null || form === void 0 ? void 0 : form.translationConfigurations) !== null && _a !== void 0 ? _a : []; }, [form === null || form === void 0 ? void 0 : form.translationConfigurations]);
+    var languageOptions = (0, react_1.useMemo)(function () {
+        var options = [{ code: 'en', label: 'English' }];
+        var _loop_1 = function (language) {
+            if (language === 'en' || options.some(function (o) { return o.code === language; }))
+                return "continue";
+            options.push({ code: language, label: language === 'es' ? 'Español' : (0, utilities_1.languageLabelForCode)(language) });
+        };
+        for (var _i = 0, translationConfigurations_1 = translationConfigurations; _i < translationConfigurations_1.length; _i++) {
+            var language = translationConfigurations_1[_i].language;
+            _loop_1(language);
+        }
+        // preserve the legacy chrome-only Spanish option when the form shows a selector without a configured map
+        if ((form === null || form === void 0 ? void 0 : form.publicShowLanguage) && !options.some(function (o) { return o.code === 'es'; })) {
+            options.push({ code: 'es', label: 'Español' });
+        }
+        return options;
+    }, [form === null || form === void 0 ? void 0 : form.publicShowLanguage, translationConfigurations]);
+    (0, react_1.useEffect)(function () {
+        var _a;
+        if (languageCode === 'en' || maps[languageCode])
+            return;
+        var configurationId = (_a = translationConfigurations.find(function (t) { return t.language === languageCode; })) === null || _a === void 0 ? void 0 : _a.configurationId;
+        if (!configurationId || !fetchTranslations)
+            return;
+        fetchTranslations(configurationId, languageCode)
+            .then(function (map) { return setMaps(function (ms) {
+            var _a;
+            return (__assign(__assign({}, ms), (_a = {}, _a[languageCode] = map, _a)));
+        }); })
+            .catch(console.error); // missing/unreadable map falls back to English gracefully
+    }, [languageCode, maps, translationConfigurations, fetchTranslations]);
+    // pass as the `form` prop so every form_display_text_for_language call site resolves translations
+    var formForDisplay = (0, react_1.useMemo)(function () {
+        var _a, _b;
+        return (form && __assign(__assign({}, form), { language: (_b = (_a = languageOptions.find(function (o) { return o.code === languageCode; })) === null || _a === void 0 ? void 0 : _a.label) !== null && _b !== void 0 ? _b : languageCode, dynamicTranslations: languageCode === 'en' ? undefined : maps[languageCode] }));
+    }, [form, languageCode, maps, languageOptions]);
+    return { languageCode: languageCode, setLanguageCode: setLanguageCode, formForDisplay: formForDisplay, languageOptions: languageOptions };
+};
+exports.useFormDisplayLanguage = useFormDisplayLanguage;
 var dateFromOffsetMs = function (offsetMs) {
     var d = new Date();
     d.setHours(0, 0, 0, 0);
@@ -83,7 +146,7 @@ var useFlattenedTree = function (root) {
         if (!node)
             break;
         flat.push(node.value);
-        var _loop_1 = function (child) {
+        var _loop_2 = function (child) {
             // continue DFS with unprocessed children
             if (flat.find(function (e) { return e.id === child.value.id; }))
                 return "continue";
@@ -91,7 +154,7 @@ var useFlattenedTree = function (root) {
         };
         for (var _i = 0, _b = (_a = node.children) !== null && _a !== void 0 ? _a : []; _i < _b.length; _i++) {
             var child = _b[_i];
-            _loop_1(child);
+            _loop_2(child);
         }
     }
     return flat;
@@ -124,7 +187,7 @@ var loopDetected = function (edges, startId, endId) {
     var startEdge = edges.find(function (e) { return e.source === startId && e.target === endId; });
     var processed = [];
     var processing = [startEdge];
-    var _loop_2 = function () {
+    var _loop_3 = function () {
         var edge = processing.pop();
         if (!edge)
             return "break";
@@ -140,7 +203,7 @@ var loopDetected = function (edges, startId, endId) {
         }
     };
     while (processing.length) {
-        var state_1 = _loop_2();
+        var state_1 = _loop_3();
         if (typeof state_1 === "object")
             return state_1.value;
         if (state_1 === "break")
@@ -235,7 +298,7 @@ var useTreeForFormFields = function (_fields) {
             children: [],
         };
     }
-    var _loop_3 = function (parentId) {
+    var _loop_4 = function (parentId) {
         var parent_2 = nodesForId[parentId];
         for (var childId in nodesForId) {
             if (childId === parentId)
@@ -247,7 +310,7 @@ var useTreeForFormFields = function (_fields) {
         }
     };
     for (var parentId in nodesForId) {
-        _loop_3(parentId);
+        _loop_4(parentId);
     }
     // find and return root
     return nodesForId[(_c = (_b = fields.find(function (s) { var _a; return ((_a = s.previousFields) !== null && _a !== void 0 ? _a : []).find(function (p) { return p.type === 'root'; }); })) === null || _b === void 0 ? void 0 : _b.id) !== null && _c !== void 0 ? _c : ''];
@@ -302,7 +365,7 @@ var useListForFormFields = function (fields, responses, options) {
     if (!root)
         return [];
     list.push(root);
-    var _loop_4 = function () {
+    var _loop_5 = function () {
         var lastField = list[list.length - 1];
         if (!lastField)
             return "break";
@@ -324,7 +387,7 @@ var useListForFormFields = function (fields, responses, options) {
         list.push(nextField.value);
     };
     while (true) {
-        var state_2 = _loop_4();
+        var state_2 = _loop_5();
         if (state_2 === "break")
             break;
     }
@@ -490,7 +553,7 @@ var shouldCallout = function (field, value) {
     try {
         if (!((_a = field.calloutConditions) === null || _a === void 0 ? void 0 : _a.length))
             return false;
-        var _loop_5 = function (condition) {
+        var _loop_6 = function (condition) {
             if (Array.isArray(value) && value.find(function (v) { return v === condition.value; })) {
                 return { value: true };
             }
@@ -500,7 +563,7 @@ var shouldCallout = function (field, value) {
         };
         for (var _i = 0, _b = field.calloutConditions; _i < _b.length; _i++) {
             var condition = _b[_i];
-            var state_3 = _loop_5(condition);
+            var state_3 = _loop_6(condition);
             if (typeof state_3 === "object")
                 return state_3.value;
         }
@@ -510,7 +573,7 @@ var shouldCallout = function (field, value) {
 };
 var useTellescopeForm = function (_a) {
     var _b, _c, _d, _e;
-    var dontAutoadvance = _a.dontAutoadvance, isPublicForm = _a.isPublicForm, form = _a.form, urlLogicValue = _a.urlLogicValue, customization = _a.customization, carePlanId = _a.carePlanId, calendarEventId = _a.calendarEventId, context = _a.context, ga4measurementId = _a.ga4measurementId, rootResponseId = _a.rootResponseId, parentResponseId = _a.parentResponseId, accessCode = _a.accessCode, existingResponses = _a.existingResponses, automationStepId = _a.automationStepId, enduserId = _a.enduserId, formResponseId = _a.formResponseId, fields = _a.fields, isInternalNote = _a.isInternalNote, formTitle = _a.formTitle, submitRedirectURL = _a.submitRedirectURL, enduser = _a.enduser, groupId = _a.groupId, groupInstance = _a.groupInstance, groupPosition = _a.groupPosition, startingFieldId = _a.startingFieldId, getEnduserAISummary = _a.getEnduserAISummary;
+    var dontAutoadvance = _a.dontAutoadvance, isPublicForm = _a.isPublicForm, form = _a.form, urlLogicValue = _a.urlLogicValue, customization = _a.customization, carePlanId = _a.carePlanId, calendarEventId = _a.calendarEventId, context = _a.context, ga4measurementId = _a.ga4measurementId, rootResponseId = _a.rootResponseId, parentResponseId = _a.parentResponseId, accessCode = _a.accessCode, existingResponses = _a.existingResponses, automationStepId = _a.automationStepId, enduserId = _a.enduserId, formResponseId = _a.formResponseId, fields = _a.fields, isInternalNote = _a.isInternalNote, formTitle = _a.formTitle, submitRedirectURL = _a.submitRedirectURL, enduser = _a.enduser, groupId = _a.groupId, groupInstance = _a.groupInstance, groupPosition = _a.groupPosition, startingFieldId = _a.startingFieldId, getEnduserAISummary = _a.getEnduserAISummary, viewedInLanguage = _a.viewedInLanguage, dynamicTranslations = _a.dynamicTranslations;
     var _g = (0, utilities_1.get_time_values)(new Date()), amPm = _g.amPm, hoursAmPm = _g.hoursAmPm, minutes = _g.minutes;
     var root = (0, exports.useTreeForFormFields)(fields);
     if (!root) {
@@ -691,19 +754,28 @@ var useTellescopeForm = function (_a) {
     // This applies template value replacements (e.g., {{enduser.BMI}}) to field titles/descriptions
     // The templated responses are used ONLY for display and submission, not for navigation logic
     var templatedResponses = (0, react_1.useMemo)(function () {
+        // Display translation must run BEFORE template replacement: the map is keyed by the raw English
+        // source (with {{...}} placeholders intact — the translation prompt preserves them byte-for-byte),
+        // so once values are spliced in the key no longer matches.
+        var translateDisplay = function (text) { return (dynamicTranslations === null || dynamicTranslations === void 0 ? void 0 : dynamicTranslations[text]) || text; };
         return responses.map(function (response) {
             var originalField = fields.find(function (f) { return f.id === response.fieldId; }) || response.field;
-            return __assign(__assign({}, response), { fieldTitle: (0, utilities_1.replace_form_field_template_values)(originalField.title || '', { enduser: enduser, responses: responses }), fieldDescription: (0, utilities_1.replace_form_field_template_values)(originalField.description || '', { enduser: enduser, responses: responses }), 
+            return __assign(__assign({}, response), { 
+                // The top-level fieldTitle/fieldDescription/fieldHtmlDescription snapshots are persisted with
+                // the submission and must remain the (templated) ENGLISH source — never translated.
+                fieldTitle: (0, utilities_1.replace_form_field_template_values)(originalField.title || '', { enduser: enduser, responses: responses }), fieldDescription: (0, utilities_1.replace_form_field_template_values)(originalField.description || '', { enduser: enduser, responses: responses }), 
                 // No escapeHTMLValues here: this value is persisted with the submission and is only ever
                 // read back by sanitize_user_html (staff + portal submitted-response views), which strips
                 // iframes, so patient-supplied markup cannot become a frame.
-                fieldHtmlDescription: (0, utilities_1.replace_form_field_template_values)(originalField.htmlDescription || '', { enduser: enduser, responses: responses, escapeNewlinesAsHTMLBreaks: true }), field: __assign(__assign({}, response.field), { title: (0, utilities_1.replace_form_field_template_values)(originalField.title || '', { enduser: enduser, responses: responses }), description: (0, utilities_1.replace_form_field_template_values)(originalField.description || '', { enduser: enduser, responses: responses }), 
+                fieldHtmlDescription: (0, utilities_1.replace_form_field_template_values)(originalField.htmlDescription || '', { enduser: enduser, responses: responses, escapeNewlinesAsHTMLBreaks: true }), 
+                // the nested field copy is what the live form renders — display-only, so translation is safe here
+                field: __assign(__assign({}, response.field), { title: (0, utilities_1.replace_form_field_template_values)(translateDisplay(originalField.title || ''), { enduser: enduser, responses: responses }), description: (0, utilities_1.replace_form_field_template_values)(translateDisplay(originalField.description || ''), { enduser: enduser, responses: responses }), 
                     // escapeHTMLValues is required here: this is what the live form renders via
                     // sanitize_user_html_with_iframes, so an unescaped patient answer spliced in from
                     // {{enduser.*}} could otherwise inject an iframe into an admin-authored description.
-                    htmlDescription: (0, utilities_1.replace_form_field_template_values)(originalField.htmlDescription || '', { enduser: enduser, responses: responses, escapeNewlinesAsHTMLBreaks: true, escapeHTMLValues: true }) }) });
+                    htmlDescription: (0, utilities_1.replace_form_field_template_values)(translateDisplay(originalField.htmlDescription || ''), { enduser: enduser, responses: responses, escapeNewlinesAsHTMLBreaks: true, escapeHTMLValues: true }) }) });
         });
-    }, [responses, fields, enduser]);
+    }, [responses, fields, enduser, dynamicTranslations]);
     // placeholders for initial files, reset when fields prop changes, since questions are now different (e.g. different form selected) 
     var fileInitRef = (0, react_1.useRef)('');
     var initializeFiles = (0, react_1.useCallback)(function () { return (fields.map(function (f) { return ({
@@ -737,7 +809,7 @@ var useTellescopeForm = function (_a) {
         var r = activeResponses_1[_i];
         if (((_b = r === null || r === void 0 ? void 0 : r.answer) === null || _b === void 0 ? void 0 : _b.type) !== 'Question Group')
             continue;
-        var _loop_6 = function (f) {
+        var _loop_7 = function (f) {
             var match = templatedResponses.find(function (tr) { return tr.fieldId === (f === null || f === void 0 ? void 0 : f.id); });
             if (!match || activeResponses.find(function (ar) { return ar.fieldId === match.fieldId; }))
                 return "continue";
@@ -745,7 +817,7 @@ var useTellescopeForm = function (_a) {
         };
         for (var _x = 0, _y = ((_c = r.answer.value) !== null && _c !== void 0 ? _c : []); _x < _y.length; _x++) {
             var f = _y[_x];
-            _loop_6(f);
+            _loop_7(f);
         }
     }
     var logicOptions = {
@@ -1186,7 +1258,7 @@ var useTellescopeForm = function (_a) {
         if (!value)
             return "Value is missing";
         if (value.answer.type === 'Question Group') {
-            var _loop_7 = function (f) {
+            var _loop_8 = function (f) {
                 var match = fields.find(function (_f) { return _f.id === f.id; });
                 if (!match)
                     return "continue";
@@ -1196,7 +1268,7 @@ var useTellescopeForm = function (_a) {
             };
             for (var _i = 0, _k = (_b = (_a = field.options) === null || _a === void 0 ? void 0 : _a.subFields) !== null && _b !== void 0 ? _b : []; _i < _k.length; _i++) {
                 var f = _k[_i];
-                var state_4 = _loop_7(f);
+                var state_4 = _loop_8(f);
                 if (typeof state_4 === "object")
                     return state_4.value;
             }
@@ -1207,7 +1279,7 @@ var useTellescopeForm = function (_a) {
         if (value.answer.type === 'Table Input') {
             for (var _l = 0, _m = (_c = value.answer.value) !== null && _c !== void 0 ? _c : []; _l < _m.length; _l++) {
                 var row = _m[_l];
-                var _loop_8 = function (cell) {
+                var _loop_9 = function (cell) {
                     var type = (_g = (_e = (_d = field.options) === null || _d === void 0 ? void 0 : _d.tableChoices) === null || _e === void 0 ? void 0 : _e.find(function (t) { return t.label === cell.label; })) === null || _g === void 0 ? void 0 : _g.type;
                     if (type === 'Date' && !(0, validation_1.is_valid_mm_dd_yyyy)(cell.entry)) {
                         return { value: "Enter a date in MM-DD-YYYY format for ".concat(cell.label, " in row ").concat(((_j = (_h = value.answer.value) === null || _h === void 0 ? void 0 : _h.indexOf(row)) !== null && _j !== void 0 ? _j : 0) + 1) };
@@ -1215,7 +1287,7 @@ var useTellescopeForm = function (_a) {
                 };
                 for (var _o = 0, row_2 = row; _o < row_2.length; _o++) {
                     var cell = row_2[_o];
-                    var state_5 = _loop_8(cell);
+                    var state_5 = _loop_9(cell);
                     if (typeof state_5 === "object")
                         return state_5.value;
                 }
@@ -1242,7 +1314,7 @@ var useTellescopeForm = function (_a) {
             var r = responsesToSubmit_1[_i];
             if (((_a = r === null || r === void 0 ? void 0 : r.answer) === null || _a === void 0 ? void 0 : _a.type) !== 'Question Group')
                 continue;
-            var _loop_9 = function (f) {
+            var _loop_10 = function (f) {
                 var match = responses.find(function (r) { return r.fieldId === (f === null || f === void 0 ? void 0 : f.id); });
                 if (!match || responsesToSubmit.find(function (r) { return r.fieldId === match.fieldId; }))
                     return "continue";
@@ -1250,7 +1322,7 @@ var useTellescopeForm = function (_a) {
             };
             for (var _c = 0, _d = (_b = r.answer.value) !== null && _b !== void 0 ? _b : []; _c < _d.length; _c++) {
                 var f = _d[_c];
-                _loop_9(f);
+                _loop_10(f);
             }
         }
         return responsesToSubmit;
@@ -1287,7 +1359,7 @@ var useTellescopeForm = function (_a) {
         });
     }); }, [responses, handleUpload, fields]);
     var submit = (0, react_1.useCallback)(function (options) { return __awaiter(void 0, void 0, void 0, function () {
-        var hasFile, _loop_10, _i, selectedFiles_1, blobInfo, err_1, responsesToSubmit_3, _a, responsesToSubmit_2, r, _loop_11, _b, _c, f, errors, _d, _e, eId, _g, formResponse, nextFormGroupPublicURL, redirectTo, _h, _j, _k, err_2, url, err_3;
+        var hasFile, _loop_11, _i, selectedFiles_1, blobInfo, err_1, responsesToSubmit_3, _a, responsesToSubmit_2, r, _loop_12, _b, _c, f, errors, _d, _e, eId, _g, formResponse, nextFormGroupPublicURL, redirectTo, _h, _j, _k, err_2, url, err_3;
         var _l;
         var _m, _o, _p, _q, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5;
         return __generator(this, function (_6) {
@@ -1300,7 +1372,7 @@ var useTellescopeForm = function (_a) {
                     _6.label = 1;
                 case 1:
                     _6.trys.push([1, 6, 7, 8]);
-                    _loop_10 = function (blobInfo) {
+                    _loop_11 = function (blobInfo) {
                         var blobs, fieldId, responseIndex, response, _7, blobs_1, blob;
                         return __generator(this, function (_8) {
                             switch (_8.label) {
@@ -1334,7 +1406,7 @@ var useTellescopeForm = function (_a) {
                 case 2:
                     if (!(_i < selectedFiles_1.length)) return [3 /*break*/, 5];
                     blobInfo = selectedFiles_1[_i];
-                    return [5 /*yield**/, _loop_10(blobInfo)];
+                    return [5 /*yield**/, _loop_11(blobInfo)];
                 case 3:
                     _6.sent();
                     _6.label = 4;
@@ -1368,7 +1440,7 @@ var useTellescopeForm = function (_a) {
                         r = responsesToSubmit_2[_a];
                         if (r.answer.type !== 'Question Group')
                             continue;
-                        _loop_11 = function (f) {
+                        _loop_12 = function (f) {
                             var match = templatedResponses.find(function (r) { return r.fieldId === (f === null || f === void 0 ? void 0 : f.id); });
                             if (!match || responsesToSubmit_3.find(function (r) { return r.fieldId === match.fieldId; }))
                                 return "continue";
@@ -1380,7 +1452,7 @@ var useTellescopeForm = function (_a) {
                         };
                         for (_b = 0, _c = (_t = r.answer.value) !== null && _t !== void 0 ? _t : []; _b < _c.length; _b++) {
                             f = _c[_b];
-                            _loop_11(f);
+                            _loop_12(f);
                         }
                     }
                     errors = [];
@@ -1414,15 +1486,15 @@ var useTellescopeForm = function (_a) {
                 case 12:
                     _k = (_6.sent()).accessCode;
                     _6.label = 13;
-                case 13: return [4 /*yield*/, _j.apply(_h, [__assign.apply(void 0, [(_l.accessCode = (_k), _l.responses = __spreadArray(__spreadArray([], responsesToSubmit_3, true), (existingResponses !== null && existingResponses !== void 0 ? existingResponses : []).filter(function (r) {
-                                return !responsesToSubmit_3.find(function (_r) { return r.fieldId === _r.fieldId; })
-                                    // but don't include responses which were populated from a patient field and not a prior response
-                                    // if these are edited, they would be included in responsesToSubmit
-                                    && !r.isPrepopulatedFromEnduserField;
-                            })
-                            // initializeFields leverages filter_stale_choices to strip answers whose options are no longer visible in multiple choice type questions
-                            // existingResponses may still carry stale values for fields the user didn't interact with this session, but preserving them as-is avoids unexpected data loss
-                            , true), _l.automationStepId = automationStepId, _l.customerId = customerId, _l.productIds = responsesToSubmit_3.flatMap(function (r) { var _a, _b, _c; return (_c = (_b = (_a = r.field) === null || _a === void 0 ? void 0 : _a.options) === null || _b === void 0 ? void 0 : _b.productIds) !== null && _c !== void 0 ? _c : []; }), _l.utm = (0, utilities_1.get_utm_params)(), _l), (getEnduserAISummary && eId === enduserId ? { enduserAISummary: getEnduserAISummary() } : {})])])
+                case 13: return [4 /*yield*/, _j.apply(_h, [__assign.apply(void 0, [__assign.apply(void 0, [(_l.accessCode = (_k), _l.responses = __spreadArray(__spreadArray([], responsesToSubmit_3, true), (existingResponses !== null && existingResponses !== void 0 ? existingResponses : []).filter(function (r) {
+                                    return !responsesToSubmit_3.find(function (_r) { return r.fieldId === _r.fieldId; })
+                                        // but don't include responses which were populated from a patient field and not a prior response
+                                        // if these are edited, they would be included in responsesToSubmit
+                                        && !r.isPrepopulatedFromEnduserField;
+                                })
+                                // initializeFields leverages filter_stale_choices to strip answers whose options are no longer visible in multiple choice type questions
+                                // existingResponses may still carry stale values for fields the user didn't interact with this session, but preserving them as-is avoids unexpected data loss
+                                , true), _l.automationStepId = automationStepId, _l.customerId = customerId, _l.productIds = responsesToSubmit_3.flatMap(function (r) { var _a, _b, _c; return (_c = (_b = (_a = r.field) === null || _a === void 0 ? void 0 : _a.options) === null || _b === void 0 ? void 0 : _b.productIds) !== null && _c !== void 0 ? _c : []; }), _l.utm = (0, utilities_1.get_utm_params)(), _l), (getEnduserAISummary && eId === enduserId ? { enduserAISummary: getEnduserAISummary() } : {})]), (viewedInLanguage && viewedInLanguage !== 'en' ? { viewedInLanguage: viewedInLanguage } : {})])])
                     // do actual redirect later to prevent popup
                 ];
                 case 14:
@@ -1503,7 +1575,7 @@ var useTellescopeForm = function (_a) {
                 case 20: return [2 /*return*/];
             }
         });
-    }); }, [accessCode, automationStepId, enduserId, responses, templatedResponses, selectedFiles, session, handleUpload, existingResponses, ga4measurementId, rootResponseId, parentResponseId, calendarEventId, goBackURL, logicOptions, handleFileUpload]);
+    }); }, [accessCode, automationStepId, enduserId, responses, templatedResponses, selectedFiles, session, handleUpload, existingResponses, ga4measurementId, rootResponseId, parentResponseId, calendarEventId, goBackURL, logicOptions, handleFileUpload, viewedInLanguage]);
     var isNextDisabled = (0, react_1.useCallback)(function () {
         if (uploadingFiles.length) {
             return true;

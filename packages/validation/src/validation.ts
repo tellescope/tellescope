@@ -360,6 +360,7 @@ import {
   BelugaUpdateVisitAutomationAction,
   BelugaUpdateVisitPatientPreferenceItem,
   BelugaTriggerRefillAutomationAction,
+  MdiTriggerRefillAutomationAction,
   BelugaTriggerRefillPatientPreferenceItem,
   OnAIDecisionAutomationEvent,
   OnAIConversationOutcomeAutomationEvent,
@@ -2696,6 +2697,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   belugaAutoRx: '',
   belugaUpdateVisit: '',
   belugaTriggerRefill: '',
+  mdiTriggerRefill: '',
   healthieSync: '',
   healthieAddToCourse: '',
   healthieSendChat: '',
@@ -3500,6 +3502,13 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       })),
       useOrganizationMapping: booleanValidatorOptional,
       customFieldName: stringValidatorOptional,
+    }),
+  }),
+  mdiTriggerRefill: objectValidator<MdiTriggerRefillAutomationAction>({
+    ...sharedAutomationActionValidators,
+    type: exactMatchValidator(['mdiTriggerRefill']),
+    info: objectValidator<MdiTriggerRefillAutomationAction['info']>({
+      onlySubmitWhenDue: booleanValidatorOptional,
     }),
   }),
   sendChat: objectValidator<SendChatAutomationAction>({
@@ -5161,6 +5170,7 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
       titles: listOfStringsValidatorOptionalOrEmptyOk,
       productIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
       titlePartialMatches: listOfStringsValidatorOptionalOrEmptyOk,
+      couponCodes: listOfStringsValidatorOptionalOrEmptyOk,
     }),
     conditions: optionalEmptyObjectValidator,
   }), 

@@ -23,6 +23,7 @@ export const TellescopeFormContainer = ({ businessId, organizationIds, ...props 
   logoAlignment?: 'left' | 'center' | 'right', // V1 ignores this (logo is already centered); declared so the shared FormContainer union type accepts it
   language?: string,
   onChangeLanguage?: (l: string) => void,
+  languageOptions?: { code: string, label: string }[], // V1 ignores this (AI form translations are v2-only); declared so the shared FormContainer union type accepts it
   paperMinHeight?: React.CSSProperties['minHeight'],
   maxWidth?: number,
 } & Styled) => {
@@ -104,6 +105,10 @@ export interface TellescopeFormProps extends ReturnType<typeof useTellescopeForm
   groupId?: string,
   groupInstance?: string,
   logoHeight?: number,
+  // V1 ignores these (AI form translations are v2-only); declared so the shared FormComponent union type accepts them
+  language?: string,
+  onChangeLanguage?: (l: string) => void,
+  languageOptions?: { code: string, label: string }[],
 }
 
 const LOGO_HEIGHT = 40

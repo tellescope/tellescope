@@ -4,9 +4,13 @@ import { FormInputProps } from "./types";
 import { Enduser, FormResponseAnswerFileValue, FormResponseValue } from "@tellescope/types-models";
 import { FileBlob, Styled } from "..";
 import { FormField } from "@tellescope/types-client";
-export declare const LanguageSelect: ({ value, ...props }: {
+export declare const LanguageSelect: ({ value, options, ...props }: {
     value: string;
     onChange: (s: string) => void;
+    options?: {
+        code: string;
+        label: string;
+    }[] | undefined;
 }) => JSX.Element;
 export declare const defaultInputProps: {
     sx: SxProps;
@@ -58,7 +62,7 @@ export declare const Progress: ({ numerator, denominator, style, color }: {
     denominator: number;
     color?: string | undefined;
 } & Styled) => JSX.Element;
-export declare const DropdownInput: ({ field, value, onChange }: FormInputProps<'Dropdown'>) => JSX.Element;
+export declare const DropdownInput: ({ field, value, onChange, form }: FormInputProps<'Dropdown'>) => JSX.Element;
 import { AddToDatabaseProps as AddToDatabasePropsImported } from './inputs';
 export type AddToDatabaseProps = AddToDatabasePropsImported;
 export declare const DatabaseSelectInput: (props: FormInputProps<'Database Select'> & {

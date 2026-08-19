@@ -19,6 +19,10 @@ export declare const TellescopeFormContainerV2: ({ businessId, organizationIds, 
     logoAlignment?: "center" | "left" | "right" | undefined;
     language?: string | undefined;
     onChangeLanguage?: ((l: string) => void) | undefined;
+    languageOptions?: {
+        code: string;
+        label: string;
+    }[] | undefined;
     paperMinHeight?: React.CSSProperties['minHeight'];
     maxWidth?: number | undefined;
 } & Styled) => JSX.Element;
@@ -41,6 +45,12 @@ export interface TellescopeFormProps extends ReturnType<typeof useTellescopeForm
     groupId?: string;
     groupInstance?: string;
     logoHeight?: number;
+    language?: string;
+    onChangeLanguage?: (l: string) => void;
+    languageOptions?: {
+        code: string;
+        label: string;
+    }[];
 }
 export declare const TellescopeFormV2: (props: TellescopeFormProps & Styled & {
     hideBg?: boolean;
@@ -78,11 +88,15 @@ export declare const QuestionForField: ({ form, value, field, file, responses, s
 } & Pick<TellescopeFormProps, "enduserId" | "enduser" | "formResponseId" | "fields" | "rootResponseId" | "groupId" | "groupInstance" | "responses" | "submit" | "selectedFiles" | "goToPreviousField" | "goToNextField" | "isPreviousDisabled" | "lastNavigationDirectionRef" | "handleDatabaseSelect" | "onAddFile" | "onFieldChange" | "customInputs" | "validateField">) => JSX.Element | null;
 export declare const TellescopeSingleQuestionFlowV2: typeof TellescopeFormV2;
 export declare const DEFAULT_THANKS_MESSAGE = "Your response was successfully recorded";
-export declare const ThanksMessage: ({ thanksMessage, htmlThanksMessage, showRestartAtEnd, downloadComponent, }: {
+export declare const ThanksMessage: ({ thanksMessage, htmlThanksMessage, showRestartAtEnd, downloadComponent, form, }: {
     thanksMessage?: string | undefined;
     htmlThanksMessage?: string | undefined;
     showRestartAtEnd?: boolean | undefined;
     downloadComponent?: React.ReactNode;
+    form?: (import("@tellescope/types-models").Form & {
+        id: string;
+        createdAt: Date;
+    }) | undefined;
 }) => JSX.Element;
 export declare const SaveDraft: ({ selectedFiles, enduserId, responses, existingResponses, fields, onSuccess, formResponseId, includedFieldIds, formId, style, disabled, getResponsesWithQuestionGroupAnswers, isInternalNote, formTitle, rootResponseId, parentResponseId, }: Styled & Pick<TellescopeFormProps, "enduserId" | "onSuccess" | "fields" | "responses" | "existingResponses" | "selectedFiles" | "getResponsesWithQuestionGroupAnswers"> & {
     disabled?: boolean | undefined;
@@ -100,8 +114,12 @@ export declare const UpdateResponse: ({ selectedFiles, enduserId, responses, onS
     formId: string;
     includedFieldIds: string[];
 }) => JSX.Element;
-export declare const Description: ({ field, color, style }: {
+export declare const Description: ({ field, form, color, style }: {
     field: FormField;
+    form?: (import("@tellescope/types-models").Form & {
+        id: string;
+        createdAt: Date;
+    }) | undefined;
     color?: string | undefined;
 } & Styled) => JSX.Element | null;
 export declare const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFormProps & Styled & {

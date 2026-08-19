@@ -23,6 +23,7 @@ export const TellescopeFormContainerV2 = ({ businessId, organizationIds, ...prop
   logoAlignment?: 'left' | 'center' | 'right',
   language?: string,
   onChangeLanguage?: (l: string) => void,
+  languageOptions?: { code: string, label: string }[], // code-based selector for AI form translations; omitted = legacy English/Español
   paperMinHeight?: React.CSSProperties['minHeight'],
   maxWidth?: number,
 } & Styled) => {
@@ -38,7 +39,7 @@ export const TellescopeFormContainerV2 = ({ businessId, organizationIds, ...prop
   )
 }
 
-const TellescopeFormContainerWithThemeV2: typeof TellescopeFormContainerV2 = ({ paperMinHeight=575, children, language, onChangeLanguage, style, hideBg, backgroundColor, hideLogo, showLogo, logoURL, logoHeight, logoAlignment, maxWidth }) => {
+const TellescopeFormContainerWithThemeV2: typeof TellescopeFormContainerV2 = ({ paperMinHeight=575, children, language, onChangeLanguage, languageOptions, style, hideBg, backgroundColor, hideLogo, showLogo, logoURL, logoHeight, logoAlignment, maxWidth }) => {
   const theme = useOrganizationTheme()
 
   // V2: No paper background by default, cleaner layout with light blue background
@@ -69,8 +70,8 @@ const TellescopeFormContainerWithThemeV2: typeof TellescopeFormContainerV2 = ({ 
         } : {})
       }}>
         {language && onChangeLanguage &&
-          <Flex style={{ marginTop: 22 }}>
-            <LanguageSelect value={language} onChange={onChangeLanguage} />
+          <Flex style={{ marginTop: 22, marginBottom: 20 }}>
+            <LanguageSelect value={language} onChange={onChangeLanguage} options={languageOptions} />
           </Flex>
         }
         {showLogo && !hideLogo && (
@@ -113,6 +114,10 @@ export interface TellescopeFormProps extends ReturnType<typeof useTellescopeForm
   groupId?: string,
   groupInstance?: string,
   logoHeight?: number,
+  // language selector on the question page (AI form translations); value is a TranslationLanguageCode
+  language?: string,
+  onChangeLanguage?: (l: string) => void,
+  languageOptions?: { code: string, label: string }[],
 }
 
 const LOGO_HEIGHT = 40
@@ -240,7 +245,7 @@ export const QuestionForField = ({
           fontSize: field.titleFontSize || (field.type === 'Question Group' ? 22 : 20),
           fontWeight: field.type === 'Question Group' ? 'bold' : undefined,
         }}>
-          {field.title}{!(field.isOptional || field.type === 'description' || field.type === 'Question Group' || field.type === 'Insurance' || field.type === 'Bridge Eligibility' || field.type === 'Candid Eligibility') ? '*' : ''}
+          {form_display_text_for_language(form, field.title)}{!(field.isOptional || field.type === 'description' || field.type === 'Question Group' || field.type === 'Insurance' || field.type === 'Bridge Eligibility' || field.type === 'Candid Eligibility') ? '*' : ''}
         </Typography>
       }
       {!field.title && (field.type === 'Question Group' || field.type === 'signature') && !form?.customization?.hideLogo &&
@@ -249,13 +254,13 @@ export const QuestionForField = ({
         <div style={{ marginTop: 15 }}></div>
       }
 
-      <Description field={field} style={{ fontSize: 14, color: '#00000099', marginBottom: 11 }} />
+      <Description field={field} form={form} style={{ fontSize: 14, color: '#00000099', marginBottom: 11 }} />
 
       {feedback.length > 0 &&
         <Flex column style={{ marginBottom: 11, marginTop: 3, }}>
           {feedback.map((f, i) => (
             <Typography key={i} color="error" style={{ fontSize: 20 }}>
-              {f}
+              {f && form_display_text_for_language(form, f)}
             </Typography>
           ))}
         </Flex>
@@ -661,7 +666,7 @@ export const TellescopeSingleQuestionFlowV2: typeof TellescopeFormV2 = ({
 
   return (
     submitted
-      ? <ThanksMessage htmlThanksMessage={htmlThanksMessage} thanksMessage={thanksMessage}
+      ? <ThanksMessage htmlThanksMessage={htmlThanksMessage} thanksMessage={thanksMessage} form={form}
           showRestartAtEnd={customization?.showRestartAtEnd}
         />
       : (
@@ -823,25 +828,27 @@ export const TellescopeSingleQuestionFlowV2: typeof TellescopeFormV2 = ({
 }
 
 export const DEFAULT_THANKS_MESSAGE = "Your response was successfully recorded";
-export const ThanksMessage = ({ 
-  thanksMessage, 
+export const ThanksMessage = ({
+  thanksMessage,
   htmlThanksMessage,
   showRestartAtEnd,
   downloadComponent,
-} : { 
-  thanksMessage?: string, 
+  form,
+} : {
+  thanksMessage?: string,
   htmlThanksMessage?: string,
   showRestartAtEnd?: boolean,
   downloadComponent?: React.ReactNode,
+  form?: Form,
 }) => (
   <Flex column>
     {htmlThanksMessage
       ? (
         <div style={{ textAlign: 'center' }} dangerouslySetInnerHTML={{
-          __html: sanitize_user_html(htmlThanksMessage)
+          __html: sanitize_user_html(form_display_text_for_language(form, htmlThanksMessage))
         }} />
       ) : (
-        <Typography style={{ marginTop: 25, alignSelf: 'center' }}>{thanksMessage || DEFAULT_THANKS_MESSAGE}</Typography>
+        <Typography style={{ marginTop: 25, alignSelf: 'center' }}>{form_display_text_for_language(form, thanksMessage || DEFAULT_THANKS_MESSAGE)}</Typography>
       )
     }
     {read_local_storage('redirecting_public_group') === 'true' &&
@@ -882,6 +889,9 @@ const TellescopeFormWithContextV2: typeof TellescopeFormV2 = (props) => {
         backgroundColor={props.backgroundColor}
         hideLogo={props?.customization?.hideLogo}
         maxWidth={props.form?.customization?.maxWidth}
+        language={props.language}
+        onChangeLanguage={props.onChangeLanguage}
+        languageOptions={props.languageOptions}
       >
         {props.submitted
           ? <ThanksMessage {...props} showRestartAtEnd={props?.customization?.showRestartAtEnd} />
@@ -1083,14 +1093,14 @@ export const UpdateResponse = ({
   )
 }
 
-export const Description = ({ field, color="primary", style } : { field: FormField, color?: string } & Styled) => {
+export const Description = ({ field, form, color="primary", style } : { field: FormField, form?: Form, color?: string } & Styled) => {
   if (!field.htmlDescription && field.description) {
     return (
       <Typography color={color as any} style={style}>
-        {field.description}
+        {form_display_text_for_language(form, field.description)}
       </Typography>
     )
-  } 
+  }
   if (!field.htmlDescription) return null
 
   return (
@@ -1098,7 +1108,8 @@ export const Description = ({ field, color="primary", style } : { field: FormFie
       // _with_iframes so admins can embed video/scheduling widgets in a question's description.
       // Safe here because the description is admin-authored: any {{enduser.*}} value templated
       // into it is entity-escaped first (escapeHTMLValues in Forms/hooks.tsx).
-      __html: sanitize_user_html_with_iframes(field.htmlDescription)
+      // Translated HTML (display-only, keyed by the full English HTML string) flows through the same sanitizer.
+      __html: sanitize_user_html_with_iframes(form_display_text_for_language(form, field.htmlDescription))
     }} />
   )
 }
@@ -1231,7 +1242,7 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
   return (
     <Flex flex={1} column>
       {submitted
-      ? <ThanksMessage htmlThanksMessage={htmlThanksMessage} thanksMessage={thanksMessage}
+      ? <ThanksMessage htmlThanksMessage={htmlThanksMessage} thanksMessage={thanksMessage} form={props.form}
           showRestartAtEnd={props?.customization?.showRestartAtEnd}
         />
       : (

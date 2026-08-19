@@ -81,7 +81,7 @@ export var TellescopeFormContainerV2 = function (_a) {
     return (_jsx(WithOrganizationTheme, __assign({ businessId: businessId, organizationIds: organizationIds }, { children: _jsx(TellescopeFormContainerWithThemeV2, __assign({}, props)) })));
 };
 var TellescopeFormContainerWithThemeV2 = function (_a) {
-    var _b = _a.paperMinHeight, paperMinHeight = _b === void 0 ? 575 : _b, children = _a.children, language = _a.language, onChangeLanguage = _a.onChangeLanguage, style = _a.style, hideBg = _a.hideBg, backgroundColor = _a.backgroundColor, hideLogo = _a.hideLogo, showLogo = _a.showLogo, logoURL = _a.logoURL, logoHeight = _a.logoHeight, logoAlignment = _a.logoAlignment, maxWidth = _a.maxWidth;
+    var _b = _a.paperMinHeight, paperMinHeight = _b === void 0 ? 575 : _b, children = _a.children, language = _a.language, onChangeLanguage = _a.onChangeLanguage, languageOptions = _a.languageOptions, style = _a.style, hideBg = _a.hideBg, backgroundColor = _a.backgroundColor, hideLogo = _a.hideLogo, showLogo = _a.showLogo, logoURL = _a.logoURL, logoHeight = _a.logoHeight, logoAlignment = _a.logoAlignment, maxWidth = _a.maxWidth;
     var theme = useOrganizationTheme();
     // V2: No paper background by default, cleaner layout with light blue background
     // Ignore theme colors or white backgrounds - use our V2 default light blue
@@ -91,7 +91,7 @@ var TellescopeFormContainerWithThemeV2 = function (_a) {
     return (_jsx(Flex, __assign({ flex: 1, column: true, alignItems: "center", style: __assign({ backgroundColor: hideBg ? 'transparent' : finalBgColor, overflow: 'auto', boxSizing: 'border-box', paddingTop: window.innerWidth < 600 ? 20 : 40, paddingBottom: window.innerWidth < 600 ? 20 : 40 }, style) }, { children: _jsxs(Flex, __assign({ flex: 1, column: true, style: __assign({ padding: window.innerWidth < 600 ? '0 12px' : '0 20px', maxWidth: maxWidth !== null && maxWidth !== void 0 ? maxWidth : 650, minWidth: 250, width: '100%', height: '100%', boxSizing: 'border-box' }, (window.innerWidth < 600 ? {
                 paddingBottom: '80px' // Extra bottom padding on mobile to keep button above Safari navigation
             } : {})) }, { children: [language && onChangeLanguage &&
-                    _jsx(Flex, __assign({ style: { marginTop: 22 } }, { children: _jsx(LanguageSelect, { value: language, onChange: onChangeLanguage }) })), showLogo && !hideLogo && (resolvedLogoURL
+                    _jsx(Flex, __assign({ style: { marginTop: 22, marginBottom: 20 } }, { children: _jsx(LanguageSelect, { value: language, onChange: onChangeLanguage, options: languageOptions }) })), showLogo && !hideLogo && (resolvedLogoURL
                     ? (_jsx(Flex, __assign({ style: { justifyContent: LOGO_JUSTIFY[logoAlignment || 'left'], marginBottom: '20px', marginTop: '10px' } }, { children: _jsx("img", { src: resolvedLogoURL, alt: theme === null || theme === void 0 ? void 0 : theme.name, style: { height: logoHeight || LOGO_HEIGHT, maxWidth: 225 } }) })))
                     : (theme === null || theme === void 0 ? void 0 : theme.name)
                         ? (_jsx(Typography, __assign({ style: { fontSize: 22, marginBottom: '20px', marginTop: '10px', textAlign: logoAlignment || 'left', fontWeight: 600 } }, { children: theme.name })))
@@ -163,11 +163,11 @@ export var QuestionForField = function (_a) {
                         marginBottom: 14,
                         fontSize: field.titleFontSize || (field.type === 'Question Group' ? 22 : 20),
                         fontWeight: field.type === 'Question Group' ? 'bold' : undefined,
-                    } }, { children: [field.title, !(field.isOptional || field.type === 'description' || field.type === 'Question Group' || field.type === 'Insurance' || field.type === 'Bridge Eligibility' || field.type === 'Candid Eligibility') ? '*' : ''] })), !field.title && (field.type === 'Question Group' || field.type === 'signature') && !((_12 = form === null || form === void 0 ? void 0 : form.customization) === null || _12 === void 0 ? void 0 : _12.hideLogo) &&
+                    } }, { children: [form_display_text_for_language(form, field.title), !(field.isOptional || field.type === 'description' || field.type === 'Question Group' || field.type === 'Insurance' || field.type === 'Bridge Eligibility' || field.type === 'Candid Eligibility') ? '*' : ''] })), !field.title && (field.type === 'Question Group' || field.type === 'signature') && !((_12 = form === null || form === void 0 ? void 0 : form.customization) === null || _12 === void 0 ? void 0 : _12.hideLogo) &&
                 // ensures PDF display doesn't push description into overlap with logo / title at top of form
                 // also ensures spacing between logo and question group
-                _jsx("div", { style: { marginTop: 15 } }), _jsx(Description, { field: field, style: { fontSize: 14, color: '#00000099', marginBottom: 11 } }), feedback.length > 0 &&
-                _jsx(Flex, __assign({ column: true, style: { marginBottom: 11, marginTop: 3, } }, { children: feedback.map(function (f, i) { return (_jsx(Typography, __assign({ color: "error", style: { fontSize: 20 } }, { children: f }), i)); }) })), 
+                _jsx("div", { style: { marginTop: 15 } }), _jsx(Description, { field: field, form: form, style: { fontSize: 14, color: '#00000099', marginBottom: 11 } }), feedback.length > 0 &&
+                _jsx(Flex, __assign({ column: true, style: { marginBottom: 11, marginTop: 3, } }, { children: feedback.map(function (f, i) { return (_jsx(Typography, __assign({ color: "error", style: { fontSize: 20 } }, { children: f && form_display_text_for_language(form, f) }), i)); }) })), 
             // If field has pre-populated value and is set to be disabled when pre-populated, show as underlined text
             field.disabledWhenPrepopulated && value.answer.value !== undefined && value.answer.value !== null && value.answer.value !== '' ? (_jsx("div", __assign({ style: {
                     padding: '8px 0',
@@ -355,7 +355,7 @@ export var TellescopeSingleQuestionFlowV2 = function (_a) {
         return (_jsxs(Flex, __assign({ column: true, alignItems: "center", style: { minHeight: 200, justifyContent: 'center' } }, { children: [_jsx(CircularProgress, { size: 40 }), _jsx(Typography, __assign({ style: { marginTop: 16, textAlign: 'center' } }, { children: "Picking up where you left off..." }))] })));
     }
     return (submitted
-        ? _jsx(ThanksMessage, { htmlThanksMessage: htmlThanksMessage, thanksMessage: thanksMessage, showRestartAtEnd: customization === null || customization === void 0 ? void 0 : customization.showRestartAtEnd })
+        ? _jsx(ThanksMessage, { htmlThanksMessage: htmlThanksMessage, thanksMessage: thanksMessage, form: form, showRestartAtEnd: customization === null || customization === void 0 ? void 0 : customization.showRestartAtEnd })
         : (_jsxs(Flex, __assign({ column: true, flex: 1, style: { justifyContent: 'space-between' } }, { children: [_jsxs(Flex, __assign({ column: true }, { children: [!(customization === null || customization === void 0 ? void 0 : customization.hideProgressBar) &&
                             _jsx(Progress, { numerator: currentPageIndex + (validateCurrentField() ? 0 : 1), denominator: currentPageIndex + 1 + numRemainingPages, style: { marginBottom: '20px' }, color: (_c = (_b = customization === null || customization === void 0 ? void 0 : customization.primaryColor) !== null && _b !== void 0 ? _b : theme === null || theme === void 0 ? void 0 : theme.themeColor) !== null && _c !== void 0 ? _c : '#798ED0' }), !(customization === null || customization === void 0 ? void 0 : customization.hideLogo) && (((customization === null || customization === void 0 ? void 0 : customization.logoURL) || (theme === null || theme === void 0 ? void 0 : theme.logoURL))
                             ? (_jsx(Flex, __assign({ style: { justifyContent: LOGO_JUSTIFY[(customization === null || customization === void 0 ? void 0 : customization.logoAlignment) || 'left'], marginBottom: '20px' } }, { children: _jsx("img", { src: (customization === null || customization === void 0 ? void 0 : customization.logoURL) || (theme === null || theme === void 0 ? void 0 : theme.logoURL), alt: theme === null || theme === void 0 ? void 0 : theme.name, style: { height: (customization === null || customization === void 0 ? void 0 : customization.logoHeight) || LOGO_HEIGHT, maxWidth: 225 } }) })))
@@ -394,11 +394,11 @@ export var TellescopeSingleQuestionFlowV2 = function (_a) {
 };
 export var DEFAULT_THANKS_MESSAGE = "Your response was successfully recorded";
 export var ThanksMessage = function (_a) {
-    var thanksMessage = _a.thanksMessage, htmlThanksMessage = _a.htmlThanksMessage, showRestartAtEnd = _a.showRestartAtEnd, downloadComponent = _a.downloadComponent;
+    var thanksMessage = _a.thanksMessage, htmlThanksMessage = _a.htmlThanksMessage, showRestartAtEnd = _a.showRestartAtEnd, downloadComponent = _a.downloadComponent, form = _a.form;
     return (_jsxs(Flex, __assign({ column: true }, { children: [htmlThanksMessage
                 ? (_jsx("div", { style: { textAlign: 'center' }, dangerouslySetInnerHTML: {
-                        __html: sanitize_user_html(htmlThanksMessage)
-                    } })) : (_jsx(Typography, __assign({ style: { marginTop: 25, alignSelf: 'center' } }, { children: thanksMessage || DEFAULT_THANKS_MESSAGE }))), read_local_storage('redirecting_public_group') === 'true' &&
+                        __html: sanitize_user_html(form_display_text_for_language(form, htmlThanksMessage))
+                    } })) : (_jsx(Typography, __assign({ style: { marginTop: 25, alignSelf: 'center' } }, { children: form_display_text_for_language(form, thanksMessage || DEFAULT_THANKS_MESSAGE) }))), read_local_storage('redirecting_public_group') === 'true' &&
                 _jsx(_Fragment, { children: _jsxs(Typography, __assign({ style: { marginTop: 25, alignSelf: 'center' } }, { children: ["Redirecting to next form... ", _jsx(CircularProgress, { size: 20, color: "primary" })] })) }), downloadComponent &&
                 _jsx(Flex, __assign({ justifyContent: "center", style: { marginTop: 15, marginBottom: 15 } }, { children: downloadComponent })), showRestartAtEnd && window.localStorage["ts_form_url"] &&
                 _jsx(Button, __assign({ variant: "outlined", style: __assign(__assign({}, defaultButtonStyles), { maxWidth: 200, marginTop: 25, alignSelf: 'center' }), onClick: function () { return window.location.href = window.localStorage["ts_form_url"]; } }, { children: "Submit Again" }))] })));
@@ -409,7 +409,7 @@ var TellescopeFormWithContextV2 = function (props) {
     // V2: Override MUI theme with customization colors
     var primaryColor = (_c = (_b = (_a = props.customization) === null || _a === void 0 ? void 0 : _a.primaryColor) !== null && _b !== void 0 ? _b : theme === null || theme === void 0 ? void 0 : theme.themeColor) !== null && _c !== void 0 ? _c : '#798ED0';
     var secondaryColor = (_f = (_e = (_d = props.customization) === null || _d === void 0 ? void 0 : _d.secondaryColor) !== null && _e !== void 0 ? _e : theme === null || theme === void 0 ? void 0 : theme.themeColorSecondary) !== null && _f !== void 0 ? _f : '#585E72';
-    return (_jsx(WithTheme, __assign({ theme: { primary: primaryColor, secondary: secondaryColor } }, { children: _jsx(TellescopeFormContainerV2, __assign({ style: props.style, dontAddContext: true, hideBg: props.hideBg || ((_h = (_g = props.form) === null || _g === void 0 ? void 0 : _g.customization) === null || _h === void 0 ? void 0 : _h.hideBg), logoHeight: props.logoHeight, logoAlignment: (_j = props === null || props === void 0 ? void 0 : props.customization) === null || _j === void 0 ? void 0 : _j.logoAlignment, backgroundColor: props.backgroundColor, hideLogo: (_k = props === null || props === void 0 ? void 0 : props.customization) === null || _k === void 0 ? void 0 : _k.hideLogo, maxWidth: (_m = (_l = props.form) === null || _l === void 0 ? void 0 : _l.customization) === null || _m === void 0 ? void 0 : _m.maxWidth }, { children: props.submitted
+    return (_jsx(WithTheme, __assign({ theme: { primary: primaryColor, secondary: secondaryColor } }, { children: _jsx(TellescopeFormContainerV2, __assign({ style: props.style, dontAddContext: true, hideBg: props.hideBg || ((_h = (_g = props.form) === null || _g === void 0 ? void 0 : _g.customization) === null || _h === void 0 ? void 0 : _h.hideBg), logoHeight: props.logoHeight, logoAlignment: (_j = props === null || props === void 0 ? void 0 : props.customization) === null || _j === void 0 ? void 0 : _j.logoAlignment, backgroundColor: props.backgroundColor, hideLogo: (_k = props === null || props === void 0 ? void 0 : props.customization) === null || _k === void 0 ? void 0 : _k.hideLogo, maxWidth: (_m = (_l = props.form) === null || _l === void 0 ? void 0 : _l.customization) === null || _m === void 0 ? void 0 : _m.maxWidth, language: props.language, onChangeLanguage: props.onChangeLanguage, languageOptions: props.languageOptions }, { children: props.submitted
                 ? _jsx(ThanksMessage, __assign({}, props, { showRestartAtEnd: (_o = props === null || props === void 0 ? void 0 : props.customization) === null || _o === void 0 ? void 0 : _o.showRestartAtEnd }))
                 : (_jsx(TellescopeSingleQuestionFlowV2, __assign({}, props, { theme: theme }))) })) })));
 };
@@ -612,9 +612,9 @@ export var UpdateResponse = function (_a) {
         }); }, submitText: "Update", submittingText: "Saving..." }));
 };
 export var Description = function (_a) {
-    var field = _a.field, _b = _a.color, color = _b === void 0 ? "primary" : _b, style = _a.style;
+    var field = _a.field, form = _a.form, _b = _a.color, color = _b === void 0 ? "primary" : _b, style = _a.style;
     if (!field.htmlDescription && field.description) {
-        return (_jsx(Typography, __assign({ color: color, style: style }, { children: field.description })));
+        return (_jsx(Typography, __assign({ color: color, style: style }, { children: form_display_text_for_language(form, field.description) })));
     }
     if (!field.htmlDescription)
         return null;
@@ -622,7 +622,8 @@ export var Description = function (_a) {
             // _with_iframes so admins can embed video/scheduling widgets in a question's description.
             // Safe here because the description is admin-authored: any {{enduser.*}} value templated
             // into it is entity-escaped first (escapeHTMLValues in Forms/hooks.tsx).
-            __html: sanitize_user_html_with_iframes(field.htmlDescription)
+            // Translated HTML (display-only, keyed by the full English HTML string) flows through the same sanitizer.
+            __html: sanitize_user_html_with_iframes(form_display_text_for_language(form, field.htmlDescription))
         } }));
 };
 export var TellescopeSinglePageForm = function (_a) {
@@ -696,7 +697,7 @@ export var TellescopeSinglePageForm = function (_a) {
         });
     }, [(_b = props.form) === null || _b === void 0 ? void 0 : _b.realTimeScoring, (_c = props.form) === null || _c === void 0 ? void 0 : _c.scoring, responses]);
     return (_jsx(Flex, __assign({ flex: 1, column: true }, { children: submitted
-            ? _jsx(ThanksMessage, { htmlThanksMessage: htmlThanksMessage, thanksMessage: thanksMessage, showRestartAtEnd: (_d = props === null || props === void 0 ? void 0 : props.customization) === null || _d === void 0 ? void 0 : _d.showRestartAtEnd })
+            ? _jsx(ThanksMessage, { htmlThanksMessage: htmlThanksMessage, thanksMessage: thanksMessage, form: props.form, showRestartAtEnd: (_d = props === null || props === void 0 ? void 0 : props.customization) === null || _d === void 0 ? void 0 : _d.showRestartAtEnd })
             : (_jsxs(_Fragment, { children: [currentScores && currentScores.length > 0 && (_jsx(Flex, __assign({ style: {
                             position: 'sticky',
                             top: 0,

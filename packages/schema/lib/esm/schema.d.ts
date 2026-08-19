@@ -447,6 +447,7 @@ export type CustomActions = {
             markedAsSubmitted?: boolean;
             enduserAISummary?: string;
             dontSyncToElation?: boolean;
+            viewedInLanguage?: string;
         }, {
             formResponse: FormResponse;
             nextFormGroupPublicURL?: string;
@@ -1130,6 +1131,7 @@ export type CustomActions = {
             id?: string;
             query?: string;
             healthieIntegrationId?: string;
+            target?: 'home' | 'plan' | 'results' | 'care' | 'shop' | 'account';
         }, {
             data: any;
         }>;
@@ -1614,11 +1616,13 @@ export type CustomActions = {
     products: {
         prepare_stripe_checkout: CustomAction<{
             productIds: string[];
+            stripeKey?: string;
         }, {
             customerId: string;
             clientSecret: string;
             publishableKey: string;
-            stripeAccount: string;
+            stripeAccount?: string;
+            isCheckout?: boolean;
             businessName: string;
         }>;
         get_stripe_portal_session: CustomAction<{
@@ -1952,8 +1956,10 @@ export type PublicActions = {
     forms: {
         public_form_details: CustomAction<{
             formId: string;
+            language?: string;
         }, {
             form: Form;
+            translations?: Record<string, string>;
         }>;
     };
     form_responses: {

@@ -59,6 +59,7 @@ type EnduserAccessibleModels = (
   | 'allergy_codes'
   | 'forms'
   | 'enduser_eligibility_results'
+  | 'configurations' // reads reduced to publicRead: true records (form translation maps)
 )
 
 export const defaultQueries = <N extends keyof ClientModelForName>(
@@ -281,8 +282,9 @@ const loadDefaultQueries = (s: EnduserSession): { [K in EnduserAccessibleModels]
   enduser_problems: defaultQueries(s, 'enduser_problems'), 
   diagnosis_codes: defaultQueries(s, 'diagnosis_codes'), 
   allergy_codes: defaultQueries(s, 'allergy_codes'), 
-  forms: defaultQueries(s, 'forms'), 
-  enduser_eligibility_results: defaultQueries(s, 'enduser_eligibility_results'), 
+  forms: defaultQueries(s, 'forms'),
+  enduser_eligibility_results: defaultQueries(s, 'enduser_eligibility_results'),
+  configurations: defaultQueries(s, 'configurations'), // reads reduced to publicRead: true records (form translation maps)
 })
 
 

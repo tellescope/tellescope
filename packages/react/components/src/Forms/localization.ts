@@ -151,10 +151,25 @@ const SPANISH_TRANSLATIONS: Record<string, string> = {
   'No eligible users found for booking': 'No se encontraron usuarios elegibles para la reserva',
 }
 
-export const form_display_text_for_language = (form: Pick<Form, 'language'> | undefined, text: string, placeholder?: string) => {
+// English source strings for form UI chrome (buttons, validation text, built-in labels). Included as
+// keys in AI-generated form translation maps so non-Spanish languages get fully translated chrome.
+export const FORM_CHROME_ENGLISH_STRINGS = Object.keys(SPANISH_TRANSLATIONS)
+
+// Display-only translation lookup for form text. `dynamicTranslations` is a per-form, per-language
+// AI-generated map (English source string -> translation) attached client-side to the form object for
+// rendering — it is never persisted on the form and never applied to stored response values.
+// Lookup order: dynamic map, then the static Spanish chrome dictionary, then placeholder/English.
+export const form_display_text_for_language = (
+  form: (Pick<Form, 'language'> & { dynamicTranslations?: Record<string, string> }) | undefined,
+  text: string,
+  placeholder?: string,
+) => {
   if (!form) return text
 
-  if (form.language === 'Spanish' || form.language === 'Español') {
+  const dynamicTranslation = form.dynamicTranslations?.[text]
+  if (dynamicTranslation) return dynamicTranslation
+
+  if (form.language === 'Spanish' || form.language === 'Español' || form.language === 'es') {
     const translation = SPANISH_TRANSLATIONS[text]
     if (translation) return translation
     if (typeof placeholder === 'string') return placeholder

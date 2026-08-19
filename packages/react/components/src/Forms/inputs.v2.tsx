@@ -26,20 +26,37 @@ import { WYSIWYG } from "./wysiwyg"
 import { useConditionalChoices, Response, dateFromOffsetMs } from "./hooks"
 import { ExistingFilePicker } from "./inputs"
 
-export const LanguageSelect = ({ value, ...props }: { value: string, onChange: (s: string) => void}) => (
+export const LanguageSelect = ({ value, options, ...props }: {
+  value: string,
+  onChange: (s: string) => void,
+  // when provided, values are TranslationLanguageCodes displayed via their labels (AI form translations);
+  // omitted, the legacy hardcoded English/Español display-name behavior applies
+  options?: { code: string, label: string }[],
+}) => (
   <Grid container alignItems="center" justifyContent={"center"} wrap="nowrap" spacing={1}>
     <Grid item>
       <LanguageIcon color="primary" />
     </Grid>
 
     <Grid item style={{ width: 150 }}>
-      <StringSelector {...props} options={["English", "Español"]} size="small" 
-        value={value === 'Spanish' ? 'Español' : value}
-        label={
-          (value === 'Español' || value === 'Spanish') ? 'Idioma' 
-            : "Language"
-        }
-      />
+      {options
+        ? (
+          <StringSelector {...props} options={options.map(o => o.code)} size="small"
+            value={value}
+            getDisplayValue={code => options.find(o => o.code === code)?.label ?? code}
+            label={(value === 'es' || value === 'Español' || value === 'Spanish') ? 'Idioma' : "Language"}
+          />
+        )
+        : (
+          <StringSelector {...props} options={["English", "Español"]} size="small"
+            value={value === 'Spanish' ? 'Español' : value}
+            label={
+              (value === 'Español' || value === 'Spanish') ? 'Idioma'
+                : "Language"
+            }
+          />
+        )
+      }
     </Grid>
   </Grid>
 )
@@ -231,7 +248,8 @@ export const RankingInput = ({ field, value, onChange, form }: FormInputProps<'r
                       provided.draggableProps.style
                     )}
                   >
-                    {item}
+                    {/* display-only translation: the stored ranking value stays the English `item` */}
+                    {form_display_text_for_language(form, item)}
                     <DragIndicatorIcon color="primary" />
                   </Grid>
                 )}
@@ -345,34 +363,35 @@ export const TableInput = ({ field, value=[], onChange, form, ...props }: FormIn
         <Grid container alignItems="center" key={i} spacing={1}>
           {choices.map((v, columnIndex) => (
             <Grid item key={v.label} sx={{ width }}>
+              {/* display-only translation: stored entries keep the English v.label and choice values */}
               {v.type === 'Text'
                 ? (
-                  <TextField label={v.label} size="small" fullWidth title={v.label}
+                  <TextField label={form_display_text_for_language(form, v.label)} size="small" fullWidth title={form_display_text_for_language(form, v.label)}
                     InputProps={defaultInputProps}
-                    value={row.find((c, _i) => columnIndex === _i)?.entry} 
+                    value={row.find((c, _i) => columnIndex === _i)?.entry}
                     onChange={e => handleChange(i, columnIndex, { label: v.label, entry: e.target.value })}
                   />
                 )
               : v.type === 'Date' ? (
-                <DateStringInput label={v.label} size="small" fullWidth title={v.label}
+                <DateStringInput label={form_display_text_for_language(form, v.label)} size="small" fullWidth title={form_display_text_for_language(form, v.label)}
                   field={field}
-                  value={row.find((c, _i) => columnIndex === _i)?.entry} 
+                  value={row.find((c, _i) => columnIndex === _i)?.entry}
                   onChange={(entry='') => handleChange(i, columnIndex, { label: v.label, entry })}
                 />
               )
               : v.type === 'Select' ? (
                   <FormControl size="small" fullWidth>
-                    <InputLabel id="demo-select-small">{v.label}</InputLabel>
-                    <Select label={v.label} size="small" title={v.label}
+                    <InputLabel id="demo-select-small">{form_display_text_for_language(form, v.label)}</InputLabel>
+                    <Select label={form_display_text_for_language(form, v.label)} size="small" title={form_display_text_for_language(form, v.label)}
                       sx={defaultInputProps.sx}
-                      value={row.find((c, _i) => columnIndex === _i)?.entry} 
+                      value={row.find((c, _i) => columnIndex === _i)?.entry}
                       onChange={e => handleChange(i, columnIndex, { label: v.label, entry: e.target.value })}
                     >
                       <MenuItem value="">
                         <em>None</em>
                       </MenuItem>
                       {v.info.choices.map(c => (
-                        <MenuItem key={c} value={c}>{c}</MenuItem>
+                        <MenuItem key={c} value={c}>{form_display_text_for_language(form, c)}</MenuItem>
                       ))}
                     </Select>
                   </FormControl>
@@ -456,7 +475,7 @@ export const DateStringInput = ({ field, value, onChange, form, ...props }: Form
           autoComplete="off"
           dateFormat={"MM-dd-yyyy"}
           customInput={<CustomDateStringInput inputRef={inputRef} {...props}
-            label={(!field.title && field.placeholder) ? field.placeholder : props.label}
+            label={(!field.title && field.placeholder) ? form_display_text_for_language(form, field.placeholder) : props.label}
           />}
           // className={css`width: 100%;`}
           className={css`${datepickerCSS}`}
@@ -466,7 +485,7 @@ export const DateStringInput = ({ field, value, onChange, form, ...props }: Form
       )
       : (
         <AutoFocusTextField {...props} required={!field.isOptional} fullWidth placeholder={form_display_text_for_language(form, "MM-DD-YYYY")} value={value}
-          label={(!field.title && field.placeholder) ? field.placeholder : props.label}
+          label={(!field.title && field.placeholder) ? form_display_text_for_language(form, field.placeholder) : props.label}
           onChange={e => {
             const v = e.target.value || ''
             onChange(
@@ -487,28 +506,28 @@ export const DateStringInput = ({ field, value, onChange, form, ...props }: Form
 }
 export const StringInput = ({ field, value, form, onChange, ...props }: FormInputProps<'string'>) => (
   <AutoFocusTextField {...props} required={!field.isOptional} fullWidth value={value} onChange={e => onChange(e.target.value, field.id)} 
-    placeholder={(field.placeholder || form_display_text_for_language(form, "Answer here...", ''))} 
-    label={(!field.title && field.placeholder) ? field.placeholder : props.label}
+    placeholder={(field.placeholder ? form_display_text_for_language(form, field.placeholder) : form_display_text_for_language(form, "Answer here...", ''))}
+    label={(!field.title && field.placeholder) ? form_display_text_for_language(form, field.placeholder) : props.label}
   />
 )
 export const StringLongInput = ({ field, value, onChange, form, ...props }: FormInputProps<'string'>) => (
-  <AutoFocusTextField {...props} multiline minRows={3} maxRows={8} required={!field.isOptional} fullWidth value={value} onChange={e => onChange(e.target.value, field.id)}  
-    placeholder={field.placeholder || form_display_text_for_language(form, "Answer here...", '')} 
-    label={(!field.title && field.placeholder) ? field.placeholder : props.label}
+  <AutoFocusTextField {...props} multiline minRows={3} maxRows={8} required={!field.isOptional} fullWidth value={value} onChange={e => onChange(e.target.value, field.id)}
+    placeholder={field.placeholder ? form_display_text_for_language(form, field.placeholder) : form_display_text_for_language(form, "Answer here...", '')}
+    label={(!field.title && field.placeholder) ? form_display_text_for_language(form, field.placeholder) : props.label}
   />
 )
 
 export const PhoneInput = ({ field, value, onChange, form, ...props }: FormInputProps<'phone'>) => (
   <AutoFocusTextField {...props} required={!field.isOptional} fullWidth value={value} onChange={e => onChange(e.target.value, field.id)} 
-    placeholder={field.placeholder || form_display_text_for_language(form, "Enter phone...", '')}
-    label={(!field.title && field.placeholder) ? field.placeholder : props.label}
+    placeholder={field.placeholder ? form_display_text_for_language(form, field.placeholder) : form_display_text_for_language(form, "Enter phone...", '')}
+    label={(!field.title && field.placeholder) ? form_display_text_for_language(form, field.placeholder) : props.label}
   />
 )
 
 export const EmailInput = ({ field, value, onChange, form, ...props }: FormInputProps<'email'>) => (
   <AutoFocusTextField {...props} required={!field.isOptional} fullWidth type="email" value={value} onChange={e => onChange(e.target.value, field.id)} 
-    placeholder={field.placeholder || form_display_text_for_language(form, "Enter email...", '')}
-    label={(!field.title && field.placeholder) ? field.placeholder : props.label}
+    placeholder={field.placeholder ? form_display_text_for_language(form, field.placeholder) : form_display_text_for_language(form, "Enter email...", '')}
+    label={(!field.title && field.placeholder) ? form_display_text_for_language(form, field.placeholder) : props.label}
   />
 )
 
@@ -536,8 +555,8 @@ export const NumberInput = ({ field, value, onChange, form, ...props }: FormInpu
   return (
     <TextField ref={inputRef} autoFocus InputProps={defaultInputProps} {...props} required={!field.isOptional} fullWidth type="number" value={value} 
       onChange={e => onChange(parseInt(e.target.value), field.id)}  
-      label={(!field.title && field.placeholder) ? field.placeholder : props.label}
-      placeholder={field.placeholder || form_display_text_for_language(form, "Enter a number...", '')}
+      label={(!field.title && field.placeholder) ? form_display_text_for_language(form, field.placeholder) : props.label}
+      placeholder={field.placeholder ? form_display_text_for_language(form, field.placeholder) : form_display_text_for_language(form, "Enter a number...", '')}
       onScroll={e => e.preventDefault()} // prevent scroll on number input
       sx={{
         '& input[type=number]': {
@@ -1226,6 +1245,9 @@ export const FilesInput = ({ value, onChange, field, existingFileName, uploading
 }
 
 export const MultipleChoiceInput = ({ field, form, value: _value, onChange, responses, enduser }: FormInputProps<'multiple_choice'>) => {
+  // Translation is display-only: choice strings are simultaneously the stored answer value and the key
+  // for conditional logic (previousEquals, optionDetails, scoring), so handleChange/checked-state always
+  // uses the raw English choice `c` — only the rendered label goes through form_display_text_for_language.
   const value = typeof _value === 'string' ? [_value] : _value // if loading existingResponses, allows them to be a string
   const { choices, radio, other, optionDetails } = field.options as MultipleChoiceOptions
 
@@ -1288,12 +1310,12 @@ export const MultipleChoiceInput = ({ field, form, value: _value, onChange, resp
                     }}
                     onClick={() => handleChange(value?.includes(c) ? [] : [c], field.id)}
                   >
-                    <Typography component="span" sx={{ flex: 1, color: 'primary.main', fontSize: 13, fontWeight: 600 }}>{c}</Typography>
+                    <Typography component="span" sx={{ flex: 1, color: 'primary.main', fontSize: 13, fontWeight: 600 }}>{form_display_text_for_language(form, c)}</Typography>
                   </Box>
                   {hasDescription && (
                     <Box sx={{ pl: 2, pr: 2, pb: 1, mb: 1 }}>
                       <Typography style={{ fontSize: 14, color: '#00000099' }}>
-                        {description}
+                        {form_display_text_for_language(form, description!)}
                       </Typography>
                     </Box>
                   )}
@@ -1342,12 +1364,12 @@ export const MultipleChoiceInput = ({ field, form, value: _value, onChange, resp
                       checked={!!value?.includes(c) && c !== otherString}
                       inputProps={{ 'aria-label': 'primary checkbox' }}
                     />
-                    <Typography component="span" sx={{ flex: 1 }}>{c}</Typography>
+                    <Typography component="span" sx={{ flex: 1 }}>{form_display_text_for_language(form, c)}</Typography>
                   </Box>
                   {hasDescription && (
                     <Box sx={{ pl: '42px', pr: 2, pb: 1 }}>
                       <Typography style={{ fontSize: 14, color: '#00000099' }}>
-                        {description}
+                        {form_display_text_for_language(form, description!)}
                       </Typography>
                     </Box>
                   )}
@@ -1427,7 +1449,7 @@ export const Progress = ({ numerator, denominator, style, color } : { numerator:
   </Box>
 )
 
-export const DropdownInput = ({ field, value, onChange }: FormInputProps<'Dropdown'>) => {
+export const DropdownInput = ({ field, value, onChange, form }: FormInputProps<'Dropdown'>) => {
   const [typing, setTyping] = useState('')
 
   // this should run only once, even if the field updates but the id is unchanged, otherwise will overwrite input
@@ -1455,9 +1477,11 @@ export const DropdownInput = ({ field, value, onChange }: FormInputProps<'Dropdo
         )
       )}
       options={field.options?.choices ?? []}
+      // display-only translation: option values (and the stored answer) stay the English choice strings
+      getOptionLabel={option => form_display_text_for_language(form, option as string)}
       inputValue={
         field.options?.radio && Array.isArray(value) && value[0]
-          ? value[0]
+          ? form_display_text_for_language(form, value[0])
           : typing
       }
       onInputChange={(e, value) => setTyping(value)}
@@ -1471,14 +1495,14 @@ export const DropdownInput = ({ field, value, onChange }: FormInputProps<'Dropdo
           )}
           placeholder={
             field.placeholder
-              ? field.placeholder + ((!field.title && !field.isOptional) ? '*' : '')
+              ? form_display_text_for_language(form, field.placeholder) + ((!field.title && !field.isOptional) ? '*' : '')
               : undefined
           }
           label={
             (!field.options?.radio && field.options?.other)
-              ? "Press enter to save a custom value"
+              ? form_display_text_for_language(form, "Press enter to save a custom value")
               : ''
-          } 
+          }
         />
       }
     />

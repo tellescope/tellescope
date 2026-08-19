@@ -9,7 +9,70 @@ import { WithTheme, contact_is_valid, useAddGTMTag, useFileUpload, useFormFields
 import ReactGA from "react-ga4";
 
 import isEmail from "validator/lib/isEmail"
-import { MM_DD_YYYY_to_YYYY_MM_DD, append_current_utm_params, emit_gtm_event, field_can_autoadvance, getLocalTimezone, get_time_values, get_utm_params, is_object, mm_dd_yyyy, object_is_empty, read_local_storage, replace_form_field_template_values, responses_satisfy_conditions, update_local_storage } from "@tellescope/utilities"
+import { MM_DD_YYYY_to_YYYY_MM_DD, TRANSLATION_LANGUAGES, append_current_utm_params, emit_gtm_event, field_can_autoadvance, getLocalTimezone, get_time_values, get_utm_params, is_object, languageLabelForCode, mm_dd_yyyy, object_is_empty, read_local_storage, replace_form_field_template_values, responses_satisfy_conditions, update_local_storage } from "@tellescope/utilities"
+
+// Bridges legacy form-language display names ('English', 'Spanish', 'Español') and raw codes to a
+// TranslationLanguageCode, defaulting to English
+export const language_code_for_legacy_form_language = (value?: string): string => {
+  if (!value) return 'en'
+  if (value === 'Español' || value === 'Spanish') return 'es'
+  if (TRANSLATION_LANGUAGES.some(l => l.code === value)) return value
+  return TRANSLATION_LANGUAGES.find(l => l.label.toLowerCase() === value.trim().toLowerCase())?.code ?? 'en'
+}
+
+export type FormDisplayLanguageOption = { code: string, label: string }
+
+// Drives the AI form-translation display language for a form-filling page. Lazily loads the
+// translation map for the selected language via the injected fetchTranslations (each surface provides
+// its own transport: configurations.getOne for authenticated pages, public_form_details for the
+// unauthenticated intake page). The returned formForDisplay carries `dynamicTranslations`, which
+// form_display_text_for_language resolves at RENDER TIME ONLY — stored response values, conditional
+// logic, and templatedResponses always operate on the original English strings.
+export const useFormDisplayLanguage = ({ form, initialLanguage, fetchTranslations } : {
+  form?: Form,
+  initialLanguage?: string, // legacy display name or TranslationLanguageCode
+  fetchTranslations?: (configurationId: string, languageCode: string) => Promise<Record<string, string>>,
+}) => {
+  const [languageCode, setLanguageCode] = useState(language_code_for_legacy_form_language(initialLanguage ?? form?.language))
+  const [maps, setMaps] = useState({} as Record<string, Record<string, string>>)
+
+  const translationConfigurations = useMemo(() => form?.translationConfigurations ?? [], [form?.translationConfigurations])
+
+  const languageOptions: FormDisplayLanguageOption[] = useMemo(() => {
+    const options: FormDisplayLanguageOption[] = [{ code: 'en', label: 'English' }]
+    for (const { language } of translationConfigurations) {
+      if (language === 'en' || options.some(o => o.code === language)) continue
+      options.push({ code: language, label: language === 'es' ? 'Español' : languageLabelForCode(language) })
+    }
+    // preserve the legacy chrome-only Spanish option when the form shows a selector without a configured map
+    if (form?.publicShowLanguage && !options.some(o => o.code === 'es')) {
+      options.push({ code: 'es', label: 'Español' })
+    }
+    return options
+  }, [form?.publicShowLanguage, translationConfigurations])
+
+  useEffect(() => {
+    if (languageCode === 'en' || maps[languageCode]) return
+
+    const configurationId = translationConfigurations.find(t => t.language === languageCode)?.configurationId
+    if (!configurationId || !fetchTranslations) return
+
+    fetchTranslations(configurationId, languageCode)
+    .then(map => setMaps(ms => ({ ...ms, [languageCode]: map })))
+    .catch(console.error) // missing/unreadable map falls back to English gracefully
+  }, [languageCode, maps, translationConfigurations, fetchTranslations])
+
+  // pass as the `form` prop so every form_display_text_for_language call site resolves translations
+  const formForDisplay = useMemo(() => (
+    form && {
+      ...form,
+      language: languageOptions.find(o => o.code === languageCode)?.label ?? languageCode,
+      dynamicTranslations: languageCode === 'en' ? undefined : maps[languageCode],
+    }
+  ), [form, languageCode, maps, languageOptions])
+
+  return { languageCode, setLanguageCode, formForDisplay, languageOptions }
+}
 
 export const dateFromOffsetMs = (offsetMs: number): Date => {
   const d = new Date()
@@ -375,6 +438,11 @@ interface UseTellescopeFormOptions {
   groupInstance?: string,
   groupPosition?: number,
   getEnduserAISummary?: () => string | undefined,
+  viewedInLanguage?: string, // TranslationLanguageCode the form is displayed in; recorded on submit, never applied to stored values
+  // English-source -> translated display map for the selected language (from useFormDisplayLanguage).
+  // Applied to the DISPLAY copies of field text BEFORE {{...}} template replacement — map keys are the
+  // raw English strings (placeholders intact), so lookup must happen while the text is still raw.
+  dynamicTranslations?: Record<string, string>,
 }
 
 const OrganizationThemeContext = createContext(null as any as {
@@ -559,7 +627,7 @@ const shouldCallout = (field: FormField | undefined, value: FormResponseValueAns
 
 export type Response = FormResponseValue & { touched: boolean, includeInSubmit: boolean, field: FormField }
 export type FileResponse = { fieldId: string, fieldTitle: string, blobs?: FileBlob[] }
-export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogicValue, customization, carePlanId, calendarEventId, context, ga4measurementId, rootResponseId, parentResponseId, accessCode, existingResponses, automationStepId, enduserId, formResponseId, fields, isInternalNote, formTitle, submitRedirectURL, enduser, groupId, groupInstance, groupPosition, startingFieldId, getEnduserAISummary }: UseTellescopeFormOptions) => {
+export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogicValue, customization, carePlanId, calendarEventId, context, ga4measurementId, rootResponseId, parentResponseId, accessCode, existingResponses, automationStepId, enduserId, formResponseId, fields, isInternalNote, formTitle, submitRedirectURL, enduser, groupId, groupInstance, groupPosition, startingFieldId, getEnduserAISummary, viewedInLanguage, dynamicTranslations }: UseTellescopeFormOptions) => {
   const { amPm, hoursAmPm, minutes } = get_time_values(new Date())
 
   const root = useTreeForFormFields(fields)
@@ -772,29 +840,37 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
   // This applies template value replacements (e.g., {{enduser.BMI}}) to field titles/descriptions
   // The templated responses are used ONLY for display and submission, not for navigation logic
   const templatedResponses = useMemo(() => {
+    // Display translation must run BEFORE template replacement: the map is keyed by the raw English
+    // source (with {{...}} placeholders intact — the translation prompt preserves them byte-for-byte),
+    // so once values are spliced in the key no longer matches.
+    const translateDisplay = (text: string) => dynamicTranslations?.[text] || text
+
     return responses.map(response => {
       const originalField = fields.find(f => f.id === response.fieldId) || response.field
 
       return {
         ...response,
+        // The top-level fieldTitle/fieldDescription/fieldHtmlDescription snapshots are persisted with
+        // the submission and must remain the (templated) ENGLISH source — never translated.
         fieldTitle: replace_form_field_template_values(originalField.title || '', { enduser, responses }),
         fieldDescription: replace_form_field_template_values(originalField.description || '', { enduser, responses }),
         // No escapeHTMLValues here: this value is persisted with the submission and is only ever
         // read back by sanitize_user_html (staff + portal submitted-response views), which strips
         // iframes, so patient-supplied markup cannot become a frame.
         fieldHtmlDescription: replace_form_field_template_values(originalField.htmlDescription || '', { enduser, responses, escapeNewlinesAsHTMLBreaks: true }),
+        // the nested field copy is what the live form renders — display-only, so translation is safe here
         field: {
           ...response.field,
-          title: replace_form_field_template_values(originalField.title || '', { enduser, responses }),
-          description: replace_form_field_template_values(originalField.description || '', { enduser, responses }),
+          title: replace_form_field_template_values(translateDisplay(originalField.title || ''), { enduser, responses }),
+          description: replace_form_field_template_values(translateDisplay(originalField.description || ''), { enduser, responses }),
           // escapeHTMLValues is required here: this is what the live form renders via
           // sanitize_user_html_with_iframes, so an unescaped patient answer spliced in from
           // {{enduser.*}} could otherwise inject an iframe into an admin-authored description.
-          htmlDescription: replace_form_field_template_values(originalField.htmlDescription || '', { enduser, responses, escapeNewlinesAsHTMLBreaks: true, escapeHTMLValues: true }),
+          htmlDescription: replace_form_field_template_values(translateDisplay(originalField.htmlDescription || ''), { enduser, responses, escapeNewlinesAsHTMLBreaks: true, escapeHTMLValues: true }),
         }
       }
     })
-  }, [responses, fields, enduser])
+  }, [responses, fields, enduser, dynamicTranslations])
 
   // placeholders for initial files, reset when fields prop changes, since questions are now different (e.g. different form selected) 
   const fileInitRef = useRef('')
@@ -1528,6 +1604,8 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
             // (bulk-for-event / bulk submit) are DIFFERENT patients, and the summary was
             // generated for `enduserId` only.
             ...(getEnduserAISummary && eId === enduserId ? { enduserAISummary: getEnduserAISummary() } : {}),
+            // flags the display language only — the responses above are always the English source values
+            ...(viewedInLanguage && viewedInLanguage !== 'en' ? { viewedInLanguage } : {}),
           })
 
           // do actual redirect later to prevent popup
@@ -1597,7 +1675,7 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
     } finally {
       setSubmittingStatus(undefined)
     }
-  }, [accessCode, automationStepId, enduserId, responses, templatedResponses, selectedFiles, session, handleUpload, existingResponses, ga4measurementId, rootResponseId, parentResponseId, calendarEventId, goBackURL, logicOptions, handleFileUpload])
+  }, [accessCode, automationStepId, enduserId, responses, templatedResponses, selectedFiles, session, handleUpload, existingResponses, ga4measurementId, rootResponseId, parentResponseId, calendarEventId, goBackURL, logicOptions, handleFileUpload, viewedInLanguage])
 
   const isNextDisabled = useCallback(() => {
     if (uploadingFiles.length) { return true }

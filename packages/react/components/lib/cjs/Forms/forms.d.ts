@@ -19,6 +19,10 @@ export declare const TellescopeFormContainer: ({ businessId, organizationIds, ..
     logoAlignment?: "center" | "left" | "right" | undefined;
     language?: string | undefined;
     onChangeLanguage?: ((l: string) => void) | undefined;
+    languageOptions?: {
+        code: string;
+        label: string;
+    }[] | undefined;
     paperMinHeight?: React.CSSProperties['minHeight'];
     maxWidth?: number | undefined;
 } & Styled) => JSX.Element;
@@ -41,6 +45,12 @@ export interface TellescopeFormProps extends ReturnType<typeof useTellescopeForm
     groupId?: string;
     groupInstance?: string;
     logoHeight?: number;
+    language?: string;
+    onChangeLanguage?: (l: string) => void;
+    languageOptions?: {
+        code: string;
+        label: string;
+    }[];
 }
 export declare const TellescopeForm: (props: TellescopeFormProps & Styled & {
     hideBg?: boolean;
