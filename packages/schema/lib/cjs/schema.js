@@ -3165,7 +3165,7 @@ exports.schema = (0, exports.build_schema)({
                 examples: ["Text"],
             }, fields: {
                 validator: validation_1.fieldsValidator,
-            }, pinnedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, tags: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, discussionRoomId: { validator: validation_1.mongoIdStringRequired }, source: { validator: validation_1.stringValidator }, externalId: { validator: validation_1.stringValidator } })
+            }, pinnedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, tags: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, discussionRoomId: { validator: validation_1.mongoIdStringRequired }, source: { validator: validation_1.stringValidator }, externalId: { validator: validation_1.stringValidator }, aiGenerated: { validator: validation_1.booleanValidator } })
     },
     forms: {
         info: {},

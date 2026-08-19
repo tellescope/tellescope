@@ -1202,6 +1202,10 @@ export const safeJSONParse = (s?: string) => {
   }
 }
 
+// Raw JSON body templates may use {{...}} placeholders unquoted (e.g. "amount": {{purchase.cost.amount}})
+// so numeric values are sent as numbers after substitution. Normalize placeholders to 0 before validating.
+export const safeJSONParseTemplate = (s?: string) => safeJSONParse(s?.replace(/\{\{[^{}]*\}\}/g, '0'))
+
 export const timezone_for_enduser = (e: Pick<Enduser, 'state' | 'timezone'>) => (
   e.timezone 
     ? e.timezone 

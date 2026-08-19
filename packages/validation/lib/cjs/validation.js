@@ -2220,6 +2220,7 @@ var _AUTOMATION_ACTIONS = {
     metriportPushFormResponse: '',
     aiDecision: '',
     generateEnduserSummary: '',
+    createNote: '',
     startAIConversation: '',
     assignInboxItem: '',
     createScriptSureDraft: '',
@@ -2902,6 +2903,14 @@ exports.automationActionValidator = (0, exports.orValidator)({
     generateEnduserSummary: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['generateEnduserSummary']), info: (0, exports.objectValidator)({
             aiSummaryConfiguration: exports.aiSummaryConfigurationValidator, // optional shared config
         }, { emptyOk: true }) // config is optional; an empty info is valid
+     })),
+    createNote: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['createNote']), info: (0, exports.objectValidator)({
+            title: exports.stringValidator250,
+            text: exports.stringValidator5000OptionalEmptyOkay,
+            tags: exports.listOfStringsValidatorOptionalOrEmptyOk,
+            hiddenFromTimeline: exports.booleanValidatorOptional,
+            aiSummaryConfiguration: exports.aiSummaryConfigurationValidator, // when enabled, text is AI-generated
+        }, { emptyOk: false }) // title is required
      })),
     startAIConversation: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['startAIConversation']), info: (0, exports.objectValidator)({
             channel: (0, exports.exactMatchValidator)(['SMS']),

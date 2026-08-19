@@ -2168,6 +2168,7 @@ var _AUTOMATION_ACTIONS = {
     metriportPushFormResponse: '',
     aiDecision: '',
     generateEnduserSummary: '',
+    createNote: '',
     startAIConversation: '',
     assignInboxItem: '',
     createScriptSureDraft: '',
@@ -2850,6 +2851,14 @@ export var automationActionValidator = orValidator({
     generateEnduserSummary: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['generateEnduserSummary']), info: objectValidator({
             aiSummaryConfiguration: aiSummaryConfigurationValidator, // optional shared config
         }, { emptyOk: true }) // config is optional; an empty info is valid
+     })),
+    createNote: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['createNote']), info: objectValidator({
+            title: stringValidator250,
+            text: stringValidator5000OptionalEmptyOkay,
+            tags: listOfStringsValidatorOptionalOrEmptyOk,
+            hiddenFromTimeline: booleanValidatorOptional,
+            aiSummaryConfiguration: aiSummaryConfigurationValidator, // when enabled, text is AI-generated
+        }, { emptyOk: false }) // title is required
      })),
     startAIConversation: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['startAIConversation']), info: objectValidator({
             channel: exactMatchValidator(['SMS']),

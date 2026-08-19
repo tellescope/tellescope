@@ -1864,6 +1864,7 @@ export interface Note extends Note_readonly, Note_required, Note_updatesDisabled
     hiddenFromTimeline?: boolean;
     copiedFrom?: string;
     copiedFromEnduserId?: string;
+    aiGenerated?: boolean;
 }
 export type FormFieldLiteralType = 'Rich Text' | 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' | 'dateString' | 'rating' | 'Time' | "Timezone";
 export type FormFieldComplexType = "Conditions" | "Allergies" | "Emotii" | "Hidden Value" | "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Chargebee" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance" | "Bridge Eligibility" | "Candid Eligibility" | "Beluga Patient Preference" | "Pharmacy Search";
@@ -3670,6 +3671,13 @@ export type AIDecisionAutomationAction = AutomationActionBuilder<'aiDecision', {
 export type GenerateEnduserSummaryAutomationAction = AutomationActionBuilder<'generateEnduserSummary', {
     aiSummaryConfiguration?: AISummaryConfiguration;
 }>;
+export type CreateNoteAutomationAction = AutomationActionBuilder<'createNote', {
+    title: string;
+    text?: string;
+    tags?: string[];
+    hiddenFromTimeline?: boolean;
+    aiSummaryConfiguration?: AISummaryConfiguration;
+}>;
 export type AssignInboxItemAutomationAction = AutomationActionBuilder<'assignInboxItem', {
     tags: ListOfStringsWithQualifier;
     limit: number;
@@ -3690,6 +3698,7 @@ export type StartAIConversationAutomationAction = AutomationActionBuilder<'start
 export type AutomationActionForType = {
     'aiDecision': AIDecisionAutomationAction;
     'generateEnduserSummary': GenerateEnduserSummaryAutomationAction;
+    'createNote': CreateNoteAutomationAction;
     'startAIConversation': StartAIConversationAutomationAction;
     'assignInboxItem': AssignInboxItemAutomationAction;
     'stripeChargeCardOnFile': StripeChargeCardOnFileAutomationAction;

@@ -1126,6 +1126,9 @@ export var safeJSONParse = function (s) {
         return undefined;
     }
 };
+// Raw JSON body templates may use {{...}} placeholders unquoted (e.g. "amount": {{purchase.cost.amount}})
+// so numeric values are sent as numbers after substitution. Normalize placeholders to 0 before validating.
+export var safeJSONParseTemplate = function (s) { return safeJSONParse(s === null || s === void 0 ? void 0 : s.replace(/\{\{[^{}]*\}\}/g, '0')); };
 export var timezone_for_enduser = function (e) { return (e.timezone
     ? e.timezone
     : (e.state

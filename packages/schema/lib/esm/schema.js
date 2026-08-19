@@ -3160,7 +3160,7 @@ export var schema = build_schema({
                 examples: ["Text"],
             }, fields: {
                 validator: fieldsValidator,
-            }, pinnedAt: { validator: dateOptionalOrEmptyStringValidator }, tags: { validator: listOfStringsValidatorOptionalOrEmptyOk }, discussionRoomId: { validator: mongoIdStringValidator }, source: { validator: stringValidator }, externalId: { validator: stringValidator } })
+            }, pinnedAt: { validator: dateOptionalOrEmptyStringValidator }, tags: { validator: listOfStringsValidatorOptionalOrEmptyOk }, discussionRoomId: { validator: mongoIdStringValidator }, source: { validator: stringValidator }, externalId: { validator: stringValidator }, aiGenerated: { validator: booleanValidator } })
     },
     forms: {
         info: {},

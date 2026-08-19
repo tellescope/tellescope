@@ -1942,6 +1942,7 @@ export interface Note extends Note_readonly, Note_required, Note_updatesDisabled
   hiddenFromTimeline?: boolean,
   copiedFrom?: string,
   copiedFromEnduserId?: string,
+  aiGenerated?: boolean, // set when the note text was AI-generated (e.g. createNote journey action)
 }
 
 export type FormFieldLiteralType = 'Rich Text' | 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' /* date + time */ | 'dateString' | 'rating' | 'Time' | "Timezone"
@@ -3737,6 +3738,13 @@ export type AIDecisionAutomationAction = AutomationActionBuilder<'aiDecision', {
 export type GenerateEnduserSummaryAutomationAction = AutomationActionBuilder<'generateEnduserSummary', {
   aiSummaryConfiguration?: AISummaryConfiguration, // includeProfileFields defaults to true for this action
 }>
+export type CreateNoteAutomationAction = AutomationActionBuilder<'createNote', {
+  title: string, // supports merge fields like {{enduser.fname}}; capped at note title limit (250)
+  text?: string, // deterministic note text; supports merge fields like {{enduser.fname}}
+  tags?: string[],
+  hiddenFromTimeline?: boolean,
+  aiSummaryConfiguration?: AISummaryConfiguration, // when .enabled, note text is AI-generated and `text` is ignored
+}>
 export type AssignInboxItemAutomationAction = AutomationActionBuilder<'assignInboxItem', {
   tags: ListOfStringsWithQualifier,
   limit: number,
@@ -3762,6 +3770,7 @@ export type StartAIConversationAutomationAction = AutomationActionBuilder<'start
 export type AutomationActionForType = {
   'aiDecision': AIDecisionAutomationAction,
   'generateEnduserSummary': GenerateEnduserSummaryAutomationAction,
+  'createNote': CreateNoteAutomationAction,
   'startAIConversation': StartAIConversationAutomationAction,
   'assignInboxItem': AssignInboxItemAutomationAction,
   'stripeChargeCardOnFile': StripeChargeCardOnFileAutomationAction,

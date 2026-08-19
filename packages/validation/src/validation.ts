@@ -351,6 +351,7 @@ import {
   MetriportPushFormResponseAutomationAction,
   AIDecisionAutomationAction,
   GenerateEnduserSummaryAutomationAction,
+  CreateNoteAutomationAction,
   StartAIConversationAutomationAction,
   StartAIConversationActionInfo,
   AssignInboxItemAutomationAction,
@@ -2731,6 +2732,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   metriportPushFormResponse: '',
   aiDecision: '',
   generateEnduserSummary: '',
+  createNote: '',
   startAIConversation: '',
   assignInboxItem: '',
   createScriptSureDraft: '',
@@ -3733,6 +3735,17 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     info: objectValidator<GenerateEnduserSummaryAutomationAction['info']>({
       aiSummaryConfiguration: aiSummaryConfigurationValidator, // optional shared config
     }, { emptyOk: true }) // config is optional; an empty info is valid
+  }),
+  createNote: objectValidator<CreateNoteAutomationAction>({
+    ...sharedAutomationActionValidators,
+    type: exactMatchValidator(['createNote']),
+    info: objectValidator<CreateNoteAutomationAction['info']>({
+      title: stringValidator250,
+      text: stringValidator5000OptionalEmptyOkay,
+      tags: listOfStringsValidatorOptionalOrEmptyOk,
+      hiddenFromTimeline: booleanValidatorOptional,
+      aiSummaryConfiguration: aiSummaryConfigurationValidator, // when enabled, text is AI-generated
+    }, { emptyOk: false }) // title is required
   }),
   startAIConversation: objectValidator<StartAIConversationAutomationAction>({
     ...sharedAutomationActionValidators,

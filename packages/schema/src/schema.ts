@@ -4931,6 +4931,7 @@ export const schema: SchemaV1 = build_schema({
       discussionRoomId: { validator: mongoIdStringValidator },
       source: { validator: stringValidator },
       externalId: { validator: stringValidator },
+      aiGenerated: { validator: booleanValidator },
     }
   },
   forms: {
