@@ -3781,6 +3781,31 @@ exports.schema = (0, exports.build_schema)({
                         if (r.publicRead)
                             return "Enduser cannot create or update public events";
                     }
+                }, {
+                    // attendeeStatuses / cancelledGroupAttendees are attendee-keyed and drive per-attendee
+                    // automation triggers. An enduser attendee can PATCH the whole event, so without this an
+                    // enduser could add/modify/remove another attendee's entry (firing or suppressing that
+                    // patient's Appointment triggers). Endusers may only touch their OWN id's entry here; the
+                    // portal self-cancel (which appends the enduser's own cancelledGroupAttendees entry) is
+                    // unaffected. Staff sessions are unrestricted.
+                    explanation: 'enduser may only update their own attendee-status entry',
+                    evaluate: function (r, t, s, method, options) {
+                        var _a, _b;
+                        if (s.type === 'user')
+                            return;
+                        var enduserId = s.id;
+                        var othersKey = function (entries) { return ((entries || [])
+                            .filter(function (e) { return e.id !== enduserId; })
+                            .map(function (e) { var _a, _b; return "".concat((_a = e.id) !== null && _a !== void 0 ? _a : '', "|").concat((_b = e.status) !== null && _b !== void 0 ? _b : '', "|").concat(e.at ? new Date(e.at).getTime() : ''); })
+                            .sort()); };
+                        var unchanged = function (before, after) { return (before.length === after.length && before.every(function (k, i) { return k === after[i]; })); };
+                        if (!unchanged(othersKey((_a = options === null || options === void 0 ? void 0 : options.original) === null || _a === void 0 ? void 0 : _a.attendeeStatuses), othersKey(r.attendeeStatuses))) {
+                            return "Endusers may only update their own attendee status";
+                        }
+                        if (!unchanged(othersKey((_b = options === null || options === void 0 ? void 0 : options.original) === null || _b === void 0 ? void 0 : _b.cancelledGroupAttendees), othersKey(r.cancelledGroupAttendees))) {
+                            return "Endusers may only cancel themselves out of a group event";
+                        }
+                    }
                 }]
         },
         defaultActions: constants_1.DEFAULT_OPERATIONS,

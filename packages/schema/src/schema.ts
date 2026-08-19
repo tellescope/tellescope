@@ -5761,7 +5761,36 @@ export const schema: SchemaV1 = build_schema({
           if (s.type === 'user') return
           if (r.publicRead) return "Enduser cannot create or update public events"
         }
-      }] 
+      }, {
+        // attendeeStatuses / cancelledGroupAttendees are attendee-keyed and drive per-attendee
+        // automation triggers. An enduser attendee can PATCH the whole event, so without this an
+        // enduser could add/modify/remove another attendee's entry (firing or suppressing that
+        // patient's Appointment triggers). Endusers may only touch their OWN id's entry here; the
+        // portal self-cancel (which appends the enduser's own cancelledGroupAttendees entry) is
+        // unaffected. Staff sessions are unrestricted.
+        explanation: 'enduser may only update their own attendee-status entry',
+        evaluate: (r, t, s, method, options) => {
+          if (s.type === 'user') return
+          const enduserId = s.id
+
+          const othersKey = (entries: { id?: string, at?: Date, status?: string }[] | undefined) => (
+            (entries || [])
+              .filter(e => e.id !== enduserId)
+              .map(e => `${e.id ?? ''}|${e.status ?? ''}|${e.at ? new Date(e.at).getTime() : ''}`)
+              .sort()
+          )
+          const unchanged = (before: string[], after: string[]) => (
+            before.length === after.length && before.every((k, i) => k === after[i])
+          )
+
+          if (!unchanged(othersKey(options?.original?.attendeeStatuses), othersKey(r.attendeeStatuses))) {
+            return "Endusers may only update their own attendee status"
+          }
+          if (!unchanged(othersKey(options?.original?.cancelledGroupAttendees), othersKey(r.cancelledGroupAttendees))) {
+            return "Endusers may only cancel themselves out of a group event"
+          }
+        }
+      }]
     },
     defaultActions: DEFAULT_OPERATIONS,
     customActions: {

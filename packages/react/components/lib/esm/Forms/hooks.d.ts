@@ -33,10 +33,10 @@ export declare const useFormDisplayLanguage: ({ form, initialLanguage, fetchTran
         allowPublicURL?: boolean | undefined;
         intakeEmailRequired?: boolean | undefined;
         intakeEmailHidden?: boolean | undefined;
-        intakePhone?: "hidden" | "required" | "optional" | undefined;
-        intakeDateOfBirth?: "hidden" | "required" | "optional" | undefined;
-        intakeState?: "hidden" | "required" | "optional" | undefined;
-        intakeGender?: "hidden" | "required" | "optional" | undefined;
+        intakePhone?: "required" | "optional" | "hidden" | undefined;
+        intakeDateOfBirth?: "required" | "optional" | "hidden" | undefined;
+        intakeState?: "required" | "optional" | "hidden" | undefined;
+        intakeGender?: "required" | "optional" | "hidden" | undefined;
         intakeGenderIsSex?: boolean | undefined;
         thanksMessage?: string | undefined;
         htmlThanksMessage?: string | undefined;

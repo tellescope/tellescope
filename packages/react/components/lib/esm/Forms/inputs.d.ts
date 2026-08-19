@@ -22,7 +22,7 @@ export declare const RatingInput: ({ field, value, onChange }: FormInputProps<'r
 export declare const RankingInput: ({ field, value, onChange, form }: FormInputProps<'ranking'>) => JSX.Element;
 export declare const DateInput: ({ field, value, onChange, placement, ...props }: {
     field: FormField;
-    placement?: "bottom" | "left" | "right" | "top" | undefined;
+    placement?: "top" | "left" | "right" | "bottom" | undefined;
 } & FormInputProps<"date"> & Styled) => JSX.Element;
 export declare const TableInput: ({ field, value, onChange, form, ...props }: FormInputProps<'Input Table'>) => JSX.Element;
 export declare const AutoFocusTextField: (props: (import("@mui/material").FilledTextFieldProps | import("@mui/material").OutlinedTextFieldProps | import("@mui/material").StandardTextFieldProps) & {
@@ -51,7 +51,7 @@ export declare const CandidEligibilityInput: ({ field, value, onChange, response
         sx: SxProps;
     } | undefined;
 }) => JSX.Element;
-export declare const PharmacySearchInput: ({ field, value: rawValue, onChange, responses, enduser, form, ...props }: Omit<FormInputProps<"string">, "onChange" | "value"> & {
+export declare const PharmacySearchInput: ({ field, value: rawValue, onChange, responses, enduser, form, ...props }: Omit<FormInputProps<"string">, "value" | "onChange"> & {
     value: Pharmacy | undefined;
     onChange: (v: Pharmacy | undefined, fieldId: string) => void;
 }) => JSX.Element;
