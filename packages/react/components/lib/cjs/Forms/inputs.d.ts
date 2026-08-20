@@ -51,6 +51,11 @@ export declare const CandidEligibilityInput: ({ field, value, onChange, response
         sx: SxProps;
     } | undefined;
 }) => JSX.Element;
+export declare const StediEligibilityInput: ({ field, value, onChange, responses, enduser, inputProps, enduserId, form, formResponseId, ...props }: FormInputProps<"Stedi Eligibility"> & {
+    inputProps?: {
+        sx: SxProps;
+    } | undefined;
+}) => JSX.Element;
 export declare const PharmacySearchInput: ({ field, value: rawValue, onChange, responses, enduser, form, ...props }: Omit<FormInputProps<"string">, "onChange" | "value"> & {
     value: Pharmacy | undefined;
     onChange: (v: Pharmacy | undefined, fieldId: string) => void;

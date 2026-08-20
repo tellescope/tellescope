@@ -97,8 +97,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.RichTextInput = exports.ConditionsInput = exports.AllergiesInput = exports.EmotiiInput = exports.HiddenValueInput = exports.RedirectInput = exports.include_current_url_parameters_if_templated = exports.HeightInput = exports.AppointmentBookingInput = exports.RelatedContactsInput = exports.contact_is_valid = exports.BelugaPatientPreferenceInput = exports.MedicationsInput = exports.CanvasMedicationsInput = exports.DatabaseSelectInput = exports.DropdownInput = exports.Progress = exports.StripeInput = exports.MultipleChoiceInput = exports.FilesInput = exports.safe_create_url = exports.FileInput = exports.ExistingFilePicker = exports.convertHEIC = exports.SignatureInput = exports.ESignatureTerms = exports.AddressInput = exports.TimezoneInput = exports.TimeInput = exports.PharmacySearchInput = exports.CandidEligibilityInput = exports.BridgeEligibilityInput = exports.InsuranceInput = exports.NumberInput = exports.EmailInput = exports.PhoneInput = exports.StringLongInput = exports.StringInput = exports.DateStringInput = exports.AutoFocusTextField = exports.TableInput = exports.DateInput = exports.RankingInput = exports.RatingInput = exports.PdfViewer = exports.defaultButtonStyles = exports.defaultInputProps = exports.LanguageSelect = exports.setBridgeEligibilityUserIds = exports.getBridgeEligibilityUserIds = void 0;
-exports.ChargeebeeInput = void 0;
+exports.ConditionsInput = exports.AllergiesInput = exports.EmotiiInput = exports.HiddenValueInput = exports.RedirectInput = exports.include_current_url_parameters_if_templated = exports.HeightInput = exports.AppointmentBookingInput = exports.RelatedContactsInput = exports.contact_is_valid = exports.BelugaPatientPreferenceInput = exports.MedicationsInput = exports.CanvasMedicationsInput = exports.DatabaseSelectInput = exports.DropdownInput = exports.Progress = exports.StripeInput = exports.MultipleChoiceInput = exports.FilesInput = exports.safe_create_url = exports.FileInput = exports.ExistingFilePicker = exports.convertHEIC = exports.SignatureInput = exports.ESignatureTerms = exports.AddressInput = exports.TimezoneInput = exports.TimeInput = exports.PharmacySearchInput = exports.StediEligibilityInput = exports.CandidEligibilityInput = exports.BridgeEligibilityInput = exports.InsuranceInput = exports.NumberInput = exports.EmailInput = exports.PhoneInput = exports.StringLongInput = exports.StringInput = exports.DateStringInput = exports.AutoFocusTextField = exports.TableInput = exports.DateInput = exports.RankingInput = exports.RatingInput = exports.PdfViewer = exports.defaultButtonStyles = exports.defaultInputProps = exports.LanguageSelect = exports.setBridgeEligibilityUserIds = exports.getBridgeEligibilityUserIds = void 0;
+exports.ChargeebeeInput = exports.RichTextInput = void 0;
 var react_1 = require("react");
 var jsx_runtime_1 = require("react/jsx-runtime");
 var react_2 = __importStar(require("react"));
@@ -416,11 +416,13 @@ var InsuranceInput = function (_a) {
     // load from database
     var loadRef = (0, react_2.useRef)(false); // so session changes don't cause
     (0, react_2.useEffect)(function () {
-        var _a, _b;
+        var _a, _b, _d;
         if (((_a = field === null || field === void 0 ? void 0 : field.options) === null || _a === void 0 ? void 0 : _a.dataSource) === constants_1.CANVAS_TITLE)
             return; // instead, look-up while typing against Canvas Search API
         if (((_b = field === null || field === void 0 ? void 0 : field.options) === null || _b === void 0 ? void 0 : _b.dataSource) === constants_1.BRIDGE_TITLE)
             return; // instead, look-up while typing against Bridge Search API
+        if (((_d = field === null || field === void 0 ? void 0 : field.options) === null || _d === void 0 ? void 0 : _d.dataSource) === constants_1.STEDI_TITLE)
+            return; // instead, look-up while typing against Stedi Payer Network
         if (loadRef.current)
             return;
         loadRef.current = true;
@@ -446,8 +448,8 @@ var InsuranceInput = function (_a) {
     // load from 3rd-party on search only
     var searchRef = (0, react_2.useRef)(query);
     (0, react_2.useEffect)(function () {
-        var _a, _b, _d, _e;
-        if (((_a = field === null || field === void 0 ? void 0 : field.options) === null || _a === void 0 ? void 0 : _a.dataSource) !== constants_1.CANVAS_TITLE && ((_b = field === null || field === void 0 ? void 0 : field.options) === null || _b === void 0 ? void 0 : _b.dataSource) !== constants_1.BRIDGE_TITLE) {
+        var _a, _b, _d, _e, _f, _g;
+        if (((_a = field === null || field === void 0 ? void 0 : field.options) === null || _a === void 0 ? void 0 : _a.dataSource) !== constants_1.CANVAS_TITLE && ((_b = field === null || field === void 0 ? void 0 : field.options) === null || _b === void 0 ? void 0 : _b.dataSource) !== constants_1.BRIDGE_TITLE && ((_d = field === null || field === void 0 ? void 0 : field.options) === null || _d === void 0 ? void 0 : _d.dataSource) !== constants_1.STEDI_TITLE) {
             return;
         }
         if (!query)
@@ -455,8 +457,10 @@ var InsuranceInput = function (_a) {
         if (searchRef.current === query)
             return;
         searchRef.current = query;
-        var integration = ((_d = field === null || field === void 0 ? void 0 : field.options) === null || _d === void 0 ? void 0 : _d.dataSource) === constants_1.CANVAS_TITLE ? constants_1.CANVAS_TITLE : constants_1.BRIDGE_TITLE;
-        var type = ((_e = field === null || field === void 0 ? void 0 : field.options) === null || _e === void 0 ? void 0 : _e.dataSource) === constants_1.CANVAS_TITLE ? 'organizations' : 'payers';
+        var integration = (((_e = field === null || field === void 0 ? void 0 : field.options) === null || _e === void 0 ? void 0 : _e.dataSource) === constants_1.CANVAS_TITLE ? constants_1.CANVAS_TITLE
+            : ((_f = field === null || field === void 0 ? void 0 : field.options) === null || _f === void 0 ? void 0 : _f.dataSource) === constants_1.STEDI_TITLE ? constants_1.STEDI_TITLE
+                : constants_1.BRIDGE_TITLE);
+        var type = ((_g = field === null || field === void 0 ? void 0 : field.options) === null || _g === void 0 ? void 0 : _g.dataSource) === constants_1.CANVAS_TITLE ? 'organizations' : 'payers';
         var t = setTimeout(function () { return (session.api.integrations.proxy_read({
             integration: integration,
             query: query,
@@ -502,8 +506,8 @@ var InsuranceInput = function (_a) {
                             // don't lose existing payerId on back-and-forth navigation
                             onChange(__assign(__assign({}, value), { payerName: v || '', payerId: ((value === null || value === void 0 ? void 0 : value.payerName) === v && (value === null || value === void 0 ? void 0 : value.payerId) ? value.payerId : '') || ((_b = payers.find(function (p) { return p.name === v; })) === null || _b === void 0 ? void 0 : _b.id) || '', payerType: ((_d = payers.find(function (p) { return p.name === v; })) === null || _d === void 0 ? void 0 : _d.type) || '' }), field.id);
                         }, renderInput: function (params) {
-                        var _a, _b;
-                        return ((0, jsx_runtime_1.jsx)(material_1.TextField, __assign({}, params, { InputProps: __assign(__assign({}, params.InputProps), { sx: (inputProps || exports.defaultInputProps).sx }), required: !field.isOptional, size: "small", label: (0, __1.form_display_text_for_language)(form, "Insurer"), placeholder: (((_a = field.options) === null || _a === void 0 ? void 0 : _a.dataSource) === constants_1.CANVAS_TITLE || ((_b = field.options) === null || _b === void 0 ? void 0 : _b.dataSource) === constants_1.BRIDGE_TITLE) ? (0, __1.form_display_text_for_language)(form, "Search insurer...") : (0, __1.form_display_text_for_language)(form, "Insurer") })));
+                        var _a, _b, _d;
+                        return ((0, jsx_runtime_1.jsx)(material_1.TextField, __assign({}, params, { InputProps: __assign(__assign({}, params.InputProps), { sx: (inputProps || exports.defaultInputProps).sx }), required: !field.isOptional, size: "small", label: (0, __1.form_display_text_for_language)(form, "Insurer"), placeholder: (((_a = field.options) === null || _a === void 0 ? void 0 : _a.dataSource) === constants_1.CANVAS_TITLE || ((_b = field.options) === null || _b === void 0 ? void 0 : _b.dataSource) === constants_1.BRIDGE_TITLE || ((_d = field.options) === null || _d === void 0 ? void 0 : _d.dataSource) === constants_1.STEDI_TITLE) ? (0, __1.form_display_text_for_language)(form, "Search insurer...") : (0, __1.form_display_text_for_language)(form, "Insurer") })));
                     } }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, xs: 12, sm: 6 }, { children: (0, jsx_runtime_1.jsx)(material_1.TextField, { InputProps: inputProps || exports.defaultInputProps, required: !field.isOptional, fullWidth: true, value: (_g = value === null || value === void 0 ? void 0 : value.memberId) !== null && _g !== void 0 ? _g : '', onChange: function (e) { return onChange(__assign(__assign({}, value), { memberId: e.target.value }), field.id); }, label: (0, __1.form_display_text_for_language)(form, "Member ID", ''), size: "small" }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, xs: 12, sm: 6 }, { children: (0, jsx_runtime_1.jsx)(material_1.TextField, { InputProps: inputProps || exports.defaultInputProps, required: false, fullWidth: true, value: (_h = value === null || value === void 0 ? void 0 : value.planName) !== null && _h !== void 0 ? _h : '', onChange: function (e) { return onChange(__assign(__assign({}, value), { planName: e.target.value }), field.id); }, label: (0, __1.form_display_text_for_language)(form, "Plan Name", ''), size: "small" }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, xs: 12, sm: 6 }, { children: (0, jsx_runtime_1.jsx)(exports.DateStringInput, { size: "small", label: (0, __1.form_display_text_for_language)(form, "Plan Start Date"), inputProps: inputProps, field: __assign(__assign({}, field), { isOptional: true }), value: (value === null || value === void 0 ? void 0 : value.startDate) || '', onChange: function (startDate) {
                         return onChange(__assign(__assign({}, value), { startDate: startDate }), field.id);
                     } }) })), ((_j = field.options) === null || _j === void 0 ? void 0 : _j.includeGroupNumber) &&
@@ -998,6 +1002,117 @@ var CandidEligibilityInput = function (_a) {
     return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, spacing: 2, direction: "column" }, { children: [(0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ item: true }, { children: [(0, jsx_runtime_1.jsxs)(material_1.Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Service Code: ", ((_b = field.options) === null || _b === void 0 ? void 0 : _b.candidServiceCode) || 'Not configured'] })), (0, jsx_runtime_1.jsxs)(material_1.Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Provider NPI: ", ((_d = field.options) === null || _d === void 0 ? void 0 : _d.candidNPI) || 'Not configured'] })), payerId && (0, jsx_runtime_1.jsxs)(material_1.Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Payer ID: ", payerId] })), memberId && (0, jsx_runtime_1.jsxs)(material_1.Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Member ID: ", memberId] }))] })), error && ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "body2", color: "error" }, { children: error })) }))), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, container: true, spacing: 2 }, { children: (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(__1.LoadingButton, { variant: "outlined", onClick: checkEligibility, submitText: (0, __1.form_display_text_for_language)(form, "Check Eligibility"), submittingText: (0, __1.form_display_text_for_language)(form, "Checking..."), submitting: loading, disabled: loading }) })) })), value && ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ item: true }, { children: [(0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "caption", color: "textSecondary" }, { children: "Current Answer:" })), (0, jsx_runtime_1.jsx)("pre", __assign({ style: { fontSize: 11, whiteSpace: 'pre-wrap', wordBreak: 'break-word' } }, { children: JSON.stringify(value, null, 2) }))] })))] })));
 };
 exports.CandidEligibilityInput = CandidEligibilityInput;
+var StediEligibilityInput = function (_a) {
+    var _b, _d;
+    var field = _a.field, value = _a.value, onChange = _a.onChange, responses = _a.responses, enduser = _a.enduser, inputProps = _a.inputProps, enduserId = _a.enduserId, form = _a.form, formResponseId = _a.formResponseId, props = __rest(_a, ["field", "value", "onChange", "responses", "enduser", "inputProps", "enduserId", "form", "formResponseId"]);
+    var session = (0, __1.useResolvedSession)();
+    var _e = (0, react_2.useState)(false), loading = _e[0], setLoading = _e[1];
+    var _f = (0, react_2.useState)(), error = _f[0], setError = _f[1];
+    var isEnduserSession = session.type === 'enduser';
+    // Extract payerId from Insurance question response
+    var _g = (0, react_2.useMemo)(function () {
+        var _a, _b, _d, _e;
+        var insuranceResponse = responses === null || responses === void 0 ? void 0 : responses.find(function (r) { var _a, _b, _d; return ((_a = r.answer) === null || _a === void 0 ? void 0 : _a.type) === 'Insurance' && ((_d = (_b = r.answer) === null || _b === void 0 ? void 0 : _b.value) === null || _d === void 0 ? void 0 : _d.payerId); });
+        if (((_a = insuranceResponse === null || insuranceResponse === void 0 ? void 0 : insuranceResponse.answer) === null || _a === void 0 ? void 0 : _a.type) === 'Insurance') {
+            return [
+                (_b = insuranceResponse.answer.value) === null || _b === void 0 ? void 0 : _b.payerId,
+                (_d = insuranceResponse.answer.value) === null || _d === void 0 ? void 0 : _d.memberId,
+                (_e = insuranceResponse.answer.value) === null || _e === void 0 ? void 0 : _e.payerName,
+            ];
+        }
+        return [];
+    }, [responses]), payerId = _g[0], memberId = _g[1], payerName = _g[2];
+    var checkEligibility = (0, react_2.useCallback)(function () { return __awaiter(void 0, void 0, void 0, function () {
+        var data, err_7;
+        var _a, _b;
+        return __generator(this, function (_d) {
+            switch (_d.label) {
+                case 0:
+                    setLoading(true);
+                    setError(undefined);
+                    _d.label = 1;
+                case 1:
+                    _d.trys.push([1, 3, , 4]);
+                    return [4 /*yield*/, session.api.integrations.proxy_read({
+                            id: enduserId,
+                            integration: constants_1.STEDI_TITLE,
+                            type: 'stedi-eligibility',
+                            query: JSON.stringify({
+                                serviceCode: (_a = field.options) === null || _a === void 0 ? void 0 : _a.stediServiceCode,
+                                npi: (_b = field.options) === null || _b === void 0 ? void 0 : _b.stediNPI,
+                                payerId: payerId,
+                                memberId: memberId,
+                                payerName: payerName,
+                                formResponseId: formResponseId,
+                            }),
+                        })];
+                case 2:
+                    data = (_d.sent()).data;
+                    onChange({
+                        payerId: payerId,
+                        status: data === null || data === void 0 ? void 0 : data.status,
+                        benefits: data === null || data === void 0 ? void 0 : data.benefits,
+                        planMetadata: data === null || data === void 0 ? void 0 : data.planMetadata,
+                    }, field.id);
+                    setLoading(false);
+                    return [3 /*break*/, 4];
+                case 3:
+                    err_7 = _d.sent();
+                    setError((err_7 === null || err_7 === void 0 ? void 0 : err_7.message) || 'Failed to check eligibility');
+                    console.error('Stedi eligibility check failed:', err_7);
+                    setLoading(false);
+                    return [3 /*break*/, 4];
+                case 4: return [2 /*return*/];
+            }
+        });
+    }); }, [session, field, payerId, memberId, payerName, onChange, enduserId, formResponseId]);
+    // Auto-check eligibility for enduser sessions
+    var autoCheckRef = (0, react_2.useRef)(false);
+    (0, react_2.useEffect)(function () {
+        if (!isEnduserSession)
+            return;
+        // If we already have a result and the payer hasn't changed, use the cached result
+        if ((value === null || value === void 0 ? void 0 : value.status) && (value === null || value === void 0 ? void 0 : value.payerId) === payerId) {
+            return;
+        }
+        if (autoCheckRef.current)
+            return;
+        autoCheckRef.current = true;
+        checkEligibility();
+    }, [isEnduserSession, checkEligibility, value, payerId]);
+    var errorComponent = (0, react_2.useMemo)(function () { return ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ container: true, spacing: 2, direction: "column", alignItems: "center", style: { padding: '20px 0' } }, { children: (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Paper, __assign({ style: {
+                    padding: 16,
+                    backgroundColor: '#ffebee',
+                    border: '2px solid #f44336'
+                } }, { children: (0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, spacing: 2, direction: "column", alignItems: "center" }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "h2", style: { color: '#f44336' } }, { children: "!" })) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "h6", align: "center", color: "error" }, { children: "Unable to Check Eligibility" })) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "body2", align: "center", style: { color: '#d32f2f' } }, { children: error })) }))] })) })) })) }))); }, [error]);
+    var checkingEligibilityComponent = (0, react_2.useMemo)(function () { return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, spacing: 2, direction: "column", alignItems: "center", style: { padding: '20px 0' } }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.CircularProgress, { size: 40 }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "body1" }, { children: "Checking eligibility..." })) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: "This may take a few moments" })) }))] }))); }, []);
+    var resultsComponent = (0, react_2.useMemo)(function () {
+        var isActive = (value === null || value === void 0 ? void 0 : value.status) === 'ACTIVE';
+        return ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ container: true, spacing: 2, direction: "column" }, { children: (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Paper, __assign({ style: {
+                        padding: 16,
+                        backgroundColor: isActive ? '#e8f5e9' : '#fff8e1',
+                        border: "2px solid ".concat(isActive ? '#4caf50' : '#ffa000')
+                    } }, { children: (0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, spacing: 2, direction: "column", alignItems: "center" }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: isActive ? ((0, jsx_runtime_1.jsx)(icons_material_1.CheckCircleOutline, { style: { fontSize: 48, color: '#4caf50' } })) : ((0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "h2", style: { color: '#ffa000' } }, { children: "!" }))) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "h6", align: "center" }, { children: isActive
+                                        ? "".concat(payerName || 'Insurance', " eligibility verified")
+                                        : 'Eligibility Status: ' + (0, utilities_1.first_letter_capitalized)(((value === null || value === void 0 ? void 0 : value.status) || 'Unknown').toLowerCase()) })) }))] })) })) })) })));
+    }, [value, payerName]);
+    // Loading state for enduser sessions
+    if (isEnduserSession) {
+        if (loading) {
+            return checkingEligibilityComponent;
+        }
+        if (error) {
+            return errorComponent;
+        }
+        if (value === null || value === void 0 ? void 0 : value.status) {
+            return resultsComponent;
+        }
+        return errorComponent;
+    }
+    // User/admin interface (non-enduser sessions)
+    return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, spacing: 2, direction: "column" }, { children: [(0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ item: true }, { children: [(0, jsx_runtime_1.jsxs)(material_1.Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Service Code: ", ((_b = field.options) === null || _b === void 0 ? void 0 : _b.stediServiceCode) || 'Not configured'] })), (0, jsx_runtime_1.jsxs)(material_1.Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Provider NPI: ", ((_d = field.options) === null || _d === void 0 ? void 0 : _d.stediNPI) || 'Not configured'] })), payerId && (0, jsx_runtime_1.jsxs)(material_1.Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Payer ID: ", payerId] })), memberId && (0, jsx_runtime_1.jsxs)(material_1.Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Member ID: ", memberId] }))] })), error && ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "body2", color: "error" }, { children: error })) }))), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, container: true, spacing: 2 }, { children: (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(__1.LoadingButton, { variant: "outlined", onClick: checkEligibility, submitText: (0, __1.form_display_text_for_language)(form, "Check Eligibility"), submittingText: (0, __1.form_display_text_for_language)(form, "Checking..."), submitting: loading, disabled: loading }) })) })), value && ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ item: true }, { children: [(0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "caption", color: "textSecondary" }, { children: "Current Answer:" })), (0, jsx_runtime_1.jsx)("pre", __assign({ style: { fontSize: 11, whiteSpace: 'pre-wrap', wordBreak: 'break-word' } }, { children: JSON.stringify(value, null, 2) }))] })))] })));
+};
+exports.StediEligibilityInput = StediEligibilityInput;
 var PharmacySearchInput = function (_a) {
     var field = _a.field, rawValue = _a.value, onChange = _a.onChange, responses = _a.responses, enduser = _a.enduser, form = _a.form, props = __rest(_a, ["field", "value", "onChange", "responses", "enduser", "form"]);
     var value = rawValue;
@@ -1022,7 +1137,7 @@ var PharmacySearchInput = function (_a) {
     var _f = (0, react_2.useState)([]), pharmacies = _f[0], setPharmacies = _f[1];
     var _g = (0, react_2.useState)(false), hasSearched = _g[0], setHasSearched = _g[1];
     var searchPharmacies = (0, react_2.useCallback)(function () { return __awaiter(void 0, void 0, void 0, function () {
-        var data, err_7;
+        var data, err_8;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -1049,8 +1164,8 @@ var PharmacySearchInput = function (_a) {
                     }
                     return [3 /*break*/, 5];
                 case 3:
-                    err_7 = _a.sent();
-                    setError((err_7 === null || err_7 === void 0 ? void 0 : err_7.message) || (0, __1.form_display_text_for_language)(form, 'Failed to search pharmacies'));
+                    err_8 = _a.sent();
+                    setError((err_8 === null || err_8 === void 0 ? void 0 : err_8.message) || (0, __1.form_display_text_for_language)(form, 'Failed to search pharmacies'));
                     setPharmacies([]);
                     return [3 /*break*/, 5];
                 case 4:
@@ -2575,7 +2690,7 @@ var AppointmentBookingInput = function (_a) {
     var _s = (0, react_2.useState)(false), confirming = _s[0], setConfirming = _s[1];
     var bookingPageId = (_b = field === null || field === void 0 ? void 0 : field.options) === null || _b === void 0 ? void 0 : _b.bookingPageId;
     var downloadICS = (0, react_2.useCallback)(function (event) { return __awaiter(void 0, void 0, void 0, function () {
-        var _a, err_8;
+        var _a, err_9;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -2587,8 +2702,8 @@ var AppointmentBookingInput = function (_a) {
                         { name: "event.ics", dataIsURL: true, type: 'text/calendar' }]);
                     return [3 /*break*/, 3];
                 case 2:
-                    err_8 = _b.sent();
-                    console.error(err_8);
+                    err_9 = _b.sent();
+                    console.error(err_9);
                     return [3 /*break*/, 3];
                 case 3: return [2 /*return*/];
             }
@@ -3117,7 +3232,7 @@ var ChargeebeeInput = function (_a) {
         onChange({ url: url }, field.id);
     }, [loadCount, url]);
     var handleVerify = function () { return __awaiter(void 0, void 0, void 0, function () {
-        var hasPaymentMethod, err_9;
+        var hasPaymentMethod, err_10;
         var _a;
         return __generator(this, function (_b) {
             switch (_b.label) {
@@ -3138,8 +3253,8 @@ var ChargeebeeInput = function (_a) {
                     }
                     return [3 /*break*/, 5];
                 case 3:
-                    err_9 = _b.sent();
-                    setError((_a = err_9 === null || err_9 === void 0 ? void 0 : err_9.message) !== null && _a !== void 0 ? _a : 'Failed to verify payment method');
+                    err_10 = _b.sent();
+                    setError((_a = err_10 === null || err_10 === void 0 ? void 0 : err_10.message) !== null && _a !== void 0 ? _a : 'Failed to verify payment method');
                     return [3 /*break*/, 5];
                 case 4:
                     setVerifying(false);

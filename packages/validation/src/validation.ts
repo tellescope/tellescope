@@ -265,6 +265,7 @@ import {
   FormResponseAnswerInsurance,
   FormResponseAnswerBridgeEligibility,
   FormResponseAnswerCandidEligibility,
+  FormResponseAnswerStediEligibility,
   FormResponseAnswerPharmacySearch,
   CanvasConsentCategory,
   DiagnosisTypes,
@@ -1733,6 +1734,7 @@ const _FORM_FIELD_TYPES: { [K in FormFieldType]: any } = {
   'Insurance': '',
   'Bridge Eligibility': '',
   'Candid Eligibility': '',
+  'Stedi Eligibility': '',
   Height: '',
   Redirect: '',
   'Hidden Value': '',
@@ -1761,6 +1763,7 @@ export const FORM_FIELD_VALIDATORS_BY_TYPE: { [K in FormFieldType | 'userEmail' 
   'Insurance': objectAnyFieldsAnyValuesValidator.validate(),
   'Bridge Eligibility': objectAnyFieldsAnyValuesValidator.validate(),
   'Candid Eligibility': objectAnyFieldsAnyValuesValidator.validate(),
+  'Stedi Eligibility': objectAnyFieldsAnyValuesValidator.validate(),
   'Pharmacy Search': objectAnyFieldsAnyValuesValidator.validate(),
   'Address': objectAnyFieldsAnyValuesValidator.validate(),
   'Database Select': objectAnyFieldsAnyValuesValidator.validate(),
@@ -2176,6 +2179,16 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
       status: stringValidatorOptional, // Candid eligibility_status: ACTIVE | INACTIVE | UNKNOWN
       eligibilityStatus: stringValidatorOptional, // explicit alias for status
       benefits: optionalEmptyObjectValidator, // Benefits data from eligibility check
+      planMetadata: optionalEmptyObjectValidator, // Plan metadata from eligibility check
+    }, { isOptional: true, emptyOk: true }),
+  }),
+  "Stedi Eligibility": objectValidator<FormResponseAnswerStediEligibility>({
+    type: exactMatchValidator(['Stedi Eligibility']),
+    value: objectValidator<FormResponseAnswerStediEligibility['value']>({
+      payerId: stringValidatorOptional, // tradingPartnerServiceId used for this eligibility check
+      status: stringValidatorOptional, // derived eligibility status: ACTIVE | INACTIVE | UNKNOWN
+      eligibilityStatus: stringValidatorOptional, // explicit alias for status
+      benefits: optionalEmptyObjectValidator, // benefitsInformation data from eligibility check
       planMetadata: optionalEmptyObjectValidator, // Plan metadata from eligibility check
     }, { isOptional: true, emptyOk: true }),
   }),
@@ -4164,6 +4177,8 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   useBridgeEligibilityResult: booleanValidatorOptional,
   candidServiceCode: stringValidatorOptional,
   candidNPI: stringValidatorOptional,
+  stediServiceCode: stringValidatorOptional,
+  stediNPI: stringValidatorOptional,
   includeGroupNumber: booleanValidatorOptional,
   holdAppointmentMinutes: numberValidatorOptional,
   rangeStepSize: numberValidatorOptional,

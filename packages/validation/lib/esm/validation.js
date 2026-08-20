@@ -1263,6 +1263,7 @@ var _FORM_FIELD_TYPES = {
     'Insurance': '',
     'Bridge Eligibility': '',
     'Candid Eligibility': '',
+    'Stedi Eligibility': '',
     Height: '',
     Redirect: '',
     'Hidden Value': '',
@@ -1290,6 +1291,7 @@ export var FORM_FIELD_VALIDATORS_BY_TYPE = {
     'Insurance': objectAnyFieldsAnyValuesValidator.validate(),
     'Bridge Eligibility': objectAnyFieldsAnyValuesValidator.validate(),
     'Candid Eligibility': objectAnyFieldsAnyValuesValidator.validate(),
+    'Stedi Eligibility': objectAnyFieldsAnyValuesValidator.validate(),
     'Pharmacy Search': objectAnyFieldsAnyValuesValidator.validate(),
     'Address': objectAnyFieldsAnyValuesValidator.validate(),
     'Database Select': objectAnyFieldsAnyValuesValidator.validate(),
@@ -1668,6 +1670,16 @@ export var formResponseAnswerValidator = orValidator({
     }),
     "Candid Eligibility": objectValidator({
         type: exactMatchValidator(['Candid Eligibility']),
+        value: objectValidator({
+            payerId: stringValidatorOptional,
+            status: stringValidatorOptional,
+            eligibilityStatus: stringValidatorOptional,
+            benefits: optionalEmptyObjectValidator,
+            planMetadata: optionalEmptyObjectValidator, // Plan metadata from eligibility check
+        }, { isOptional: true, emptyOk: true }),
+    }),
+    "Stedi Eligibility": objectValidator({
+        type: exactMatchValidator(['Stedi Eligibility']),
         value: objectValidator({
             payerId: stringValidatorOptional,
             status: stringValidatorOptional,
@@ -3224,6 +3236,8 @@ export var formFieldOptionsValidator = objectValidator({
     useBridgeEligibilityResult: booleanValidatorOptional,
     candidServiceCode: stringValidatorOptional,
     candidNPI: stringValidatorOptional,
+    stediServiceCode: stringValidatorOptional,
+    stediNPI: stringValidatorOptional,
     includeGroupNumber: booleanValidatorOptional,
     holdAppointmentMinutes: numberValidatorOptional,
     rangeStepSize: numberValidatorOptional,

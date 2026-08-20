@@ -268,8 +268,14 @@ export interface OktaSSOConfiguration extends InternalBusinessRecord {
     jitRole?: string;
 }
 export interface InternalSecret extends InternalBusinessRecord {
-    type: 'twilio-ios' | 'twilio-android' | 'customer-usage-data' | 'beluga-sandbox' | 'beluga-production' | 'scriptsure-sandbox' | 'scriptsure-production' | 'scriptsure-webhooks' | 'stripe-platform-webhook' | 'usda';
+    type: 'twilio-ios' | 'twilio-android' | 'customer-usage-data' | 'beluga-sandbox' | 'beluga-production' | 'scriptsure-sandbox' | 'scriptsure-production' | 'scriptsure-webhooks' | 'stripe-platform-webhook' | 'usda' | 'stedi-sandbox' | 'stedi-production';
     publicKey: string;
     secretKey: string;
+}
+export interface CreditUsageLog extends InternalBusinessRecord {
+    type: 'stedi-eligibility-check';
+    credits: number;
+    enduserId?: string;
+    formResponseId?: string;
 }
 //# sourceMappingURL=index.d.ts.map

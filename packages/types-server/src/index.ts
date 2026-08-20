@@ -304,7 +304,17 @@ export interface OktaSSOConfiguration extends InternalBusinessRecord {
 }
 
 export interface InternalSecret extends InternalBusinessRecord {
-  type: 'twilio-ios' | 'twilio-android' | 'customer-usage-data' | 'beluga-sandbox' | 'beluga-production' | 'scriptsure-sandbox' | 'scriptsure-production' | 'scriptsure-webhooks' | 'stripe-platform-webhook' | 'usda'
+  type: 'twilio-ios' | 'twilio-android' | 'customer-usage-data' | 'beluga-sandbox' | 'beluga-production' | 'scriptsure-sandbox' | 'scriptsure-production' | 'scriptsure-webhooks' | 'stripe-platform-webhook' | 'usda' | 'stedi-sandbox' | 'stedi-production'
   publicKey: string,
   secretKey: string,
+}
+
+// Ledger of organization credit consumption for non-AI features (AI usage is recorded on
+// ai_conversations messages). Internal-only for now; businessId enables per-tenant grouping
+// and potential future exposure via the public API. Timestamp is encoded in _id.
+export interface CreditUsageLog extends InternalBusinessRecord {
+  type: 'stedi-eligibility-check', // union will grow as more features consume credits
+  credits: number, // credits deducted (positive)
+  enduserId?: string,
+  formResponseId?: string,
 }

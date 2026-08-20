@@ -1946,7 +1946,7 @@ export interface Note extends Note_readonly, Note_required, Note_updatesDisabled
 }
 
 export type FormFieldLiteralType = 'Rich Text' | 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' /* date + time */ | 'dateString' | 'rating' | 'Time' | "Timezone"
-export type FormFieldComplexType = "Conditions" | "Allergies" | "Emotii" | "Hidden Value" | "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Chargebee" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance" | "Bridge Eligibility" | "Candid Eligibility" | "Beluga Patient Preference" | "Pharmacy Search"
+export type FormFieldComplexType = "Conditions" | "Allergies" | "Emotii" | "Hidden Value" | "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Chargebee" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance" | "Bridge Eligibility" | "Candid Eligibility" | "Stedi Eligibility" | "Beluga Patient Preference" | "Pharmacy Search"
 export type FormFieldType = FormFieldLiteralType | FormFieldComplexType
 
 export type PreviousFormFieldType = 'root' | 'after' | 'previousEquals' | 'compoundLogic'
@@ -2063,6 +2063,8 @@ export type FormFieldOptions = FormFieldValidation & {
   useBridgeEligibilityResult?: boolean, // Use provider list from most recent Bridge eligibility check
   candidServiceCode?: string, // Candid service code for eligibility checks (e.g., "30", "47", "98")
   candidNPI?: string, // Rendering provider NPI for Candid eligibility checks
+  stediServiceCode?: string, // Stedi service type code for eligibility checks (e.g., "30", "47", "98")
+  stediNPI?: string, // Rendering provider NPI for Stedi eligibility checks
   addressFields?: string[], // supports specifying just 'state', for now
   validStates?: string[],
   autoAdvance?: boolean,
@@ -2566,6 +2568,13 @@ export type FormResponseAnswerCandidEligibility = FormResponseValueAnswerBuilder
   benefits?: object, // Benefits data from eligibility check
   planMetadata?: object, // Plan metadata from eligibility check
 }>
+export type FormResponseAnswerStediEligibility = FormResponseValueAnswerBuilder<'Stedi Eligibility', {
+  payerId?: string, // tradingPartnerServiceId used for this eligibility check
+  status?: string, // derived eligibility status: ACTIVE | INACTIVE | UNKNOWN
+  eligibilityStatus?: string, // explicit alias for clarity (optional, can fold into status)
+  benefits?: object, // benefitsInformation data from eligibility check
+  planMetadata?: object, // Plan metadata from eligibility check
+}>
 export type FormResponseAnswerHeight = FormResponseValueAnswerBuilder<'Height', { feet: number, inches: number }>
 export type FormResponseAnswerRedirect = FormResponseValueAnswerBuilder<'Redirect', string>
 export type FormResponseAnswerAllergies = FormResponseValueAnswerBuilder<'Allergies', AllergyResponse[]>
@@ -2637,6 +2646,7 @@ export type FormResponseValueAnswer = (
   | FormResponseAnswerBelugaPatientPreference
   | FormResponseAnswerBridgeEligibility
   | FormResponseAnswerCandidEligibility
+  | FormResponseAnswerStediEligibility
   | FormResponseAnswerPharmacySearch
 )
 
@@ -2682,6 +2692,7 @@ export type AnswerForType = {
   'Insurance': FormResponseAnswerInsurance['value']
   'Bridge Eligibility': FormResponseAnswerBridgeEligibility['value']
   'Candid Eligibility': FormResponseAnswerCandidEligibility['value']
+  'Stedi Eligibility': FormResponseAnswerStediEligibility['value']
   'Appointment Booking': FormResponseAnswerAppointmentBooking['value']
   'Chargebee': FormResponseAnswerChargebee['value']
   'Height': FormResponseAnswerHeight['value']

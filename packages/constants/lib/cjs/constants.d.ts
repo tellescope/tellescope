@@ -169,6 +169,7 @@ export declare const WELLE_TITLE = "Welle";
 export declare const CANVAS_TITLE = "Canvas";
 export declare const MFAX_TITLE = "mFax";
 export declare const CANDID_TITLE = "Candid";
+export declare const STEDI_TITLE = "Stedi";
 export declare const GOGO_MEDS_TITLE = "GoGoMeds";
 export declare const ATHENA_TITLE = "athenahealth";
 export declare const SUPERDIAL_TITLE = "SuperDial";

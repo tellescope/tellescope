@@ -142,6 +142,7 @@ export var WELLE_TITLE = "Welle";
 export var CANVAS_TITLE = "Canvas";
 export var MFAX_TITLE = "mFax";
 export var CANDID_TITLE = "Candid";
+export var STEDI_TITLE = "Stedi";
 export var GOGO_MEDS_TITLE = "GoGoMeds";
 export var ATHENA_TITLE = "athenahealth";
 export var SUPERDIAL_TITLE = "SuperDial";

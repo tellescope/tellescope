@@ -576,7 +576,7 @@ export const NumberInput = ({ field, value, onChange, form, ...props }: FormInpu
 }
 
 // InsuranceInput, BridgeEligibilityInput, PharmacySearchInput, and AppointmentBookingInput logic is shared with inputs.tsx to avoid duplication
-import { InsuranceInput as SharedInsuranceInput, BridgeEligibilityInput as SharedBridgeEligibilityInput, CandidEligibilityInput as SharedCandidEligibilityInput, PharmacySearchInput as SharedPharmacySearchInput, AppointmentBookingInput as SharedAppointmentBookingInput } from './inputs'
+import { InsuranceInput as SharedInsuranceInput, BridgeEligibilityInput as SharedBridgeEligibilityInput, CandidEligibilityInput as SharedCandidEligibilityInput, StediEligibilityInput as SharedStediEligibilityInput, PharmacySearchInput as SharedPharmacySearchInput, AppointmentBookingInput as SharedAppointmentBookingInput } from './inputs'
 
 // Wrap the shared InsuranceInput component with v2-specific props
 export const InsuranceInput = (props: FormInputProps<'Insurance'>) => {
@@ -591,6 +591,11 @@ export const BridgeEligibilityInput = (props: FormInputProps<'Bridge Eligibility
 // Wrap the shared CandidEligibilityInput component with v2-specific props
 export const CandidEligibilityInput = (props: FormInputProps<'Candid Eligibility'>) => {
   return <SharedCandidEligibilityInput {...props} inputProps={defaultInputProps} />
+}
+
+// Wrap the shared StediEligibilityInput component with v2-specific props
+export const StediEligibilityInput = (props: FormInputProps<'Stedi Eligibility'>) => {
+  return <SharedStediEligibilityInput {...props} inputProps={defaultInputProps} />
 }
 
 // Wrap the shared PharmacySearchInput component with v2-specific props

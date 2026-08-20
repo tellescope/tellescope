@@ -3,7 +3,7 @@ import axios from "axios"
 import { Autocomplete, Box, Button, Checkbox, Chip, CircularProgress, Collapse, Divider, FormControl, FormControlLabel, FormLabel, Grid, IconButton as MuiIconButton, InputLabel, MenuItem, Paper, Radio, RadioGroup, Select, SxProps, TextField, TextFieldProps, Typography } from "@mui/material"
 import { FormInputProps } from "./types"
 import { useDropzone } from "react-dropzone"
-import { CANVAS_TITLE, BRIDGE_TITLE, CANDID_TITLE, EMOTII_TITLE, INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants"
+import { CANVAS_TITLE, BRIDGE_TITLE, CANDID_TITLE, STEDI_TITLE, EMOTII_TITLE, INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants"
 import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, downloadFile, emit_gtm_event, first_letter_capitalized, form_response_value_to_string, format_stripe_subscription_interval, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, object_is_empty, replace_enduser_template_values, responses_satisfy_conditions, truncate_string, update_local_storage, user_display_name } from "@tellescope/utilities"
 import { Address, DatabaseSelectResponse, Enduser, EnduserRelationship, FormResponseAnswerFileValue, FormResponseValue, InsuranceRelationship, MedicationResponse, MultipleChoiceOptions, FormFieldOptionDetails, Pharmacy, TellescopeGender, TIMEZONES_USA } from "@tellescope/types-models"
 import { VALID_STATES, emailValidator, phoneValidator } from "@tellescope/validation"
@@ -595,6 +595,7 @@ export const InsuranceInput = ({ field, onDatabaseSelect, value, onChange, form,
   useEffect(() => {
     if (field?.options?.dataSource === CANVAS_TITLE) return // instead, look-up while typing against Canvas Search API
     if (field?.options?.dataSource === BRIDGE_TITLE) return // instead, look-up while typing against Bridge Search API
+    if (field?.options?.dataSource === STEDI_TITLE) return // instead, look-up while typing against Stedi Payer Network
     if (loadRef.current) return
     loadRef.current = true
 
@@ -617,12 +618,16 @@ export const InsuranceInput = ({ field, onDatabaseSelect, value, onChange, form,
   // load from 3rd-party on search only
   const searchRef = useRef(query)
   useEffect(() => {
-    if (field?.options?.dataSource !== CANVAS_TITLE && field?.options?.dataSource !== BRIDGE_TITLE) { return }
+    if (field?.options?.dataSource !== CANVAS_TITLE && field?.options?.dataSource !== BRIDGE_TITLE && field?.options?.dataSource !== STEDI_TITLE) { return }
     if (!query) return
     if (searchRef.current === query) return
     searchRef.current = query
 
-    const integration = field?.options?.dataSource === CANVAS_TITLE ? CANVAS_TITLE : BRIDGE_TITLE
+    const integration = (
+      field?.options?.dataSource === CANVAS_TITLE ? CANVAS_TITLE
+      : field?.options?.dataSource === STEDI_TITLE ? STEDI_TITLE
+      : BRIDGE_TITLE
+    )
     const type = field?.options?.dataSource === CANVAS_TITLE ? 'organizations' : 'payers'
 
     const t = setTimeout(() => (
@@ -685,7 +690,7 @@ export const InsuranceInput = ({ field, onDatabaseSelect, value, onChange, form,
         renderInput={(params) => (
           <TextField {...params} InputProps={{ ...params.InputProps, sx: (inputProps || defaultInputProps).sx }}
             required={!field.isOptional} size="small" label={form_display_text_for_language(form, "Insurer")}
-            placeholder={(field.options?.dataSource === CANVAS_TITLE || field.options?.dataSource === BRIDGE_TITLE) ? form_display_text_for_language(form, "Search insurer...") : form_display_text_for_language(form, "Insurer")}
+            placeholder={(field.options?.dataSource === CANVAS_TITLE || field.options?.dataSource === BRIDGE_TITLE || field.options?.dataSource === STEDI_TITLE) ? form_display_text_for_language(form, "Search insurer...") : form_display_text_for_language(form, "Insurer")}
           />
         )}
       />
@@ -1605,6 +1610,216 @@ export const CandidEligibilityInput = ({ field, value, onChange, responses, endu
         </Typography>
         <Typography variant="body2" color="textSecondary">
           Provider NPI: {field.options?.candidNPI || 'Not configured'}
+        </Typography>
+        {payerId && <Typography variant="body2" color="textSecondary">Payer ID: {payerId}</Typography>}
+        {memberId && <Typography variant="body2" color="textSecondary">Member ID: {memberId}</Typography>}
+      </Grid>
+
+      {error && (
+        <Grid item>
+          <Typography variant="body2" color="error">{error}</Typography>
+        </Grid>
+      )}
+
+      <Grid item container spacing={2}>
+        <Grid item>
+          <LoadingButton
+            variant="outlined"
+            onClick={checkEligibility}
+            submitText={form_display_text_for_language(form, "Check Eligibility")}
+            submittingText={form_display_text_for_language(form, "Checking...")}
+            submitting={loading}
+            disabled={loading}
+          />
+        </Grid>
+      </Grid>
+
+      {value && (
+        <Grid item>
+          <Typography variant="caption" color="textSecondary">
+            Current Answer:
+          </Typography>
+          <pre style={{ fontSize: 11, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+            {JSON.stringify(value, null, 2)}
+          </pre>
+        </Grid>
+      )}
+    </Grid>
+  )
+}
+
+export const StediEligibilityInput = ({ field, value, onChange, responses, enduser, inputProps, enduserId, form, formResponseId, ...props }: FormInputProps<'Stedi Eligibility'> & {
+  inputProps?: { sx: SxProps },
+}) => {
+  const session = useResolvedSession()
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string>()
+
+  const isEnduserSession = session.type === 'enduser'
+
+  // Extract payerId from Insurance question response
+  const [payerId, memberId, payerName] = useMemo(() => {
+    const insuranceResponse = responses?.find(r => r.answer?.type === 'Insurance' && r.answer?.value?.payerId)
+    if (insuranceResponse?.answer?.type === 'Insurance') {
+      return [
+        insuranceResponse.answer.value?.payerId,
+        insuranceResponse.answer.value?.memberId,
+        insuranceResponse.answer.value?.payerName,
+      ]
+    }
+    return []
+  }, [responses])
+
+  const checkEligibility = useCallback(async () => {
+    setLoading(true)
+    setError(undefined)
+
+    try {
+      // Single synchronous eligibility check
+      const { data } = await session.api.integrations.proxy_read({
+        id: enduserId,
+        integration: STEDI_TITLE,
+        type: 'stedi-eligibility',
+        query: JSON.stringify({
+          serviceCode: field.options?.stediServiceCode,
+          npi: field.options?.stediNPI,
+          payerId,
+          memberId,
+          payerName,
+          formResponseId, // links the server-side credit-usage ledger row to this form response
+        }),
+      })
+
+      onChange({
+        payerId,
+        status: data?.status,
+        benefits: data?.benefits,
+        planMetadata: data?.planMetadata,
+      }, field.id)
+      setLoading(false)
+    } catch (err: any) {
+      setError(err?.message || 'Failed to check eligibility')
+      console.error('Stedi eligibility check failed:', err)
+      setLoading(false)
+    }
+  }, [session, field, payerId, memberId, payerName, onChange, enduserId, formResponseId])
+
+  // Auto-check eligibility for enduser sessions
+  const autoCheckRef = useRef(false)
+  useEffect(() => {
+    if (!isEnduserSession) return
+
+    // If we already have a result and the payer hasn't changed, use the cached result
+    if (value?.status && value?.payerId === payerId) {
+      return
+    }
+
+    if (autoCheckRef.current) return
+    autoCheckRef.current = true
+
+    checkEligibility()
+  }, [isEnduserSession, checkEligibility, value, payerId])
+
+  const errorComponent = useMemo(() => (
+    <Grid container spacing={2} direction="column" alignItems="center" style={{ padding: '20px 0' }}>
+      <Grid item>
+        <Paper style={{
+          padding: 16,
+          backgroundColor: '#ffebee',
+          border: '2px solid #f44336'
+        }}>
+          <Grid container spacing={2} direction="column" alignItems="center">
+            <Grid item>
+              <Typography variant="h2" style={{ color: '#f44336' }}>!</Typography>
+            </Grid>
+            <Grid item>
+              <Typography variant="h6" align="center" color="error">
+                Unable to Check Eligibility
+              </Typography>
+            </Grid>
+            <Grid item>
+              <Typography variant="body2" align="center" style={{ color: '#d32f2f' }}>
+                {error}
+              </Typography>
+            </Grid>
+          </Grid>
+        </Paper>
+      </Grid>
+    </Grid>
+  ), [error])
+
+  const checkingEligibilityComponent = useMemo(() => (
+    <Grid container spacing={2} direction="column" alignItems="center" style={{ padding: '20px 0' }}>
+      <Grid item>
+        <CircularProgress size={40} />
+      </Grid>
+      <Grid item>
+        <Typography variant="body1">
+          Checking eligibility...
+        </Typography>
+      </Grid>
+      <Grid item>
+        <Typography variant="body2" color="textSecondary">
+          This may take a few moments
+        </Typography>
+      </Grid>
+    </Grid>
+  ), [])
+
+  const resultsComponent = useMemo(() => {
+    const isActive = value?.status === 'ACTIVE'
+    return (
+      <Grid container spacing={2} direction="column">
+        <Grid item>
+          <Paper style={{
+            padding: 16,
+            backgroundColor: isActive ? '#e8f5e9' : '#fff8e1',
+            border: `2px solid ${isActive ? '#4caf50' : '#ffa000'}`
+          }}>
+            <Grid container spacing={2} direction="column" alignItems="center">
+              <Grid item>
+                {isActive ? (
+                  <CheckCircleOutline style={{ fontSize: 48, color: '#4caf50' }} />
+                ) : (
+                  <Typography variant="h2" style={{ color: '#ffa000' }}>!</Typography>
+                )}
+              </Grid>
+              <Grid item>
+                <Typography variant="h6" align="center">
+                  {isActive
+                    ? `${payerName || 'Insurance'} eligibility verified`
+                    : 'Eligibility Status: ' + first_letter_capitalized((value?.status || 'Unknown').toLowerCase())
+                  }
+                </Typography>
+              </Grid>
+            </Grid>
+          </Paper>
+        </Grid>
+      </Grid>
+    )
+  }, [value, payerName])
+
+  // Loading state for enduser sessions
+  if (isEnduserSession) {
+    if (loading) { return checkingEligibilityComponent }
+    if (error) {
+      return errorComponent
+    }
+    if (value?.status) {
+      return resultsComponent
+    }
+    return errorComponent
+  }
+
+  // User/admin interface (non-enduser sessions)
+  return (
+    <Grid container spacing={2} direction="column">
+      <Grid item>
+        <Typography variant="body2" color="textSecondary">
+          Service Code: {field.options?.stediServiceCode || 'Not configured'}
+        </Typography>
+        <Typography variant="body2" color="textSecondary">
+          Provider NPI: {field.options?.stediNPI || 'Not configured'}
         </Typography>
         {payerId && <Typography variant="body2" color="textSecondary">Payer ID: {payerId}</Typography>}
         {memberId && <Typography variant="body2" color="textSecondary">Member ID: {memberId}</Typography>}

@@ -1307,6 +1307,7 @@ var _FORM_FIELD_TYPES = {
     'Insurance': '',
     'Bridge Eligibility': '',
     'Candid Eligibility': '',
+    'Stedi Eligibility': '',
     Height: '',
     Redirect: '',
     'Hidden Value': '',
@@ -1334,6 +1335,7 @@ exports.FORM_FIELD_VALIDATORS_BY_TYPE = {
     'Insurance': exports.objectAnyFieldsAnyValuesValidator.validate(),
     'Bridge Eligibility': exports.objectAnyFieldsAnyValuesValidator.validate(),
     'Candid Eligibility': exports.objectAnyFieldsAnyValuesValidator.validate(),
+    'Stedi Eligibility': exports.objectAnyFieldsAnyValuesValidator.validate(),
     'Pharmacy Search': exports.objectAnyFieldsAnyValuesValidator.validate(),
     'Address': exports.objectAnyFieldsAnyValuesValidator.validate(),
     'Database Select': exports.objectAnyFieldsAnyValuesValidator.validate(),
@@ -1716,6 +1718,16 @@ exports.formResponseAnswerValidator = (0, exports.orValidator)({
     }),
     "Candid Eligibility": (0, exports.objectValidator)({
         type: (0, exports.exactMatchValidator)(['Candid Eligibility']),
+        value: (0, exports.objectValidator)({
+            payerId: exports.stringValidatorOptional,
+            status: exports.stringValidatorOptional,
+            eligibilityStatus: exports.stringValidatorOptional,
+            benefits: exports.optionalEmptyObjectValidator,
+            planMetadata: exports.optionalEmptyObjectValidator, // Plan metadata from eligibility check
+        }, { isOptional: true, emptyOk: true }),
+    }),
+    "Stedi Eligibility": (0, exports.objectValidator)({
+        type: (0, exports.exactMatchValidator)(['Stedi Eligibility']),
         value: (0, exports.objectValidator)({
             payerId: exports.stringValidatorOptional,
             status: exports.stringValidatorOptional,
@@ -3276,6 +3288,8 @@ exports.formFieldOptionsValidator = (0, exports.objectValidator)({
     useBridgeEligibilityResult: exports.booleanValidatorOptional,
     candidServiceCode: exports.stringValidatorOptional,
     candidNPI: exports.stringValidatorOptional,
+    stediServiceCode: exports.stringValidatorOptional,
+    stediNPI: exports.stringValidatorOptional,
     includeGroupNumber: exports.booleanValidatorOptional,
     holdAppointmentMinutes: exports.numberValidatorOptional,
     rangeStepSize: exports.numberValidatorOptional,

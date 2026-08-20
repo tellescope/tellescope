@@ -1867,7 +1867,7 @@ export interface Note extends Note_readonly, Note_required, Note_updatesDisabled
     aiGenerated?: boolean;
 }
 export type FormFieldLiteralType = 'Rich Text' | 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' | 'dateString' | 'rating' | 'Time' | "Timezone";
-export type FormFieldComplexType = "Conditions" | "Allergies" | "Emotii" | "Hidden Value" | "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Chargebee" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance" | "Bridge Eligibility" | "Candid Eligibility" | "Beluga Patient Preference" | "Pharmacy Search";
+export type FormFieldComplexType = "Conditions" | "Allergies" | "Emotii" | "Hidden Value" | "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Chargebee" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance" | "Bridge Eligibility" | "Candid Eligibility" | "Stedi Eligibility" | "Beluga Patient Preference" | "Pharmacy Search";
 export type FormFieldType = FormFieldLiteralType | FormFieldComplexType;
 export type PreviousFormFieldType = 'root' | 'after' | 'previousEquals' | 'compoundLogic';
 export type PreviousFormFieldBuilder<T extends PreviousFormFieldType, V> = {
@@ -1990,6 +1990,8 @@ export type FormFieldOptions = FormFieldValidation & {
     useBridgeEligibilityResult?: boolean;
     candidServiceCode?: string;
     candidNPI?: string;
+    stediServiceCode?: string;
+    stediNPI?: string;
     addressFields?: string[];
     validStates?: string[];
     autoAdvance?: boolean;
@@ -2473,6 +2475,13 @@ export type FormResponseAnswerCandidEligibility = FormResponseValueAnswerBuilder
     benefits?: object;
     planMetadata?: object;
 }>;
+export type FormResponseAnswerStediEligibility = FormResponseValueAnswerBuilder<'Stedi Eligibility', {
+    payerId?: string;
+    status?: string;
+    eligibilityStatus?: string;
+    benefits?: object;
+    planMetadata?: object;
+}>;
 export type FormResponseAnswerHeight = FormResponseValueAnswerBuilder<'Height', {
     feet: number;
     inches: number;
@@ -2507,7 +2516,7 @@ export type FormResponseAnswerFileValue = {
 export type FormResponseAnswerFile = FormResponseValueAnswerBuilder<'file', FormResponseAnswerFileValue>;
 export type FormResponseAnswerFiles = FormResponseValueAnswerBuilder<'files', FormResponseAnswerFileValue[]>;
 export type FormResponseAnswerTimezone = FormResponseValueAnswerBuilder<'Timezone', string>;
-export type FormResponseValueAnswer = (FormResponseAnswerGroup | FormResponseAnswerTimezone | FormResponseAnswerTable | FormResponseAnswerDescription | FormResponseAnswerEmail | FormResponseAnswerNumber | FormResponseAnswerPhone | FormResponseAnswerString | FormResponseAnswerStringLong | FormResponseAnswerRichText | FormResponseAnswerSignature | FormResponseAnswerMultipleChoice | FormResponseAnswerFile | FormResponseAnswerFiles | FormResponseAnswerDate | FormResponseAnswerRating | FormResponseAnswerRanking | FormResponseAnswerDateString | FormResponseAnswerAddress | FormResponseAnswerTime | FormResponseAnswerStripe | FormResponseAnswerDropdown | FormResponseAnswerDatabaseSelect | FormResponseAnswerMedications | FormResponseAnswerRelatedContacts | FormResponseAnswerInsurance | FormResponseAnswerAppointmentBooking | FormResponseAnswerHeight | FormResponseAnswerRedirect | FormResponseAnswerHiddenValue | FormResponseAnswerEmotii | FormResponseAnswerAllergies | FormResponseAnswerConditions | FormResponseAnswerChargebee | FormResponseAnswerBelugaPatientPreference | FormResponseAnswerBridgeEligibility | FormResponseAnswerCandidEligibility | FormResponseAnswerPharmacySearch);
+export type FormResponseValueAnswer = (FormResponseAnswerGroup | FormResponseAnswerTimezone | FormResponseAnswerTable | FormResponseAnswerDescription | FormResponseAnswerEmail | FormResponseAnswerNumber | FormResponseAnswerPhone | FormResponseAnswerString | FormResponseAnswerStringLong | FormResponseAnswerRichText | FormResponseAnswerSignature | FormResponseAnswerMultipleChoice | FormResponseAnswerFile | FormResponseAnswerFiles | FormResponseAnswerDate | FormResponseAnswerRating | FormResponseAnswerRanking | FormResponseAnswerDateString | FormResponseAnswerAddress | FormResponseAnswerTime | FormResponseAnswerStripe | FormResponseAnswerDropdown | FormResponseAnswerDatabaseSelect | FormResponseAnswerMedications | FormResponseAnswerRelatedContacts | FormResponseAnswerInsurance | FormResponseAnswerAppointmentBooking | FormResponseAnswerHeight | FormResponseAnswerRedirect | FormResponseAnswerHiddenValue | FormResponseAnswerEmotii | FormResponseAnswerAllergies | FormResponseAnswerConditions | FormResponseAnswerChargebee | FormResponseAnswerBelugaPatientPreference | FormResponseAnswerBridgeEligibility | FormResponseAnswerCandidEligibility | FormResponseAnswerStediEligibility | FormResponseAnswerPharmacySearch);
 export type FormResponseValue = {
     fieldId: string;
     fieldTitle: string;
@@ -2549,6 +2558,7 @@ export type AnswerForType = {
     'Insurance': FormResponseAnswerInsurance['value'];
     'Bridge Eligibility': FormResponseAnswerBridgeEligibility['value'];
     'Candid Eligibility': FormResponseAnswerCandidEligibility['value'];
+    'Stedi Eligibility': FormResponseAnswerStediEligibility['value'];
     'Appointment Booking': FormResponseAnswerAppointmentBooking['value'];
     'Chargebee': FormResponseAnswerChargebee['value'];
     'Height': FormResponseAnswerHeight['value'];

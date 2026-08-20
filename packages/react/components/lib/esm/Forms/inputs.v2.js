@@ -338,7 +338,7 @@ export var NumberInput = function (_a) {
         } })));
 };
 // InsuranceInput, BridgeEligibilityInput, PharmacySearchInput, and AppointmentBookingInput logic is shared with inputs.tsx to avoid duplication
-import { InsuranceInput as SharedInsuranceInput, BridgeEligibilityInput as SharedBridgeEligibilityInput, CandidEligibilityInput as SharedCandidEligibilityInput, PharmacySearchInput as SharedPharmacySearchInput, AppointmentBookingInput as SharedAppointmentBookingInput } from './inputs';
+import { InsuranceInput as SharedInsuranceInput, BridgeEligibilityInput as SharedBridgeEligibilityInput, CandidEligibilityInput as SharedCandidEligibilityInput, StediEligibilityInput as SharedStediEligibilityInput, PharmacySearchInput as SharedPharmacySearchInput, AppointmentBookingInput as SharedAppointmentBookingInput } from './inputs';
 // Wrap the shared InsuranceInput component with v2-specific props
 export var InsuranceInput = function (props) {
     return _jsx(SharedInsuranceInput, __assign({}, props, { inputProps: defaultInputProps }));
@@ -350,6 +350,10 @@ export var BridgeEligibilityInput = function (props) {
 // Wrap the shared CandidEligibilityInput component with v2-specific props
 export var CandidEligibilityInput = function (props) {
     return _jsx(SharedCandidEligibilityInput, __assign({}, props, { inputProps: defaultInputProps }));
+};
+// Wrap the shared StediEligibilityInput component with v2-specific props
+export var StediEligibilityInput = function (props) {
+    return _jsx(SharedStediEligibilityInput, __assign({}, props, { inputProps: defaultInputProps }));
 };
 // Wrap the shared PharmacySearchInput component with v2-specific props
 export var PharmacySearchInput = function (props) {
