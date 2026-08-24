@@ -2232,6 +2232,7 @@ var _AUTOMATION_ACTIONS = {
     metriportPushFormResponse: '',
     aiDecision: '',
     generateEnduserSummary: '',
+    generateSuggestedReply: '',
     createNote: '',
     startAIConversation: '',
     assignInboxItem: '',
@@ -2537,6 +2538,7 @@ exports.AI_SUMMARY_DATA_SOURCES = [
     'enduser_observations', 'form_responses', 'chats', 'phone_calls',
     'calendar_events', 'tickets', 'sms_messages', 'emails',
     'enduser_orders', 'enduser_medications', 'purchases',
+    'managed_content_records', 'templates', // org-wide reference sources, selected by ids
 ];
 exports.aiSummaryDataSourceTypeValidator = (0, exports.exactMatchValidator)(exports.AI_SUMMARY_DATA_SOURCES);
 exports.aiSummaryDataSourceConfigValidator = (0, exports.objectValidator)({
@@ -2544,6 +2546,8 @@ exports.aiSummaryDataSourceConfigValidator = (0, exports.objectValidator)({
     limit: exports.nonNegNumberValidatorOptional,
     lookbackMS: exports.nonNegNumberValidatorOptional,
     filter: exports.objectAnyFieldsAnyValuesValidator,
+    ids: exports.listOfMongoIdStringValidatorOptionalOrEmptyOk,
+    label: exports.stringValidator100Optional,
 });
 exports.selectableAIModelValidator = (0, exports.exactMatchValidatorOptional)(__spreadArray([], constants_1.SELECTABLE_AI_MODELS, true));
 exports.aiSummaryConfigurationValidator = (0, exports.objectValidator)({
@@ -2913,6 +2917,10 @@ exports.automationActionValidator = (0, exports.orValidator)({
         }, { emptyOk: false }) // at least outcomes is required
      })),
     generateEnduserSummary: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['generateEnduserSummary']), info: (0, exports.objectValidator)({
+            aiSummaryConfiguration: exports.aiSummaryConfigurationValidator, // optional shared config
+        }, { emptyOk: true }) // config is optional; an empty info is valid
+     })),
+    generateSuggestedReply: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['generateSuggestedReply']), info: (0, exports.objectValidator)({
             aiSummaryConfiguration: exports.aiSummaryConfigurationValidator, // optional shared config
         }, { emptyOk: true }) // config is optional; an empty info is valid
      })),
@@ -3309,6 +3317,7 @@ exports.formFieldOptionsValidator = (0, exports.objectValidator)({
         showCondition: exports.objectAnyFieldsAnyValuesValidator,
     })),
     stripeCouponCodes: exports.listOfStringsValidatorOptionalOrEmptyOk,
+    useStripeEmbeddedCheckout: exports.booleanValidatorOptional,
     dataSource: exports.stringValidatorOptionalEmptyOkay,
     esignatureTermsCompanyName: exports.stringValidatorOptionalEmptyOkay,
     observationCode: exports.stringValidatorOptionalEmptyOkay,

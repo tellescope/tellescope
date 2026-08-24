@@ -555,6 +555,14 @@ export type Schema = {
 
 export const UNIQUE_LIST_FIELDS = ['assignedTo', 'tags', 'closeReasons']
 
+// Organization fields that only a Tellescope super admin may change, enforced by the
+// 'Subscription date, period, and feature enablement cannot be updated' relationship constraint below.
+// These stay readable by any user session — the webapp gates features on them client-side.
+const SUPER_ADMIN_ONLY_ORGANIZATION_FIELDS = [
+  'bedrockAIAllowed', 'stediAllowed', 'subscriptionExpiresAt', 'subscriptionPeriod',
+  'allowCreateSuborganizations', 'customPortalURLs', 'subdomains', 'plan',
+] as const
+
 const sideEffects = {
   handleJourneyStateChange: {
     name: "handleJourneyStateChange",
@@ -2980,7 +2988,9 @@ export const schema: SchemaV1 = build_schema({
       fromEmailOverride: { validator: stringValidator100 },
       ticketIds: { validator: listOfStringsValidatorEmptyOk },
       alternateToAddress: { validator: emailValidator },
-      suggestedReply: { validator: stringValidator5000EmptyOkay },
+      // staff-facing draft (may be AI-generated and unreviewed) — never expose it to the patient
+      suggestedReply: { validator: stringValidator5000EmptyOkay, redactions: ['enduser'], enduserUpdatesDisabled: true },
+      suggestedReplyIsAIGenerated: { validator: booleanValidator, redactions: ['enduser'], enduserUpdatesDisabled: true },
       tags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       batchId: { validator: stringValidator250 }, 
       isMarketing: { validator: booleanValidator },
@@ -3263,7 +3273,9 @@ export const schema: SchemaV1 = build_schema({
       isDraft: { validator: booleanValidator },
       timestamp: { validator: dateValidator },
       ticketIds: { validator: listOfStringsValidatorEmptyOk },
-      suggestedReply: { validator: stringValidator5000EmptyOkay },
+      // staff-facing draft (may be AI-generated and unreviewed) — never expose it to the patient
+      suggestedReply: { validator: stringValidator5000EmptyOkay, redactions: ['enduser'], enduserUpdatesDisabled: true },
+      suggestedReplyIsAIGenerated: { validator: booleanValidator, redactions: ['enduser'], enduserUpdatesDisabled: true },
       phoneNumber: { validator: stringValidatorOptionalEmptyOkay },
       enduserPhoneNumber: { validator: phoneValidator },
       tags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
@@ -3377,7 +3389,10 @@ export const schema: SchemaV1 = build_schema({
       },
       pinnedAt: { validator: dateOptionalOrEmptyStringValidator },
       fields: { validator: fieldsValidator },
-      suggestedReply: { validator: stringValidator5000EmptyOkay },
+      // chat_rooms is enduser-readable (see enduserActions + the enduserIds access filter below), so
+      // this staff-facing draft must be redacted — a patient should never see an unsent reply.
+      suggestedReply: { validator: stringValidator5000EmptyOkay, redactions: ['enduser'], enduserUpdatesDisabled: true },
+      suggestedReplyIsAIGenerated: { validator: booleanValidator, redactions: ['enduser'], enduserUpdatesDisabled: true },
       discussionRoomId: { validator: mongoIdStringValidator },
       identifier: { validator: stringValidator100 },
       externalId: { validator: stringValidator100 },
@@ -7255,10 +7270,15 @@ export const schema: SchemaV1 = build_schema({
           }
         },
         {
-          explanation: 'Subscription date, period, and AI enablement cannot be updated',
+          explanation: 'Subscription date, period, and feature enablement cannot be updated',
           evaluate: (updated, lookup, session, type, options) => {
             if (type !== 'update') return // not updating
-            if (!(options.updates?.bedrockAIAllowed || options.updates?.subscriptionExpiresAt || options.updates?.subscriptionPeriod || options.updates?.allowCreateSuborganizations || options.updates?.customPortalURLs || options.updates?.subdomains || options.updates?.plan)) return // not changing
+
+            // Key presence, not truthiness: testing the value let an org admin CLEAR any of these
+            // (bedrockAIAllowed: false, subscriptionPeriod: 0, subscriptionExpiresAt: '') because the
+            // falsy value short-circuited this guard before the session.isa check ever ran. They could
+            // never grant themselves a flag, but they could switch one off.
+            if (!SUPER_ADMIN_ONLY_ORGANIZATION_FIELDS.some(f => f in (options.updates ?? {}))) return // not changing
 
             if (session.type === 'enduser') return "User only"
             if (!session.isa) return "Not allowed"
@@ -7446,6 +7466,7 @@ export const schema: SchemaV1 = build_schema({
       inboxThreadsBuiltTo: { validator: dateOptionalOrEmptyStringValidator },
       outOfOfficeHours: { validator: outOfOfficeBlocksValidator },
       bedrockAIAllowed: { validator: booleanValidator }, // restricted to Telescope super admin only
+      stediAllowed: { validator: booleanValidator }, // restricted to Telescope super admin only
       plan: { // restricted to Telescope super admin only (enforced via relationship constraint below)
         validator: objectValidator<{ type?: string }>({
           type: stringValidatorOptional,
@@ -9591,7 +9612,8 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       messages: { validator: mmsMessagesValidator, updatesDisabled: true, /* allows creating empty when testing while still broadly readonly */ },
       userStates: { validator: groupMMSUserStatesValidator },
       tags: { validator: listOfStringsValidatorEmptyOk },
-      suggestedReply: { validator: stringValidator5000EmptyOkay },
+      // staff-facing draft — no enduser read action on this model today, so defense-in-depth
+      suggestedReply: { validator: stringValidator5000EmptyOkay, redactions: ['enduser'], enduserUpdatesDisabled: true },
       hiddenBy: { validator: idStringToDateValidator },
       hiddenForAll: { validator: booleanValidator },
       assignedTo: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },

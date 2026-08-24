@@ -8,8 +8,11 @@ export declare const DATA_SOURCE_LABELS: Record<AISummaryDataSource, string>;
 export type DataSourceMapEntry = {
     collection: AISummaryDataSource;
     sortField: string;
-    format: (record: any) => string;
+    format: (record: any, enduser?: Enduser | null) => string;
     enduserMatchClause?: (enduserId: string) => object;
+    enduserScoped?: boolean;
+    baseFilter?: object;
+    formatNeedsEnduser?: boolean;
 };
 export declare const DATA_SOURCE_MAP: Record<AISummaryDataSource, DataSourceMapEntry>;
 export declare const enduserProfileToText: (e: Enduser) => string;
@@ -25,6 +28,12 @@ export type AISummarySourceSection = {
     limit: number;
     records: any[];
     formattedLines: string[];
+    skipped: {
+        id: string;
+        title?: string;
+        reason: 'no-readable-text';
+    }[];
+    heading: string;
 };
 export type AISummaryContext = {
     contextText: string;
@@ -39,6 +48,7 @@ export declare const buildAISummarySourceFilter: ({ ds, enduserId, mapEntry }: {
 }) => {
     mdbFilter: object;
     effectiveLimit: number;
+    ids?: string[] | undefined;
 };
 export declare const assembleAISummaryContext: ({ profileBlock, sources }: {
     profileBlock: string;
@@ -50,6 +60,7 @@ export type LoadAISummaryRecordsArgs = {
     mdbFilter: object;
     limit: number;
     sortField: string;
+    ids?: string[];
 };
 export declare const loadAISummaryContext: ({ enduserId, configuration, loadProfile, loadRecords, includeProfile, }: {
     enduserId: string;

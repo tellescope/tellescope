@@ -462,6 +462,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   inboxThreadsBuiltFrom?: Date | '',
   inboxThreadsBuiltTo?: Date | '',
   bedrockAIAllowed?: boolean,
+  stediAllowed?: boolean, // super-admin editable only (enforced via relationship constraint); readable by all
   plan?: OrganizationPlan, // super-admin editable only (enforced via relationship constraint); readable by all
   onboardingStatus?: { [key: string]: string | boolean },
   subdomains?: string[],
@@ -1293,6 +1294,7 @@ export const SESSION_SCOPES = [
   'appointment-booking',
   'ics-download',
   'embeddables-token',
+  'portal-preview',
 ] as const
 export type SessionScope = typeof SESSION_SCOPES[number]
 
@@ -1512,6 +1514,9 @@ export interface Email extends Email_required, Email_readonly, Email_updatesDisa
   hiddenBy?: { [index: string] : Date | '' };
   hiddenForAll?: boolean,
   suggestedReply?: string,
+  // set when suggestedReply was AI-drafted (e.g. the generateSuggestedReply journey action), so the
+  // composer can label it. suggestedReply alone can't imply AI — any API caller may set it.
+  suggestedReplyIsAIGenerated?: boolean,
   tags?: string[],
   batchId?: string,
   isMarketing?: boolean,
@@ -1567,6 +1572,7 @@ export interface SMSMessage extends SMSMessage_readonly, SMSMessage_required, SM
   timestamp?: Date,
   ticketIds?: string[],
   suggestedReply?: string,
+  suggestedReplyIsAIGenerated?: boolean, // see Email.suggestedReplyIsAIGenerated
   phoneNumber?: string,
   enduserPhoneNumber?: string,
   tags?: string[],
@@ -1624,6 +1630,7 @@ export interface ChatRoom extends ChatRoom_readonly, ChatRoom_required, ChatRoom
   pinnedAt?: Date | '',
   fields?: Indexable<string | CustomField>,
   suggestedReply?: string,
+  suggestedReplyIsAIGenerated?: boolean, // see Email.suggestedReplyIsAIGenerated
   assignedTo?: string[],
   discussionRoomId?: string,
   identifier?: string,
@@ -2082,6 +2089,12 @@ export type FormFieldOptions = FormFieldValidation & {
   stripeProductSelectionMode?: boolean, // enable product selection step for Stripe questions
   productConditions?: { productId: string, showCondition: CompoundFilter<string> }[], // conditional logic for product visibility in Stripe selection
   stripeCouponCodes?: string[], // list of Stripe coupon codes to apply when chargeImmediately is enabled
+  // For a Stripe question with >1 productIds and product selection OFF: create an embedded Checkout
+  // Session instead of a bare PaymentIntent, so Stripe renders its own "Add promotion code" input.
+  // Opt-in rather than default because Checkout resolves line-item amounts from Stripe prices instead of
+  // Product.cost, and switches to mode: 'subscription' whenever any product has a stripeSubscriptionId -
+  // so enabling it on an existing form can change both what is charged and how often.
+  useStripeEmbeddedCheckout?: boolean,
   dataSource?: string, // e.g. Canvas for Allergies
   canvasDocumentCoding?: Pick<CanvasCoding, 'system' | 'code'> // for category
   canvasDocumentType?: CanvasCoding, // for type
@@ -2164,6 +2177,9 @@ export type FormScoring = {
 
 export type FormType = 'note' | 'enduserFacing'
 
+// Each value is also the collection / SDK api key name, which is what lets the loader stay generic.
+// The last two are org-wide *reference* collections (no enduserId link) — see enduserScoped in
+// DATA_SOURCE_MAP. They ground the AI in approved material rather than describing the patient.
 export type AISummaryDataSource =
   | 'enduser_observations'
   | 'form_responses'
@@ -2176,12 +2192,21 @@ export type AISummaryDataSource =
   | 'enduser_orders'
   | 'enduser_medications'
   | 'purchases'
+  | 'managed_content_records' // Articles only — PDF/Video file contents can't be read
+  | 'templates'              // Message Templates; {{merge}} fields are resolved before the prompt
 
 export type AISummaryDataSourceConfig = {
   type: AISummaryDataSource,
   limit?: number,
   lookbackMS?: number,
   filter?: object,
+  // Restrict to specific records. Valid for every type, and the only selection mode for the
+  // org-wide reference collections (which have no recency window worth filtering on). A reference
+  // source with an empty selection loads nothing (never "all recent records org-wide").
+  ids?: string[],
+  // Optional heading for this source's block in the AI context, defaulting to the type name.
+  // Lets two sources of the same type be labeled distinctly (e.g. two curated content sets).
+  label?: string,
 }
 
 export type AISummaryConfiguration = {
@@ -3749,6 +3774,12 @@ export type AIDecisionAutomationAction = AutomationActionBuilder<'aiDecision', {
 export type GenerateEnduserSummaryAutomationAction = AutomationActionBuilder<'generateEnduserSummary', {
   aiSummaryConfiguration?: AISummaryConfiguration, // includeProfileFields defaults to true for this action
 }>
+// Drafts a reply to the message that started the journey and saves it to that record's
+// suggestedReply field for staff review — it never sends anything. Requires a message in
+// journeyContext (smsId / emailId / chatRoomId); it no-ops with a logged error otherwise.
+export type GenerateSuggestedReplyAutomationAction = AutomationActionBuilder<'generateSuggestedReply', {
+  aiSummaryConfiguration?: AISummaryConfiguration,
+}>
 export type CreateNoteAutomationAction = AutomationActionBuilder<'createNote', {
   title: string, // supports merge fields like {{enduser.fname}}; capped at note title limit (250)
   text?: string, // deterministic note text; supports merge fields like {{enduser.fname}}
@@ -3781,6 +3812,7 @@ export type StartAIConversationAutomationAction = AutomationActionBuilder<'start
 export type AutomationActionForType = {
   'aiDecision': AIDecisionAutomationAction,
   'generateEnduserSummary': GenerateEnduserSummaryAutomationAction,
+  'generateSuggestedReply': GenerateSuggestedReplyAutomationAction,
   'createNote': CreateNoteAutomationAction,
   'startAIConversation': StartAIConversationAutomationAction,
   'assignInboxItem': AssignInboxItemAutomationAction,

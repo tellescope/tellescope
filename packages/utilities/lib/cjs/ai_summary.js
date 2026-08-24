@@ -5,6 +5,17 @@
 // reused by both the webapp SDK loader (data_sources.ts) and the backend DB loader
 // (api/modules/ai_summary_context.ts). It must stay free of any SDK/DB/React imports — only
 // plain record shapes, the types-models Enduser, and constants.
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -53,6 +64,9 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.loadAISummaryContext = exports.assembleAISummaryContext = exports.buildAISummarySourceFilter = exports.sanitizeFilter = exports.aiSummaryError = exports.FORBIDDEN_FILTER_OPERATORS = exports.enduserProfileToText = exports.DATA_SOURCE_MAP = exports.DATA_SOURCE_LABELS = exports.fmtObservation = exports.fmtResponses = exports.fmtFromMS = exports.fmt = exports.stripHtml = void 0;
 var constants_1 = require("@tellescope/constants");
+// Same-package import. utils.ts re-exports this module, so this is a cycle — it resolves because
+// both helpers are only ever called from inside formatter closures, long after module init.
+var utils_1 = require("./utils");
 /* ---------------------------------- formatters ---------------------------------- */
 var stripHtml = function (s) { return s
     .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
@@ -134,6 +148,8 @@ exports.DATA_SOURCE_LABELS = {
     enduser_orders: 'Orders',
     enduser_medications: 'Medications',
     purchases: 'Purchases',
+    managed_content_records: 'Content (Articles)',
+    templates: 'Message Templates',
 };
 exports.DATA_SOURCE_MAP = {
     enduser_observations: {
@@ -198,6 +214,44 @@ exports.DATA_SOURCE_MAP = {
         sortField: 'createdAt',
         format: function (p) { var _a; return "[Purchase ".concat((0, exports.fmt)(p.createdAt), "] ").concat((_a = p.title) !== null && _a !== void 0 ? _a : '', " ").concat(typeof p.amount === 'number' ? "$".concat(p.amount) : '').trim(); },
     },
+    // Org-wide reference sources below: approved material the AI is grounded in, rather than
+    // records describing the patient. Selected by `ids`, so no enduser clause and no lookback.
+    managed_content_records: {
+        collection: 'managed_content_records',
+        sortField: 'createdAt',
+        enduserScoped: false,
+        // Articles only. PDF/Video bodies live in an attached file that can't be read, so they're
+        // excluded here rather than relying on the UI to keep them out.
+        baseFilter: { type: 'Article' },
+        format: function (r) {
+            var _a;
+            var body = (0, utils_1.plaintext_for_managed_content_record)(r);
+            if (!(body === null || body === void 0 ? void 0 : body.trim()))
+                return '';
+            var description = r.description ? " ".concat(r.description) : '';
+            return "[Content \"".concat((_a = r.title) !== null && _a !== void 0 ? _a : '', "\"]").concat(description, "\n").concat(body.trim().slice(0, constants_1.MAX_AI_SUMMARY_RECORD_CHARS));
+        },
+    },
+    templates: {
+        collection: 'templates',
+        sortField: 'createdAt',
+        enduserScoped: false,
+        formatNeedsEnduser: true,
+        format: function (t, enduser) {
+            var _a;
+            var raw = t.message || (0, exports.stripHtml)(t.html || '');
+            if (!(raw === null || raw === void 0 ? void 0 : raw.trim()))
+                return '';
+            // Resolve {{merge}} fields so the model reads concrete text instead of placeholders.
+            // Unresolvable ones stay literal; the caller's prompt tells the model to fill or drop them.
+            var body = (0, utils_1.replace_enduser_template_values)(raw, enduser);
+            var subject = t.subject
+                ? " Subject: ".concat((0, utils_1.replace_enduser_template_values)(t.subject, enduser))
+                : '';
+            var type = t.type ? " type:".concat(t.type) : '';
+            return "[Template \"".concat((_a = t.title) !== null && _a !== void 0 ? _a : '', "\"").concat(type, "]").concat(subject, "\n").concat(body.trim().slice(0, constants_1.MAX_AI_SUMMARY_RECORD_CHARS));
+        },
+    },
 };
 var enduserProfileToText = function (e) {
     var _a, _b, _c;
@@ -252,17 +306,21 @@ var sanitizeFilter = function (filter) {
 exports.sanitizeFilter = sanitizeFilter;
 // Build the mongo filter + effective limit for a single data source. Shared by both loaders so
 // the lookback / enduserMatch / sanitized-filter / default-limit logic stays identical.
+// `ids` is returned rather than folded into mdbFilter: _id needs ObjectId conversion on the DB
+// side, and the readMany endpoint takes `ids` natively, so each transport applies it.
 var buildAISummarySourceFilter = function (_a) {
     var _b;
-    var _c;
+    var _c, _d, _e;
     var ds = _a.ds, enduserId = _a.enduserId, mapEntry = _a.mapEntry;
     var userFilter = (0, exports.sanitizeFilter)(ds.filter);
     var lookbackClause = ds.lookbackMS
         ? (_b = {}, _b[mapEntry.sortField] = { $gte: new Date(Date.now() - ds.lookbackMS) }, _b) : {};
-    var enduserMatch = mapEntry.enduserMatchClause ? mapEntry.enduserMatchClause(enduserId) : { enduserId: enduserId };
-    var mdbFilter = { $and: [userFilter, lookbackClause, enduserMatch] };
-    var effectiveLimit = (_c = ds.limit) !== null && _c !== void 0 ? _c : constants_1.DEFAULT_AI_SUMMARY_DATA_SOURCE_LIMIT;
-    return { mdbFilter: mdbFilter, effectiveLimit: effectiveLimit };
+    var enduserMatch = (mapEntry.enduserScoped === false
+        ? {}
+        : mapEntry.enduserMatchClause ? mapEntry.enduserMatchClause(enduserId) : { enduserId: enduserId });
+    var mdbFilter = { $and: [userFilter, lookbackClause, enduserMatch, (_c = mapEntry.baseFilter) !== null && _c !== void 0 ? _c : {}] };
+    var effectiveLimit = (_d = ds.limit) !== null && _d !== void 0 ? _d : constants_1.DEFAULT_AI_SUMMARY_DATA_SOURCE_LIMIT;
+    return { mdbFilter: mdbFilter, effectiveLimit: effectiveLimit, ids: ((_e = ds.ids) === null || _e === void 0 ? void 0 : _e.length) ? ds.ids : undefined };
 };
 exports.buildAISummarySourceFilter = buildAISummarySourceFilter;
 // Join the profile block + per-source blocks, estimate tokens, and enforce the input budget.
@@ -270,7 +328,7 @@ var assembleAISummaryContext = function (_a) {
     var profileBlock = _a.profileBlock, sources = _a.sources;
     var blocks = sources
         .filter(function (s) { return s.formattedLines.length > 0; })
-        .map(function (s) { return "## ".concat(s.type, "\n").concat(s.formattedLines.join('\n')); });
+        .map(function (s) { return "## ".concat(s.heading, "\n").concat(s.formattedLines.join('\n')); });
     var contextText = __spreadArray([profileBlock], blocks, true).filter(Boolean).join('\n\n');
     var estimatedTokens = Math.ceil(contextText.length / 4);
     if (estimatedTokens > constants_1.MAX_AI_SUMMARY_INPUT_TOKENS) {
@@ -285,12 +343,14 @@ exports.assembleAISummaryContext = assembleAISummaryContext;
 var loadAISummaryContext = function (_a) {
     var enduserId = _a.enduserId, configuration = _a.configuration, loadProfile = _a.loadProfile, loadRecords = _a.loadRecords, _b = _a.includeProfile, includeProfile = _b === void 0 ? true : _b;
     return __awaiter(void 0, void 0, void 0, function () {
-        var enduser, _c, profileBlock, sections, sources;
+        var dataSources, needsEnduserForFormat, enduser, _c, profileBlock, sections, sources;
         var _d;
         return __generator(this, function (_e) {
             switch (_e.label) {
                 case 0:
-                    if (!includeProfile) return [3 /*break*/, 2];
+                    dataSources = (_d = configuration.dataSources) !== null && _d !== void 0 ? _d : [];
+                    needsEnduserForFormat = dataSources.some(function (ds) { var _a; return (_a = exports.DATA_SOURCE_MAP[ds.type]) === null || _a === void 0 ? void 0 : _a.formatNeedsEnduser; });
+                    if (!(includeProfile || needsEnduserForFormat)) return [3 /*break*/, 2];
                     return [4 /*yield*/, loadProfile(enduserId)];
                 case 1:
                     _c = _e.sent();
@@ -300,44 +360,50 @@ var loadAISummaryContext = function (_a) {
                     _e.label = 3;
                 case 3:
                     enduser = _c;
-                    profileBlock = enduser ? (0, exports.enduserProfileToText)(enduser) : '';
-                    return [4 /*yield*/, Promise.all(((_d = configuration.dataSources) !== null && _d !== void 0 ? _d : []).map(function (ds) { return __awaiter(void 0, void 0, void 0, function () {
-                            var m, _a, mdbFilter, effectiveLimit, records, list, formattedLines, err_1;
-                            var _b, _c;
-                            return __generator(this, function (_d) {
-                                switch (_d.label) {
+                    profileBlock = (includeProfile && enduser) ? (0, exports.enduserProfileToText)(enduser) : '';
+                    return [4 /*yield*/, Promise.all(dataSources.map(function (ds) { return __awaiter(void 0, void 0, void 0, function () {
+                            var m, _a, mdbFilter, effectiveLimit, ids, base, records, list, formattedLines, skipped, _i, list_1, record, line, err_1;
+                            var _b, _c, _d, _e, _f;
+                            return __generator(this, function (_g) {
+                                switch (_g.label) {
                                     case 0:
                                         m = exports.DATA_SOURCE_MAP[ds.type];
                                         if (!m)
                                             return [2 /*return*/, null];
-                                        _a = (0, exports.buildAISummarySourceFilter)({ ds: ds, enduserId: enduserId, mapEntry: m }), mdbFilter = _a.mdbFilter, effectiveLimit = _a.effectiveLimit;
-                                        _d.label = 1;
+                                        _a = (0, exports.buildAISummarySourceFilter)({ ds: ds, enduserId: enduserId, mapEntry: m }), mdbFilter = _a.mdbFilter, effectiveLimit = _a.effectiveLimit, ids = _a.ids;
+                                        base = {
+                                            type: ds.type,
+                                            label: (_b = exports.DATA_SOURCE_LABELS[ds.type]) !== null && _b !== void 0 ? _b : ds.type,
+                                            heading: ds.label || ds.type,
+                                            lookbackMS: ds.lookbackMS,
+                                            limit: effectiveLimit,
+                                        };
+                                        // Reference collections are selected exclusively by ids — an empty selection means "load
+                                        // nothing", never "no id restriction" (which would pull the newest org-wide records into the prompt)
+                                        if (m.enduserScoped === false && !ids)
+                                            return [2 /*return*/, __assign(__assign({}, base), { records: [], formattedLines: [], skipped: [] })];
+                                        _g.label = 1;
                                     case 1:
-                                        _d.trys.push([1, 3, , 4]);
-                                        return [4 /*yield*/, loadRecords({ type: ds.type, collection: m.collection, mdbFilter: mdbFilter, limit: effectiveLimit, sortField: m.sortField })];
+                                        _g.trys.push([1, 3, , 4]);
+                                        return [4 /*yield*/, loadRecords({ type: ds.type, collection: m.collection, mdbFilter: mdbFilter, limit: effectiveLimit, sortField: m.sortField, ids: ids })];
                                     case 2:
-                                        records = _d.sent();
+                                        records = _g.sent();
                                         list = Array.isArray(records) ? records : [];
-                                        formattedLines = list.map(m.format).filter(Boolean);
-                                        return [2 /*return*/, {
-                                                type: ds.type,
-                                                label: (_b = exports.DATA_SOURCE_LABELS[ds.type]) !== null && _b !== void 0 ? _b : ds.type,
-                                                lookbackMS: ds.lookbackMS,
-                                                limit: effectiveLimit,
-                                                records: list,
-                                                formattedLines: formattedLines,
-                                            }];
+                                        formattedLines = [];
+                                        skipped = [];
+                                        for (_i = 0, list_1 = list; _i < list_1.length; _i++) {
+                                            record = list_1[_i];
+                                            line = m.format(record, enduser);
+                                            if (line)
+                                                formattedLines.push(line);
+                                            else
+                                                skipped.push({ id: (_f = (_c = record === null || record === void 0 ? void 0 : record.id) !== null && _c !== void 0 ? _c : (_e = (_d = record === null || record === void 0 ? void 0 : record._id) === null || _d === void 0 ? void 0 : _d.toString) === null || _e === void 0 ? void 0 : _e.call(_d)) !== null && _f !== void 0 ? _f : '', title: record === null || record === void 0 ? void 0 : record.title, reason: 'no-readable-text' });
+                                        }
+                                        return [2 /*return*/, __assign(__assign({}, base), { records: list, formattedLines: formattedLines, skipped: skipped })];
                                     case 3:
-                                        err_1 = _d.sent();
+                                        err_1 = _g.sent();
                                         console.error("Failed to load ".concat(ds.type, " for AI summary"), err_1);
-                                        return [2 /*return*/, {
-                                                type: ds.type,
-                                                label: (_c = exports.DATA_SOURCE_LABELS[ds.type]) !== null && _c !== void 0 ? _c : ds.type,
-                                                lookbackMS: ds.lookbackMS,
-                                                limit: effectiveLimit,
-                                                records: [],
-                                                formattedLines: [],
-                                            }];
+                                        return [2 /*return*/, __assign(__assign({}, base), { records: [], formattedLines: [], skipped: [] })];
                                     case 4: return [2 /*return*/];
                                 }
                             });

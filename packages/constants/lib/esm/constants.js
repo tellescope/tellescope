@@ -1188,11 +1188,15 @@ export var AI_SUMMARY_CACHE_TTL_MS = 10 * 60 * 1000;
 export var DEFAULT_AI_SUMMARY_DATA_SOURCE_LIMIT = 25;
 export var DEFAULT_AI_SUMMARY_MAX_OUTPUT_TOKENS = 600;
 export var MAX_AI_SUMMARY_DATA_SOURCES = 25;
+// Per-record body cap for long-form sources (articles, message templates), so one long record
+// can't crowd out the rest of the context. Mirrors the 2000-char slice the emails formatter uses.
+export var MAX_AI_SUMMARY_RECORD_CHARS = 8000;
 export var DEFAULT_HISTORICAL_DATA_SOURCE_LIMIT = 100; // matches backend DEFAULT_LIMIT — non-breaking
 // Friendly names of Bedrock models customers may select (must match AI_MODEL_PRICING rows in the API)
 export var SELECTABLE_AI_MODELS = ['Claude Sonnet 5', 'Claude Opus 5', 'Claude Opus 4.8'];
 export var DEFAULT_AI_MODEL = 'Claude Sonnet 5';
 export var EXAMPLE_AI_SUMMARY_PROMPT = "Summarize this patient's recent activity in 4-6 bullet points.\nFocus on changes since their last visit, current medications, recent symptoms or\ncomplaints, and any outstanding follow-ups. Keep clinical and concise.";
+export var EXAMPLE_AI_SUGGESTED_REPLY_PROMPT = "Draft a warm, concise reply to the patient's message. Answer their question\ndirectly using the reference content and templates provided. Keep it to a short\nparagraph, avoid clinical advice we haven't already approved in writing, and\nclose by inviting them to reply if they need anything else.";
 export var T2_TEMPLATE_EDITOR_STATE = "TELLESCOPE_2_TEMPLATE_EDITOR";
 /******************************* Voice Agent (Phone Tree 'AI Agent' node) *******************************/
 // Only the values the webapp shares live here; backend tuning constants (caps, timeouts, TTLs,

@@ -422,6 +422,7 @@ export interface Organization extends Organization_readonly, Organization_requir
     inboxThreadsBuiltFrom?: Date | '';
     inboxThreadsBuiltTo?: Date | '';
     bedrockAIAllowed?: boolean;
+    stediAllowed?: boolean;
     plan?: OrganizationPlan;
     onboardingStatus?: {
         [key: string]: string | boolean;
@@ -1193,7 +1194,7 @@ export type APIKeyScope = typeof API_KEY_SCOPES[number];
  * semantics: `scopes: []` on an API key means unrestricted, whereas a session confined to no scopes
  * reaches nothing. The route table is intentionally backend-only; only the names are public.
  */
-export declare const SESSION_SCOPES: readonly ["video-join-link", "video-start-link", "public-form", "appointment-booking", "ics-download", "embeddables-token"];
+export declare const SESSION_SCOPES: readonly ["video-join-link", "video-start-link", "public-form", "appointment-booking", "ics-download", "embeddables-token", "portal-preview"];
 export type SessionScope = typeof SESSION_SCOPES[number];
 export interface APIKey_readonly extends ClientRecord {
     hashedKey: string;
@@ -1403,6 +1404,7 @@ export interface Email extends Email_required, Email_readonly, Email_updatesDisa
     };
     hiddenForAll?: boolean;
     suggestedReply?: string;
+    suggestedReplyIsAIGenerated?: boolean;
     tags?: string[];
     batchId?: string;
     isMarketing?: boolean;
@@ -1462,6 +1464,7 @@ export interface SMSMessage extends SMSMessage_readonly, SMSMessage_required, SM
     timestamp?: Date;
     ticketIds?: string[];
     suggestedReply?: string;
+    suggestedReplyIsAIGenerated?: boolean;
     phoneNumber?: string;
     enduserPhoneNumber?: string;
     tags?: string[];
@@ -1517,6 +1520,7 @@ export interface ChatRoom extends ChatRoom_readonly, ChatRoom_required, ChatRoom
     pinnedAt?: Date | '';
     fields?: Indexable<string | CustomField>;
     suggestedReply?: string;
+    suggestedReplyIsAIGenerated?: boolean;
     assignedTo?: string[];
     discussionRoomId?: string;
     identifier?: string;
@@ -2012,6 +2016,7 @@ export type FormFieldOptions = FormFieldValidation & {
         showCondition: CompoundFilter<string>;
     }[];
     stripeCouponCodes?: string[];
+    useStripeEmbeddedCheckout?: boolean;
     dataSource?: string;
     canvasDocumentCoding?: Pick<CanvasCoding, 'system' | 'code'>;
     canvasDocumentType?: CanvasCoding;
@@ -2088,12 +2093,14 @@ export type FormScoring = {
     score: (string | number);
 };
 export type FormType = 'note' | 'enduserFacing';
-export type AISummaryDataSource = 'enduser_observations' | 'form_responses' | 'chats' | 'phone_calls' | 'calendar_events' | 'tickets' | 'sms_messages' | 'emails' | 'enduser_orders' | 'enduser_medications' | 'purchases';
+export type AISummaryDataSource = 'enduser_observations' | 'form_responses' | 'chats' | 'phone_calls' | 'calendar_events' | 'tickets' | 'sms_messages' | 'emails' | 'enduser_orders' | 'enduser_medications' | 'purchases' | 'managed_content_records' | 'templates';
 export type AISummaryDataSourceConfig = {
     type: AISummaryDataSource;
     limit?: number;
     lookbackMS?: number;
     filter?: object;
+    ids?: string[];
+    label?: string;
 };
 export type AISummaryConfiguration = {
     enabled?: boolean;
@@ -3681,6 +3688,9 @@ export type AIDecisionAutomationAction = AutomationActionBuilder<'aiDecision', {
 export type GenerateEnduserSummaryAutomationAction = AutomationActionBuilder<'generateEnduserSummary', {
     aiSummaryConfiguration?: AISummaryConfiguration;
 }>;
+export type GenerateSuggestedReplyAutomationAction = AutomationActionBuilder<'generateSuggestedReply', {
+    aiSummaryConfiguration?: AISummaryConfiguration;
+}>;
 export type CreateNoteAutomationAction = AutomationActionBuilder<'createNote', {
     title: string;
     text?: string;
@@ -3708,6 +3718,7 @@ export type StartAIConversationAutomationAction = AutomationActionBuilder<'start
 export type AutomationActionForType = {
     'aiDecision': AIDecisionAutomationAction;
     'generateEnduserSummary': GenerateEnduserSummaryAutomationAction;
+    'generateSuggestedReply': GenerateSuggestedReplyAutomationAction;
     'createNote': CreateNoteAutomationAction;
     'startAIConversation': StartAIConversationAutomationAction;
     'assignInboxItem': AssignInboxItemAutomationAction;

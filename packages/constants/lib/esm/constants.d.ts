@@ -280,11 +280,13 @@ export declare const AI_SUMMARY_CACHE_TTL_MS: number;
 export declare const DEFAULT_AI_SUMMARY_DATA_SOURCE_LIMIT = 25;
 export declare const DEFAULT_AI_SUMMARY_MAX_OUTPUT_TOKENS = 600;
 export declare const MAX_AI_SUMMARY_DATA_SOURCES = 25;
+export declare const MAX_AI_SUMMARY_RECORD_CHARS = 8000;
 export declare const DEFAULT_HISTORICAL_DATA_SOURCE_LIMIT = 100;
 export declare const SELECTABLE_AI_MODELS: readonly ["Claude Sonnet 5", "Claude Opus 5", "Claude Opus 4.8"];
 export type SelectableAIModel = (typeof SELECTABLE_AI_MODELS)[number];
 export declare const DEFAULT_AI_MODEL: SelectableAIModel;
 export declare const EXAMPLE_AI_SUMMARY_PROMPT = "Summarize this patient's recent activity in 4-6 bullet points.\nFocus on changes since their last visit, current medications, recent symptoms or\ncomplaints, and any outstanding follow-ups. Keep clinical and concise.";
+export declare const EXAMPLE_AI_SUGGESTED_REPLY_PROMPT = "Draft a warm, concise reply to the patient's message. Answer their question\ndirectly using the reference content and templates provided. Keep it to a short\nparagraph, avoid clinical advice we haven't already approved in writing, and\nclose by inviting them to reply if they need anything else.";
 export declare const T2_TEMPLATE_EDITOR_STATE = "TELLESCOPE_2_TEMPLATE_EDITOR";
 /******************************* Voice Agent (Phone Tree 'AI Agent' node) *******************************/
 export declare const VOICE_AGENT_CONVERSATION_TYPE = "voice_agent";

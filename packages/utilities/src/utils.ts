@@ -1218,20 +1218,29 @@ export const timezone_for_enduser = (e: Pick<Enduser, 'state' | 'timezone'>) => 
 
 export const sanitize_html = (t: string) => sanitizeHtml(t, { allowedTags: [], allowedAttributes: {} })
 
-export const plaintext_for_managed_content_record = (record: Pick<ManagedContentRecord, 'type' | 'blocks'>) => {
+// Plain-text body of a content record, or null when there's no readable text.
+// PDF and Video carry their content in an attached file, which can't be read here.
+export const plaintext_for_managed_content_record = (
+  record: Pick<ManagedContentRecord, 'type' | 'blocks' | 'htmlContent' | 'textContent'>
+) => {
   if (record.type === 'PDF') return null
   if (record.type === 'Video') return null
 
-  if (!record.blocks?.length) return null
+  // legacy records predate blocks and carry their body in htmlContent / textContent
+  if (!record.blocks?.length) {
+    const legacy = record.textContent || (record.htmlContent ? sanitize_html(record.htmlContent) : '')
+    return legacy || null
+  }
 
   return (
     record
     .blocks
     .filter(
       b => (
-           b.type === 'h1' 
+           b.type === 'h1'
         || b.type === 'h2'
         || b.type === 'html'
+        || b.type === 'raw-html'
       )
     )
     .map(
@@ -1240,14 +1249,14 @@ export const plaintext_for_managed_content_record = (record: Pick<ManagedContent
           ? b.info.text
       : b.type === 'h2'
           ? b.info.text
-      :  b.type === 'html'
+      : (b.type === 'html' || b.type === 'raw-html')
           ? sanitize_html(b.info.html)
           : ''
 
       )
     )
     .join('\n')
-  )  
+  )
 }
 
 // https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array

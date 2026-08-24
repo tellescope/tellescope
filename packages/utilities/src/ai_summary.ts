@@ -10,11 +10,17 @@ import {
   AISummaryDataSource,
   AISummaryDataSourceConfig,
   Enduser,
+  ManagedContentRecord,
+  MessageTemplate,
 } from "@tellescope/types-models"
 import {
   DEFAULT_AI_SUMMARY_DATA_SOURCE_LIMIT,
   MAX_AI_SUMMARY_INPUT_TOKENS,
+  MAX_AI_SUMMARY_RECORD_CHARS,
 } from "@tellescope/constants"
+// Same-package import. utils.ts re-exports this module, so this is a cycle — it resolves because
+// both helpers are only ever called from inside formatter closures, long after module init.
+import { plaintext_for_managed_content_record, replace_enduser_template_values } from "./utils"
 
 /* ---------------------------------- formatters ---------------------------------- */
 
@@ -83,15 +89,26 @@ export const DATA_SOURCE_LABELS: Record<AISummaryDataSource, string> = {
   enduser_orders: 'Orders',
   enduser_medications: 'Medications',
   purchases: 'Purchases',
+  managed_content_records: 'Content (Articles)',
+  templates: 'Message Templates',
 }
 
 export type DataSourceMapEntry = {
-  // collection key equals the source key for all 11 entries; callers map this to their own
+  // collection key equals the source key for every entry; callers map this to their own
   // transport (session.api[collection] / DB[collection]).
   collection: AISummaryDataSource,
   sortField: string,
-  format: (record: any) => string,
+  // `enduser` is supplied for sources whose rendering depends on the patient (template merge
+  // fields). Enduser-scoped sources ignore it.
+  format: (record: any, enduser?: Enduser | null) => string,
   enduserMatchClause?: (enduserId: string) => object,
+  // false = an org-wide reference collection with no enduserId link, so no enduser clause is
+  // applied and records are chosen by `ids` instead of a recency window.
+  enduserScoped?: boolean,
+  // always-applied data-layer constraint, ANDed with the customer's filter
+  baseFilter?: object,
+  // true when `format` needs the enduser loaded even if the profile block is excluded
+  formatNeedsEnduser?: boolean,
 }
 
 export const DATA_SOURCE_MAP: Record<AISummaryDataSource, DataSourceMapEntry> = {
@@ -156,6 +173,40 @@ export const DATA_SOURCE_MAP: Record<AISummaryDataSource, DataSourceMapEntry> = 
     sortField: 'createdAt',
     format: p => `[Purchase ${fmt(p.createdAt)}] ${p.title ?? ''} ${typeof p.amount === 'number' ? `$${p.amount}` : ''}`.trim(),
   },
+  // Org-wide reference sources below: approved material the AI is grounded in, rather than
+  // records describing the patient. Selected by `ids`, so no enduser clause and no lookback.
+  managed_content_records: {
+    collection: 'managed_content_records',
+    sortField: 'createdAt',
+    enduserScoped: false,
+    // Articles only. PDF/Video bodies live in an attached file that can't be read, so they're
+    // excluded here rather than relying on the UI to keep them out.
+    baseFilter: { type: 'Article' },
+    format: (r: ManagedContentRecord) => {
+      const body = plaintext_for_managed_content_record(r)
+      if (!body?.trim()) return ''
+      const description = r.description ? ` ${r.description}` : ''
+      return `[Content "${r.title ?? ''}"]${description}\n${body.trim().slice(0, MAX_AI_SUMMARY_RECORD_CHARS)}`
+    },
+  },
+  templates: {
+    collection: 'templates',
+    sortField: 'createdAt',
+    enduserScoped: false,
+    formatNeedsEnduser: true,
+    format: (t: MessageTemplate, enduser) => {
+      const raw = t.message || stripHtml(t.html || '')
+      if (!raw?.trim()) return ''
+      // Resolve {{merge}} fields so the model reads concrete text instead of placeholders.
+      // Unresolvable ones stay literal; the caller's prompt tells the model to fill or drop them.
+      const body = replace_enduser_template_values(raw, enduser)
+      const subject = t.subject
+        ? ` Subject: ${replace_enduser_template_values(t.subject, enduser)}`
+        : ''
+      const type = t.type ? ` type:${t.type}` : ''
+      return `[Template "${t.title ?? ''}"${type}]${subject}\n${body.trim().slice(0, MAX_AI_SUMMARY_RECORD_CHARS)}`
+    },
+  },
 }
 
 export const enduserProfileToText = (e: Enduser): string => {
@@ -205,6 +256,11 @@ export type AISummarySourceSection = {
   limit: number,
   records: any[],
   formattedLines: string[],
+  // records that loaded but produced no usable text (e.g. a PDF selected before the Articles-only
+  // filter, or an empty article). Surfaced in the sources drawer so exclusions are visible.
+  skipped: { id: string, title?: string, reason: 'no-readable-text' }[],
+  // heading used for this section's block in the context text
+  heading: string,
 }
 
 export type AISummaryContext = {
@@ -216,21 +272,27 @@ export type AISummaryContext = {
 
 // Build the mongo filter + effective limit for a single data source. Shared by both loaders so
 // the lookback / enduserMatch / sanitized-filter / default-limit logic stays identical.
+// `ids` is returned rather than folded into mdbFilter: _id needs ObjectId conversion on the DB
+// side, and the readMany endpoint takes `ids` natively, so each transport applies it.
 export const buildAISummarySourceFilter = ({ ds, enduserId, mapEntry } : {
   ds: AISummaryDataSourceConfig,
   enduserId: string,
   mapEntry: DataSourceMapEntry,
-}): { mdbFilter: object, effectiveLimit: number } => {
+}): { mdbFilter: object, effectiveLimit: number, ids?: string[] } => {
   const userFilter = sanitizeFilter(ds.filter)
   const lookbackClause = ds.lookbackMS
     ? { [mapEntry.sortField]: { $gte: new Date(Date.now() - ds.lookbackMS) } }
     : {}
 
-  const enduserMatch = mapEntry.enduserMatchClause ? mapEntry.enduserMatchClause(enduserId) : { enduserId }
-  const mdbFilter = { $and: [userFilter, lookbackClause, enduserMatch] }
+  const enduserMatch = (
+    mapEntry.enduserScoped === false
+      ? {}
+      : mapEntry.enduserMatchClause ? mapEntry.enduserMatchClause(enduserId) : { enduserId }
+  )
+  const mdbFilter = { $and: [userFilter, lookbackClause, enduserMatch, mapEntry.baseFilter ?? {}] }
   const effectiveLimit = ds.limit ?? DEFAULT_AI_SUMMARY_DATA_SOURCE_LIMIT
 
-  return { mdbFilter, effectiveLimit }
+  return { mdbFilter, effectiveLimit, ids: ds.ids?.length ? ds.ids : undefined }
 }
 
 // Join the profile block + per-source blocks, estimate tokens, and enforce the input budget.
@@ -240,7 +302,7 @@ export const assembleAISummaryContext = ({ profileBlock, sources } : {
 }): AISummaryContext => {
   const blocks = sources
     .filter(s => s.formattedLines.length > 0)
-    .map(s => `## ${s.type}\n${s.formattedLines.join('\n')}`)
+    .map(s => `## ${s.heading}\n${s.formattedLines.join('\n')}`)
 
   const contextText = [profileBlock, ...blocks].filter(Boolean).join('\n\n')
   const estimatedTokens = Math.ceil(contextText.length / 4)
@@ -258,6 +320,8 @@ export type LoadAISummaryRecordsArgs = {
   mdbFilter: object,
   limit: number,
   sortField: string,
+  // when set, restrict to these record ids (see buildAISummarySourceFilter)
+  ids?: string[],
 }
 
 // Transport-agnostic loader. Callers inject loadProfile/loadRecords backed by the SDK (webapp) or
@@ -274,37 +338,46 @@ export const loadAISummaryContext = async ({
   // true for the summary use case; the AI Decision step passes false to avoid prompt clutter.
   includeProfile?: boolean,
 }): Promise<AISummaryContext> => {
-  const enduser = includeProfile ? await loadProfile(enduserId) : null
-  const profileBlock = enduser ? enduserProfileToText(enduser) : ''
+  const dataSources = configuration.dataSources ?? []
+  // some formatters (message templates) need the patient to resolve merge fields, so load the
+  // enduser for those even when the profile block itself is excluded from the context
+  const needsEnduserForFormat = dataSources.some(ds => DATA_SOURCE_MAP[ds.type]?.formatNeedsEnduser)
+  const enduser = (includeProfile || needsEnduserForFormat) ? await loadProfile(enduserId) : null
+  const profileBlock = (includeProfile && enduser) ? enduserProfileToText(enduser) : ''
 
-  const sections = await Promise.all((configuration.dataSources ?? []).map(async (ds: AISummaryDataSourceConfig): Promise<AISummarySourceSection | null> => {
+  const sections = await Promise.all(dataSources.map(async (ds: AISummaryDataSourceConfig): Promise<AISummarySourceSection | null> => {
     const m = DATA_SOURCE_MAP[ds.type]
     if (!m) return null
 
-    const { mdbFilter, effectiveLimit } = buildAISummarySourceFilter({ ds, enduserId, mapEntry: m })
+    const { mdbFilter, effectiveLimit, ids } = buildAISummarySourceFilter({ ds, enduserId, mapEntry: m })
+    const base = {
+      type: ds.type,
+      label: DATA_SOURCE_LABELS[ds.type] ?? ds.type,
+      heading: ds.label || ds.type,
+      lookbackMS: ds.lookbackMS,
+      limit: effectiveLimit,
+    }
+
+    // Reference collections are selected exclusively by ids — an empty selection means "load
+    // nothing", never "no id restriction" (which would pull the newest org-wide records into the prompt)
+    if (m.enduserScoped === false && !ids) return { ...base, records: [], formattedLines: [], skipped: [] }
 
     try {
-      const records = await loadRecords({ type: ds.type, collection: m.collection, mdbFilter, limit: effectiveLimit, sortField: m.sortField })
+      const records = await loadRecords({ type: ds.type, collection: m.collection, mdbFilter, limit: effectiveLimit, sortField: m.sortField, ids })
       const list: any[] = Array.isArray(records) ? records : []
-      const formattedLines = list.map(m.format).filter(Boolean)
-      return {
-        type: ds.type,
-        label: DATA_SOURCE_LABELS[ds.type] ?? ds.type,
-        lookbackMS: ds.lookbackMS,
-        limit: effectiveLimit,
-        records: list,
-        formattedLines,
+
+      const formattedLines: string[] = []
+      const skipped: AISummarySourceSection['skipped'] = []
+      for (const record of list) {
+        const line = m.format(record, enduser)
+        if (line) formattedLines.push(line)
+        else skipped.push({ id: record?.id ?? record?._id?.toString?.() ?? '', title: record?.title, reason: 'no-readable-text' })
       }
+
+      return { ...base, records: list, formattedLines, skipped }
     } catch (err) {
       console.error(`Failed to load ${ds.type} for AI summary`, err)
-      return {
-        type: ds.type,
-        label: DATA_SOURCE_LABELS[ds.type] ?? ds.type,
-        lookbackMS: ds.lookbackMS,
-        limit: effectiveLimit,
-        records: [],
-        formattedLines: [],
-      }
+      return { ...base, records: [], formattedLines: [], skipped: [] }
     }
   }))
 

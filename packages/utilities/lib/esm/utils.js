@@ -1135,24 +1135,30 @@ export var timezone_for_enduser = function (e) { return (e.timezone
         ? USA_STATE_TO_TIMEZONE[e.state]
         : undefined)); };
 export var sanitize_html = function (t) { return sanitizeHtml(t, { allowedTags: [], allowedAttributes: {} }); };
+// Plain-text body of a content record, or null when there's no readable text.
+// PDF and Video carry their content in an attached file, which can't be read here.
 export var plaintext_for_managed_content_record = function (record) {
     var _a;
     if (record.type === 'PDF')
         return null;
     if (record.type === 'Video')
         return null;
-    if (!((_a = record.blocks) === null || _a === void 0 ? void 0 : _a.length))
-        return null;
+    // legacy records predate blocks and carry their body in htmlContent / textContent
+    if (!((_a = record.blocks) === null || _a === void 0 ? void 0 : _a.length)) {
+        var legacy = record.textContent || (record.htmlContent ? sanitize_html(record.htmlContent) : '');
+        return legacy || null;
+    }
     return (record
         .blocks
         .filter(function (b) { return (b.type === 'h1'
         || b.type === 'h2'
-        || b.type === 'html'); })
+        || b.type === 'html'
+        || b.type === 'raw-html'); })
         .map(function (b) { return (b.type === 'h1'
         ? b.info.text
         : b.type === 'h2'
             ? b.info.text
-            : b.type === 'html'
+            : (b.type === 'html' || b.type === 'raw-html')
                 ? sanitize_html(b.info.html)
                 : ''); })
         .join('\n'));

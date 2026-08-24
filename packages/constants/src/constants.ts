@@ -1294,6 +1294,9 @@ export const AI_SUMMARY_CACHE_TTL_MS = 10 * 60 * 1000
 export const DEFAULT_AI_SUMMARY_DATA_SOURCE_LIMIT = 25
 export const DEFAULT_AI_SUMMARY_MAX_OUTPUT_TOKENS = 600
 export const MAX_AI_SUMMARY_DATA_SOURCES = 25
+// Per-record body cap for long-form sources (articles, message templates), so one long record
+// can't crowd out the rest of the context. Mirrors the 2000-char slice the emails formatter uses.
+export const MAX_AI_SUMMARY_RECORD_CHARS = 8_000
 
 export const DEFAULT_HISTORICAL_DATA_SOURCE_LIMIT = 100 // matches backend DEFAULT_LIMIT — non-breaking
 
@@ -1306,6 +1309,12 @@ export const EXAMPLE_AI_SUMMARY_PROMPT =
 `Summarize this patient's recent activity in 4-6 bullet points.
 Focus on changes since their last visit, current medications, recent symptoms or
 complaints, and any outstanding follow-ups. Keep clinical and concise.`
+
+export const EXAMPLE_AI_SUGGESTED_REPLY_PROMPT =
+`Draft a warm, concise reply to the patient's message. Answer their question
+directly using the reference content and templates provided. Keep it to a short
+paragraph, avoid clinical advice we haven't already approved in writing, and
+close by inviting them to reply if they need anything else.`
 
 export const T2_TEMPLATE_EDITOR_STATE = "TELLESCOPE_2_TEMPLATE_EDITOR";
 

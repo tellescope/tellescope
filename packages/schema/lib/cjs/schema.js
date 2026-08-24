@@ -38,6 +38,13 @@ var get_next_reminder_timestamp_for_ticket = function (_a) {
 };
 exports.get_next_reminder_timestamp_for_ticket = get_next_reminder_timestamp_for_ticket;
 exports.UNIQUE_LIST_FIELDS = ['assignedTo', 'tags', 'closeReasons'];
+// Organization fields that only a Tellescope super admin may change, enforced by the
+// 'Subscription date, period, and feature enablement cannot be updated' relationship constraint below.
+// These stay readable by any user session — the webapp gates features on them client-side.
+var SUPER_ADMIN_ONLY_ORGANIZATION_FIELDS = [
+    'bedrockAIAllowed', 'stediAllowed', 'subscriptionExpiresAt', 'subscriptionPeriod',
+    'allowCreateSuborganizations', 'customPortalURLs', 'subdomains', 'plan',
+];
 var sideEffects = {
     handleJourneyStateChange: {
         name: "handleJourneyStateChange",
@@ -1446,7 +1453,9 @@ exports.schema = (0, exports.build_schema)({
             }, readBy: { validator: validation_1.idStringToDateValidator }, hiddenBy: { validator: validation_1.idStringToDateValidator }, hiddenForAll: { validator: validation_1.booleanValidator }, templateId: { validator: validation_1.mongoIdStringRequired }, automationStepId: { validator: validation_1.mongoIdStringRequired }, linkOpenTrackingIds: {
                 validator: validation_1.listOfStringsValidatorEmptyOk,
                 initializer: function () { return []; },
-            }, journeyContext: { validator: validation_1.journeyContextValidator }, sendAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, pinnedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, isDraft: { validator: validation_1.booleanValidator }, cc: { validator: validation_1.listOfStringsValidatorEmptyOk }, fromEmailOverride: { validator: validation_1.stringValidator100 }, ticketIds: { validator: validation_1.listOfStringsValidatorEmptyOk }, alternateToAddress: { validator: validation_1.emailValidator }, suggestedReply: { validator: validation_1.stringValidator5000EmptyOkay }, tags: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, batchId: { validator: validation_1.stringValidator250 }, isMarketing: { validator: validation_1.booleanValidator }, assignedTo: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, canvasId: { validator: validation_1.stringValidator100 }, discussionRoomId: { validator: validation_1.mongoIdStringRequired }, journeyId: { validator: validation_1.mongoIdStringRequired }, calendarEventId: { validator: validation_1.mongoIdStringRequired }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, trashedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator } }),
+            }, journeyContext: { validator: validation_1.journeyContextValidator }, sendAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, pinnedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, isDraft: { validator: validation_1.booleanValidator }, cc: { validator: validation_1.listOfStringsValidatorEmptyOk }, fromEmailOverride: { validator: validation_1.stringValidator100 }, ticketIds: { validator: validation_1.listOfStringsValidatorEmptyOk }, alternateToAddress: { validator: validation_1.emailValidator }, 
+            // staff-facing draft (may be AI-generated and unreviewed) — never expose it to the patient
+            suggestedReply: { validator: validation_1.stringValidator5000EmptyOkay, redactions: ['enduser'], enduserUpdatesDisabled: true }, suggestedReplyIsAIGenerated: { validator: validation_1.booleanValidator, redactions: ['enduser'], enduserUpdatesDisabled: true }, tags: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, batchId: { validator: validation_1.stringValidator250 }, isMarketing: { validator: validation_1.booleanValidator }, assignedTo: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, canvasId: { validator: validation_1.stringValidator100 }, discussionRoomId: { validator: validation_1.mongoIdStringRequired }, journeyId: { validator: validation_1.mongoIdStringRequired }, calendarEventId: { validator: validation_1.mongoIdStringRequired }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, trashedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator } }),
         customActions: {
             sync_integrations: {
                 op: "custom", access: 'read', method: "post",
@@ -1692,7 +1701,9 @@ exports.schema = (0, exports.build_schema)({
             }, readBy: { validator: validation_1.idStringToDateValidator }, hiddenBy: { validator: validation_1.idStringToDateValidator }, hiddenForAll: { validator: validation_1.booleanValidator }, templateId: { validator: validation_1.mongoIdStringRequired }, automationStepId: { validator: validation_1.mongoIdStringRequired }, linkOpenTrackingIds: {
                 validator: validation_1.listOfStringsValidatorEmptyOk,
                 initializer: function () { return []; },
-            }, journeyContext: { validator: validation_1.journeyContextValidator }, sendAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, pinnedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, isDraft: { validator: validation_1.booleanValidator }, timestamp: { validator: validation_1.dateValidator }, ticketIds: { validator: validation_1.listOfStringsValidatorEmptyOk }, suggestedReply: { validator: validation_1.stringValidator5000EmptyOkay }, phoneNumber: { validator: validation_1.stringValidatorOptionalEmptyOkay }, enduserPhoneNumber: { validator: validation_1.phoneValidator }, tags: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, batchId: { validator: validation_1.stringValidator250 }, assignedTo: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, canvasId: { validator: validation_1.stringValidator100 }, discussionRoomId: { validator: validation_1.mongoIdStringRequired }, journeyId: { validator: validation_1.mongoIdStringRequired }, calendarEventId: { validator: validation_1.mongoIdStringRequired }, mediaURLs: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, trashedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator } }),
+            }, journeyContext: { validator: validation_1.journeyContextValidator }, sendAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, pinnedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, isDraft: { validator: validation_1.booleanValidator }, timestamp: { validator: validation_1.dateValidator }, ticketIds: { validator: validation_1.listOfStringsValidatorEmptyOk }, 
+            // staff-facing draft (may be AI-generated and unreviewed) — never expose it to the patient
+            suggestedReply: { validator: validation_1.stringValidator5000EmptyOkay, redactions: ['enduser'], enduserUpdatesDisabled: true }, suggestedReplyIsAIGenerated: { validator: validation_1.booleanValidator, redactions: ['enduser'], enduserUpdatesDisabled: true }, phoneNumber: { validator: validation_1.stringValidatorOptionalEmptyOkay }, enduserPhoneNumber: { validator: validation_1.phoneValidator }, tags: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, batchId: { validator: validation_1.stringValidator250 }, assignedTo: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, canvasId: { validator: validation_1.stringValidator100 }, discussionRoomId: { validator: validation_1.mongoIdStringRequired }, journeyId: { validator: validation_1.mongoIdStringRequired }, calendarEventId: { validator: validation_1.mongoIdStringRequired }, mediaURLs: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, trashedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator } }),
     },
     chat_rooms: {
         info: {},
@@ -1769,7 +1780,10 @@ exports.schema = (0, exports.build_schema)({
                         relationship: 'foreignKey',
                         onDependencyDelete: 'delete',
                     }]
-            }, pinnedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, fields: { validator: validation_1.fieldsValidator }, suggestedReply: { validator: validation_1.stringValidator5000EmptyOkay }, discussionRoomId: { validator: validation_1.mongoIdStringRequired }, identifier: { validator: validation_1.stringValidator100 }, externalId: { validator: validation_1.stringValidator100 }, emoji: { validator: validation_1.stringValidator100 }, source: { validator: validation_1.stringValidator100 }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, trashedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, groupMentions: { validator: validation_1.listOfUniqueStringsValidatorEmptyOk } }),
+            }, pinnedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, fields: { validator: validation_1.fieldsValidator }, 
+            // chat_rooms is enduser-readable (see enduserActions + the enduserIds access filter below), so
+            // this staff-facing draft must be redacted — a patient should never see an unsent reply.
+            suggestedReply: { validator: validation_1.stringValidator5000EmptyOkay, redactions: ['enduser'], enduserUpdatesDisabled: true }, suggestedReplyIsAIGenerated: { validator: validation_1.booleanValidator, redactions: ['enduser'], enduserUpdatesDisabled: true }, discussionRoomId: { validator: validation_1.mongoIdStringRequired }, identifier: { validator: validation_1.stringValidator100 }, externalId: { validator: validation_1.stringValidator100 }, emoji: { validator: validation_1.stringValidator100 }, source: { validator: validation_1.stringValidator100 }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, trashedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, groupMentions: { validator: validation_1.listOfUniqueStringsValidatorEmptyOk } }),
         defaultActions: constants_1.DEFAULT_OPERATIONS,
         enduserActions: { create: {}, read: {}, readMany: {}, display_info: {}, mark_read: {} },
         customActions: {
@@ -4981,12 +4995,15 @@ exports.schema = (0, exports.build_schema)({
                     }
                 },
                 {
-                    explanation: 'Subscription date, period, and AI enablement cannot be updated',
+                    explanation: 'Subscription date, period, and feature enablement cannot be updated',
                     evaluate: function (updated, lookup, session, type, options) {
-                        var _a, _b, _c, _d, _e, _f, _g;
                         if (type !== 'update')
                             return; // not updating
-                        if (!(((_a = options.updates) === null || _a === void 0 ? void 0 : _a.bedrockAIAllowed) || ((_b = options.updates) === null || _b === void 0 ? void 0 : _b.subscriptionExpiresAt) || ((_c = options.updates) === null || _c === void 0 ? void 0 : _c.subscriptionPeriod) || ((_d = options.updates) === null || _d === void 0 ? void 0 : _d.allowCreateSuborganizations) || ((_e = options.updates) === null || _e === void 0 ? void 0 : _e.customPortalURLs) || ((_f = options.updates) === null || _f === void 0 ? void 0 : _f.subdomains) || ((_g = options.updates) === null || _g === void 0 ? void 0 : _g.plan)))
+                        // Key presence, not truthiness: testing the value let an org admin CLEAR any of these
+                        // (bedrockAIAllowed: false, subscriptionPeriod: 0, subscriptionExpiresAt: '') because the
+                        // falsy value short-circuited this guard before the session.isa check ever ran. They could
+                        // never grant themselves a flag, but they could switch one off.
+                        if (!SUPER_ADMIN_ONLY_ORGANIZATION_FIELDS.some(function (f) { var _a; return f in ((_a = options.updates) !== null && _a !== void 0 ? _a : {}); }))
                             return; // not changing
                         if (session.type === 'enduser')
                             return "User only";
@@ -5177,7 +5194,7 @@ exports.schema = (0, exports.build_schema)({
                 }
             },
         },
-        fields: __assign(__assign({}, BuiltInFields), { inboxThreadsBuiltFrom: { validator: validation_1.dateOptionalOrEmptyStringValidator }, inboxThreadsBuiltTo: { validator: validation_1.dateOptionalOrEmptyStringValidator }, outOfOfficeHours: { validator: validation_1.outOfOfficeBlocksValidator }, bedrockAIAllowed: { validator: validation_1.booleanValidator }, plan: {
+        fields: __assign(__assign({}, BuiltInFields), { inboxThreadsBuiltFrom: { validator: validation_1.dateOptionalOrEmptyStringValidator }, inboxThreadsBuiltTo: { validator: validation_1.dateOptionalOrEmptyStringValidator }, outOfOfficeHours: { validator: validation_1.outOfOfficeBlocksValidator }, bedrockAIAllowed: { validator: validation_1.booleanValidator }, stediAllowed: { validator: validation_1.booleanValidator }, plan: {
                 validator: (0, validation_1.objectValidator)({
                     type: validation_1.stringValidatorOptional,
                 }),
@@ -6789,7 +6806,9 @@ exports.schema = (0, exports.build_schema)({
             },
         },
         enduserActions: {},
-        fields: __assign(__assign({}, BuiltInFields), { markedUnreadForAll: { validator: validation_1.booleanValidator }, inboxStatus: { validator: validation_1.stringValidator100 }, userIds: { validator: validation_1.listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[constants_1.PLACEHOLDER_ID]] }, enduserIds: { validator: validation_1.listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[constants_1.PLACEHOLDER_ID]] }, externalId: { validator: validation_1.stringValidator, readonly: true }, phoneNumber: { validator: validation_1.stringValidator, readonly: true }, destinations: { validator: validation_1.listOfStringsValidator, readonly: true }, title: { validator: validation_1.stringValidator, readonly: true }, messages: { validator: validation_1.mmsMessagesValidator, updatesDisabled: true, /* allows creating empty when testing while still broadly readonly */ }, userStates: { validator: validation_1.groupMMSUserStatesValidator }, tags: { validator: validation_1.listOfStringsValidatorEmptyOk }, suggestedReply: { validator: validation_1.stringValidator5000EmptyOkay }, hiddenBy: { validator: validation_1.idStringToDateValidator }, hiddenForAll: { validator: validation_1.booleanValidator }, assignedTo: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, pinnedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, trashedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator } }),
+        fields: __assign(__assign({}, BuiltInFields), { markedUnreadForAll: { validator: validation_1.booleanValidator }, inboxStatus: { validator: validation_1.stringValidator100 }, userIds: { validator: validation_1.listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[constants_1.PLACEHOLDER_ID]] }, enduserIds: { validator: validation_1.listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[constants_1.PLACEHOLDER_ID]] }, externalId: { validator: validation_1.stringValidator, readonly: true }, phoneNumber: { validator: validation_1.stringValidator, readonly: true }, destinations: { validator: validation_1.listOfStringsValidator, readonly: true }, title: { validator: validation_1.stringValidator, readonly: true }, messages: { validator: validation_1.mmsMessagesValidator, updatesDisabled: true, /* allows creating empty when testing while still broadly readonly */ }, userStates: { validator: validation_1.groupMMSUserStatesValidator }, tags: { validator: validation_1.listOfStringsValidatorEmptyOk }, 
+            // staff-facing draft — no enduser read action on this model today, so defense-in-depth
+            suggestedReply: { validator: validation_1.stringValidator5000EmptyOkay, redactions: ['enduser'], enduserUpdatesDisabled: true }, hiddenBy: { validator: validation_1.idStringToDateValidator }, hiddenForAll: { validator: validation_1.booleanValidator }, assignedTo: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, pinnedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, trashedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator } }),
     },
     enduser_encounters: {
         info: {

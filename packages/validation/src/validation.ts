@@ -352,6 +352,7 @@ import {
   MetriportPushFormResponseAutomationAction,
   AIDecisionAutomationAction,
   GenerateEnduserSummaryAutomationAction,
+  GenerateSuggestedReplyAutomationAction,
   CreateNoteAutomationAction,
   StartAIConversationAutomationAction,
   StartAIConversationActionInfo,
@@ -2745,6 +2746,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   metriportPushFormResponse: '',
   aiDecision: '',
   generateEnduserSummary: '',
+  generateSuggestedReply: '',
   createNote: '',
   startAIConversation: '',
   assignInboxItem: '',
@@ -3110,6 +3112,7 @@ export const AI_SUMMARY_DATA_SOURCES: AISummaryDataSource[] = [
   'enduser_observations','form_responses','chats','phone_calls',
   'calendar_events','tickets','sms_messages','emails',
   'enduser_orders','enduser_medications','purchases',
+  'managed_content_records','templates', // org-wide reference sources, selected by ids
 ]
 
 export const aiSummaryDataSourceTypeValidator = exactMatchValidator<AISummaryDataSource>(AI_SUMMARY_DATA_SOURCES)
@@ -3119,6 +3122,8 @@ export const aiSummaryDataSourceConfigValidator = objectValidator<AISummaryDataS
   limit: nonNegNumberValidatorOptional,
   lookbackMS: nonNegNumberValidatorOptional,
   filter: objectAnyFieldsAnyValuesValidator,
+  ids: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+  label: stringValidator100Optional,
 })
 
 export const selectableAIModelValidator = exactMatchValidatorOptional<SelectableAIModel>([...SELECTABLE_AI_MODELS])
@@ -3749,6 +3754,13 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       aiSummaryConfiguration: aiSummaryConfigurationValidator, // optional shared config
     }, { emptyOk: true }) // config is optional; an empty info is valid
   }),
+  generateSuggestedReply: objectValidator<GenerateSuggestedReplyAutomationAction>({
+    ...sharedAutomationActionValidators,
+    type: exactMatchValidator(['generateSuggestedReply']),
+    info: objectValidator<GenerateSuggestedReplyAutomationAction['info']>({
+      aiSummaryConfiguration: aiSummaryConfigurationValidator, // optional shared config
+    }, { emptyOk: true }) // config is optional; an empty info is valid
+  }),
   createNote: objectValidator<CreateNoteAutomationAction>({
     ...sharedAutomationActionValidators,
     type: exactMatchValidator(['createNote']),
@@ -4198,6 +4210,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
     showCondition: objectAnyFieldsAnyValuesValidator,
   })),
   stripeCouponCodes: listOfStringsValidatorOptionalOrEmptyOk,
+  useStripeEmbeddedCheckout: booleanValidatorOptional,
   dataSource: stringValidatorOptionalEmptyOkay,
   esignatureTermsCompanyName: stringValidatorOptionalEmptyOkay,
   observationCode: stringValidatorOptionalEmptyOkay,

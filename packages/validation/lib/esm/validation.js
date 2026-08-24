@@ -2180,6 +2180,7 @@ var _AUTOMATION_ACTIONS = {
     metriportPushFormResponse: '',
     aiDecision: '',
     generateEnduserSummary: '',
+    generateSuggestedReply: '',
     createNote: '',
     startAIConversation: '',
     assignInboxItem: '',
@@ -2485,6 +2486,7 @@ export var AI_SUMMARY_DATA_SOURCES = [
     'enduser_observations', 'form_responses', 'chats', 'phone_calls',
     'calendar_events', 'tickets', 'sms_messages', 'emails',
     'enduser_orders', 'enduser_medications', 'purchases',
+    'managed_content_records', 'templates', // org-wide reference sources, selected by ids
 ];
 export var aiSummaryDataSourceTypeValidator = exactMatchValidator(AI_SUMMARY_DATA_SOURCES);
 export var aiSummaryDataSourceConfigValidator = objectValidator({
@@ -2492,6 +2494,8 @@ export var aiSummaryDataSourceConfigValidator = objectValidator({
     limit: nonNegNumberValidatorOptional,
     lookbackMS: nonNegNumberValidatorOptional,
     filter: objectAnyFieldsAnyValuesValidator,
+    ids: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+    label: stringValidator100Optional,
 });
 export var selectableAIModelValidator = exactMatchValidatorOptional(__spreadArray([], SELECTABLE_AI_MODELS, true));
 export var aiSummaryConfigurationValidator = objectValidator({
@@ -2861,6 +2865,10 @@ export var automationActionValidator = orValidator({
         }, { emptyOk: false }) // at least outcomes is required
      })),
     generateEnduserSummary: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['generateEnduserSummary']), info: objectValidator({
+            aiSummaryConfiguration: aiSummaryConfigurationValidator, // optional shared config
+        }, { emptyOk: true }) // config is optional; an empty info is valid
+     })),
+    generateSuggestedReply: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['generateSuggestedReply']), info: objectValidator({
             aiSummaryConfiguration: aiSummaryConfigurationValidator, // optional shared config
         }, { emptyOk: true }) // config is optional; an empty info is valid
      })),
@@ -3257,6 +3265,7 @@ export var formFieldOptionsValidator = objectValidator({
         showCondition: objectAnyFieldsAnyValuesValidator,
     })),
     stripeCouponCodes: listOfStringsValidatorOptionalOrEmptyOk,
+    useStripeEmbeddedCheckout: booleanValidatorOptional,
     dataSource: stringValidatorOptionalEmptyOkay,
     esignatureTermsCompanyName: stringValidatorOptionalEmptyOkay,
     observationCode: stringValidatorOptionalEmptyOkay,
