@@ -56,6 +56,73 @@ export const fmtResponses = (responses: any) => {
     .filter(Boolean)
     .join(' | ')
 }
+
+/* --------- submitted-answer formatting (the answers are the *subject*, not context) --------- */
+
+const fmtAnswerScalar = (v: any) => (
+  typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean' ? String(v) : ''
+)
+
+// Shallow `key: value` rendering for object-valued answers (signatures, files, addresses,
+// insurance blocks). Deliberately one level deep — deeper nesting is metadata, not an answer.
+const fmtAnswerObject = (v: any): string => {
+  if (!v || typeof v !== 'object') return ''
+  return Object.entries(v)
+    .map(([k, val]) => {
+      const rendered = (
+        fmtAnswerScalar(val) || (
+          Array.isArray(val)
+            ? val.map((x: any) => fmtAnswerScalar(x?.label ?? x)).filter(Boolean).join(', ')
+            : ''
+        )
+      )
+      return rendered ? `${k}: ${rendered}` : ''
+    })
+    .filter(Boolean)
+    .join(', ')
+}
+
+const fmtAnswerValue = (v: any): string => {
+  if (v === undefined || v === null) return ''
+  const scalar = fmtAnswerScalar(v)
+  if (scalar) return scalar
+  if (Array.isArray(v)) {
+    return v
+      .map((x: any) => fmtAnswerScalar(x?.label ?? x) || fmtAnswerObject(x))
+      .filter(Boolean)
+      .join(', ')
+  }
+  if (typeof v === 'object') return fmtAnswerObject(v)
+  return ''
+}
+
+// Renders one form response's answers for a summary *of those answers*.
+//
+// fmtResponses (above) intentionally drops object-valued answers — signatures, files, addresses,
+// insurance blocks — because they add noise when a response is only background chart context.
+// That is not acceptable when the answers are the subject of the summary, so those are rendered
+// here as a shallow key/value list instead. One answer per line rather than ' | '-joined, since
+// this text is read closely rather than skimmed alongside other records.
+//
+// fmtResponses is left untouched so the form_responses data-source output stays byte-identical.
+export const formatFormResponseAnswersForSummary = (responses: any): string => {
+  if (!Array.isArray(responses)) return ''
+  return responses
+    .map((r: any) => {
+      const value = r?.answer?.value
+      if (value === undefined || value === null) return ''
+
+      const title = r?.fieldTitle || ''
+      // an empty answer on a question the patient was shown is itself informative
+      const rendered = value === '' ? '(no answer)' : fmtAnswerValue(value)
+      if (!rendered) return ''
+
+      return title ? `${title}: ${rendered}` : rendered
+    })
+    .filter(Boolean)
+    .join('\n')
+}
+
 export const fmtObservation = (o: any) => {
   const m = o.measurement
   // numeric value + unit when present; fall back to qualitative result ("positive", etc.)

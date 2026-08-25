@@ -1310,6 +1310,14 @@ export const EXAMPLE_AI_SUMMARY_PROMPT =
 Focus on changes since their last visit, current medications, recent symptoms or
 complaints, and any outstanding follow-ups. Keep clinical and concise.`
 
+// Shown in the Form Editor's response-summary block. The backend keeps its own fallback prompt
+// (DEFAULT_FORM_RESPONSE_SUMMARY_PROMPT) for configs saved without one.
+export const EXAMPLE_FORM_RESPONSE_SUMMARY_PROMPT =
+`Summarize what this patient reported on this form in 3-5 bullet points.
+Lead with anything clinically urgent, then symptoms and their severity, then
+medications and allergies mentioned. Note explicitly if a required answer was
+left blank. Keep it factual — do not infer beyond what was answered.`
+
 export const EXAMPLE_AI_SUGGESTED_REPLY_PROMPT =
 `Draft a warm, concise reply to the patient's message. Answer their question
 directly using the reference content and templates provided. Keep it to a short

@@ -62,7 +62,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.loadAISummaryContext = exports.assembleAISummaryContext = exports.buildAISummarySourceFilter = exports.sanitizeFilter = exports.aiSummaryError = exports.FORBIDDEN_FILTER_OPERATORS = exports.enduserProfileToText = exports.DATA_SOURCE_MAP = exports.DATA_SOURCE_LABELS = exports.fmtObservation = exports.fmtResponses = exports.fmtFromMS = exports.fmt = exports.stripHtml = void 0;
+exports.loadAISummaryContext = exports.assembleAISummaryContext = exports.buildAISummarySourceFilter = exports.sanitizeFilter = exports.aiSummaryError = exports.FORBIDDEN_FILTER_OPERATORS = exports.enduserProfileToText = exports.DATA_SOURCE_MAP = exports.DATA_SOURCE_LABELS = exports.fmtObservation = exports.formatFormResponseAnswersForSummary = exports.fmtResponses = exports.fmtFromMS = exports.fmt = exports.stripHtml = void 0;
 var constants_1 = require("@tellescope/constants");
 // Same-package import. utils.ts re-exports this module, so this is a cycle — it resolves because
 // both helpers are only ever called from inside formatter closures, long after module init.
@@ -118,6 +118,69 @@ var fmtResponses = function (responses) {
         .join(' | ');
 };
 exports.fmtResponses = fmtResponses;
+/* --------- submitted-answer formatting (the answers are the *subject*, not context) --------- */
+var fmtAnswerScalar = function (v) { return (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean' ? String(v) : ''); };
+// Shallow `key: value` rendering for object-valued answers (signatures, files, addresses,
+// insurance blocks). Deliberately one level deep — deeper nesting is metadata, not an answer.
+var fmtAnswerObject = function (v) {
+    if (!v || typeof v !== 'object')
+        return '';
+    return Object.entries(v)
+        .map(function (_a) {
+        var k = _a[0], val = _a[1];
+        var rendered = (fmtAnswerScalar(val) || (Array.isArray(val)
+            ? val.map(function (x) { var _a; return fmtAnswerScalar((_a = x === null || x === void 0 ? void 0 : x.label) !== null && _a !== void 0 ? _a : x); }).filter(Boolean).join(', ')
+            : ''));
+        return rendered ? "".concat(k, ": ").concat(rendered) : '';
+    })
+        .filter(Boolean)
+        .join(', ');
+};
+var fmtAnswerValue = function (v) {
+    if (v === undefined || v === null)
+        return '';
+    var scalar = fmtAnswerScalar(v);
+    if (scalar)
+        return scalar;
+    if (Array.isArray(v)) {
+        return v
+            .map(function (x) { var _a; return fmtAnswerScalar((_a = x === null || x === void 0 ? void 0 : x.label) !== null && _a !== void 0 ? _a : x) || fmtAnswerObject(x); })
+            .filter(Boolean)
+            .join(', ');
+    }
+    if (typeof v === 'object')
+        return fmtAnswerObject(v);
+    return '';
+};
+// Renders one form response's answers for a summary *of those answers*.
+//
+// fmtResponses (above) intentionally drops object-valued answers — signatures, files, addresses,
+// insurance blocks — because they add noise when a response is only background chart context.
+// That is not acceptable when the answers are the subject of the summary, so those are rendered
+// here as a shallow key/value list instead. One answer per line rather than ' | '-joined, since
+// this text is read closely rather than skimmed alongside other records.
+//
+// fmtResponses is left untouched so the form_responses data-source output stays byte-identical.
+var formatFormResponseAnswersForSummary = function (responses) {
+    if (!Array.isArray(responses))
+        return '';
+    return responses
+        .map(function (r) {
+        var _a;
+        var value = (_a = r === null || r === void 0 ? void 0 : r.answer) === null || _a === void 0 ? void 0 : _a.value;
+        if (value === undefined || value === null)
+            return '';
+        var title = (r === null || r === void 0 ? void 0 : r.fieldTitle) || '';
+        // an empty answer on a question the patient was shown is itself informative
+        var rendered = value === '' ? '(no answer)' : fmtAnswerValue(value);
+        if (!rendered)
+            return '';
+        return title ? "".concat(title, ": ").concat(rendered) : rendered;
+    })
+        .filter(Boolean)
+        .join('\n');
+};
+exports.formatFormResponseAnswersForSummary = formatFormResponseAnswersForSummary;
 var fmtObservation = function (o) {
     var _a, _b, _c, _d;
     var m = o.measurement;

@@ -3,6 +3,7 @@ export declare const stripHtml: (s: string) => string;
 export declare const fmt: (d: any) => string;
 export declare const fmtFromMS: (ms: any) => string;
 export declare const fmtResponses: (responses: any) => string;
+export declare const formatFormResponseAnswersForSummary: (responses: any) => string;
 export declare const fmtObservation: (o: any) => string;
 export declare const DATA_SOURCE_LABELS: Record<AISummaryDataSource, string>;
 export type DataSourceMapEntry = {

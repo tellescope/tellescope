@@ -98,6 +98,7 @@ export declare const useFormDisplayLanguage: ({ form, initialLanguage, fetchTran
         }[] | undefined;
         autoMergeOnSubmission?: boolean | undefined;
         aiSummaryConfiguration?: import("@tellescope/types-models").AISummaryConfiguration | undefined;
+        responseAISummaryConfiguration?: import("@tellescope/types-models").AISummaryConfiguration | undefined;
         procedureCodes?: import("@tellescope/types-models").FormResponseProcedureCode[] | undefined;
         diagnosisCodes?: import("@tellescope/types-models").FormResponseDiagnosisCode[] | undefined;
         numFields: number;

@@ -3246,7 +3246,7 @@ export var schema = build_schema({
                     score: stringValidator100,
                     externalId: stringValidator100,
                 }))
-            }, hideAfterUnsubmittedInMS: { validator: numberValidator }, hideFromCompose: { validator: booleanValidator }, hideFromBulkSubmission: { validator: booleanValidator }, enduserFieldsToAppendForSync: { validator: listOfUniqueStringsValidatorEmptyOk }, allowPortalSubmission: { validator: booleanValidator }, allowPortalSubmissionEnduserCondition: { validator: optionalAnyObjectValidator }, canvasNoteCoding: { validator: canvasCodingValidatorOptional }, syncToCanvasAsDataImport: { validator: booleanValidator }, matchCareTeamTagsForCanvasPractitionerResolution: { validator: listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay }, ipAddressCustomField: { validator: stringValidatorOptionalEmptyOkay }, version: { validator: exactMatchValidatorOptional(['v1', 'v2']) }, aiSummaryConfiguration: { validator: aiSummaryConfigurationValidator } })
+            }, hideAfterUnsubmittedInMS: { validator: numberValidator }, hideFromCompose: { validator: booleanValidator }, hideFromBulkSubmission: { validator: booleanValidator }, enduserFieldsToAppendForSync: { validator: listOfUniqueStringsValidatorEmptyOk }, allowPortalSubmission: { validator: booleanValidator }, allowPortalSubmissionEnduserCondition: { validator: optionalAnyObjectValidator }, canvasNoteCoding: { validator: canvasCodingValidatorOptional }, syncToCanvasAsDataImport: { validator: booleanValidator }, matchCareTeamTagsForCanvasPractitionerResolution: { validator: listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay }, ipAddressCustomField: { validator: stringValidatorOptionalEmptyOkay }, version: { validator: exactMatchValidatorOptional(['v1', 'v2']) }, aiSummaryConfiguration: { validator: aiSummaryConfigurationValidator }, responseAISummaryConfiguration: { validator: aiSummaryConfigurationValidator } })
     },
     form_fields: {
         info: {
@@ -3386,7 +3386,7 @@ export var schema = build_schema({
                     fieldTitle: stringValidator250,
                     timestamp: dateValidator,
                 }))
-            }, startedViaPinnedForm: { validator: booleanValidator }, enduserAISummary: { validator: stringValidator25000, redactions: ['enduser'], enduserUpdatesDisabled: true }, procedureCodes: { validator: procedureCodesValidator, enduserUpdatesDisabled: true }, diagnosisCodes: { validator: diagnosisCodesValidator, enduserUpdatesDisabled: true } }),
+            }, startedViaPinnedForm: { validator: booleanValidator }, enduserAISummary: { validator: stringValidator25000, redactions: ['enduser'], enduserUpdatesDisabled: true }, responsesAISummary: { validator: stringValidator25000, redactions: ['enduser'], enduserUpdatesDisabled: true }, responsesAISummaryGeneratedAt: { validator: dateValidator, redactions: ['enduser'], enduserUpdatesDisabled: true }, procedureCodes: { validator: procedureCodesValidator, enduserUpdatesDisabled: true }, diagnosisCodes: { validator: diagnosisCodesValidator, enduserUpdatesDisabled: true } }),
         defaultActions: DEFAULT_OPERATIONS,
         enduserActions: {
             prepare_form_response: {}, info_for_access_code: {}, submit_form_response: {}, stripe_details: {}, chargebee_details: {},

@@ -408,6 +408,7 @@ export interface Organization_readonly extends ClientRecord {
     customPortalScriptTags?: string[];
     verifiedEmailDomains?: VerifiedEmailDomain[];
     verifiedEmailDomainSettings?: VerifiedEmailDomainSettings;
+    cachedAnalytics?: CachedAnalyticsResult[];
 }
 export interface Organization_required {
     name: string;
@@ -418,6 +419,22 @@ export interface Organization_updatesDisabled {
 export interface OrganizationPlan {
     type?: string;
 }
+/**
+ * The result of an expensive analytics calculation, recorded when it finishes.
+ *
+ * The active patient count can take longer to compute than the client-facing request timeout, in
+ * which case the caller never sees the number even though the backend produced it. Recording it
+ * here lets a super admin read the value afterward instead of re-running the calculation.
+ */
+export type CachedAnalyticsResult = {
+    key: string;
+    metric: string;
+    from?: Date;
+    to?: Date;
+    value: number;
+    computedAt: Date;
+    durationMS?: number;
+};
 export interface Organization extends Organization_readonly, Organization_required, Organization_updatesDisabled {
     inboxThreadsBuiltFrom?: Date | '';
     inboxThreadsBuiltTo?: Date | '';
@@ -2223,6 +2240,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
     }[];
     autoMergeOnSubmission?: boolean;
     aiSummaryConfiguration?: AISummaryConfiguration;
+    responseAISummaryConfiguration?: AISummaryConfiguration;
     procedureCodes?: FormResponseProcedureCode[];
     diagnosisCodes?: FormResponseDiagnosisCode[];
 }
@@ -2680,6 +2698,8 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
     }[];
     startedViaPinnedForm?: boolean;
     enduserAISummary?: string;
+    responsesAISummary?: string;
+    responsesAISummaryGeneratedAt?: Date;
     procedureCodes?: FormResponseProcedureCode[];
     diagnosisCodes?: FormResponseDiagnosisCode[];
     viewedInLanguage?: string;

@@ -5095,6 +5095,7 @@ export const schema: SchemaV1 = build_schema({
       ipAddressCustomField: { validator: stringValidatorOptionalEmptyOkay },
       version: { validator: exactMatchValidatorOptional<'v1' | 'v2'>(['v1', 'v2']) },
       aiSummaryConfiguration: { validator: aiSummaryConfigurationValidator },
+      responseAISummaryConfiguration: { validator: aiSummaryConfigurationValidator },
     }
   },
   form_fields: {
@@ -5316,6 +5317,8 @@ export const schema: SchemaV1 = build_schema({
       },
       startedViaPinnedForm: { validator: booleanValidator },
       enduserAISummary: { validator: stringValidator25000, redactions: ['enduser'], enduserUpdatesDisabled: true },
+      responsesAISummary: { validator: stringValidator25000, redactions: ['enduser'], enduserUpdatesDisabled: true },
+      responsesAISummaryGeneratedAt: { validator: dateValidator, redactions: ['enduser'], enduserUpdatesDisabled: true },
       procedureCodes: { validator: procedureCodesValidator, enduserUpdatesDisabled: true },
       diagnosisCodes: { validator: diagnosisCodesValidator, enduserUpdatesDisabled: true },
     },

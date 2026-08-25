@@ -286,6 +286,7 @@ export declare const SELECTABLE_AI_MODELS: readonly ["Claude Sonnet 5", "Claude 
 export type SelectableAIModel = (typeof SELECTABLE_AI_MODELS)[number];
 export declare const DEFAULT_AI_MODEL: SelectableAIModel;
 export declare const EXAMPLE_AI_SUMMARY_PROMPT = "Summarize this patient's recent activity in 4-6 bullet points.\nFocus on changes since their last visit, current medications, recent symptoms or\ncomplaints, and any outstanding follow-ups. Keep clinical and concise.";
+export declare const EXAMPLE_FORM_RESPONSE_SUMMARY_PROMPT = "Summarize what this patient reported on this form in 3-5 bullet points.\nLead with anything clinically urgent, then symptoms and their severity, then\nmedications and allergies mentioned. Note explicitly if a required answer was\nleft blank. Keep it factual \u2014 do not infer beyond what was answered.";
 export declare const EXAMPLE_AI_SUGGESTED_REPLY_PROMPT = "Draft a warm, concise reply to the patient's message. Answer their question\ndirectly using the reference content and templates provided. Keep it to a short\nparagraph, avoid clinical advice we haven't already approved in writing, and\nclose by inviting them to reply if they need anything else.";
 export declare const T2_TEMPLATE_EDITOR_STATE = "TELLESCOPE_2_TEMPLATE_EDITOR";
 /******************************* Voice Agent (Phone Tree 'AI Agent' node) *******************************/

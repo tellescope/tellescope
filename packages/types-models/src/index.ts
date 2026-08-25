@@ -448,6 +448,9 @@ export interface Organization_readonly extends ClientRecord {
   customPortalScriptTags?: string[],
   verifiedEmailDomains?: VerifiedEmailDomain[],
   verifiedEmailDomainSettings?: VerifiedEmailDomainSettings,
+  // written server-side only, when an expensive analytics calculation completes. Deliberately has no
+  // entry in schema.organizations.fields, which is what keeps clients from writing it.
+  cachedAnalytics?: CachedAnalyticsResult[],
 }
 export interface Organization_required {
   name: string;
@@ -457,6 +460,22 @@ export interface Organization_updatesDisabled {
 }
 export interface OrganizationPlan {
   type?: string, // unique identifier of the account's plan; future: feature-flag siblings
+}
+/**
+ * The result of an expensive analytics calculation, recorded when it finishes.
+ *
+ * The active patient count can take longer to compute than the client-facing request timeout, in
+ * which case the caller never sees the number even though the backend produced it. Recording it
+ * here lets a super admin read the value afterward instead of re-running the calculation.
+ */
+export type CachedAnalyticsResult = {
+  key: string, // `${metric}:${fromISO}:${toISO}` — entries are upserted by this
+  metric: string, // e.g. 'activeEnduserCount'
+  from?: Date,
+  to?: Date,
+  value: number,
+  computedAt: Date,
+  durationMS?: number, // how long the calculation took, to gauge how close it is to timing out
 }
 export interface Organization extends Organization_readonly, Organization_required, Organization_updatesDisabled {
   inboxThreadsBuiltFrom?: Date | '',
@@ -2330,6 +2349,9 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
   mdiCaseOfferings?: { offering_id: string, conditions?: CompoundFilter<string> }[],
   autoMergeOnSubmission?: boolean,
   aiSummaryConfiguration?: AISummaryConfiguration,
+  // summarizes the submitted answers. The response's own answers are always the input;
+  // dataSources, if set, only supplement them with chart context.
+  responseAISummaryConfiguration?: AISummaryConfiguration,
   procedureCodes?: FormResponseProcedureCode[],
   diagnosisCodes?: FormResponseDiagnosisCode[],
 }
@@ -2840,6 +2862,9 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
   }[],
   startedViaPinnedForm?: boolean,
   enduserAISummary?: string,
+  // AI summary of the answers submitted on this response (opt-in via Form.responseAISummaryConfiguration)
+  responsesAISummary?: string,
+  responsesAISummaryGeneratedAt?: Date,
   procedureCodes?: FormResponseProcedureCode[],
   diagnosisCodes?: FormResponseDiagnosisCode[],
   viewedInLanguage?: string, // TranslationLanguageCode the form was displayed in at submission; stored answers remain English
