@@ -4032,6 +4032,7 @@ type Queries = {
         download_ics_file: (args: extractFields<CustomActions['calendar_events']['download_ics_file']['parameters']>) => (Promise<extractFields<CustomActions['calendar_events']['download_ics_file']['returns']>>);
         get_events_for_user: (args: extractFields<CustomActions['calendar_events']['get_events_for_user']['parameters']>) => (Promise<extractFields<CustomActions['calendar_events']['get_events_for_user']['returns']>>);
         load_events: (args: extractFields<CustomActions['calendar_events']['load_events']['parameters']>) => (Promise<extractFields<CustomActions['calendar_events']['load_events']['returns']>>);
+        out_of_office: (args?: extractFields<CustomActions['calendar_events']['out_of_office']['parameters']>) => (Promise<extractFields<CustomActions['calendar_events']['out_of_office']['returns']>>);
         generate_zoom_meeting: (args: extractFields<CustomActions['calendar_events']['generate_zoom_meeting']['parameters']>) => (Promise<extractFields<CustomActions['calendar_events']['generate_zoom_meeting']['returns']>>);
         change_zoom_host: (args: extractFields<CustomActions['calendar_events']['change_zoom_host']['parameters']>) => (Promise<extractFields<CustomActions['calendar_events']['change_zoom_host']['returns']>>);
         generate_meeting_link: (args: extractFields<CustomActions['calendar_events']['generate_meeting_link']['parameters']>) => (Promise<extractFields<CustomActions['calendar_events']['generate_meeting_link']['returns']>>);

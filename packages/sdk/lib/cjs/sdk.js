@@ -580,6 +580,7 @@ var Session = /** @class */ (function (_super) {
         queries.calendar_events.session_for_start_link = function (a) { return _this._GET("/v1".concat(schema_1.schema.calendar_events.publicActions.session_for_start_link.path), a); };
         queries.calendar_events.get_events_for_user = function (a) { return _this._GET("/v1/".concat(schema_1.schema.calendar_events.customActions.get_events_for_user.path), a); };
         queries.calendar_events.load_events = function (a) { return _this._GET("/v1/".concat(schema_1.schema.calendar_events.customActions.load_events.path), a); };
+        queries.calendar_events.out_of_office = function (a) { return _this._GET("/v1".concat(schema_1.schema.calendar_events.customActions.out_of_office.path), a); };
         queries.calendar_events.generate_meeting_link = function (a) { return _this._POST("/v1/".concat(schema_1.schema.calendar_events.customActions.generate_meeting_link.path), a); };
         queries.calendar_events.generate_zoom_meeting = function (a) { return _this._POST("/v1/".concat(schema_1.schema.calendar_events.customActions.generate_zoom_meeting.path), a); };
         queries.calendar_events.change_zoom_host = function (a) { return _this._POST("/v1/".concat(schema_1.schema.calendar_events.customActions.change_zoom_host.path), a); };

@@ -187,8 +187,14 @@ export type EnduserBuiltInField = {
   hidden?: boolean,
 }
 
-export type CustomDashboardViewBlockType = "Inbox" | "Tickets" | "Upcoming Events" | "Team Chats" | "To-Dos" | "Database"
-export type CustomDashboardViewBlock = { type: CustomDashboardViewBlockType, info?: { databaseId?: string } }
+export type KnownCustomDashboardViewBlockType = (
+  "Inbox" | "Tickets" | "Upcoming Events" | "Team Chats" | "To-Dos" | "Database"
+  | "Inbox (Optimized)" | "Tickets (Optimized)" | "Upcoming Events (Optimized)" | "Team Chats (Optimized)"
+)
+// (string & {}) accepts any string (unrecognized types render as empty blocks client-side)
+// while preserving IDE autocomplete for the known types above
+export type CustomDashboardViewBlockType = KnownCustomDashboardViewBlockType | (string & {})
+export type CustomDashboardViewBlock = { type: CustomDashboardViewBlockType, info?: { databaseId?: string, [key: string]: any } }
 export type CustomDashboardView = {
   blocks: CustomDashboardViewBlock[]
 }
@@ -408,6 +414,16 @@ export type OutOfOfficeBlock = {
   from: Date,
   to: Date,
   autoreplyText: string,
+}
+
+// A resolved out-of-office window for one staff user, derived from CalendarEvents with
+// outOfOffice: true. Distinct from OutOfOfficeBlock above, which is org-level holiday hours.
+// Deliberately minimal — a presence signal for staff coordination rather than event data, so it
+// can be read across an organization without exposing appointment detail.
+export type UserOutOfOffice = {
+  userId: string,
+  startTimeInMS: number,
+  endTimeInMS: number,
 }
 
 // for self-serve email domain verification via AWS SES
@@ -3049,6 +3065,10 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   displayTitle?: string,
   displayDescription?: string,
   dontBlockAvailability?: boolean,
+  // Declares the event's user attendees explicitly out of office for its window. Unlike the
+  // weeklyAvailabilities-derived notion of out-of-office, this works for users who never configure
+  // working hours at all. Blocks appointment availability like any other event.
+  outOfOffice?: boolean,
   previousStartTimes?: (number | string)[],
   requirePortalCancelReason?: boolean,
   startLinkToken?: string,
@@ -4396,6 +4416,9 @@ export interface PhoneCall extends PhoneCall_readonly, PhoneCall_required, Phone
   transcriptionId?: string,
   conferenceId?: string,
   externalConferenceId?: string,
+  // CallSid of the enduser's leg on an outbound conference. It's a REST participant with no <Dial>
+  // action to fall through to, so this is the only handle for canceling it if the user hangs up first
+  conferenceEnduserCallSid?: string,
   conferenceAttendees?: (string[]) | (string[][]), // old code caused multiple lists to be pushed by mistake
   unread?: boolean,
   transcription?: string, // Twilio voicemail transcription

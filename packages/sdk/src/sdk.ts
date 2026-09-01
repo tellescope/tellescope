@@ -810,6 +810,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     load_events: (args: extractFields<CustomActions['calendar_events']['load_events']['parameters']>) => (
       Promise<extractFields<CustomActions['calendar_events']['load_events']['returns']>>
     ),
+    out_of_office: (args?: extractFields<CustomActions['calendar_events']['out_of_office']['parameters']>) => (
+      Promise<extractFields<CustomActions['calendar_events']['out_of_office']['returns']>>
+    ),
     generate_zoom_meeting: (args: extractFields<CustomActions['calendar_events']['generate_zoom_meeting']['parameters']>) => (
       Promise<extractFields<CustomActions['calendar_events']['generate_zoom_meeting']['returns']>>
     ),
@@ -1146,6 +1149,7 @@ export class Session extends SessionManager {
     queries.calendar_events.session_for_start_link = a => this._GET(`/v1${schema.calendar_events.publicActions.session_for_start_link.path}`, a)
     queries.calendar_events.get_events_for_user = a => this._GET(`/v1/${schema.calendar_events.customActions.get_events_for_user.path}`, a)
     queries.calendar_events.load_events = a => this._GET(`/v1/${schema.calendar_events.customActions.load_events.path}`, a)
+    queries.calendar_events.out_of_office = a => this._GET(`/v1${schema.calendar_events.customActions.out_of_office.path}`, a)
     queries.calendar_events.generate_meeting_link = a => this._POST(`/v1/${schema.calendar_events.customActions.generate_meeting_link.path}`, a)
     queries.calendar_events.generate_zoom_meeting = a => this._POST(`/v1/${schema.calendar_events.customActions.generate_zoom_meeting.path}`, a)
     queries.calendar_events.change_zoom_host = a => this._POST(`/v1/${schema.calendar_events.customActions.change_zoom_host.path}`, a)

@@ -3940,10 +3940,10 @@ export var buildInFieldsValidator = listValidatorOptionalOrEmptyOk(objectValidat
 }));
 export var customDashboardViewValidator = (objectValidator({
     blocks: listValidatorOptionalOrEmptyOk(objectValidator({
-        type: exactMatchValidator(['Inbox', 'Tickets', 'Team Chats', 'Upcoming Events', "To-Dos", "Database"]),
-        info: objectValidator({
-            databaseId: mongoIdStringOptional,
-        }, { emptyOk: true, isOptional: true }),
+        // any bounded string, so new block types don't require backend changes
+        // (unrecognized types render as empty blocks client-side, same posture as customDashboardBlockValidator)
+        type: stringValidator100,
+        info: objectAnyFieldsAnyValuesValidator,
     }))
 }, { isOptional: true, emptyOk: true }));
 export var organizationSettingsValidator = objectValidator({
@@ -6171,6 +6171,12 @@ export var outOfOfficeBlockValidator = objectValidator({
     autoreplyText: stringValidator5000,
 });
 export var outOfOfficeBlocksValidator = listValidatorEmptyOk(outOfOfficeBlockValidator);
+export var userOutOfOfficeValidator = objectValidator({
+    userId: mongoIdStringRequired,
+    startTimeInMS: nonNegNumberValidator,
+    endTimeInMS: nonNegNumberValidator,
+});
+export var userOutOfOfficesValidator = listValidatorEmptyOk(userOutOfOfficeValidator);
 export var emailCCValidator = objectValidator({
     email: emailValidator,
     name: stringValidatorOptional,

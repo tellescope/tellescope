@@ -103,6 +103,7 @@ import {
   MFAMethod,
   APIKeyScope,
   API_KEY_SCOPES,
+  UserOutOfOffice,
 } from "@tellescope/types-models"
 
 import {
@@ -378,6 +379,7 @@ import {
   customPoliciesValidator,
   stringValidator100EscapeHTML,
   outOfOfficeBlocksValidator,
+  userOutOfOfficesValidator,
   AIDecisionSourceValidator,
   AIMessageInputValidator,
   listOfObjectAnyFieldsAnyValuesValidator,
@@ -1064,8 +1066,9 @@ export type CustomActions = {
   calendar_events: {
     push: CustomAction<{ calendarEventId: string, destinations?: string[] }, { event?: CalendarEvent }>,
     get_events_for_user: CustomAction<{ userId: string, from: Date, userIds?: string[], to?: Date, limit?: number }, { events: CalendarEvent[] }>, 
-    load_events: CustomAction<{ userIds: string[], from: Date, to: Date, limit?: number, external?: boolean }, { events: CalendarEvent[] }>, 
-    generate_meeting_link: CustomAction<{ eventId: string, enduserId: string }, { link: string }>, 
+    load_events: CustomAction<{ userIds: string[], from: Date, to: Date, limit?: number, external?: boolean }, { events: CalendarEvent[] }>,
+    out_of_office: CustomAction<{ userIds?: string[] }, { outOfOffice: UserOutOfOffice[] }>,
+    generate_meeting_link: CustomAction<{ eventId: string, enduserId: string }, { link: string }>,
     get_appointment_availability: CustomAction<{ 
       from: Date, calendarEventTemplateId: string, to?: Date, restrictedByState?: boolean, limit?: number, locationId?: string,
       businessId?: string, // for accessing while unauthenticated
@@ -5845,6 +5848,23 @@ export const schema: SchemaV1 = build_schema({
           events: { validator: 'calendar_events' as any, required: true }
         },
       },
+      out_of_office: {
+        op: "custom", access: 'read', method: "get",
+        name: 'Out of Office Status',
+        path: '/calendar-events/out-of-office',
+        description: "Which staff users are currently, or imminently, out of office. "
+          + "Returns only user ids and absolute time windows — never event titles or descriptions.",
+        warnings: [
+          "Scoped to the caller's business and sub-organizations, but NOT to the caller's own calendar events, so that a user can see when a peer is out of office.",
+          "userIds is optional. When omitted, all users in the organization are considered.",
+        ],
+        parameters: {
+          userIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
+        },
+        returns: {
+          outOfOffice: { validator: userOutOfOfficesValidator, required: true }
+        },
+      },
       generate_meeting_link: {
         op: "custom", access: 'read', method: "post",
         name: 'Generate Meeting Link',
@@ -6281,6 +6301,7 @@ export const schema: SchemaV1 = build_schema({
       dontAutoSyncPatientToHealthie: { validator: booleanValidator },
       healthieInsuranceBillingEnabled: { validator: booleanValidator },
       dontBlockAvailability: { validator: booleanValidator },
+      outOfOffice: { validator: booleanValidator },
       previousStartTimes: { validator: listOfNumbersValidatorUniqueOptionalOrEmptyOkay },
       requirePortalCancelReason: { validator: booleanValidator },
       startLinkToken: { validator: stringValidator250 },

@@ -3856,6 +3856,23 @@ exports.schema = (0, exports.build_schema)({
                     events: { validator: 'calendar_events', required: true }
                 },
             },
+            out_of_office: {
+                op: "custom", access: 'read', method: "get",
+                name: 'Out of Office Status',
+                path: '/calendar-events/out-of-office',
+                description: "Which staff users are currently, or imminently, out of office. "
+                    + "Returns only user ids and absolute time windows — never event titles or descriptions.",
+                warnings: [
+                    "Scoped to the caller's business and sub-organizations, but NOT to the caller's own calendar events, so that a user can see when a peer is out of office.",
+                    "userIds is optional. When omitted, all users in the organization are considered.",
+                ],
+                parameters: {
+                    userIds: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk },
+                },
+                returns: {
+                    outOfOffice: { validator: validation_1.userOutOfOfficesValidator, required: true }
+                },
+            },
             generate_meeting_link: {
                 op: "custom", access: 'read', method: "post",
                 name: 'Generate Meeting Link',
@@ -4207,7 +4224,7 @@ exports.schema = (0, exports.build_schema)({
                     identifier: validation_1.stringValidator100,
                     byEnduserExternal: validation_1.booleanValidatorOptional,
                 }),
-            }, cancelReason: { validator: validation_1.stringValidator5000 }, dontAutoSyncPatientToHealthie: { validator: validation_1.booleanValidator }, healthieInsuranceBillingEnabled: { validator: validation_1.booleanValidator }, dontBlockAvailability: { validator: validation_1.booleanValidator }, previousStartTimes: { validator: validation_1.listOfNumbersValidatorUniqueOptionalOrEmptyOkay }, requirePortalCancelReason: { validator: validation_1.booleanValidator }, startLinkToken: { validator: validation_1.stringValidator250 }, canvasEncounterId: { validator: validation_1.stringValidator100 }, allowGroupReschedule: { validator: validation_1.booleanValidator }, joinedVideoCall: {
+            }, cancelReason: { validator: validation_1.stringValidator5000 }, dontAutoSyncPatientToHealthie: { validator: validation_1.booleanValidator }, healthieInsuranceBillingEnabled: { validator: validation_1.booleanValidator }, dontBlockAvailability: { validator: validation_1.booleanValidator }, outOfOffice: { validator: validation_1.booleanValidator }, previousStartTimes: { validator: validation_1.listOfNumbersValidatorUniqueOptionalOrEmptyOkay }, requirePortalCancelReason: { validator: validation_1.booleanValidator }, startLinkToken: { validator: validation_1.stringValidator250 }, canvasEncounterId: { validator: validation_1.stringValidator100 }, allowGroupReschedule: { validator: validation_1.booleanValidator }, joinedVideoCall: {
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     id: validation_1.mongoIdStringRequired,
                     at: validation_1.dateValidator,

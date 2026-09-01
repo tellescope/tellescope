@@ -161,11 +161,13 @@ export type EnduserBuiltInField = {
     requireConfirmation?: boolean;
     hidden?: boolean;
 };
-export type CustomDashboardViewBlockType = "Inbox" | "Tickets" | "Upcoming Events" | "Team Chats" | "To-Dos" | "Database";
+export type KnownCustomDashboardViewBlockType = ("Inbox" | "Tickets" | "Upcoming Events" | "Team Chats" | "To-Dos" | "Database" | "Inbox (Optimized)" | "Tickets (Optimized)" | "Upcoming Events (Optimized)" | "Team Chats (Optimized)");
+export type CustomDashboardViewBlockType = KnownCustomDashboardViewBlockType | (string & {});
 export type CustomDashboardViewBlock = {
     type: CustomDashboardViewBlockType;
     info?: {
         databaseId?: string;
+        [key: string]: any;
     };
 };
 export type CustomDashboardView = {
@@ -372,6 +374,11 @@ export type OutOfOfficeBlock = {
     from: Date;
     to: Date;
     autoreplyText: string;
+};
+export type UserOutOfOffice = {
+    userId: string;
+    startTimeInMS: number;
+    endTimeInMS: number;
 };
 export type VerifiedEmailDomain = {
     domain: string;
@@ -2898,6 +2905,7 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
     displayTitle?: string;
     displayDescription?: string;
     dontBlockAvailability?: boolean;
+    outOfOffice?: boolean;
     previousStartTimes?: (number | string)[];
     requirePortalCancelReason?: boolean;
     startLinkToken?: string;
@@ -4300,6 +4308,7 @@ export interface PhoneCall extends PhoneCall_readonly, PhoneCall_required, Phone
     transcriptionId?: string;
     conferenceId?: string;
     externalConferenceId?: string;
+    conferenceEnduserCallSid?: string;
     conferenceAttendees?: (string[]) | (string[][]);
     unread?: boolean;
     transcription?: string;

@@ -295,7 +295,6 @@ import {
   ChangeContactTypeAutomationAction,
   FormResponseAnswerHeight,
   FormResponseAnswerRedirect,
-  CustomDashboardViewBlockType,
   BlockContentLink,
   FormResponseAnswerHiddenValue,
   HealthieAddToCourseAutomationAction,
@@ -348,6 +347,7 @@ import {
   FormResponseAnswerTimezone,
   BrandedWebhookActions,
   OutOfOfficeBlock,
+  UserOutOfOffice,
   MetriportSyncAutomationAction,
   MetriportPushFormResponseAutomationAction,
   AIDecisionAutomationAction,
@@ -4920,10 +4920,10 @@ export const buildInFieldsValidator = listValidatorOptionalOrEmptyOk(objectValid
 export const customDashboardViewValidator = (
   objectValidator<Required<OrganizationSettings>['dashboard']['view']>({
     blocks: listValidatorOptionalOrEmptyOk(objectValidator<CustomDashboardViewBlock>({
-      type: exactMatchValidator<CustomDashboardViewBlockType>(['Inbox', 'Tickets', 'Team Chats', 'Upcoming Events', "To-Dos", "Database"]),
-      info: objectValidator<CustomDashboardViewBlock['info']>({
-        databaseId: mongoIdStringOptional,
-      }, { emptyOk: true, isOptional: true }),
+      // any bounded string, so new block types don't require backend changes
+      // (unrecognized types render as empty blocks client-side, same posture as customDashboardBlockValidator)
+      type: stringValidator100,
+      info: objectAnyFieldsAnyValuesValidator,
     }))
   }, { isOptional: true, emptyOk: true })
 )
@@ -7310,6 +7310,13 @@ export const outOfOfficeBlockValidator = objectValidator<OutOfOfficeBlock>({
   autoreplyText: stringValidator5000,
 })
 export const outOfOfficeBlocksValidator = listValidatorEmptyOk(outOfOfficeBlockValidator)
+
+export const userOutOfOfficeValidator = objectValidator<UserOutOfOffice>({
+  userId: mongoIdStringRequired,
+  startTimeInMS: nonNegNumberValidator,
+  endTimeInMS: nonNegNumberValidator,
+})
+export const userOutOfOfficesValidator = listValidatorEmptyOk(userOutOfOfficeValidator)
 
 export const emailCCValidator = objectValidator<{ email: string, name?: string }>({
   email: emailValidator,
