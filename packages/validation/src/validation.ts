@@ -1359,6 +1359,11 @@ export const numberOrStringValidatorOptional = orValidator({
   string: stringValidatorOptional
 })
 
+// Fixed rather than `new Date()`: getExample is evaluated once per date field when the OpenAPI
+// spec is generated, producing ~512 timestamps. A live clock made every regeneration of
+// packages/public/schema/openapi.json emit a ~1900-line diff of nothing but changed examples.
+const EXAMPLE_DATE_ISO = new Date('2024-01-01T00:00:00.000Z').toISOString()
+
 export const dateValidator: ValidatorDefinition<Date> = {
   validate: (options={}) => build_validator(
     (date: any) => {
@@ -1368,7 +1373,7 @@ export const dateValidator: ValidatorDefinition<Date> = {
     }, 
     { ...options, maxLength: 250, listOf: false }
   ),
-  getExample: () => new Date().toISOString(),
+  getExample: () => EXAMPLE_DATE_ISO,
   getType: () => "Date",
 }
 export const dateOptionalOrEmptyStringValidator: ValidatorDefinition<Date> = {
@@ -1382,7 +1387,7 @@ export const dateOptionalOrEmptyStringValidator: ValidatorDefinition<Date> = {
     }, 
     { ...options, maxLength: 250, emptyStringOk: true, isOptional: true, listOf: false }
   ),
-  getExample: () => new Date().toISOString(),
+  getExample: () => EXAMPLE_DATE_ISO,
   getType: () => "Date",
 }
 export const dateValidatorOptional: ValidatorDefinition<Date> = {
@@ -1394,7 +1399,7 @@ export const dateValidatorOptional: ValidatorDefinition<Date> = {
     }, 
     { ...options, maxLength: 250, listOf: false, isOptional: true, emptyStringOk: true }
   ),
-  getExample: () => new Date().toISOString(),
+  getExample: () => EXAMPLE_DATE_ISO,
   getType: () => "Date",
 }
 export const dateRangeValidator = objectValidator<DateRange>({

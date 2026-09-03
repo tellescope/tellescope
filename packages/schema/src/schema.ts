@@ -1183,7 +1183,7 @@ export type CustomActions = {
     get_distribution_report: CustomAction<{  range?: DateRange }, { report: Report[keyof Report] }>,
     assign_from_queue: CustomAction<{ userId?: string, ticketId?: string, queueId?: string, overrideRestrictions?: boolean, }, { ticket: Ticket, queue: TicketQueue, enduser: Enduser }>,
     bulk_delete: CustomAction<{ ids: string[] }, {  }>,
-    bulk_assign: CustomAction<{ ids: string[], userId: string, addToCareTeam?: boolean, }, {  }>,
+    bulk_assign: CustomAction<{ ids: string[], userId: string, addToCareTeam?: boolean, queueId?: string, }, { assigned: number, skipped: number }>,
   },
   ticket_threads: {
     send_message: CustomAction<{
@@ -2537,6 +2537,7 @@ export const schema: SchemaV1 = build_schema({
       },
       connect_stripe: {
         op: 'custom', access: 'create', method: 'post',
+        adminOnly: true,
         path: '/connect-stripe',
         name: 'Begin Stripe integration via Connect',
         description: "", 
@@ -2574,6 +2575,7 @@ export const schema: SchemaV1 = build_schema({
       },
       connect_elation: {
         op: 'custom', access: 'create', method: 'post',
+        adminOnly: true,
         path: '/integrations/connect-elation',
         name: 'Connect Elation',
         description: "", 
@@ -3802,7 +3804,6 @@ export const schema: SchemaV1 = build_schema({
     customActions: {
       invite_user: { // must stay in users now, not organizations, so that create access permission is enforced
         op: "custom", access: 'create', method: "post", 
-        adminOnly: true,
         name: 'Invite User',
         path: '/invite-user-to-organization',
         description: "Invites a user to register for the given (sub)-organization",
@@ -3823,13 +3824,13 @@ export const schema: SchemaV1 = build_schema({
         op: "custom", access: 'create', method: "post",
         name: 'Invite user to join organization',
         path: '/invite-existing-user-to-organization',
-        adminOnly: true,
         description: "Invites a user to join the current (sub)organization",
         parameters: { userId: { validator: mongoIdStringValidator, required: true } },
         returns: { },
       },
       generate_auth_token: {
         op: "custom", access: 'create', method: "get",
+        adminOnly: true,
         name: 'Generate authToken (Admin Only)',
         path: '/generate-auth-token',
         description: "Generates an authToken for a user or enduser. Useful for integrating a 3rd-party authentication process.",
@@ -4575,13 +4576,17 @@ export const schema: SchemaV1 = build_schema({
         op: "custom", access: 'update', method: "patch",
         name: 'Bulk Assign Tickets',
         path: '/tickets/bulk-assign',
-        description: "Assigns a list of tickets by id (does not send webhooks). When addToCareTeam is true, the new owner is also added to the care team of each ticket's enduser.",
+        description: "Assigns a list of tickets by id (does not send webhooks). When addToCareTeam is true, the new owner is also added to the care team of each ticket's enduser. When queueId is provided, only tickets still in that queue are assigned, and they are removed from the queue (as with assign-from-queue) rather than left in it.",
         parameters: {
           ids: { validator: listOfMongoIdStringValidator, required: true },
           userId: { validator: mongoIdStringValidator, required: true },
           addToCareTeam: { validator: booleanValidatorOptional },
+          queueId: { validator: mongoIdStringValidator },
         },
-        returns: {},
+        returns: {
+          assigned: { validator: nonNegNumberValidator },
+          skipped: { validator: nonNegNumberValidator },
+        },
       },
       bulk_delete: {
         op: "custom", access: 'delete', method: "delete",
@@ -5692,6 +5697,7 @@ export const schema: SchemaV1 = build_schema({
     customActions: {
       configure: {
         op: "custom", access: 'create', method: "post",
+        adminOnly: true,
         name: 'Configure Webhooks (Admin Only)',
         path: '/configure-webhooks',
         description: "Sets the URL, secret, and initial subscriptions for your organization. Your secret must exceed 15 characters and should be generated randomly. This endpoint ensures duplicate webhook records aren't created.",
@@ -5704,6 +5710,7 @@ export const schema: SchemaV1 = build_schema({
       },
       get_configuration: {
         op: "custom", access: 'read', method: "get",
+        adminOnly: true,
         name: 'Get current configuration info',
         path: '/webhook-configuration',
         description: "DEPRECATED: Returns current webhook configuration",
@@ -5715,6 +5722,7 @@ export const schema: SchemaV1 = build_schema({
       },
       update: {
         op: "custom", access: 'update', method: "patch",
+        adminOnly: true,
         name: 'Update Webhooks (Admin Only)',
         path: '/update-webhooks',
         description: "DEPRECATED: Modifies only subscriptions to models included in subscriptionUpdates. To remove subscriptions for a given model, set all values to false.",
@@ -6304,7 +6312,7 @@ export const schema: SchemaV1 = build_schema({
       outOfOffice: { validator: booleanValidator },
       previousStartTimes: { validator: listOfNumbersValidatorUniqueOptionalOrEmptyOkay },
       requirePortalCancelReason: { validator: booleanValidator },
-      startLinkToken: { validator: stringValidator250 },
+      startLinkToken: { validator: stringValidator250, enduserUpdatesDisabled: true, redactions: ['all'] }, // F-0185: write-only-by-design (staff/API-key set it via PATCH, nothing reads it back). enduserUpdatesDisabled blocks the patient WRITE; redactions:['all'] blocks the READ for endusers + non-admin users (both could otherwise redeem a staff-set token for the host's session). NOT readonly (would break the legit staff write).
       canvasEncounterId: { validator: stringValidator100 },
       allowGroupReschedule: { validator: booleanValidator },
       joinedVideoCall: { 
@@ -6512,7 +6520,7 @@ export const schema: SchemaV1 = build_schema({
     defaultActions: DEFAULT_OPERATIONS,
     customActions: {
       process: {
-        op: 'custom', access: 'update', method: 'post',
+        op: 'custom', access: 'update', method: 'post', adminOnly: true,
         path: '/automated-actions/process',
         name: 'Process Automation Action',
         description: "Generic endpoint for processing automation actions by type. Used by worker for new action types.",
@@ -7383,7 +7391,6 @@ export const schema: SchemaV1 = build_schema({
       },
       create_and_join: {
         op: "custom", access: 'create', method: "post", 
-        adminOnly: true,
         name: 'Create and Join Organization',
         path: '/organizations/create-and-join', 
         description: "Creates and joins a new organization",
@@ -7427,7 +7434,6 @@ export const schema: SchemaV1 = build_schema({
       },
       sync_note_to_canvas: { // dictate by organization read, since notes can come from any model (e.g. sms, email, chat, etc.)
         op: "custom", access: 'read', method: "post", 
-        adminOnly: true,
         name: 'Push Canvas Note',
         path: '/organizations/sync-note-to-canvas', 
         description: "Syncs a text note to canvas using questionnaire details in canvasMessageSync",
@@ -8531,6 +8537,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       },
       get_custom_report: {
         op: "custom", access: 'read', method: "get", 
+        adminOnly: true,
         name: 'Get custom report',
         path: '/analytics/custom-report',
         description: "For customized analytics reporting, pre-configured by the Tellescope team for a given organization",
@@ -8776,7 +8783,6 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
         name: 'Mark Read',
         description: "Marks all background errors as read",
         path: '/background-errors/mark-read',
-        adminOnly: true,
         parameters: {},
         returns: {},
       }
@@ -10449,6 +10455,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       },
       reset_threads: {
         op: "custom", access: 'delete', method: "post",
+        adminOnly: true,
         name: 'Reset Threads',
         path: '/inbox-threads/reset',
         description: "Deletes all built inbox threads and resets organization thread building dates",

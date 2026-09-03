@@ -782,6 +782,32 @@ function generateDefaultOperationPaths(
     }
   }
 
+  // Surface admin gating on default CRUD the same way generateCustomActionPaths does for custom
+  // actions. These flags ARE enforced at runtime (routing.ts reads model.defaultActions.<op>
+  // .adminOnly directly), so leaving them out of the spec understated the real requirements —
+  // e.g. users create/createMany/delete have always been admin-only.
+  const defaultOperationLocations: [keyof typeof defaultActions, string, 'get' | 'post' | 'patch' | 'delete'][] = [
+    ['create',     `/v1/${singular}`,      'post'],
+    ['createMany', `/v1/${plural}`,        'post'],
+    ['read',       `/v1/${singular}/{id}`, 'get'],
+    ['readMany',   `/v1/${plural}`,        'get'],
+    ['update',     `/v1/${singular}/{id}`, 'patch'],
+    ['delete',     `/v1/${singular}/{id}`, 'delete'],
+  ]
+  for (const [op, pathKey, method] of defaultOperationLocations) {
+    const declaration = defaultActions[op] as { adminOnly?: boolean, rootAdminOnly?: boolean } | undefined
+    if (!declaration) continue
+
+    const operation = paths[pathKey]?.[method] as { description?: string } | undefined
+    if (!operation) continue
+
+    if (declaration.rootAdminOnly) {
+      operation.description = `**Root admin only.** ${operation.description || ''}`
+    } else if (declaration.adminOnly) {
+      operation.description = `**Admin only.** ${operation.description || ''}`
+    }
+  }
+
   return paths
 }
 

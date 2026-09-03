@@ -466,7 +466,7 @@ function getReadManyParameters() {
  * Generate default CRUD operation paths for a model
  */
 function generateDefaultOperationPaths(modelName, model) {
-    var _a;
+    var _a, _b;
     var paths = {};
     var singular = getSingularName(modelName);
     var plural = getPluralName(modelName);
@@ -717,6 +717,33 @@ function generateDefaultOperationPaths(modelName, model) {
                 '404': { $ref: '#/components/responses/NotFound' }
             }
         };
+    }
+    // Surface admin gating on default CRUD the same way generateCustomActionPaths does for custom
+    // actions. These flags ARE enforced at runtime (routing.ts reads model.defaultActions.<op>
+    // .adminOnly directly), so leaving them out of the spec understated the real requirements —
+    // e.g. users create/createMany/delete have always been admin-only.
+    var defaultOperationLocations = [
+        ['create', "/v1/".concat(singular), 'post'],
+        ['createMany', "/v1/".concat(plural), 'post'],
+        ['read', "/v1/".concat(singular, "/{id}"), 'get'],
+        ['readMany', "/v1/".concat(plural), 'get'],
+        ['update', "/v1/".concat(singular, "/{id}"), 'patch'],
+        ['delete', "/v1/".concat(singular, "/{id}"), 'delete'],
+    ];
+    for (var _i = 0, defaultOperationLocations_1 = defaultOperationLocations; _i < defaultOperationLocations_1.length; _i++) {
+        var _c = defaultOperationLocations_1[_i], op = _c[0], pathKey = _c[1], method = _c[2];
+        var declaration = defaultActions[op];
+        if (!declaration)
+            continue;
+        var operation = (_b = paths[pathKey]) === null || _b === void 0 ? void 0 : _b[method];
+        if (!operation)
+            continue;
+        if (declaration.rootAdminOnly) {
+            operation.description = "**Root admin only.** ".concat(operation.description || '');
+        }
+        else if (declaration.adminOnly) {
+            operation.description = "**Admin only.** ".concat(operation.description || '');
+        }
     }
     return paths;
 }

@@ -1055,6 +1055,7 @@ exports.schema = (0, exports.build_schema)({
             },
             connect_stripe: {
                 op: 'custom', access: 'create', method: 'post',
+                adminOnly: true,
                 path: '/connect-stripe',
                 name: 'Begin Stripe integration via Connect',
                 description: "",
@@ -1092,6 +1093,7 @@ exports.schema = (0, exports.build_schema)({
             },
             connect_elation: {
                 op: 'custom', access: 'create', method: 'post',
+                adminOnly: true,
                 path: '/integrations/connect-elation',
                 name: 'Connect Elation',
                 description: "",
@@ -2220,7 +2222,6 @@ exports.schema = (0, exports.build_schema)({
         customActions: {
             invite_user: {
                 op: "custom", access: 'create', method: "post",
-                adminOnly: true,
                 name: 'Invite User',
                 path: '/invite-user-to-organization',
                 description: "Invites a user to register for the given (sub)-organization",
@@ -2241,13 +2242,13 @@ exports.schema = (0, exports.build_schema)({
                 op: "custom", access: 'create', method: "post",
                 name: 'Invite user to join organization',
                 path: '/invite-existing-user-to-organization',
-                adminOnly: true,
                 description: "Invites a user to join the current (sub)organization",
                 parameters: { userId: { validator: validation_1.mongoIdStringRequired, required: true } },
                 returns: {},
             },
             generate_auth_token: {
                 op: "custom", access: 'create', method: "get",
+                adminOnly: true,
                 name: 'Generate authToken (Admin Only)',
                 path: '/generate-auth-token',
                 description: "Generates an authToken for a user or enduser. Useful for integrating a 3rd-party authentication process.",
@@ -2890,13 +2891,17 @@ exports.schema = (0, exports.build_schema)({
                 op: "custom", access: 'update', method: "patch",
                 name: 'Bulk Assign Tickets',
                 path: '/tickets/bulk-assign',
-                description: "Assigns a list of tickets by id (does not send webhooks). When addToCareTeam is true, the new owner is also added to the care team of each ticket's enduser.",
+                description: "Assigns a list of tickets by id (does not send webhooks). When addToCareTeam is true, the new owner is also added to the care team of each ticket's enduser. When queueId is provided, only tickets still in that queue are assigned, and they are removed from the queue (as with assign-from-queue) rather than left in it.",
                 parameters: {
                     ids: { validator: validation_1.listOfMongoIdStringValidator, required: true },
                     userId: { validator: validation_1.mongoIdStringRequired, required: true },
                     addToCareTeam: { validator: validation_1.booleanValidatorOptional },
+                    queueId: { validator: validation_1.mongoIdStringRequired },
                 },
-                returns: {},
+                returns: {
+                    assigned: { validator: validation_1.nonNegNumberValidator },
+                    skipped: { validator: validation_1.nonNegNumberValidator },
+                },
             },
             bulk_delete: {
                 op: "custom", access: 'delete', method: "delete",
@@ -3708,6 +3713,7 @@ exports.schema = (0, exports.build_schema)({
         customActions: {
             configure: {
                 op: "custom", access: 'create', method: "post",
+                adminOnly: true,
                 name: 'Configure Webhooks (Admin Only)',
                 path: '/configure-webhooks',
                 description: "Sets the URL, secret, and initial subscriptions for your organization. Your secret must exceed 15 characters and should be generated randomly. This endpoint ensures duplicate webhook records aren't created.",
@@ -3720,6 +3726,7 @@ exports.schema = (0, exports.build_schema)({
             },
             get_configuration: {
                 op: "custom", access: 'read', method: "get",
+                adminOnly: true,
                 name: 'Get current configuration info',
                 path: '/webhook-configuration',
                 description: "DEPRECATED: Returns current webhook configuration",
@@ -3731,6 +3738,7 @@ exports.schema = (0, exports.build_schema)({
             },
             update: {
                 op: "custom", access: 'update', method: "patch",
+                adminOnly: true,
                 name: 'Update Webhooks (Admin Only)',
                 path: '/update-webhooks',
                 description: "DEPRECATED: Modifies only subscriptions to models included in subscriptionUpdates. To remove subscriptions for a given model, set all values to false.",
@@ -4224,7 +4232,7 @@ exports.schema = (0, exports.build_schema)({
                     identifier: validation_1.stringValidator100,
                     byEnduserExternal: validation_1.booleanValidatorOptional,
                 }),
-            }, cancelReason: { validator: validation_1.stringValidator5000 }, dontAutoSyncPatientToHealthie: { validator: validation_1.booleanValidator }, healthieInsuranceBillingEnabled: { validator: validation_1.booleanValidator }, dontBlockAvailability: { validator: validation_1.booleanValidator }, outOfOffice: { validator: validation_1.booleanValidator }, previousStartTimes: { validator: validation_1.listOfNumbersValidatorUniqueOptionalOrEmptyOkay }, requirePortalCancelReason: { validator: validation_1.booleanValidator }, startLinkToken: { validator: validation_1.stringValidator250 }, canvasEncounterId: { validator: validation_1.stringValidator100 }, allowGroupReschedule: { validator: validation_1.booleanValidator }, joinedVideoCall: {
+            }, cancelReason: { validator: validation_1.stringValidator5000 }, dontAutoSyncPatientToHealthie: { validator: validation_1.booleanValidator }, healthieInsuranceBillingEnabled: { validator: validation_1.booleanValidator }, dontBlockAvailability: { validator: validation_1.booleanValidator }, outOfOffice: { validator: validation_1.booleanValidator }, previousStartTimes: { validator: validation_1.listOfNumbersValidatorUniqueOptionalOrEmptyOkay }, requirePortalCancelReason: { validator: validation_1.booleanValidator }, startLinkToken: { validator: validation_1.stringValidator250, enduserUpdatesDisabled: true, redactions: ['all'] }, canvasEncounterId: { validator: validation_1.stringValidator100 }, allowGroupReschedule: { validator: validation_1.booleanValidator }, joinedVideoCall: {
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     id: validation_1.mongoIdStringRequired,
                     at: validation_1.dateValidator,
@@ -4348,7 +4356,7 @@ exports.schema = (0, exports.build_schema)({
         defaultActions: constants_1.DEFAULT_OPERATIONS,
         customActions: {
             process: {
-                op: 'custom', access: 'update', method: 'post',
+                op: 'custom', access: 'update', method: 'post', adminOnly: true,
                 path: '/automated-actions/process',
                 name: 'Process Automation Action',
                 description: "Generic endpoint for processing automation actions by type. Used by worker for new action types.",
@@ -5110,7 +5118,6 @@ exports.schema = (0, exports.build_schema)({
             },
             create_and_join: {
                 op: "custom", access: 'create', method: "post",
-                adminOnly: true,
                 name: 'Create and Join Organization',
                 path: '/organizations/create-and-join',
                 description: "Creates and joins a new organization",
@@ -5154,7 +5161,6 @@ exports.schema = (0, exports.build_schema)({
             },
             sync_note_to_canvas: {
                 op: "custom", access: 'read', method: "post",
-                adminOnly: true,
                 name: 'Push Canvas Note',
                 path: '/organizations/sync-note-to-canvas',
                 description: "Syncs a text note to canvas using questionnaire details in canvasMessageSync",
@@ -5960,6 +5966,7 @@ exports.schema = (0, exports.build_schema)({
             },
             get_custom_report: {
                 op: "custom", access: 'read', method: "get",
+                adminOnly: true,
                 name: 'Get custom report',
                 path: '/analytics/custom-report',
                 description: "For customized analytics reporting, pre-configured by the Tellescope team for a given organization",
@@ -6139,7 +6146,6 @@ exports.schema = (0, exports.build_schema)({
                 name: 'Mark Read',
                 description: "Marks all background errors as read",
                 path: '/background-errors/mark-read',
-                adminOnly: true,
                 parameters: {},
                 returns: {},
             }
@@ -7436,6 +7442,7 @@ exports.schema = (0, exports.build_schema)({
             },
             reset_threads: {
                 op: "custom", access: 'delete', method: "post",
+                adminOnly: true,
                 name: 'Reset Threads',
                 path: '/inbox-threads/reset',
                 description: "Deletes all built inbox threads and resets organization thread building dates",

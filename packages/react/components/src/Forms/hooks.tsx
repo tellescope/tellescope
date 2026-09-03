@@ -9,7 +9,7 @@ import { WithTheme, contact_is_valid, useAddGTMTag, useFileUpload, useFormFields
 import ReactGA from "react-ga4";
 
 import isEmail from "validator/lib/isEmail"
-import { MM_DD_YYYY_to_YYYY_MM_DD, TRANSLATION_LANGUAGES, append_current_utm_params, emit_gtm_event, field_can_autoadvance, getLocalTimezone, get_time_values, get_utm_params, is_object, languageLabelForCode, mm_dd_yyyy, object_is_empty, read_local_storage, replace_form_field_template_values, responses_satisfy_conditions, update_local_storage } from "@tellescope/utilities"
+import { MM_DD_YYYY_to_YYYY_MM_DD, TRANSLATION_LANGUAGES, append_current_utm_params, emit_gtm_event, field_can_autoadvance, getLocalTimezone, get_time_values, get_utm_params, is_object, languageLabelForCode, mm_dd_yyyy, object_is_empty, read_local_storage, replace_form_field_template_values, responses_satisfy_conditions, translationLanguageCodeForLanguage, update_local_storage } from "@tellescope/utilities"
 
 // Bridges legacy form-language display names ('English', 'Spanish', 'Español') and raw codes to a
 // TranslationLanguageCode, defaulting to English
@@ -20,20 +20,53 @@ export const language_code_for_legacy_form_language = (value?: string): string =
   return TRANSLATION_LANGUAGES.find(l => l.label.toLowerCase() === value.trim().toLowerCase())?.code ?? 'en'
 }
 
+// Resolves the patient's browser language to a supported translation code. Returns undefined when the
+// browser is English, unsupported, or unavailable (SSR / React Native), i.e. "no auto-detection".
+const browser_translation_language_code = (): string | undefined => {
+  const iso6391 = typeof navigator !== 'undefined' ? navigator.language : undefined
+  if (!iso6391) return undefined
+
+  // reuses the shared resolver: strips the region ('es-MX' -> 'es') and checks TRANSLATION_LANGUAGES
+  const code = translationLanguageCodeForLanguage({ iso6391 }, { fallback: 'en' })
+  return code === 'en' ? undefined : code
+}
+
+const resolve_default_language_code = (
+  form?: Form, initialLanguage?: string, detectBrowserLanguage?: boolean,
+): string => {
+  if (initialLanguage) return language_code_for_legacy_form_language(initialLanguage)
+
+  const detected = detectBrowserLanguage !== false ? browser_translation_language_code() : undefined
+  // only auto-select a language with a full translation map configured — never the legacy chrome-only
+  // Spanish option (publicShowLanguage), which would render a half-translated form
+  if (detected && form?.translationConfigurations?.some(t => t.language === detected)) return detected
+
+  return language_code_for_legacy_form_language(form?.language)
+}
+
 export type FormDisplayLanguageOption = { code: string, label: string }
 
-// Drives the AI form-translation display language for a form-filling page. Lazily loads the
-// translation map for the selected language via the injected fetchTranslations (each surface provides
+// Drives the AI form-translation display language for a form-filling page. The default is resolved in
+// priority order: an explicit initialLanguage (?lang= param or a patient's stated preference), then the
+// browser's navigator.language when the form has a full translation configured for it, then form.language.
+// Lazily loads the translation map for the selected language via the injected fetchTranslations (each surface provides
 // its own transport: configurations.getOne for authenticated pages, public_form_details for the
 // unauthenticated intake page). The returned formForDisplay carries `dynamicTranslations`, which
 // form_display_text_for_language resolves at RENDER TIME ONLY — stored response values, conditional
 // logic, and templatedResponses always operate on the original English strings.
-export const useFormDisplayLanguage = ({ form, initialLanguage, fetchTranslations } : {
+export const useFormDisplayLanguage = ({ form, initialLanguage, detectBrowserLanguage, fetchTranslations } : {
   form?: Form,
   initialLanguage?: string, // legacy display name or TranslationLanguageCode
+  detectBrowserLanguage?: boolean, // defaults to true, falling back to navigator.language when no initialLanguage
   fetchTranslations?: (configurationId: string, languageCode: string) => Promise<Record<string, string>>,
 }) => {
-  const [languageCode, setLanguageCode] = useState(language_code_for_legacy_form_language(initialLanguage ?? form?.language))
+  // Only the patient's explicit toggle is state; the default is derived, so it resolves correctly on the
+  // surfaces where `form` loads after mount (the public intake page) with no effect syncing it back.
+  // Once the patient picks a language it pins, and no later form/prop change can override it.
+  const [selectedLanguageCode, setLanguageCode] = useState<string>()
+  const languageCode = useMemo(() => (
+    selectedLanguageCode ?? resolve_default_language_code(form, initialLanguage, detectBrowserLanguage)
+  ), [selectedLanguageCode, form, initialLanguage, detectBrowserLanguage])
   const [maps, setMaps] = useState({} as Record<string, Record<string, string>>)
 
   const translationConfigurations = useMemo(() => form?.translationConfigurations ?? [], [form?.translationConfigurations])

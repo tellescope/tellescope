@@ -81,15 +81,42 @@ var language_code_for_legacy_form_language = function (value) {
     return (_b = (_a = utilities_1.TRANSLATION_LANGUAGES.find(function (l) { return l.label.toLowerCase() === value.trim().toLowerCase(); })) === null || _a === void 0 ? void 0 : _a.code) !== null && _b !== void 0 ? _b : 'en';
 };
 exports.language_code_for_legacy_form_language = language_code_for_legacy_form_language;
-// Drives the AI form-translation display language for a form-filling page. Lazily loads the
-// translation map for the selected language via the injected fetchTranslations (each surface provides
+// Resolves the patient's browser language to a supported translation code. Returns undefined when the
+// browser is English, unsupported, or unavailable (SSR / React Native), i.e. "no auto-detection".
+var browser_translation_language_code = function () {
+    var iso6391 = typeof navigator !== 'undefined' ? navigator.language : undefined;
+    if (!iso6391)
+        return undefined;
+    // reuses the shared resolver: strips the region ('es-MX' -> 'es') and checks TRANSLATION_LANGUAGES
+    var code = (0, utilities_1.translationLanguageCodeForLanguage)({ iso6391: iso6391 }, { fallback: 'en' });
+    return code === 'en' ? undefined : code;
+};
+var resolve_default_language_code = function (form, initialLanguage, detectBrowserLanguage) {
+    var _a;
+    if (initialLanguage)
+        return (0, exports.language_code_for_legacy_form_language)(initialLanguage);
+    var detected = detectBrowserLanguage !== false ? browser_translation_language_code() : undefined;
+    // only auto-select a language with a full translation map configured — never the legacy chrome-only
+    // Spanish option (publicShowLanguage), which would render a half-translated form
+    if (detected && ((_a = form === null || form === void 0 ? void 0 : form.translationConfigurations) === null || _a === void 0 ? void 0 : _a.some(function (t) { return t.language === detected; })))
+        return detected;
+    return (0, exports.language_code_for_legacy_form_language)(form === null || form === void 0 ? void 0 : form.language);
+};
+// Drives the AI form-translation display language for a form-filling page. The default is resolved in
+// priority order: an explicit initialLanguage (?lang= param or a patient's stated preference), then the
+// browser's navigator.language when the form has a full translation configured for it, then form.language.
+// Lazily loads the translation map for the selected language via the injected fetchTranslations (each surface provides
 // its own transport: configurations.getOne for authenticated pages, public_form_details for the
 // unauthenticated intake page). The returned formForDisplay carries `dynamicTranslations`, which
 // form_display_text_for_language resolves at RENDER TIME ONLY — stored response values, conditional
 // logic, and templatedResponses always operate on the original English strings.
 var useFormDisplayLanguage = function (_a) {
-    var form = _a.form, initialLanguage = _a.initialLanguage, fetchTranslations = _a.fetchTranslations;
-    var _b = (0, react_1.useState)((0, exports.language_code_for_legacy_form_language)(initialLanguage !== null && initialLanguage !== void 0 ? initialLanguage : form === null || form === void 0 ? void 0 : form.language)), languageCode = _b[0], setLanguageCode = _b[1];
+    var form = _a.form, initialLanguage = _a.initialLanguage, detectBrowserLanguage = _a.detectBrowserLanguage, fetchTranslations = _a.fetchTranslations;
+    // Only the patient's explicit toggle is state; the default is derived, so it resolves correctly on the
+    // surfaces where `form` loads after mount (the public intake page) with no effect syncing it back.
+    // Once the patient picks a language it pins, and no later form/prop change can override it.
+    var _b = (0, react_1.useState)(), selectedLanguageCode = _b[0], setLanguageCode = _b[1];
+    var languageCode = (0, react_1.useMemo)(function () { return (selectedLanguageCode !== null && selectedLanguageCode !== void 0 ? selectedLanguageCode : resolve_default_language_code(form, initialLanguage, detectBrowserLanguage)); }, [selectedLanguageCode, form, initialLanguage, detectBrowserLanguage]);
     var _c = (0, react_1.useState)({}), maps = _c[0], setMaps = _c[1];
     var translationConfigurations = (0, react_1.useMemo)(function () { var _a; return (_a = form === null || form === void 0 ? void 0 : form.translationConfigurations) !== null && _a !== void 0 ? _a : []; }, [form === null || form === void 0 ? void 0 : form.translationConfigurations]);
     var languageOptions = (0, react_1.useMemo)(function () {

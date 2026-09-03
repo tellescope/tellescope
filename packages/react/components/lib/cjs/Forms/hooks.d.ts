@@ -8,16 +8,17 @@ export type FormDisplayLanguageOption = {
     code: string;
     label: string;
 };
-export declare const useFormDisplayLanguage: ({ form, initialLanguage, fetchTranslations }: {
+export declare const useFormDisplayLanguage: ({ form, initialLanguage, detectBrowserLanguage, fetchTranslations }: {
     form?: (import("@tellescope/types-models").Form & {
         id: string;
         createdAt: Date;
     }) | undefined;
     initialLanguage?: string | undefined;
+    detectBrowserLanguage?: boolean | undefined;
     fetchTranslations?: ((configurationId: string, languageCode: string) => Promise<Record<string, string>>) | undefined;
 }) => {
     languageCode: string;
-    setLanguageCode: import("react").Dispatch<import("react").SetStateAction<string>>;
+    setLanguageCode: import("react").Dispatch<import("react").SetStateAction<string | undefined>>;
     formForDisplay: {
         language: string;
         dynamicTranslations: Record<string, string> | undefined;

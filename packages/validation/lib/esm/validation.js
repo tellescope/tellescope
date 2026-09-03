@@ -909,6 +909,10 @@ export var numberOrStringValidatorOptional = orValidator({
     number: numberValidatorOptional,
     string: stringValidatorOptional
 });
+// Fixed rather than `new Date()`: getExample is evaluated once per date field when the OpenAPI
+// spec is generated, producing ~512 timestamps. A live clock made every regeneration of
+// packages/public/schema/openapi.json emit a ~1900-line diff of nothing but changed examples.
+var EXAMPLE_DATE_ISO = new Date('2024-01-01T00:00:00.000Z').toISOString();
 export var dateValidator = {
     validate: function (options) {
         if (options === void 0) { options = {}; }
@@ -918,7 +922,7 @@ export var dateValidator = {
             return new Date(date);
         }, __assign(__assign({}, options), { maxLength: 250, listOf: false }));
     },
-    getExample: function () { return new Date().toISOString(); },
+    getExample: function () { return EXAMPLE_DATE_ISO; },
     getType: function () { return "Date"; },
 };
 export var dateOptionalOrEmptyStringValidator = {
@@ -933,7 +937,7 @@ export var dateOptionalOrEmptyStringValidator = {
             return new Date(date);
         }, __assign(__assign({}, options), { maxLength: 250, emptyStringOk: true, isOptional: true, listOf: false }));
     },
-    getExample: function () { return new Date().toISOString(); },
+    getExample: function () { return EXAMPLE_DATE_ISO; },
     getType: function () { return "Date"; },
 };
 export var dateValidatorOptional = {
@@ -945,7 +949,7 @@ export var dateValidatorOptional = {
             return new Date(date);
         }, __assign(__assign({}, options), { maxLength: 250, listOf: false, isOptional: true, emptyStringOk: true }));
     },
-    getExample: function () { return new Date().toISOString(); },
+    getExample: function () { return EXAMPLE_DATE_ISO; },
     getType: function () { return "Date"; },
 };
 export var dateRangeValidator = objectValidator({

@@ -1529,7 +1529,11 @@ export type CustomActions = {
             ids: string[];
             userId: string;
             addToCareTeam?: boolean;
-        }, {}>;
+            queueId?: string;
+        }, {
+            assigned: number;
+            skipped: number;
+        }>;
     };
     ticket_threads: {
         send_message: CustomAction<{
