@@ -296,4 +296,5 @@ export declare const SMS_AGENT_CONVERSATION_TYPE = "sms_agent";
 export declare const SMS_AGENT_FORM_RESPONSE_SOURCE = "AI Text Agent";
 export declare const VOICE_FORM_SUPPORTED_FIELD_TYPES: readonly ["string", "stringLong", "email", "phone", "multiple_choice", "Dropdown", "number", "rating", "date", "dateString"];
 export declare const VOICE_AGENT_FORM_RESPONSE_SOURCE = "AI Voice Agent";
+export declare const SYSTEM_REVIEWER_ID = "system";
 //# sourceMappingURL=constants.d.ts.map

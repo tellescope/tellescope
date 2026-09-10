@@ -176,6 +176,8 @@ export declare const listOfObjectsValidator: <T extends object>(i: InputValidati
 }) => ValidatorDefinition<T[]>;
 export declare const objectAnyFieldsValidator: <T>(valueValidator?: ValidatorDefinition<T> | undefined) => ValidatorDefinition<Indexable<T>>;
 export declare const objectAnyFieldsAnyValuesValidator: ValidatorDefinition<Indexable<unknown>>;
+export declare const basicFilterValidator: ValidatorDefinition<Indexable<any>>;
+export declare const compoundFilterValidator: ValidatorDefinition<Indexable<any>>;
 export declare const optionalEmptyObjectValidator: ValidatorDefinition<object>;
 export declare const optionalAnyObjectValidator: ValidatorDefinition<object>;
 export declare const escapeString: EscapeWithOptions<string>;
@@ -1927,8 +1929,6 @@ export declare const videoIntegrationTypesValidator: ValidatorDefinition<VideoIn
 export declare const analyticsQueryResultsValidator: ValidatorDefinition<AnalyticsQueryResultValue[]>;
 export declare const scheduledJourneysValidator: ValidatorDefinition<ScheduledJourney[]>;
 export declare const formScoringValidator: ValidatorDefinition<FormScoring[]>;
-export declare const basicFilterValidator: ValidatorDefinition<Indexable<unknown>>;
-export declare const compoundFilterValidator: ValidatorDefinition<Indexable<unknown>>;
 export declare const analyticsQueryValidator: ValidatorDefinition<{
     resource: "Endusers";
     info: {

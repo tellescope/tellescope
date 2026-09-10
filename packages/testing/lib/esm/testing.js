@@ -134,6 +134,43 @@ export var wait = function (f, ms) {
         setTimeout(function () { return f ? f.then(resolve).catch(reject) : resolve(); }, ms);
     });
 };
+// Polls f() until evaluate() passes, then returns that result. Fetches BEFORE the first sleep, so
+// an already-satisfied condition returns immediately. On timeout, returns the last result so the
+// caller can assert/report on it — pass throwOnTimeout to fail loudly instead.
+export var poll_for_results = function (f, evaluate, _a) {
+    var _b = _a === void 0 ? {} : _a, _c = _b.interval, interval = _c === void 0 ? 500 : _c, _d = _b.iterations, iterations = _d === void 0 ? 20 : _d, _e = _b.throwOnTimeout, throwOnTimeout = _e === void 0 ? false : _e;
+    return __awaiter(void 0, void 0, void 0, function () {
+        var result, satisfied, i;
+        return __generator(this, function (_f) {
+            switch (_f.label) {
+                case 0: return [4 /*yield*/, f()];
+                case 1:
+                    result = _f.sent();
+                    satisfied = evaluate(result);
+                    i = 0;
+                    _f.label = 2;
+                case 2:
+                    if (!(i < iterations && !satisfied)) return [3 /*break*/, 6];
+                    return [4 /*yield*/, wait(undefined, interval)];
+                case 3:
+                    _f.sent();
+                    return [4 /*yield*/, f()];
+                case 4:
+                    result = _f.sent();
+                    satisfied = evaluate(result);
+                    _f.label = 5;
+                case 5:
+                    i++;
+                    return [3 /*break*/, 2];
+                case 6:
+                    if (!satisfied && throwOnTimeout) {
+                        throw new Error("poll_for_results timed out after ".concat(iterations * interval, "ms with result ").concat(JSON.stringify(result)));
+                    }
+                    return [2 /*return*/, result];
+            }
+        });
+    });
+};
 export var handleAnyError = { shouldError: true, onError: function () { return true; } };
 export var passOnAnyResult = { onResult: function () { return true; } };
 //# sourceMappingURL=testing.js.map

@@ -245,6 +245,7 @@ export type OrganizationSettings = {
     recordCallAudioPlayback?: string,
     dontRecordCallsToPhone?: string[],
     transcribeCalls?: boolean,
+    transcribeVoicemails?: boolean, // AWS Transcribe for voicemails, replacing Twilio's built-in transcription
     summarizeCallRecordings?: boolean,
     summarizeCallRecordingsPrompt?: string,
     summarizeCallRecordingsMaxTokens?: number,
@@ -1464,6 +1465,8 @@ export type EndusersReport = Report
 export type JourneyStatistics = {
   steps: Record<string, { count: number, activeCount: number, finishedCount: number, errorCount: number, cancelledCount: number, opens?: number, clicked?: number }>,
 }
+// 'steps' returns per-step counts only, skipping the expensive email/sms engagement aggregations
+export type JourneyStatisticsMetric = 'steps' | 'engagement'
 
 export type FormStatistics = {
   fields: Record<string, { count: number }>,
@@ -5775,6 +5778,8 @@ export type VitalConfigurationRange = {
   comparison: VitalComparison,
   trendIntervalInMS?: number, // negative numbers or 0 indicate no trend
   deviationFromProfileWeight?: boolean, // trend from enduser.weight
+  autoReview?: boolean, // mark matching readings as reviewed automatically
+  autoReviewConditions?: CompoundFilter<string>, // when set, only auto-review for endusers matching these conditions
 }
 
 export interface VitalConfiguration_readonly extends ClientRecord { }

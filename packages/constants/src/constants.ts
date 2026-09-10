@@ -1341,3 +1341,8 @@ export const VOICE_FORM_SUPPORTED_FIELD_TYPES = [
   'Dropdown', 'number', 'rating', 'date', 'dateString',
 ] as const
 export const VOICE_AGENT_FORM_RESPONSE_SOURCE = "AI Voice Agent" // form_responses.source for voice-collected responses
+
+// reviewedBy for enduser_observations that were reviewed automatically, by matching an autoReview
+// vital configuration range instead of by a human. Not a valid ObjectId, so it cannot collide with
+// a real user id — callers rendering reviewedBy must special-case it rather than looking up a user.
+export const SYSTEM_REVIEWER_ID = 'system'

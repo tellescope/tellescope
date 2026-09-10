@@ -2310,9 +2310,7 @@ export var responses_satisfy_conditions = function (responses, conditions, optio
                         }
                     }
                 }
-                var number = (typeof conditionValue_1 === 'string' && conditionValue_1.startsWith("$JS(") && conditionValue_1.endsWith(")")
-                    ? new Function('answer', conditionValue_1.substring(4, conditionValue_1.length - 1))(answer)
-                    : parseInt(conditionValue_1));
+                var number = parseInt(conditionValue_1);
                 var answerNumber = ((answer.type === 'date' && answer.value)
                     ? new Date(answer.value).getTime()
                     : (answer.type === 'dateString' && answer.value)

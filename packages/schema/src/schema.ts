@@ -51,6 +51,7 @@ import {
   StripeCheckoutInfo,
   StripeCountryCode,
   JourneyStatistics,
+  JourneyStatisticsMetric,
   FormStatistics,
   CustomFields,
   TicketsReport,
@@ -862,7 +863,10 @@ export type CustomActions = {
     // update_state: CustomAction<{ updates: Partial<JourneyState>, id: string, name: string }, { updated: Journey }>,
     delete_states: CustomAction<{ id: string, states: string[] }, { updated: Journey }>,
     handle_incoming_communication: CustomAction<{ enduserId: string, channel?: string, messageId?: string, destination?: string }, { }>,
-    get_journey_statistics: CustomAction<{ journeyId: string }, { statistics: JourneyStatistics }>,
+    get_journey_statistics: CustomAction<
+      { journeyId: string, metric?: JourneyStatisticsMetric }, 
+      { statistics: JourneyStatistics }
+    >,
   },
   endusers: {
     add_to_healthie_course: CustomAction<{ id: string, courseId: string }, { }>,
@@ -2837,11 +2841,13 @@ export const schema: SchemaV1 = build_schema({
       },
       get_journey_statistics: {
         op: 'custom', access: 'read', method: "get",
-        name: 'Handle Incoming Communication',
+        name: 'Journey Statistics',
         path: '/journeys/statistics',
         description: "Gets statistics for a journey",
         parameters: { 
           journeyId: { validator: mongoIdStringValidator, required: true },
+          // omitted => both, preserving the existing response for external API consumers
+          metric: { validator: exactMatchValidatorOptional<JourneyStatisticsMetric>(['steps', 'engagement']) },
         },
         returns: { 
           // todo: document shape with validator
@@ -3585,14 +3591,14 @@ export const schema: SchemaV1 = build_schema({
         {
           explanation: "Only admin users can set the admin role",
           evaluate: ({ _id }, deps, session, type, { updates }) => {
-            // NOTE (F-0076, false-positive): this self-exception is NOT a privilege-escalation hole.
+            // NOTE: this self-exception is NOT a privilege-escalation hole.
             // It looks like a non-admin could self-promote by updating their own record, but the
             // "Only admin users can update user roles" constraint below (which has NO self-exception)
             // runs in this same AND-evaluated array and rejects ANY non-admin update that includes
             // `roles`. validateRelationshipConstraints throws on the FIRST evaluator returning a string,
             // so a non-admin self-update with `roles` is blocked there regardless of this branch.
             // An Admin self-updating passes that constraint via its Admin check, so this branch is
-            // redundant-but-safe. Regression: sdk/src/tests/api_tests/security/F-0076-self-admin-role-assignment.test.ts
+            // redundant-but-safe. Regression: sdk/src/tests/api_tests/security/self-admin-role-assignment.test.ts
             if (_id && _id.toString() === session.id) return
             if ((session as UserSession)?.roles?.includes('Admin')) return
 
@@ -5216,7 +5222,7 @@ export const schema: SchemaV1 = build_schema({
       disabledWhenPrepopulated: { validator: booleanValidator },
       feedback: { validator: listValidatorOptionalOrEmptyOk(formFieldFeedbackValidator) },
       titleFontSize: { validator: nonNegNumberValidator },
-      groupShowCondition: { validator: objectAnyFieldsAnyValuesValidator },
+      groupShowCondition: { validator: compoundFilterValidator },
     }
   },
   form_responses: {
@@ -6312,7 +6318,7 @@ export const schema: SchemaV1 = build_schema({
       outOfOffice: { validator: booleanValidator },
       previousStartTimes: { validator: listOfNumbersValidatorUniqueOptionalOrEmptyOkay },
       requirePortalCancelReason: { validator: booleanValidator },
-      startLinkToken: { validator: stringValidator250, enduserUpdatesDisabled: true, redactions: ['all'] }, // F-0185: write-only-by-design (staff/API-key set it via PATCH, nothing reads it back). enduserUpdatesDisabled blocks the patient WRITE; redactions:['all'] blocks the READ for endusers + non-admin users (both could otherwise redeem a staff-set token for the host's session). NOT readonly (would break the legit staff write).
+      startLinkToken: { validator: stringValidator250, enduserUpdatesDisabled: true, redactions: ['all'] }, // write-only-by-design (staff/API-key set it via PATCH, nothing reads it back). enduserUpdatesDisabled blocks the patient WRITE; redactions:['all'] blocks the READ for endusers + non-admin users (both could otherwise redeem a staff-set token for the host's session). NOT readonly (would break the legit staff write).
       canvasEncounterId: { validator: stringValidator100 },
       allowGroupReschedule: { validator: booleanValidator },
       joinedVideoCall: { 

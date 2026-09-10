@@ -15,6 +15,12 @@ type async_test_options_error_T<E = APIError> = {
 export declare const async_test: <T, E = APIError>(name: string, run_test: () => Promise<T>, options: async_test_options_T<T> | async_test_options_error_T<E>) => Promise<number>;
 export declare const assert: (assertion: boolean, message: string, title?: string) => void;
 export declare const wait: (f?: Promise<void>, ms?: number) => Promise<void>;
+export type poll_options_T = {
+    interval?: number;
+    iterations?: number;
+    throwOnTimeout?: boolean;
+};
+export declare const poll_for_results: <T>(f: () => Promise<T>, evaluate: (r: T) => boolean, { interval, iterations, throwOnTimeout }?: poll_options_T) => Promise<T>;
 export declare const handleAnyError: {
     shouldError: boolean;
     onError: () => boolean;

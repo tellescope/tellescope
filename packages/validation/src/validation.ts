@@ -914,6 +914,49 @@ export const objectAnyFieldsValidator = <T>(valueValidator?: ValidatorDefinition
 })
 export const objectAnyFieldsAnyValuesValidator = objectAnyFieldsValidator()
 
+// Values inside conditional logic were previously compiled and executed with new Function()
+// by responses_satisfy_conditions when they took the form $JS(...). That sink is removed; this rejects
+// the syntax at write time so it cannot be reintroduced through stored configuration.
+//
+// The check recurses because a CompoundFilter nests arbitrarily —
+// { $and: [{ condition: { <fieldId>: { $gt: "..." } } }] } — while objectAnyFieldsValidator only
+// inspects top-level values, so the string was never previously examined at all.
+const JS_EXPRESSION_PREFIX = '$JS('
+const MAX_FILTER_DEPTH = 200 // far beyond any real form logic; guards against stack overflow on hostile input
+
+const throw_on_js_expression = (value: any, depth=0): void => {
+  if (depth > MAX_FILTER_DEPTH) { throw new Error("Conditional logic is nested too deeply") }
+
+  if (typeof value === 'string') {
+    if (value.trimStart().startsWith(JS_EXPRESSION_PREFIX)) {
+      throw new Error(`Conditional logic values may not contain ${JS_EXPRESSION_PREFIX}...) expressions`)
+    }
+    return
+  }
+  if (Array.isArray(value)) {
+    for (const entry of value) { throw_on_js_expression(entry, depth + 1) }
+    return
+  }
+  if (is_object(value)) {
+    for (const key in value) { throw_on_js_expression(value[key], depth + 1) }
+  }
+}
+
+const with_js_expression_check = (validator: ValidatorDefinition<Indexable>): ValidatorDefinition<Indexable> => ({
+  ...validator,
+  validate: ((o: any={}) => { // any: EscapeBuilder is an overloaded signature, so the options union can't be forwarded
+    const escape = validator.validate(o) as EscapeFunction<Indexable>
+    return (value: JSONType) => {
+      const validated = escape(value)
+      throw_on_js_expression(validated)
+      return validated
+    }
+  }) as EscapeBuilder<Indexable>,
+})
+
+export const basicFilterValidator = with_js_expression_check(objectAnyFieldsAnyValuesValidator)
+export const compoundFilterValidator = with_js_expression_check(objectAnyFieldsAnyValuesValidator)
+
 export const optionalEmptyObjectValidator: ValidatorDefinition<object> = ({
   validate: (o={}) => build_validator(
     (object: any) => { 
@@ -3939,7 +3982,7 @@ export const previousFormFieldValidator = orValidator<{ [K in PreviousFormFieldT
       fieldId: mongoIdStringRequired,
       priority: numberValidator,
       label: stringValidatorOptionalEmptyOkay,
-      condition: objectAnyFieldsAnyValuesValidator,
+      condition: compoundFilterValidator,
     }, { emptyOk: false }),
   }),
 })
@@ -4119,7 +4162,7 @@ export const formFieldFeedbackValidator = objectValidator<FormFieldFeedback>({
 export const formFieldOptionDetailsValidator = objectValidator<FormFieldOptionDetails>({
   option: stringValidator,
   description: stringValidator5000Optional,
-  showCondition: objectAnyFieldsAnyValuesValidator,
+  showCondition: compoundFilterValidator,
 })
 
 export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
@@ -4212,7 +4255,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   stripeProductSelectionMode: booleanValidatorOptional,
   productConditions: listValidatorOptionalOrEmptyOk(objectValidator({
     productId: mongoIdStringRequired,
-    showCondition: objectAnyFieldsAnyValuesValidator,
+    showCondition: compoundFilterValidator,
   })),
   stripeCouponCodes: listOfStringsValidatorOptionalOrEmptyOk,
   useStripeEmbeddedCheckout: booleanValidatorOptional,
@@ -4941,6 +4984,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     autoReplyEnabled: booleanValidatorOptional,
     recordCalls: booleanValidatorOptional,
     transcribeCalls: booleanValidatorOptional,
+    transcribeVoicemails: booleanValidatorOptional,
     summarizeCallRecordings: booleanValidatorOptional,
     summarizeCallRecordingsPrompt: stringValidatorOptionalEmptyOkay,
     summarizeCallRecordingsMaxTokens: numberValidatorOptional,
@@ -5084,6 +5128,8 @@ export const vitalConfigurationRangeValidator = objectValidator<VitalConfigurati
   trendIntervalInMS: numberValidatorOptional,
   comparison: vitalComparisonValidator,
   deviationFromProfileWeight: booleanValidatorOptional,
+  autoReview: booleanValidatorOptional,
+  autoReviewConditions: optionalAnyObjectValidator,
 })
 export const vitalConfigurationRangesValidator = listValidator(vitalConfigurationRangeValidator)
 
@@ -5156,11 +5202,13 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
       publicIdentifier: stringValidatorOptionalEmptyOkay,
       submitterType: sessionTypeOrAnyoneValidatorOptional,
       hasExpiredEvent: booleanValidatorOptional,
-      conditionsByFormId: optionalAnyObjectValidator,
+      conditionsByFormId: compoundFilterValidator,
     }),
     conditions: orValidator({
-      optional: optionalAnyObjectValidator,
-      included: objectAnyFieldsAnyValuesValidator,
+      // both arms must carry the $JS guard: orValidator returns the first arm that does not
+      // throw, so an unguarded permissive arm here would accept the payload before `included` is tried
+      optional: with_js_expression_check(optionalAnyObjectValidator),
+      included: compoundFilterValidator,
     }, { isOptional: true }),
   }), 
   "Form Unsubmitted": objectValidator<AutomationTriggerEvents["Form Unsubmitted"]>({
@@ -6078,8 +6126,6 @@ export const formScoringValidator = listValidatorOptionalOrEmptyOk(objectValidat
 //   return v
 // }, { ...o, listOf: false })
 
-export const basicFilterValidator = objectAnyFieldsAnyValuesValidator
-export const compoundFilterValidator = objectAnyFieldsAnyValuesValidator
 
 const enduserFieldsAnalyticsValidator = listValidatorOptionalOrEmptyOk(objectValidator({
   key: stringValidator1000,

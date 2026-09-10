@@ -215,6 +215,7 @@ export type OrganizationSettings = {
         recordCallAudioPlayback?: string;
         dontRecordCallsToPhone?: string[];
         transcribeCalls?: boolean;
+        transcribeVoicemails?: boolean;
         summarizeCallRecordings?: boolean;
         summarizeCallRecordingsPrompt?: string;
         summarizeCallRecordingsMaxTokens?: number;
@@ -1340,6 +1341,7 @@ export type JourneyStatistics = {
         clicked?: number;
     }>;
 };
+export type JourneyStatisticsMetric = 'steps' | 'engagement';
 export type FormStatistics = {
     fields: Record<string, {
         count: number;
@@ -5774,6 +5776,8 @@ export type VitalConfigurationRange = {
     comparison: VitalComparison;
     trendIntervalInMS?: number;
     deviationFromProfileWeight?: boolean;
+    autoReview?: boolean;
+    autoReviewConditions?: CompoundFilter<string>;
 };
 export interface VitalConfiguration_readonly extends ClientRecord {
 }

@@ -130,5 +130,35 @@ export const wait = (f?: Promise<void>, ms=1000) => new Promise<void>((resolve, 
   setTimeout(() => f ? f.then(resolve).catch(reject) : resolve(), ms)
 })
 
+export type poll_options_T = {
+  interval?: number,
+  iterations?: number,
+  throwOnTimeout?: boolean,
+}
+
+// Polls f() until evaluate() passes, then returns that result. Fetches BEFORE the first sleep, so
+// an already-satisfied condition returns immediately. On timeout, returns the last result so the
+// caller can assert/report on it — pass throwOnTimeout to fail loudly instead.
+export const poll_for_results = async <T>(
+  f: () => Promise<T>,
+  evaluate: (r: T) => boolean,
+  { interval=500, iterations=20, throwOnTimeout=false }: poll_options_T = {},
+): Promise<T> => {
+  let result = await f()
+  let satisfied = evaluate(result)
+
+  for (let i = 0; i < iterations && !satisfied; i++) {
+    await wait(undefined, interval)
+    result = await f()
+    satisfied = evaluate(result)
+  }
+
+  if (!satisfied && throwOnTimeout) {
+    throw new Error(`poll_for_results timed out after ${iterations * interval}ms with result ${JSON.stringify(result)}`)
+  }
+
+  return result
+}
+
 export const handleAnyError = { shouldError: true, onError: () => true }
 export const passOnAnyResult = { onResult: () => true }

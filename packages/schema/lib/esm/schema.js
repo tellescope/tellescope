@@ -1331,11 +1331,13 @@ export var schema = build_schema({
             },
             get_journey_statistics: {
                 op: 'custom', access: 'read', method: "get",
-                name: 'Handle Incoming Communication',
+                name: 'Journey Statistics',
                 path: '/journeys/statistics',
                 description: "Gets statistics for a journey",
                 parameters: {
                     journeyId: { validator: mongoIdStringValidator, required: true },
+                    // omitted => both, preserving the existing response for external API consumers
+                    metric: { validator: exactMatchValidatorOptional(['steps', 'engagement']) },
                 },
                 returns: {
                     // todo: document shape with validator
@@ -1935,14 +1937,14 @@ export var schema = build_schema({
                         var _c, _d;
                         var _id = _a._id;
                         var updates = _b.updates;
-                        // NOTE (F-0076, false-positive): this self-exception is NOT a privilege-escalation hole.
+                        // NOTE: this self-exception is NOT a privilege-escalation hole.
                         // It looks like a non-admin could self-promote by updating their own record, but the
                         // "Only admin users can update user roles" constraint below (which has NO self-exception)
                         // runs in this same AND-evaluated array and rejects ANY non-admin update that includes
                         // `roles`. validateRelationshipConstraints throws on the FIRST evaluator returning a string,
                         // so a non-admin self-update with `roles` is blocked there regardless of this branch.
                         // An Admin self-updating passes that constraint via its Admin check, so this branch is
-                        // redundant-but-safe. Regression: sdk/src/tests/api_tests/security/F-0076-self-admin-role-assignment.test.ts
+                        // redundant-but-safe. Regression: sdk/src/tests/api_tests/security/self-admin-role-assignment.test.ts
                         if (_id && _id.toString() === session.id)
                             return;
                         if ((_c = session === null || session === void 0 ? void 0 : session.roles) === null || _c === void 0 ? void 0 : _c.includes('Admin'))
@@ -3335,7 +3337,7 @@ export var schema = build_schema({
                     field: stringValidatorOptionalEmptyOkay,
                     overwrite: booleanValidatorOptional,
                 }, { isOptional: true, emptyOk: true })
-            }, disabledWhenPrepopulated: { validator: booleanValidator }, feedback: { validator: listValidatorOptionalOrEmptyOk(formFieldFeedbackValidator) }, titleFontSize: { validator: nonNegNumberValidator }, groupShowCondition: { validator: objectAnyFieldsAnyValuesValidator } })
+            }, disabledWhenPrepopulated: { validator: booleanValidator }, feedback: { validator: listValidatorOptionalOrEmptyOk(formFieldFeedbackValidator) }, titleFontSize: { validator: nonNegNumberValidator }, groupShowCondition: { validator: compoundFilterValidator } })
     },
     form_responses: {
         info: {},

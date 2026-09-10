@@ -2520,11 +2520,7 @@ export const responses_satisfy_conditions = (responses: FormResponseValue[], con
           }
         }
 
-        const number = (
-          typeof conditionValue === 'string' && conditionValue.startsWith("$JS(") && conditionValue.endsWith(")")
-            ? new Function('answer', conditionValue.substring(4, conditionValue.length - 1))(answer)
-            : parseInt(conditionValue)
-        )
+        const number = parseInt(conditionValue)
         const answerNumber = (
           (answer.type === 'date' && answer.value)
             ? new Date(answer.value).getTime()

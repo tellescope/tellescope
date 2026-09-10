@@ -444,6 +444,50 @@ export var objectAnyFieldsValidator = function (valueValidator) { return ({
     getType: function () { var _a, _b; return "{ \"key\": ".concat((_b = (_a = valueValidator === null || valueValidator === void 0 ? void 0 : valueValidator.getType) === null || _a === void 0 ? void 0 : _a.call(valueValidator)) !== null && _b !== void 0 ? _b : 'string', " }"); },
 }); };
 export var objectAnyFieldsAnyValuesValidator = objectAnyFieldsValidator();
+// Values inside conditional logic were previously compiled and executed with new Function()
+// by responses_satisfy_conditions when they took the form $JS(...). That sink is removed; this rejects
+// the syntax at write time so it cannot be reintroduced through stored configuration.
+//
+// The check recurses because a CompoundFilter nests arbitrarily —
+// { $and: [{ condition: { <fieldId>: { $gt: "..." } } }] } — while objectAnyFieldsValidator only
+// inspects top-level values, so the string was never previously examined at all.
+var JS_EXPRESSION_PREFIX = '$JS(';
+var MAX_FILTER_DEPTH = 200; // far beyond any real form logic; guards against stack overflow on hostile input
+var throw_on_js_expression = function (value, depth) {
+    if (depth === void 0) { depth = 0; }
+    if (depth > MAX_FILTER_DEPTH) {
+        throw new Error("Conditional logic is nested too deeply");
+    }
+    if (typeof value === 'string') {
+        if (value.trimStart().startsWith(JS_EXPRESSION_PREFIX)) {
+            throw new Error("Conditional logic values may not contain ".concat(JS_EXPRESSION_PREFIX, "...) expressions"));
+        }
+        return;
+    }
+    if (Array.isArray(value)) {
+        for (var _i = 0, value_1 = value; _i < value_1.length; _i++) {
+            var entry = value_1[_i];
+            throw_on_js_expression(entry, depth + 1);
+        }
+        return;
+    }
+    if (is_object(value)) {
+        for (var key in value) {
+            throw_on_js_expression(value[key], depth + 1);
+        }
+    }
+};
+var with_js_expression_check = function (validator) { return (__assign(__assign({}, validator), { validate: (function (o) {
+        if (o === void 0) { o = {}; }
+        var escape = validator.validate(o);
+        return function (value) {
+            var validated = escape(value);
+            throw_on_js_expression(validated);
+            return validated;
+        };
+    }) })); };
+export var basicFilterValidator = with_js_expression_check(objectAnyFieldsAnyValuesValidator);
+export var compoundFilterValidator = with_js_expression_check(objectAnyFieldsAnyValuesValidator);
 export var optionalEmptyObjectValidator = ({
     validate: function (o) {
         if (o === void 0) { o = {}; }
@@ -3013,7 +3057,7 @@ export var previousFormFieldValidator = orValidator({
             fieldId: mongoIdStringRequired,
             priority: numberValidator,
             label: stringValidatorOptionalEmptyOkay,
-            condition: objectAnyFieldsAnyValuesValidator,
+            condition: compoundFilterValidator,
         }, { emptyOk: false }),
     }),
 });
@@ -3174,7 +3218,7 @@ export var formFieldFeedbackValidator = objectValidator({
 export var formFieldOptionDetailsValidator = objectValidator({
     option: stringValidator,
     description: stringValidator5000Optional,
-    showCondition: objectAnyFieldsAnyValuesValidator,
+    showCondition: compoundFilterValidator,
 });
 export var formFieldOptionsValidator = objectValidator({
     default: stringValidatorOptional,
@@ -3266,7 +3310,7 @@ export var formFieldOptionsValidator = objectValidator({
     stripeProductSelectionMode: booleanValidatorOptional,
     productConditions: listValidatorOptionalOrEmptyOk(objectValidator({
         productId: mongoIdStringRequired,
-        showCondition: objectAnyFieldsAnyValuesValidator,
+        showCondition: compoundFilterValidator,
     })),
     stripeCouponCodes: listOfStringsValidatorOptionalOrEmptyOk,
     useStripeEmbeddedCheckout: booleanValidatorOptional,
@@ -3958,6 +4002,7 @@ export var organizationSettingsValidator = objectValidator({
         autoReplyEnabled: booleanValidatorOptional,
         recordCalls: booleanValidatorOptional,
         transcribeCalls: booleanValidatorOptional,
+        transcribeVoicemails: booleanValidatorOptional,
         summarizeCallRecordings: booleanValidatorOptional,
         summarizeCallRecordingsPrompt: stringValidatorOptionalEmptyOkay,
         summarizeCallRecordingsMaxTokens: numberValidatorOptional,
@@ -4098,6 +4143,8 @@ export var vitalConfigurationRangeValidator = objectValidator({
     trendIntervalInMS: numberValidatorOptional,
     comparison: vitalComparisonValidator,
     deviationFromProfileWeight: booleanValidatorOptional,
+    autoReview: booleanValidatorOptional,
+    autoReviewConditions: optionalAnyObjectValidator,
 });
 export var vitalConfigurationRangesValidator = listValidator(vitalConfigurationRangeValidator);
 var _AUTOMATION_TRIGGER_EVENT_TYPES = {
@@ -4164,11 +4211,13 @@ export var automationTriggerEventValidator = orValidator({
             publicIdentifier: stringValidatorOptionalEmptyOkay,
             submitterType: sessionTypeOrAnyoneValidatorOptional,
             hasExpiredEvent: booleanValidatorOptional,
-            conditionsByFormId: optionalAnyObjectValidator,
+            conditionsByFormId: compoundFilterValidator,
         }),
         conditions: orValidator({
-            optional: optionalAnyObjectValidator,
-            included: objectAnyFieldsAnyValuesValidator,
+            // both arms must carry the $JS guard: orValidator returns the first arm that does not
+            // throw, so an unguarded permissive arm here would accept the payload before `included` is tried
+            optional: with_js_expression_check(optionalAnyObjectValidator),
+            included: compoundFilterValidator,
         }, { isOptional: true }),
     }),
     "Form Unsubmitted": objectValidator({
@@ -5034,8 +5083,6 @@ export var formScoringValidator = listValidatorOptionalOrEmptyOk(objectValidator
 //   if (typeof v !== 'object') throw new Error('Expecting an object')
 //   return v
 // }, { ...o, listOf: false })
-export var basicFilterValidator = objectAnyFieldsAnyValuesValidator;
-export var compoundFilterValidator = objectAnyFieldsAnyValuesValidator;
 var enduserFieldsAnalyticsValidator = listValidatorOptionalOrEmptyOk(objectValidator({
     key: stringValidator1000,
     value: stringValidator5000EmptyOkay,

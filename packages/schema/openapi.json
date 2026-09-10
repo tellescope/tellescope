@@ -33463,7 +33463,7 @@
     },
     "/v1/journeys/statistics": {
       "get": {
-        "summary": "Handle Incoming Communication",
+        "summary": "Journey Statistics",
         "description": "Gets statistics for a journey",
         "tags": [
           "Journeys"
@@ -33509,6 +33509,15 @@
             "schema": {
               "type": "string",
               "example": "60398b0231a295e64f084fd9"
+            }
+          },
+          {
+            "name": "metric",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "steps"
             }
           }
         ]
@@ -111558,6 +111567,9 @@
                   "transcribeCalls": {
                     "type": "boolean"
                   },
+                  "transcribeVoicemails": {
+                    "type": "boolean"
+                  },
                   "summarizeCallRecordings": {
                     "type": "boolean"
                   },
@@ -111983,6 +111995,7 @@
                 "autoReplyEnabled": true,
                 "recordCalls": true,
                 "transcribeCalls": true,
+                "transcribeVoicemails": true,
                 "summarizeCallRecordings": true,
                 "summarizeCallRecordingsPrompt": "example string",
                 "summarizeCallRecordingsMaxTokens": -10000000000000,
@@ -113271,6 +113284,9 @@
                   "transcribeCalls": {
                     "type": "boolean"
                   },
+                  "transcribeVoicemails": {
+                    "type": "boolean"
+                  },
                   "summarizeCallRecordings": {
                     "type": "boolean"
                   },
@@ -113696,6 +113712,7 @@
                 "autoReplyEnabled": true,
                 "recordCalls": true,
                 "transcribeCalls": true,
+                "transcribeVoicemails": true,
                 "summarizeCallRecordings": true,
                 "summarizeCallRecordingsPrompt": "example string",
                 "summarizeCallRecordingsMaxTokens": -10000000000000,
@@ -114983,6 +115000,9 @@
                   "transcribeCalls": {
                     "type": "boolean"
                   },
+                  "transcribeVoicemails": {
+                    "type": "boolean"
+                  },
                   "summarizeCallRecordings": {
                     "type": "boolean"
                   },
@@ -115408,6 +115428,7 @@
                 "autoReplyEnabled": true,
                 "recordCalls": true,
                 "transcribeCalls": true,
+                "transcribeVoicemails": true,
                 "summarizeCallRecordings": true,
                 "summarizeCallRecordingsPrompt": "example string",
                 "summarizeCallRecordingsMaxTokens": -10000000000000,
@@ -148937,6 +148958,13 @@
                 "deviationFromProfileWeight": {
                   "type": "boolean",
                   "example": true
+                },
+                "autoReview": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "autoReviewConditions": {
+                  "type": "string"
                 }
               }
             },
@@ -148948,7 +148976,9 @@
                   "type": "Less Than",
                   "value": -10000000000000
                 },
-                "deviationFromProfileWeight": true
+                "deviationFromProfileWeight": true,
+                "autoReview": true,
+                "autoReviewConditions": "{ }"
               }
             ]
           },
@@ -149038,6 +149068,13 @@
                 "deviationFromProfileWeight": {
                   "type": "boolean",
                   "example": true
+                },
+                "autoReview": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "autoReviewConditions": {
+                  "type": "string"
                 }
               }
             },
@@ -149049,7 +149086,9 @@
                   "type": "Less Than",
                   "value": -10000000000000
                 },
-                "deviationFromProfileWeight": true
+                "deviationFromProfileWeight": true,
+                "autoReview": true,
+                "autoReviewConditions": "{ }"
               }
             ]
           },
@@ -149139,6 +149178,13 @@
                 "deviationFromProfileWeight": {
                   "type": "boolean",
                   "example": true
+                },
+                "autoReview": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "autoReviewConditions": {
+                  "type": "string"
                 }
               }
             },
@@ -149150,7 +149196,9 @@
                   "type": "Less Than",
                   "value": -10000000000000
                 },
-                "deviationFromProfileWeight": true
+                "deviationFromProfileWeight": true,
+                "autoReview": true,
+                "autoReviewConditions": "{ }"
               }
             ]
           },
