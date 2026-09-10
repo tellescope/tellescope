@@ -85,6 +85,10 @@ export declare const build_file_link_string: ToTemplateString<{
     id: string;
     displayName: string;
 }>;
+export declare const build_shared_file_link_string: ToTemplateString<{
+    id: string;
+    displayName: string;
+}>;
 export declare const build_content_link_string: ToTemplateString<{
     id: string;
     displayName: string;

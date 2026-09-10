@@ -661,6 +661,7 @@ export interface ClientRecord extends RecordInfo {
 }
 export interface SessionScopeContext {
     calendarEventId?: string;
+    fileSecureName?: string;
 }
 export interface WithSessionConfinement {
     sessionScopes?: SessionScope[];
@@ -1219,7 +1220,7 @@ export type APIKeyScope = typeof API_KEY_SCOPES[number];
  * semantics: `scopes: []` on an API key means unrestricted, whereas a session confined to no scopes
  * reaches nothing. The route table is intentionally backend-only; only the names are public.
  */
-export declare const SESSION_SCOPES: readonly ["video-join-link", "video-start-link", "public-form", "appointment-booking", "ics-download", "embeddables-token", "portal-preview"];
+export declare const SESSION_SCOPES: readonly ["video-join-link", "video-start-link", "public-form", "appointment-booking", "ics-download", "embeddables-token", "portal-preview", "file-download-link", "file-download-shared-link"];
 export type SessionScope = typeof SESSION_SCOPES[number];
 export interface APIKey_readonly extends ClientRecord {
     hashedKey: string;

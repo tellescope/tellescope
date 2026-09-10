@@ -683,9 +683,11 @@ export interface RecordInfo {
 
 export interface ClientRecord extends RecordInfo { id: string }
 
-// Ids a session scope pins itself to, substituted into the scope's route shapes server-side.
+// Ids a session scope pins itself to, substituted into the scope's route shapes server-side, or
+// compared against a request's validated input where the id is not a path segment.
 export interface SessionScopeContext {
   calendarEventId?: string,
+  fileSecureName?: string,
 }
 
 export interface WithSessionConfinement {
@@ -1331,6 +1333,8 @@ export const SESSION_SCOPES = [
   'ics-download',
   'embeddables-token',
   'portal-preview',
+  'file-download-link',
+  'file-download-shared-link',
 ] as const
 export type SessionScope = typeof SESSION_SCOPES[number]
 

@@ -258,6 +258,9 @@ export const getTemplatedData = (text: string) => {
   if (value.startsWith('files')) {
     const [_, fileId, field] = value.split('.')
 
+    // 'shared-link' is the same link for a recipient who is not the patient; it differs only in how
+    // the server treats the patient's MFA and OTP recovery, so it renders identically here
+    if (field.startsWith('shared-link')) { return { id: fileId, displayName: field.substring(12) } }
     if (field.startsWith('link')) { return { id: fileId, displayName: field.substring(5) } }
     throw Error(`Unrecognized template field: ${value}`)
   } 
@@ -288,6 +291,10 @@ export const build_link_string: ToTemplateString<{ url: string, displayName: str
 export const build_form_link_string: ToTemplateString<{ id: string, displayName: string }> = d => `{{forms.${d.id}.link:${d.displayName}}}`
 export const build_form_group_link_string: ToTemplateString<{ id: string, displayName: string }> = d => `{{form_groups.${d.id}.link:${d.displayName}}}`
 export const build_file_link_string: ToTemplateString<{ id: string, displayName: string }> = d => `{{files.${d.id}.link:${d.displayName}}}`
+// For sharing a document with someone who is NOT the patient. The session it mints is confined to
+// this one file, skips the organization's MFA requirement (the recipient cannot answer a challenge
+// sent to the patient), and is refused OTP recovery for the same reason.
+export const build_shared_file_link_string: ToTemplateString<{ id: string, displayName: string }> = d => `{{files.${d.id}.shared-link:${d.displayName}}}`
 export const build_content_link_string: ToTemplateString<{ id: string, displayName: string }> = d => `{{content.${d.id}.link:${d.displayName}}}`
 export const build_portal_link_string: ToTemplateString<{ page: string, displayName: string }> = d => `{{portal.link.${d.page}:${d.displayName}}}`
 

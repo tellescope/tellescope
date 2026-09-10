@@ -762,6 +762,8 @@ export interface TableProps<T extends Item> extends WithTitle, WithHeader<T>, Wi
   }
   virtualization?: ScrollingListProps<T>['virtualization'],
   onExport?: (v: { data: (string | number)[][], labels: string[] }) => void,
+  // expand one displayed row into multiple export rows (e.g. grouped/combined records)
+  expandForExport?: (v: T) => T[],
   sort?: SortingField[],
   loadMoreOptions?: LoadMoreOptions<T>,
   refreshFilterSuggestionsKey?: number,
@@ -823,6 +825,7 @@ export const Table = <T extends Item>({
   onReorder,
   virtualization,
   onExport,
+  expandForExport,
   
   sort,
   refreshFilterSuggestionsKey,
@@ -1096,7 +1099,9 @@ export const Table = <T extends Item>({
               onExport ? () => {
                 onExport({
                   // use items, not sorted, as sorted only includes first page when paginated
-                  data:   (paginated ? items : filtered).map(s => fields.map(f => f.getExportData?.(s) || '')),
+                  data:   (paginated ? items : filtered).flatMap(s => (
+                    (expandForExport?.(s) ?? [s]).map(e => fields.map(f => f.getExportData?.(e) || ''))
+                  )),
                   labels: fields.map(f => f.label)
                 })
               }

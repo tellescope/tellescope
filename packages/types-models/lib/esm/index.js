@@ -31,6 +31,8 @@ export var SESSION_SCOPES = [
     'ics-download',
     'embeddables-token',
     'portal-preview',
+    'file-download-link',
+    'file-download-shared-link',
 ];
 // Reserved outcome for onAIDecision events: a child step listing this in its outcomes acts as the
 // fallback branch when the AI's answer matches no configured outcome. Never shown to users — the

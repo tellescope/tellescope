@@ -284,6 +284,11 @@ export var getTemplatedData = function (text) {
     }
     if (value.startsWith('files')) {
         var _b = value.split('.'), _2 = _b[0], fileId = _b[1], field = _b[2];
+        // 'shared-link' is the same link for a recipient who is not the patient; it differs only in how
+        // the server treats the patient's MFA and OTP recovery, so it renders identically here
+        if (field.startsWith('shared-link')) {
+            return { id: fileId, displayName: field.substring(12) };
+        }
         if (field.startsWith('link')) {
             return { id: fileId, displayName: field.substring(5) };
         }
@@ -312,6 +317,10 @@ export var build_link_string = function (d) { return "{".concat(d.url, "}[").con
 export var build_form_link_string = function (d) { return "{{forms.".concat(d.id, ".link:").concat(d.displayName, "}}"); };
 export var build_form_group_link_string = function (d) { return "{{form_groups.".concat(d.id, ".link:").concat(d.displayName, "}}"); };
 export var build_file_link_string = function (d) { return "{{files.".concat(d.id, ".link:").concat(d.displayName, "}}"); };
+// For sharing a document with someone who is NOT the patient. The session it mints is confined to
+// this one file, skips the organization's MFA requirement (the recipient cannot answer a challenge
+// sent to the patient), and is refused OTP recovery for the same reason.
+export var build_shared_file_link_string = function (d) { return "{{files.".concat(d.id, ".shared-link:").concat(d.displayName, "}}"); };
 export var build_content_link_string = function (d) { return "{{content.".concat(d.id, ".link:").concat(d.displayName, "}}"); };
 export var build_portal_link_string = function (d) { return "{{portal.link.".concat(d.page, ":").concat(d.displayName, "}}"); };
 export var to_absolute_url = function (link) { return link.startsWith('http') ? link : '//' + link; }; // ensure absolute url
