@@ -1,4 +1,5 @@
 /// <reference types="node" />
+/// <reference types="node" />
 import { CustomActions, extractFields, PublicActions } from "@tellescope/schema";
 import { UserSession, ReadFilter, WebhookSubscriptionsType, Attendee, SearchOptions, AccessPermissions, OrganizationLimits, SortBy, AnalyticsQuery, UserUIRestrictions, UserFieldRedactions, ModelName, CustomDashboardView, DataSyncRecord } from "@tellescope/types-models";
 import { ClientModelForName, ClientModelForName_readonly, ClientModelForName_required, ClientModelForName_updatesDisabled, ChatRoom, Enduser, Meeting, CreateFields, User } from "@tellescope/types-client";
@@ -3794,6 +3795,7 @@ type Queries = {
     };
     forms: {
         get_form_statistics: (args: extractFields<CustomActions['forms']['get_form_statistics']['parameters']>) => (Promise<extractFields<CustomActions['forms']['get_form_statistics']['returns']>>);
+        public_form_details: (args: extractFields<PublicActions['forms']['public_form_details']['parameters']>) => (Promise<extractFields<PublicActions['forms']['public_form_details']['returns']>>);
     };
     phone_trees: {
         start_outbound_call: (args: extractFields<CustomActions['phone_trees']['start_outbound_call']['parameters']>) => (Promise<extractFields<CustomActions['phone_trees']['start_outbound_call']['returns']>>);
@@ -4478,5 +4480,5 @@ export declare class Session extends SessionManager {
         to: string;
     }>;
 }
-export { SessionOptions };
+export type { SessionOptions };
 //# sourceMappingURL=sdk.d.ts.map

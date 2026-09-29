@@ -113,7 +113,9 @@ export type Organization = ServerModelForName['organizations']
 
 export type DatabaseModel = ServerModelForName[keyof ModelForName]
 export type InternalDatabaseRecord = ToServerModel<RecordInfo>
-export { ModelName } from "@tellescope/types-models"
+// `export type`: ModelName is a type, and a value re-export of it cannot be dropped by per-file
+// transpilers (esbuild/Vite), which would then look for a runtime export that does not exist
+export type { ModelName } from "@tellescope/types-models"
 
 export type ClientType <T> = Omit<T, '_id'> & { id: string }
 

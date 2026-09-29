@@ -1,6 +1,6 @@
 {
   "name": "@tellescope/utilities",
-  "version": "1.256.16",
+  "version": "2.0.0-beta.0",
   "description": "Shared JS code for common actions across API and browser",
   "main": "./lib/cjs/utils.js",
   "module": "./lib/esm/utils.js",
@@ -9,8 +9,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npm run-script build:esm && npm run-script build:cjs",
     "build:esm": "tsc",
-    "build:cjs": "tsc --module commonjs --outDir lib/cjs",
-    "watch:cjs": "tsc --module commonjs --outDir lib/cjs --watch"
+    "build:cjs": "tsc -b tsconfig.cjs.json",
+    "watch:cjs": "tsc -b -w --preserveWatchOutput tsconfig.cjs.json"
   },
   "repository": {
     "type": "git",
@@ -22,11 +22,14 @@
     "url": "https://github.com/tellescope-os/tellescope/issues"
   },
   "homepage": "https://github.com/tellescope-os/tellescope#readme",
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "dependencies": {
-    "@tellescope/constants": "1.256.16",
-    "@tellescope/types-models": "1.256.16",
+    "@tellescope/constants": "2.0.0-beta.0",
+    "@tellescope/types-models": "2.0.0-beta.0",
     "luxon": "3.2.1",
-    "sanitize-html": "2.10.0"
+    "sanitize-html": "2.17.7"
   },
   "devDependencies": {
     "@types/luxon": "3.2.1",

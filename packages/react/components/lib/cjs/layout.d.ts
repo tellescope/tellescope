@@ -1,5 +1,4 @@
 import React, { CSSProperties } from "react";
-import { ViewStyle } from "react-native";
 import { ErrorOptions } from "./errors";
 import { ClickableWeb, Styled } from "./mui";
 import { FixedSizeList } from 'react-window';
@@ -43,11 +42,11 @@ export interface Flex_T {
     shrink?: number;
     children?: React.ReactNode;
     reverse?: boolean;
-    wrap?: CSSProperties['flexWrap'] & ViewStyle['flexWrap'];
-    alignItems?: CSSProperties['alignItems'] & ViewStyle['alignItems'];
-    alignContent?: CSSProperties['alignContent'] & ViewStyle['alignContent'];
-    justifyContent?: CSSProperties['justifyContent'] & ViewStyle['justifyContent'];
-    alignSelf?: CSSProperties['alignSelf'] & ViewStyle['alignSelf'];
+    wrap?: CSSProperties['flexWrap'];
+    alignItems?: CSSProperties['alignItems'];
+    alignContent?: CSSProperties['alignContent'];
+    justifyContent?: CSSProperties['justifyContent'];
+    alignSelf?: CSSProperties['alignSelf'];
     component?: "div" | 'span';
     id?: string;
 }

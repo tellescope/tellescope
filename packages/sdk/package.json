@@ -1,25 +1,25 @@
 {
   "name": "@tellescope/sdk",
-  "version": "1.256.16",
+  "version": "2.0.0-beta.0",
   "description": "Code for interacting with the Tellescope API",
   "main": "./lib/cjs/sdk.js",
   "module": "./lib/esm/sdk.js",
   "types": "./lib/esm/sdk.d.ts",
   "scripts": {
-    "test": "npm run-script build:cjs && npm run-script retest",
+    "test": "npm run-script build:cjs && node ../../../scripts/dev/check-build-fresh.mjs && npm run-script retest",
     "retest": "npm run-script retest-api && npm run-script retest-public-api && npm run-script retest-webhooks",
-    "test-api": "npm run-script build:cjs && npm run-script retest-api",
+    "test-api": "npm run-script build:cjs && node ../../../scripts/dev/check-build-fresh.mjs && npm run-script retest-api",
     "retest-api": "node -r dotenv/config lib/cjs/tests/tests.js",
-    "test-public-api": "npm run-script build:cjs && npm run-script retest-public-api",
+    "test-public-api": "npm run-script build:cjs && node ../../../scripts/dev/check-build-fresh.mjs && npm run-script retest-public-api",
     "retest-public-api": "node -r dotenv/config lib/cjs/tests/public_endpoint_tests.js",
-    "test-sockets": "npm run-script build:cjs && npm run-script retest-sockets",
+    "test-sockets": "npm run-script build:cjs && node ../../../scripts/dev/check-build-fresh.mjs && npm run-script retest-sockets",
     "retest-sockets": "node -r dotenv/config lib/cjs/tests/socket_tests.js",
-    "test-webhooks": "npm run-script build:cjs && npm run-script retest-webhooks",
+    "test-webhooks": "npm run-script build:cjs && node ../../../scripts/dev/check-build-fresh.mjs && npm run-script retest-webhooks",
     "retest-webhooks": "node -r dotenv/config lib/cjs/tests/webhooks_tests.js",
     "build": "npm run-script build:esm && npm run-script build:cjs",
     "build:esm": "tsc",
-    "build:cjs": "tsc --module commonjs --outDir lib/cjs",
-    "watch:cjs": "tsc --module commonjs --outDir lib/cjs --watch"
+    "build:cjs": "tsc -b tsconfig.cjs.json",
+    "watch:cjs": "tsc -b -w --preserveWatchOutput tsconfig.cjs.json"
   },
   "repository": {
     "type": "git",
@@ -31,18 +31,21 @@
     "url": "https://github.com/tellescope-os/tellescope/issues"
   },
   "homepage": "https://github.com/tellescope-os/tellescope#readme",
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "dependencies": {
-    "@tellescope/constants": "1.256.16",
-    "@tellescope/schema": "1.256.16",
-    "@tellescope/testing": "1.256.16",
-    "@tellescope/types-client": "1.256.16",
-    "@tellescope/types-models": "1.256.16",
-    "@tellescope/types-utilities": "1.256.16",
-    "@tellescope/utilities": "1.256.16",
-    "@tellescope/validation": "1.256.16",
-    "axios": "0.30.3",
+    "@tellescope/constants": "2.0.0-beta.0",
+    "@tellescope/schema": "2.0.0-beta.0",
+    "@tellescope/testing": "2.0.0-beta.0",
+    "@tellescope/types-client": "2.0.0-beta.0",
+    "@tellescope/types-models": "2.0.0-beta.0",
+    "@tellescope/types-utilities": "2.0.0-beta.0",
+    "@tellescope/utilities": "2.0.0-beta.0",
+    "@tellescope/validation": "2.0.0-beta.0",
+    "axios": "0.33.0",
     "dotenv": "14.3.2",
-    "form-data": "4.0.4",
+    "form-data": "4.0.6",
     "source-map-support": "0.5.21"
   },
   "devDependencies": {

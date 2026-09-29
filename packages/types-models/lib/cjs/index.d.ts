@@ -582,6 +582,7 @@ export interface Organization extends Organization_readonly, Organization_requir
         questions: string[];
     }[];
     externalFormIdsToSync?: string[];
+    healthieImportLockedNotesFromTellescope?: boolean;
     enforceMFA?: boolean;
     accountSwitchingEnabled?: boolean;
     analyticsIframes?: {
@@ -5619,6 +5620,7 @@ export interface EnduserOrder extends EnduserOrder_readonly, EnduserOrder_requir
     medication?: string;
     medicationSku?: string;
     protocol?: string;
+    references?: RelatedRecord[];
 }
 export interface EnduserProblem_readonly extends ClientRecord {
 }

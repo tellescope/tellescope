@@ -4,7 +4,7 @@ import { SessionType, UserSession as UserSessionModel } from "@tellescope/types-
 import { Session, SessionOptions, EnduserSession, EnduserSessionOptions, PublicAppointmentBookingInfo } from "@tellescope/sdk";
 import { Styled } from "./mui";
 export declare const useRunOnce: (action: Function) => void;
-export { PublicAppointmentBookingInfo };
+export type { PublicAppointmentBookingInfo };
 type UserSession = Session;
 type UserSessionOptions = SessionOptions;
 export interface WithAnySession {

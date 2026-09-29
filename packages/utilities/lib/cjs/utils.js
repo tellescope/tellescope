@@ -49,9 +49,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.calculate_date_difference_for_set_fields = exports.calculate_days_between_dates_from_enduser = exports.resolve_date_value = exports.calculate_days_between_dates = exports.parse_date_string = exports.mm_dd_yyyy = exports.yyyy_mm_dd_numeric = exports.yyyy_mm_dd = exports.formatted_date_hh_mm = exports.get_add_to_gcal_link = exports.formatted_date = exports.get_time_values = exports.MONTHS = exports.MONTHS_FULL = exports.sorted_records = exports.wait = exports.findFirstUnansweredField = exports.throwFunction = exports.ensure_https_url = exports.to_absolute_url = exports.build_portal_link_string = exports.build_content_link_string = exports.build_shared_file_link_string = exports.build_file_link_string = exports.build_form_group_link_string = exports.build_form_link_string = exports.build_link_string = exports.getTemplatedData = exports.parse_link_template = exports.map_object = exports.format_stripe_subscription_interval = exports.truncate_string = exports.defined_fields = exports.user_is_active = exports.user_display_name = exports.objects_equivalent = exports.to_object_id = exports.url_safe_path = exports.is_whitespace = exports.matching_fields = exports.is_object = exports.filter_object = exports.is_defined = exports.is_truthy = exports.object_is_empty = exports.first_letter_lowercase = exports.first_letter_capitalized = exports.user_is_locked_out = exports.user_is_admin = exports.ObjectId = void 0;
-exports.YYYY_MM_DD_to_MM_DD_YYYY = exports.getLocalTimezone = exports.string_matches_key_or_value = exports.evaluate_conditional_logic_for_enduser_fields = exports.UPCOMING_EVENT_COUNT_KEY = exports.get_enduser_field_value_for_key = exports.age_for_dob_mmddyyyy = exports.replace_keys_and_values_in_object = exports.get_conditional_logic_values = exports.evaluate_conditional_logic_for_medication_title = exports.evaluate_string_field_comparison = exports.evaluate_conditional_logic = exports.shuffle_array_in_place = exports.plaintext_for_managed_content_record = exports.sanitize_html = exports.timezone_for_enduser = exports.safeJSONParseTemplate = exports.safeJSONParse = exports.payment_cost_to_string = exports.read_local_storage = exports.update_local_storage = exports.is_organization_owner = exports.form_response_value_to_string = exports.is_table_input_response = exports.user_has_record_access = exports.is_suborganization = exports.matches_organization = exports.getDefaultPortalURL = exports.getPublicFileURL = exports.getOrgnizationFaviconURL = exports.getOrgnizationLogoURL = exports.getBuiltInPublicFileName = exports.getGoogleClientAPIKey = exports.getGoogleClientId = exports.getApiURL = exports.getEnvironment = exports.TEST_API_URL = exports.STAGING_API_URL = exports.PROD_API_URL = exports.query_string_for_object = exports.sanitize_user_html_with_iframes = exports.DEFAULT_IFRAME_SANDBOX = exports.sanitize_user_html = exports.sanitize_html_for_cms = exports.sanitize_html_with_links = exports.remove_image_tags = exports.remove_style_tags = exports.remove_script_tags = exports.time_for_calendar_event = exports.fullMonth_day_year = void 0;
-exports.is_full_iso_string_heuristic = exports.display_time_for_seconds = exports.replace_enduser_template_values = exports.replace_secret_values = exports.get_secret_names = exports.replace_sms_template_values = exports.replace_form_field_template_values = exports.replace_order_template_values = exports.replace_medication_template_values = exports.replace_calendar_event_template_values = exports.replace_purchase_template_values = exports.replace_tag_template_values_for_enduser = exports.append_current_utm_params = exports.get_utm_params = exports.is_out_of_office = exports.color_for_classification = exports.classification_for_vital = exports.SMS_UNSUBSCRIBE_KEYWORDS = exports.satisfies_vital_comparison = exports.field_can_autosubmit = exports.field_can_autoadvance = exports.decodeJWT = exports.validate_organization_for_develop_health = exports.validate_user_for_develop_health = exports.validate_enduser_for_develop_health = exports.validate_enduser_for_script_sure = exports.validate_enduser_for_dose_spot = exports.validate_enduser_for_smart_meter = exports.validate_enduser_for_gogo = exports.json_error_string = exports.validate_enduser_for_candid = exports.validate_provider_for_candid = exports.validate_organization_for_candid = exports.validate_insurance_for_eligibility = exports.weighted_round_robin = exports.responses_satisfy_conditions = exports.calculate_bmi_from_responses = exports.calculate_bmi = exports.FORM_LOGIC_URL_PARAMETER = exports.FORM_LOGIC_CALCULATED_FIELDS = exports.calculate_form_scoring = exports.batch_array = exports.capture_is_supported = exports.get_next_reminder_timestamp = exports.mfa_is_enabled = exports.decode_email_for_display = exports.URIDecodeEmail = exports.get_recent_outbound_communication_date = exports.get_recent_engagement_date = exports.MM_DD_YYYY_to_YYYY_MM_DD = void 0;
-exports.constructT2BaseURL = exports.formatDuration = exports.calculateTimeTrackDuration = exports.validate_custom_field_references = exports.slot_violates_calendar_event_limits = exports.replace_form_response_template_values = exports.resolve_integration_id = exports.replace_snippet_template_values = exports.get_snippet_keys = exports.emit_gtm_event = exports.get_care_team_primary = exports.is_checkbox_custom_field_value = exports.enrich_doxy_url = exports.to_human_readable_phone_number = exports.get_canvas_id = exports.should_show_unsubmitted_form_response_for_interval = exports.enduser_insurance_string = exports.enduser_address_string = exports.is_timezone = exports.downloadFile = exports.get_prepopulated_responses = exports.INVALID_PREPOPULATION_TYPES = exports.add_value_for_dotted_key = exports.value_for_dotted_key = exports.get_flattened_fields = exports.skip_due_date_as_needed = void 0;
+exports.evaluate_conditional_logic_for_enduser_fields = exports.UPCOMING_EVENT_COUNT_KEY = exports.get_enduser_field_value_for_key = exports.age_for_dob_mmddyyyy = exports.replace_keys_and_values_in_object = exports.get_conditional_logic_values = exports.evaluate_conditional_logic_for_medication_title = exports.evaluate_string_field_comparison = exports.evaluate_conditional_logic = exports.shuffle_array_in_place = exports.plaintext_for_managed_content_record = exports.sanitize_html = exports.timezone_for_enduser = exports.safeJSONParseTemplate = exports.safeJSONParse = exports.payment_cost_to_string = exports.read_local_storage = exports.update_local_storage = exports.is_organization_owner = exports.form_response_value_to_string = exports.is_table_input_response = exports.user_has_record_access = exports.is_suborganization = exports.matches_organization = exports.getDefaultPortalURL = exports.getPublicFileURL = exports.getOrgnizationFaviconURL = exports.getOrgnizationLogoURL = exports.getBuiltInPublicFileName = exports.getGoogleClientAPIKey = exports.getGoogleClientId = exports.getApiURL = exports.getEnvironment = exports.setLocalPortalURL = exports.setLocalApiURL = exports.isLocalDevOrigin = exports.TEST_API_URL = exports.STAGING_API_URL = exports.PROD_API_URL = exports.query_string_for_object = exports.sanitize_user_html_with_iframes = exports.DEFAULT_IFRAME_SANDBOX = exports.sanitize_user_html = exports.sanitize_html_for_cms = exports.sanitize_html_with_links = exports.remove_image_tags = exports.remove_style_tags = exports.remove_script_tags = exports.time_for_calendar_event = exports.fullMonth_day_year = void 0;
+exports.get_secret_names = exports.replace_sms_template_values = exports.replace_form_field_template_values = exports.replace_order_template_values = exports.replace_medication_template_values = exports.replace_calendar_event_template_values = exports.replace_purchase_template_values = exports.replace_tag_template_values_for_enduser = exports.append_current_utm_params = exports.get_utm_params = exports.TRACKED_URL_PARAMS = exports.is_out_of_office = exports.color_for_classification = exports.classification_for_vital = exports.SMS_UNSUBSCRIBE_KEYWORDS = exports.satisfies_vital_comparison = exports.field_can_autosubmit = exports.field_can_autoadvance = exports.decodeJWT = exports.validate_organization_for_develop_health = exports.validate_user_for_develop_health = exports.validate_enduser_for_develop_health = exports.validate_enduser_for_script_sure = exports.validate_enduser_for_dose_spot = exports.validate_enduser_for_smart_meter = exports.validate_enduser_for_gogo = exports.json_error_string = exports.validate_enduser_for_candid = exports.validate_provider_for_candid = exports.validate_organization_for_candid = exports.validate_insurance_for_eligibility = exports.weighted_round_robin = exports.responses_satisfy_conditions = exports.calculate_bmi_from_responses = exports.calculate_bmi = exports.FORM_LOGIC_URL_PARAMETER = exports.FORM_LOGIC_CALCULATED_FIELDS = exports.calculate_form_scoring = exports.batch_array = exports.capture_is_supported = exports.get_next_reminder_timestamp = exports.mfa_is_enabled = exports.decode_email_for_display = exports.URIDecodeEmail = exports.get_recent_outbound_communication_date = exports.get_recent_engagement_date = exports.MM_DD_YYYY_to_YYYY_MM_DD = exports.YYYY_MM_DD_to_MM_DD_YYYY = exports.getLocalTimezone = exports.string_matches_key_or_value = void 0;
+exports.constructT2BaseURL = exports.formatDuration = exports.calculateTimeTrackDuration = exports.validate_custom_field_references = exports.slot_violates_calendar_event_limits = exports.replace_form_response_template_values = exports.resolve_integration_id = exports.replace_snippet_template_values = exports.get_snippet_keys = exports.emit_gtm_event = exports.get_care_team_primary = exports.is_checkbox_custom_field_value = exports.enrich_doxy_url = exports.to_human_readable_phone_number = exports.get_canvas_id = exports.should_show_unsubmitted_form_response_for_interval = exports.enduser_insurance_string = exports.enduser_address_string = exports.is_timezone = exports.downloadFile = exports.get_prepopulated_responses = exports.INVALID_PREPOPULATION_TYPES = exports.add_value_for_dotted_key = exports.value_for_dotted_key = exports.get_flattened_fields = exports.skip_due_date_as_needed = exports.is_full_iso_string_heuristic = exports.display_time_for_seconds = exports.replace_enduser_template_values = exports.replace_secret_values = void 0;
 var types_models_1 = require("@tellescope/types-models");
 var constants_1 = require("@tellescope/constants");
 var sanitize_html_1 = __importDefault(require("sanitize-html"));
@@ -888,7 +888,9 @@ exports.DEFAULT_IFRAME_SANDBOX = 'allow-scripts allow-same-origin allow-forms al
  * what rules that out, which is why the src check must not be relaxed.
  *
  * An author-supplied `sandbox` is honored verbatim as an escape hatch (including `sandbox=""`, the
- * most restrictive value), so a surface can tighten or loosen per embed.
+ * most restrictive value), so a surface can tighten or loosen per embed. Honoring the empty value
+ * requires the `allowedEmptyAttributes` option below — without it sanitize-html drops it and the
+ * frame ends up with no sandbox at all.
  *
  * Current callers: the live form's field description (`Forms/forms.tsx`, `Forms/forms.v2.tsx`).
  * The read-only submitted-response views intentionally stay on `sanitize_user_html`.
@@ -978,8 +980,8 @@ var sanitize_user_html_with_iframes = function (html) {
                 return {
                     tagName: tagName,
                     attribs: __assign(__assign({}, attribs), { src: src, 
-                        // `??` rather than `||`: sandbox="" serializes as a bare `sandbox`, which is the MOST
-                        // restrictive value, so an explicit empty string must be honored rather than replaced.
+                        // `??` rather than `||`: sandbox="" is the MOST restrictive value (it grants nothing),
+                        // so an explicit empty string must be honored rather than replaced by the default.
                         sandbox: (_a = attribs.sandbox) !== null && _a !== void 0 ? _a : exports.DEFAULT_IFRAME_SANDBOX, referrerpolicy: attribs.referrerpolicy || 'strict-origin-when-cross-origin' }),
                 };
             },
@@ -987,6 +989,14 @@ var sanitize_user_html_with_iframes = function (html) {
         // Removes src-less iframes AND their fallback content. Returning a non-allowlisted tagName from
         // transformTags does NOT do this — sanitize-html drops the tag but emits the text inside it.
         exclusiveFilter: function (frame) { return frame.tag === 'iframe' && !frame.attribs.src; },
+        // sanitize-html >= 2.11 deletes empty non-boolean attributes, and `sandbox` is on its
+        // nonBooleanAttributes list. Without this, an author's `sandbox=""` — the MOST restrictive
+        // value — is dropped and the frame renders with NO sandbox: strictly more permissive than both
+        // the author's intent and DEFAULT_IFRAME_SANDBOX, i.e. a fail-open. 'alt' repeats the option's
+        // own default (an empty alt marks a decorative image), which passing this option replaces.
+        // The cast is load-bearing: @types/sanitize-html has never declared allowedEmptyAttributes (not
+        // even in 2.16.1, the latest), and its TS 5.x-only releases can't be used against tsc 4.9 here.
+        allowedEmptyAttributes: ['alt', 'sandbox'],
     });
 };
 exports.sanitize_user_html_with_iframes = sanitize_user_html_with_iframes;
@@ -1004,6 +1014,21 @@ exports.query_string_for_object = query_string_for_object;
 exports.PROD_API_URL = 'https://api.tellescope.com';
 exports.STAGING_API_URL = 'https://staging-api.tellescope.com';
 exports.TEST_API_URL = "http://localhost:8080";
+/** True for a page served from localhost or 127.0.0.1 on any port: a local dev server, or a parallel
+ *  "slot" checkout on non-default ports. Safe outside a browser (React Native). */
+var isLocalDevOrigin = function () { return (typeof window !== 'undefined' && !!window.location
+    && ['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname)); };
+exports.isLocalDevOrigin = isLocalDevOrigin;
+// Local overrides, set once by each app's entry point from its Vite env (VITE_TELLESCOPE_HOST and, for
+// the webapp, VITE_TELLESCOPE_PORTAL_URL). Library code cannot read import.meta.env itself because it
+// is also compiled to CommonJS for Node consumers. Unset (the default) leaves every helper below
+// exactly as before.
+var localApiURL;
+var localPortalURL;
+var setLocalApiURL = function (url) { localApiURL = url || undefined; };
+exports.setLocalApiURL = setLocalApiURL;
+var setLocalPortalURL = function (url) { localPortalURL = url || undefined; };
+exports.setLocalPortalURL = setLocalPortalURL;
 var getEnvironment = function () { return (window.location.origin.includes('staging')
     ? 'staging'
     : (window.location.origin.includes('localhost:') || window.location.origin.includes('127.0.0.1:')) // don't check for Tellescope, may be hosted on a custom URL
@@ -1013,7 +1038,7 @@ exports.getEnvironment = getEnvironment;
 var getApiURL = function () { return (window.location.origin.includes('staging')
     ? exports.STAGING_API_URL
     : (window.location.origin.includes('localhost:') || window.location.origin.includes('127.0.0.1:')) // don't check for Tellescope, may be hosted on a custom URL
-        ? exports.TEST_API_URL
+        ? (localApiURL || exports.TEST_API_URL) // a slot's API when the app set it; the default local API otherwise
         : exports.PROD_API_URL); };
 exports.getApiURL = getApiURL;
 var getGoogleClientId = function () {
@@ -1063,8 +1088,8 @@ exports.getPublicFileURL = getPublicFileURL;
 var getDefaultPortalURL = function (_a) {
     var subdomain = _a.subdomain;
     var api = (0, exports.getApiURL)();
-    if (api === exports.TEST_API_URL)
-        return "http://localhost:3030";
+    if ((0, exports.getEnvironment)() === 'test')
+        return localPortalURL || "http://localhost:3030"; // local checkout (main or slot)
     return ("https://".concat(subdomain, ".").concat(api === exports.PROD_API_URL ? 'portal' : 'staging-portal', ".tellescope.com"));
 };
 exports.getDefaultPortalURL = getDefaultPortalURL;
@@ -2896,11 +2921,16 @@ var is_out_of_office = function (blocks, date, zone, outOfOfficeBlocks) {
     return true;
 };
 exports.is_out_of_office = is_out_of_office;
+// Non-utm_ URL parameters that are tracked alongside utm_* params: captured from the page URL on form
+// submission (stored as custom fields on a newly created patient) and carried across form redirects and
+// form chaining. Matched exactly, unlike the case-insensitive utm_ prefix.
+exports.TRACKED_URL_PARAMS = ['ours_user_id', 'curve_bridge_token'];
+var is_tracked_url_param = function (key) { return (key.toLowerCase().startsWith('utm_') || exports.TRACKED_URL_PARAMS.includes(key)); };
 var get_utm_params = function () {
     var params = new URL(window.location.href).searchParams;
     var utmParams = [];
     params.forEach(function (value, field) {
-        if (field.toLowerCase().startsWith('utm_') || field === 'ours_user_id') {
+        if (is_tracked_url_param(field)) {
             utmParams.push({ field: field, value: value });
         }
     });
@@ -2912,7 +2942,7 @@ var append_current_utm_params = function (targetURL) {
         var params = new URL(window.location.href).searchParams;
         var utmParams_1 = {};
         params.forEach(function (value, key) {
-            if (key.toLowerCase().startsWith('utm_') || key === 'ours_user_id') {
+            if (is_tracked_url_param(key)) {
                 utmParams_1[key] = value;
             }
         });

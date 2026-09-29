@@ -1,6 +1,4 @@
 import React, { CSSProperties, useState } from "react"
-import { ViewStyle } from "react-native"
-import { GestureResponderEvent } from "react-native"
 
 import MuiBadge from "@mui/material/Badge"
 import MuiAvatar from "@mui/material/Avatar"
@@ -77,7 +75,7 @@ export type Styled = {
   style?: CSSProperties,
 }
 export type NativeStyled = {
-  style?: CSSProperties | ViewStyle,
+  style?: CSSProperties,
 }
 export type CanFlex = {
   flex?: boolean,
@@ -113,16 +111,16 @@ const muiColors: { [K in MuiColor]: K } = {
 const resolve_color = (c: string) => muiColors[c as MuiColor] 
 
 export interface Clickable {
-  onClick?: React.MouseEventHandler<HTMLElement> | ((e: GestureResponderEvent) => void);
-  onPress?: React.MouseEventHandler<HTMLElement> | ((e: GestureResponderEvent) => void);
+  onClick?: React.MouseEventHandler<HTMLElement>;
+  onPress?: React.MouseEventHandler<HTMLElement>;
 }
 export interface ClickableWeb extends Clickable {
   onClick?: React.MouseEventHandler<HTMLElement>;
   onPress?: React.MouseEventHandler<HTMLElement>;
 }
 export interface ClickableNative extends Clickable {
-  onClick?: ((e: GestureResponderEvent) => void);
-  onPress?: ((e: GestureResponderEvent) => void);
+  onClick?: ((e: React.MouseEvent<HTMLElement>) => void);
+  onPress?: ((e: React.MouseEvent<HTMLElement>) => void);
 }
 
 export interface Changeable<T=string> {

@@ -414,13 +414,15 @@ export var useDataSync____internal = function () {
     var deleted = React.useRef({});
     var handlers = React.useRef({});
     useEffect(function () {
-        var _a;
         try {
             // not compatible with React Native
             if (typeof window === 'undefined') {
                 return;
             }
-            if (((_a = global === null || global === void 0 ? void 0 : global.navigator) === null || _a === void 0 ? void 0 : _a.product) === 'ReactNative') {
+            // typeof-guarded `navigator`, not `global`: webpack 4 polyfilled `global` in the browser, Vite and
+            // Rollup do not, and a bare undeclared identifier throws even behind optional chaining. `typeof`
+            // works in every runtime (browsers, React Native, Node) without relying on `global` or `globalThis`.
+            if (typeof navigator !== 'undefined' && navigator.product === 'ReactNative') {
                 return;
             }
             var onMouseMove_1 = function () { lastActiveForSync.at = new Date(); };

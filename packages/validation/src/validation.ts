@@ -1,4 +1,4 @@
-import { ObjectId, remove_script_tags, sanitize_html } from "@tellescope/utilities"
+import { ObjectId, remove_script_tags, sanitize_html, sanitize_user_html } from "@tellescope/utilities"
 
 import {
   CUD as CUDType,
@@ -453,8 +453,9 @@ export interface ValidatorOptions {
   trim?: boolean;
   unique?: boolean, // should list contain uniques
   field?: string,
-  escapeHTML?: boolean,
-}  
+  escapeHTML?: boolean, // strips ALL tags, for values that are meant to be plain text
+  sanitizeUserHTML?: boolean, // keeps formatting but drops anything executable or framing, for values stored AND rendered as HTML
+}
 export interface ValidatorOptionsForValue extends ValidatorOptions {
   listOf?: false;
 }
@@ -507,7 +508,7 @@ export const build_validator: BuildValidator_T = (escapeFunction, options={} as 
     shouldTruncate, isOptional, toLower,
     emptyStringOk, emptyListOk, nullOk,
     isObject, isNumber, listOf, isBoolean,
-    unique, field='', escapeHTML,
+    unique, field='', escapeHTML, sanitizeUserHTML,
   } = options
 
   const minLength = options.minLength || 0
@@ -570,6 +571,12 @@ export const build_validator: BuildValidator_T = (escapeFunction, options={} as 
 
         if (typeof escapedValue === 'string' && escapeHTML) {
           escapedValue = sanitize_html(escapedValue)
+        }
+
+        // before the maxLength check below, so the limit applies to what actually gets stored
+        // (sanitizing can lengthen a value: external links gain target/rel)
+        if (typeof escapedValue === 'string' && sanitizeUserHTML) {
+          escapedValue = sanitize_user_html(escapedValue)
         }
 
         if (typeof escapedValue === 'string') { // is string
@@ -1149,6 +1156,18 @@ export const stringValidator25000OptionalEmptyOkay: ValidatorDefinition<string> 
   getExample: getExampleString,
   getType: getTypeString,
 }
+// For HTML authored by whoever fills out a form (including anonymous visitors on public intake pages),
+// which is stored as HTML and later rendered as HTML. 30000 rather than the 25000 of its plain-text
+// neighbor is headroom for the sanitizer's own additions (~40 characters of target/rel per external
+// link), so an answer that was accepted once is still accepted when the client re-submits the stored,
+// slightly longer version of it.
+export const stringValidator30000RichTextHTML: ValidatorDefinition<string> = {
+  validate: (o={}) => build_validator(
+    escapeString(o), { ...o, maxLength: 30000, isOptional: true, listOf: false, emptyStringOk: true, sanitizeUserHTML: true }
+  ),
+  getExample: getExampleString,
+  getType: getTypeString,
+}
 export const stringValidator25000EmptyOkay: ValidatorDefinition<string> = {
   validate: (o={}) => build_validator(
     escapeString(o), { ...o, maxLength: 25000, listOf: false, emptyStringOk: true } 
@@ -1275,13 +1294,36 @@ export const listOfMongoIdStringValidatorOptionalOrEmptyOk = listValidatorOption
 export const sharedWithOrganizationIdsValidator = listValidatorEmptyOk(listValidator(mongoIdStringRequired))
 export const listOfListsOfMongoIdStringsValidatorOptionalOrEmptyOk = listValidatorOptionalOrEmptyOk(listValidator(mongoIdStringRequired))
 
+/**
+ * The `isSlug` check that validator 13.11.0 applied, inlined verbatim.
+ *
+ * Production has always validated Organization `subdomain` with this exact pattern, and this is a
+ * dependency upgrade, so the accept-set must not move: it keeps "Acme", "My-Org" and "demo_org_1"
+ * valid, and — deliberately — also keeps accepting values that are NOT really valid DNS labels
+ * ("acme.health", "org/sub", "my@org", "caf\u00e9", 64+ characters). Tightening that is a separate,
+ * API-visible decision.
+ *
+ * Inlined rather than left as `isSlug(s)` because validator 13.15.35 narrowed the pattern to
+ * lowercase-only with alphanumeric ends, which would start rejecting mixed-case subdomains that
+ * customers already have, and would newly accept 1- and 2-character slugs that the UI has always
+ * refused. Unlike `isDate`, this one is a genuine behavior change in the upgrade, so it is pinned
+ * here. Verified identical to 13.11.0's `isSlug` across 24 inputs; regex, so timezone-independent.
+ *
+ * If the DNS-label tightening is wanted later, it needs its own PR plus a check of existing
+ * `organizations.subdomain` values.
+ *
+ * Exported so the webapp's client-side check uses the same pattern: its bundled `isSlug` would
+ * otherwise move to 13.15.35's stricter one and start rejecting subdomains the API still accepts.
+ */
+export const SUBDOMAIN_SLUG_REGEX = /^[^\s-_](?!.*?[-_]{2,})[a-z0-9-\\][^\s]*[^-_\s]$/
+
 export const slugValidator: ValidatorDefinition<string> = {
   validate: (o={}) => build_validator(
     s => {
       if (typeof s !== 'string') throw new Error("Expecting a string")
-      if (!isSlug(s)) throw new Error(`Invalid format for ${s}`)
+      if (!SUBDOMAIN_SLUG_REGEX.test(s)) throw new Error(`Invalid format for ${s}`)
       return s
-    }, 
+    },
     { ...optionsWithDefaults(o), maxLength: 10000, listOf: false },
   ),
   getType: getTypeString,
@@ -1407,13 +1449,30 @@ export const numberOrStringValidatorOptional = orValidator({
 // packages/public/schema/openapi.json emit a ~1900-line diff of nothing but changed examples.
 const EXAMPLE_DATE_ISO = new Date('2024-01-01T00:00:00.000Z').toISOString()
 
+// NOTE on `isDate` below, which reads backwards and is deliberately left that way.
+//
+// A true return REJECTS. That is not what it looks like, but it IS what production has always done:
+// bare YYYY-MM-DD is rejected, ISO datetimes are accepted, and an unparseable string is accepted and
+// stored as an `Invalid Date`. Changing any of that is an API-visible change to ~135 schema fields
+// and belongs in its own PR, not in a dependency upgrade.
+//
+// What DID change, and why this comment exists: in validator 13.11.0 `isDate` was timezone-dependent
+// (its last step compared a UTC-parsed date against a local-time `.getDate()`), so it returned false
+// west of Greenwich and true in UTC. The servers run UTC, so the behavior above is what production
+// did — but a US developer's machine disagreed, which made this code look broken locally. 13.12.0
+// fixed the timezone bug (#2257). Verified across 26 inputs and four timezones: 13.15.35 returns
+// exactly what 13.11.0 returned under UTC, everywhere. So the upgrade preserves production behavior
+// and additionally makes it reproducible off-server. `api_tests/validation_behavior_locks` pins it.
+//
+// Known, deliberately NOT fixed here: an unparseable string persists as an `Invalid Date`.
+
 export const dateValidator: ValidatorDefinition<Date> = {
   validate: (options={}) => build_validator(
     (date: any) => {
-      if (isDate(date)) throw new Error(options.errorMessage || "Invalid date") 
+      if (isDate(date)) throw new Error(options.errorMessage || "Invalid date")
 
       return new Date(date)
-    }, 
+    },
     { ...options, maxLength: 250, listOf: false }
   ),
   getExample: () => EXAMPLE_DATE_ISO,
@@ -1424,7 +1483,7 @@ export const dateOptionalOrEmptyStringValidator: ValidatorDefinition<Date> = {
     (date: any) => {
       if (date === '') return date
       // coerce to string in case date is an actual Date object
-      if (isDate(date?.toString())) throw new Error(options.errorMessage || "Invalid date") 
+      if (isDate(date?.toString())) throw new Error(options.errorMessage || "Invalid date")
 
       return new Date(date)
     }, 
@@ -1436,10 +1495,10 @@ export const dateOptionalOrEmptyStringValidator: ValidatorDefinition<Date> = {
 export const dateValidatorOptional: ValidatorDefinition<Date> = {
   validate: (options={}) => build_validator(
     (date: any) => {
-      if (isDate(date)) throw new Error(options.errorMessage || "Invalid date") 
+      if (isDate(date)) throw new Error(options.errorMessage || "Invalid date")
 
       return new Date(date)
-    }, 
+    },
     { ...options, maxLength: 250, listOf: false, isOptional: true, emptyStringOk: true }
   ),
   getExample: () => EXAMPLE_DATE_ISO,
@@ -2324,9 +2383,15 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
     type: exactMatchValidator(['stringLong']),
     value: stringValidator20000ptional,
   }),
+  // Rich Text answers are HTML written by the form filler and rendered as HTML by staff-facing views,
+  // exports and PDFs, so they're sanitized here, on write: every client write path (create/update,
+  // submit_form_response, save_field_response) goes through this validator, which makes it the one
+  // place all of them share. Server-side writers that bypass validation (Formsort, Healthie sync,
+  // AI form filling) don't construct 'Rich Text' answers today — any that starts to must pass the
+  // value through sanitize_user_html itself.
   "Rich Text": objectValidator<FormResponseAnswerRichText>({
     type: exactMatchValidator(['Rich Text']),
-    value: stringValidator25000OptionalEmptyOkay,
+    value: stringValidator30000RichTextHTML,
   }),
   date: objectValidator<FormResponseAnswerDate>({
     type: exactMatchValidator(['date']),

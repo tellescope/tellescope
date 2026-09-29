@@ -1,17 +1,16 @@
 {
   "name": "@tellescope/chat",
-  "version": "1.256.16",
+  "version": "2.0.0-beta.0",
   "description": "",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",
-  "react-native": "./lib/esm/index.js",
   "types": "./lib/esm/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npm run-script build:esm && npm run-script build:cjs",
     "build:esm": "tsc",
-    "build:cjs": "tsc --module commonjs --outDir lib/cjs",
-    "watch:cjs": "tsc --module commonjs --outDir lib/cjs --watch"
+    "build:cjs": "tsc -b tsconfig.cjs.json",
+    "watch:cjs": "tsc -b -w --preserveWatchOutput tsconfig.cjs.json"
   },
   "repository": {
     "type": "git",
@@ -23,6 +22,9 @@
     "url": "https://github.com/tellescope-os/enduser-authentication/issues"
   },
   "homepage": "https://github.com/tellescope-os/enduser-authentication#readme",
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "devDependencies": {
     "@types/react": "17.0.52",
     "@types/react-dom": "17.0.18",
@@ -38,14 +40,13 @@
     "@fontsource/roboto": "4.5.8",
     "@mui/icons-material": "5.15.0",
     "@mui/material": "5.15.0",
-    "@tellescope/constants": "1.256.16",
-    "@tellescope/react-components": "1.256.16",
-    "@tellescope/sdk": "1.256.16",
-    "@tellescope/types-client": "1.256.16",
-    "@tellescope/types-models": "1.256.16",
-    "@tellescope/types-utilities": "1.256.16",
-    "@tellescope/utilities": "1.256.16",
-    "react-native-image-picker": "7.0.2"
+    "@tellescope/constants": "2.0.0-beta.0",
+    "@tellescope/react-components": "2.0.0-beta.0",
+    "@tellescope/sdk": "2.0.0-beta.0",
+    "@tellescope/types-client": "2.0.0-beta.0",
+    "@tellescope/types-models": "2.0.0-beta.0",
+    "@tellescope/types-utilities": "2.0.0-beta.0",
+    "@tellescope/utilities": "2.0.0-beta.0"
   },
   "peerDependencies": {
     "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0",

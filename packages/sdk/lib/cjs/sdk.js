@@ -496,6 +496,7 @@ var Session = /** @class */ (function (_super) {
         /** @deprecated */ //  keep here as well for backwards compatibility
         queries.organizations.invite_user = function (a) { return _this._POST("/v1/".concat(schema_1.schema.users.customActions.invite_user.path), a); };
         queries.forms.get_form_statistics = function (args) { return _this._GET("/v1".concat(schema_1.schema.forms.customActions.get_form_statistics.path), args); };
+        queries.forms.public_form_details = function (args) { return _this._GET("/v1".concat(schema_1.schema.forms.publicActions.public_form_details.path), args); };
         queries.form_fields.load_choices_from_database = function (args) { return _this._GET("/v1".concat(schema_1.schema.form_fields.customActions.load_choices_from_database.path), args); };
         queries.form_fields.booking_info = function (args) { return _this._GET("/v1".concat(schema_1.schema.form_fields.customActions.booking_info.path), args); };
         queries.form_responses.prepare_form_response = function (args) { return _this._POST("/v1".concat(schema_1.schema.form_responses.customActions.prepare_form_response.path), args); };

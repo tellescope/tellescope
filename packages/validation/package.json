@@ -1,6 +1,6 @@
 {
   "name": "@tellescope/validation",
-  "version": "1.256.16",
+  "version": "2.0.0-beta.0",
   "description": "Input validation functions for server, client, and schema definition",
   "main": "./lib/cjs/validation.js",
   "module": "./lib/esm/validation.js",
@@ -9,8 +9,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npm run-script build:esm && npm run-script build:cjs",
     "build:esm": "tsc",
-    "build:cjs": "tsc --module commonjs --outDir lib/cjs",
-    "watch:cjs": "tsc --module commonjs --outDir lib/cjs --watch"
+    "build:cjs": "tsc -b tsconfig.cjs.json",
+    "watch:cjs": "tsc -b -w --preserveWatchOutput tsconfig.cjs.json"
   },
   "repository": {
     "type": "git",
@@ -22,13 +22,16 @@
     "url": "https://github.com/tellescope-os/tellescope/issues"
   },
   "homepage": "https://github.com/tellescope-os/tellescope#readme",
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "dependencies": {
-    "@tellescope/constants": "1.256.16",
-    "@tellescope/types-client": "1.256.16",
-    "@tellescope/types-models": "1.256.16",
-    "@tellescope/types-utilities": "1.256.16",
-    "@tellescope/utilities": "1.256.16",
-    "validator": "13.15.26"
+    "@tellescope/constants": "2.0.0-beta.0",
+    "@tellescope/types-client": "2.0.0-beta.0",
+    "@tellescope/types-models": "2.0.0-beta.0",
+    "@tellescope/types-utilities": "2.0.0-beta.0",
+    "@tellescope/utilities": "2.0.0-beta.0",
+    "validator": "13.15.35"
   },
   "devDependencies": {
     "@types/validator": "13.11.9",

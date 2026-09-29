@@ -606,6 +606,10 @@ export interface Organization extends Organization_readonly, Organization_requir
   dosespotClinics?: { id: string, name: string }[],
   answersSyncToPortal?: { id: string, questions: string[] }[]
   externalFormIdsToSync?: string[],
+  // opt-in: when a Healthie note that originated as a Tellescope form is signed + locked in Healthie,
+  // import the locked version as a net-new Healthie form response (capturing answers the provider
+  // added in Healthie) instead of skipping it as a duplicate
+  healthieImportLockedNotesFromTellescope?: boolean,
   enforceMFA?: boolean,
   accountSwitchingEnabled?: boolean, // opt-in: must be true for users in this org to participate in linked-account access (as either requester or target)
   analyticsIframes?: {
@@ -5638,6 +5642,7 @@ export interface EnduserOrder extends EnduserOrder_readonly, EnduserOrder_requir
   medication?: string,
   medicationSku?: string,
   protocol?: string,
+  references?: RelatedRecord[],
 }
 
 export interface EnduserProblem_readonly extends ClientRecord {}

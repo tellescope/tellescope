@@ -8,6 +8,14 @@ export type BackgroundEffect = 'none' | 'blur' | 'image'
 
 export const BLUR_BACKGROUND_ASSETS_PATH = '/twilio-video-processors'
 
+// The processors fetch their model + wasm from this path at runtime, so an app served from a non-root
+// base (preview deploys, a Vite `base`) has to point it at `${BASE_URL}twilio-video-processors`. A
+// plain setter keeps this library free of bundler-specific globals such as import.meta.env; call it
+// once at app startup, before any video call is joined.
+let backgroundEffectsAssetsPath = BLUR_BACKGROUND_ASSETS_PATH
+export const setBackgroundEffectsAssetsPath = (path: string) => { backgroundEffectsAssetsPath = path }
+export const getBackgroundEffectsAssetsPath = () => backgroundEffectsAssetsPath
+
 // Current (three-state) preference key
 export const BACKGROUND_EFFECT_STORAGE_KEY = 'tellescope.twilio.backgroundEffect'
 // Legacy boolean blur preference key, kept for backward-compatible migration
@@ -134,11 +142,11 @@ export class BackgroundEffectController {
       let processor: BackgroundProcessor
       if (effect === 'blur') {
         processor = new mod.GaussianBlurBackgroundProcessor({
-          assetsPath: BLUR_BACKGROUND_ASSETS_PATH,
+          assetsPath: getBackgroundEffectsAssetsPath(),
         })
       } else {
         processor = new mod.VirtualBackgroundProcessor({
-          assetsPath: BLUR_BACKGROUND_ASSETS_PATH,
+          assetsPath: getBackgroundEffectsAssetsPath(),
           backgroundImage: imageEl as HTMLImageElement,
           fitType: mod.ImageFit.Cover,
         })

@@ -1,11 +1,12 @@
 /// <reference types="node" />
+/// <reference types="node" />
 import React from "react";
 import { FileBlob, FileDetails, ReactNativeFile } from "@tellescope/types-utilities";
 import { File as FileClientType } from "@tellescope/types-client";
 import { Styled } from "./mui";
 import { SubmitButtonOptions } from "./forms";
 import { TextFieldProps, LabeledIconButtonProps } from ".";
-export { FileBlob, };
+export type { FileBlob, };
 interface DropzoneContentProps extends Styled {
     isDragActive: boolean;
     file?: FileDetails;

@@ -158,7 +158,6 @@ export declare const OPENAI_TITLE = "OpenAI";
 export declare const HEALTHIE_TITLE = "Healthie";
 export declare const ITERABLE_TITLE = "Iterable";
 export declare const MEDPLUM_TITLE = "Medplum";
-export declare const PHASE_ZERO_TITLE = "Phase Zero";
 export declare const PHOTON_TITLE = "Photon Health";
 export declare const VITAL_TITLE = "Vital";
 export declare const ELATION_TITLE = "Elation";

@@ -131,7 +131,6 @@ export var OPENAI_TITLE = "OpenAI";
 export var HEALTHIE_TITLE = "Healthie";
 export var ITERABLE_TITLE = "Iterable";
 export var MEDPLUM_TITLE = "Medplum";
-export var PHASE_ZERO_TITLE = "Phase Zero";
 export var PHOTON_TITLE = "Photon Health";
 export var VITAL_TITLE = "Vital";
 export var ELATION_TITLE = "Elation";

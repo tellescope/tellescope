@@ -749,7 +749,7 @@ export const datepickerCSS = `.react-datepicker-popper[data-placement^="bottom"]
   text-align: center;
   display: table-cell;
   vertical-align: middle;
-  content: "\00d7";
+  content: "\\00d7"; /* CSS hex escape for ×; the backslash must itself be escaped inside this JS template literal */
 }
 
 .react-datepicker__today-button {

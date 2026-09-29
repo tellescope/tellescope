@@ -810,7 +810,9 @@ export var DEFAULT_IFRAME_SANDBOX = 'allow-scripts allow-same-origin allow-forms
  * what rules that out, which is why the src check must not be relaxed.
  *
  * An author-supplied `sandbox` is honored verbatim as an escape hatch (including `sandbox=""`, the
- * most restrictive value), so a surface can tighten or loosen per embed.
+ * most restrictive value), so a surface can tighten or loosen per embed. Honoring the empty value
+ * requires the `allowedEmptyAttributes` option below — without it sanitize-html drops it and the
+ * frame ends up with no sandbox at all.
  *
  * Current callers: the live form's field description (`Forms/forms.tsx`, `Forms/forms.v2.tsx`).
  * The read-only submitted-response views intentionally stay on `sanitize_user_html`.
@@ -900,8 +902,8 @@ export var sanitize_user_html_with_iframes = function (html) {
                 return {
                     tagName: tagName,
                     attribs: __assign(__assign({}, attribs), { src: src, 
-                        // `??` rather than `||`: sandbox="" serializes as a bare `sandbox`, which is the MOST
-                        // restrictive value, so an explicit empty string must be honored rather than replaced.
+                        // `??` rather than `||`: sandbox="" is the MOST restrictive value (it grants nothing),
+                        // so an explicit empty string must be honored rather than replaced by the default.
                         sandbox: (_a = attribs.sandbox) !== null && _a !== void 0 ? _a : DEFAULT_IFRAME_SANDBOX, referrerpolicy: attribs.referrerpolicy || 'strict-origin-when-cross-origin' }),
                 };
             },
@@ -909,6 +911,14 @@ export var sanitize_user_html_with_iframes = function (html) {
         // Removes src-less iframes AND their fallback content. Returning a non-allowlisted tagName from
         // transformTags does NOT do this — sanitize-html drops the tag but emits the text inside it.
         exclusiveFilter: function (frame) { return frame.tag === 'iframe' && !frame.attribs.src; },
+        // sanitize-html >= 2.11 deletes empty non-boolean attributes, and `sandbox` is on its
+        // nonBooleanAttributes list. Without this, an author's `sandbox=""` — the MOST restrictive
+        // value — is dropped and the frame renders with NO sandbox: strictly more permissive than both
+        // the author's intent and DEFAULT_IFRAME_SANDBOX, i.e. a fail-open. 'alt' repeats the option's
+        // own default (an empty alt marks a decorative image), which passing this option replaces.
+        // The cast is load-bearing: @types/sanitize-html has never declared allowedEmptyAttributes (not
+        // even in 2.16.1, the latest), and its TS 5.x-only releases can't be used against tsc 4.9 here.
+        allowedEmptyAttributes: ['alt', 'sandbox'],
     });
 };
 export var query_string_for_object = function (query) {
@@ -924,6 +934,18 @@ export var query_string_for_object = function (query) {
 export var PROD_API_URL = 'https://api.tellescope.com';
 export var STAGING_API_URL = 'https://staging-api.tellescope.com';
 export var TEST_API_URL = "http://localhost:8080";
+/** True for a page served from localhost or 127.0.0.1 on any port: a local dev server, or a parallel
+ *  "slot" checkout on non-default ports. Safe outside a browser (React Native). */
+export var isLocalDevOrigin = function () { return (typeof window !== 'undefined' && !!window.location
+    && ['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname)); };
+// Local overrides, set once by each app's entry point from its Vite env (VITE_TELLESCOPE_HOST and, for
+// the webapp, VITE_TELLESCOPE_PORTAL_URL). Library code cannot read import.meta.env itself because it
+// is also compiled to CommonJS for Node consumers. Unset (the default) leaves every helper below
+// exactly as before.
+var localApiURL;
+var localPortalURL;
+export var setLocalApiURL = function (url) { localApiURL = url || undefined; };
+export var setLocalPortalURL = function (url) { localPortalURL = url || undefined; };
 export var getEnvironment = function () { return (window.location.origin.includes('staging')
     ? 'staging'
     : (window.location.origin.includes('localhost:') || window.location.origin.includes('127.0.0.1:')) // don't check for Tellescope, may be hosted on a custom URL
@@ -932,7 +954,7 @@ export var getEnvironment = function () { return (window.location.origin.include
 export var getApiURL = function () { return (window.location.origin.includes('staging')
     ? STAGING_API_URL
     : (window.location.origin.includes('localhost:') || window.location.origin.includes('127.0.0.1:')) // don't check for Tellescope, may be hosted on a custom URL
-        ? TEST_API_URL
+        ? (localApiURL || TEST_API_URL) // a slot's API when the app set it; the default local API otherwise
         : PROD_API_URL); };
 export var getGoogleClientId = function () {
     var api = getApiURL();
@@ -975,8 +997,8 @@ export var getPublicFileURL = function (_a) {
 export var getDefaultPortalURL = function (_a) {
     var subdomain = _a.subdomain;
     var api = getApiURL();
-    if (api === TEST_API_URL)
-        return "http://localhost:3030";
+    if (getEnvironment() === 'test')
+        return localPortalURL || "http://localhost:3030"; // local checkout (main or slot)
     return ("https://".concat(subdomain, ".").concat(api === PROD_API_URL ? 'portal' : 'staging-portal', ".tellescope.com"));
 };
 export var matches_organization = function (value, orgInfo) {
@@ -2748,11 +2770,16 @@ export var is_out_of_office = function (blocks, date, zone, outOfOfficeBlocks) {
     }
     return true;
 };
+// Non-utm_ URL parameters that are tracked alongside utm_* params: captured from the page URL on form
+// submission (stored as custom fields on a newly created patient) and carried across form redirects and
+// form chaining. Matched exactly, unlike the case-insensitive utm_ prefix.
+export var TRACKED_URL_PARAMS = ['ours_user_id', 'curve_bridge_token'];
+var is_tracked_url_param = function (key) { return (key.toLowerCase().startsWith('utm_') || TRACKED_URL_PARAMS.includes(key)); };
 export var get_utm_params = function () {
     var params = new URL(window.location.href).searchParams;
     var utmParams = [];
     params.forEach(function (value, field) {
-        if (field.toLowerCase().startsWith('utm_') || field === 'ours_user_id') {
+        if (is_tracked_url_param(field)) {
             utmParams.push({ field: field, value: value });
         }
     });
@@ -2763,7 +2790,7 @@ export var append_current_utm_params = function (targetURL) {
         var params = new URL(window.location.href).searchParams;
         var utmParams_1 = {};
         params.forEach(function (value, key) {
-            if (key.toLowerCase().startsWith('utm_') || key === 'ours_user_id') {
+            if (is_tracked_url_param(key)) {
                 utmParams_1[key] = value;
             }
         });

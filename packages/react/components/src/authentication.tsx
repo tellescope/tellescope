@@ -37,7 +37,8 @@ export const useRunOnce = (action: Function) => {
 
 
 // to avoid installing schema directly in patient portal, can move
-export { PublicAppointmentBookingInfo }
+// `export type`: a plain re-export of a type is a runtime export that per-file transpilers (esbuild/Vite) cannot drop
+export type { PublicAppointmentBookingInfo }
 
 type UserSession = Session
 type UserSessionOptions = SessionOptions

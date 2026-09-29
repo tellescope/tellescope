@@ -15,6 +15,8 @@ export {
 export {
   BACKGROUND_EFFECT_STORAGE_KEY,
   BLUR_BACKGROUND_STORAGE_KEY,
+  setBackgroundEffectsAssetsPath,
+  getBackgroundEffectsAssetsPath,
   readEffectPreference,
   writeEffectPreference,
   loadBackgroundImage,

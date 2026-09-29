@@ -313,6 +313,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     get_form_statistics: (args: extractFields<CustomActions['forms']['get_form_statistics']['parameters']>) => (
       Promise<extractFields<CustomActions['forms']['get_form_statistics']['returns']>>
     ),
+    public_form_details: (args: extractFields<PublicActions['forms']['public_form_details']['parameters']>) => (
+      Promise<extractFields<PublicActions['forms']['public_form_details']['returns']>>
+    ),
   },
   phone_trees: {
     start_outbound_call: (args: extractFields<CustomActions['phone_trees']['start_outbound_call']['parameters']>) => (
@@ -1052,6 +1055,7 @@ export class Session extends SessionManager {
     queries.organizations.invite_user = a => this._POST(`/v1/${schema.users.customActions.invite_user.path}`, a) 
 
     queries.forms.get_form_statistics = args => this._GET(`/v1${schema.forms.customActions.get_form_statistics.path}`, args)
+    queries.forms.public_form_details = args => this._GET(`/v1${schema.forms.publicActions.public_form_details.path}`, args)
 
     queries.form_fields.load_choices_from_database = args => this._GET(`/v1${schema.form_fields.customActions.load_choices_from_database.path}`, args)
     queries.form_fields.booking_info = args => this._GET(`/v1${schema.form_fields.customActions.booking_info.path}`, args)
@@ -1350,4 +1354,4 @@ export class Session extends SessionManager {
   sync = (a: { from: Date }) => this.GET<typeof a, { results: Pick<DataSyncRecord, 'modelName' | 'recordId' | 'data'>[], to: string }>('/v1/data-sync', a)
 }
 
-export { SessionOptions }
+export type { SessionOptions }

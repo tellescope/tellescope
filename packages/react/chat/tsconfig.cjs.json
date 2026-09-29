@@ -1,0 +1,18 @@
+{
+  // CommonJS build (lib/cjs); see ../../constants/tsconfig.cjs.json.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "outDir": "lib/cjs",
+    "tsBuildInfoFile": "lib/cjs/tsconfig.cjs.tsbuildinfo"
+  },
+  "references": [
+    { "path": "../components/tsconfig.cjs.json" },
+    { "path": "../../sdk/tsconfig.cjs.json" },
+    { "path": "../../utilities/tsconfig.cjs.json" },
+    { "path": "../../types-client/tsconfig.cjs.json" },
+    { "path": "../../types-models/tsconfig.cjs.json" },
+    { "path": "../../types-utilities/tsconfig.cjs.json" },
+    { "path": "../../constants/tsconfig.cjs.json" }
+  ]
+}

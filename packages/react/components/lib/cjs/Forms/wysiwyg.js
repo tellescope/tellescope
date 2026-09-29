@@ -31,7 +31,14 @@ var draftjs_to_html_1 = __importDefault(require("draftjs-to-html"));
 var html_to_draftjs_1 = __importDefault(require("html-to-draftjs"));
 var draft_js_1 = require("draft-js");
 var material_1 = require("@mui/material");
+var utilities_1 = require("@tellescope/utilities");
 require("react-draft-wysiwyg/dist/react-draft-wysiwyg.css");
+// Stored HTML is only ever script-stripped on write, and html-to-draftjs turns an <iframe> into an
+// EMBEDDED_LINK entity that react-draft-wysiwyg renders as an unsandboxed iframe (a javascript: src runs
+// in this origin). Answers are loaded into this editor by people other than their author (staff editing
+// an enduser's response), so sanitize with the same allowlist used for rendering before parsing. This
+// editor has no image/embed buttons, so legitimate content never loses anything here.
+var toEditorHTML = function (html) { return (0, utilities_1.sanitize_user_html)(html) || '<p></p>'; };
 var getToolbar = function (_a) {
     var hideEmoji = _a.hideEmoji;
     return ({
@@ -193,13 +200,13 @@ var WYSIWYG = function (_a) {
     var initialHTML = (trimmed.startsWith('<p>') && trimmed.endsWith('</p>')
         ? trimmed
         : "<p>".concat(trimmed, "</p>"));
-    var _c = (0, react_1.useState)(draft_js_1.EditorState.createWithContent(draft_js_1.ContentState.createFromBlockArray((0, html_to_draftjs_1.default)(initialHTML).contentBlocks))), editorState = _c[0], setEditorState = _c[1];
+    var _c = (0, react_1.useState)(draft_js_1.EditorState.createWithContent(draft_js_1.ContentState.createFromBlockArray((0, html_to_draftjs_1.default)(toEditorHTML(initialHTML)).contentBlocks))), editorState = _c[0], setEditorState = _c[1];
     var editorStateRef = (0, react_1.useRef)(editorState);
     var editorRef = (0, react_1.useRef)(null);
     (0, react_1.useEffect)(function () {
         if (!updateHtml)
             return;
-        setEditorState(draft_js_1.EditorState.createWithContent(draft_js_1.ContentState.createFromBlockArray((0, html_to_draftjs_1.default)(updateHtml).contentBlocks)));
+        setEditorState(draft_js_1.EditorState.createWithContent(draft_js_1.ContentState.createFromBlockArray((0, html_to_draftjs_1.default)(toEditorHTML(updateHtml)).contentBlocks)));
     }, [updateHtml]);
     (0, react_1.useEffect)(function () {
         var _a, _b;

@@ -1,0 +1,12 @@
+{
+  // Solution file for the CommonJS builds of the react packages (mirror of tsconfig.json).
+  "files": [],
+  "references": [
+    { "path": "chat/tsconfig.cjs.json" },
+    { "path": "video-chat/tsconfig.cjs.json" },
+    { "path": "components/tsconfig.cjs.json" }
+  ],
+  "exclude": [
+    "**/lib"
+  ]
+}

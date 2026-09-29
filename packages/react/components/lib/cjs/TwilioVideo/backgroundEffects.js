@@ -59,8 +59,17 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.BackgroundEffectController = exports.loadBackgroundImage = exports.writeEffectPreference = exports.readEffectPreference = exports.loadTwilioVideoProcessorsModule = exports.BLUR_BACKGROUND_STORAGE_KEY = exports.BACKGROUND_EFFECT_STORAGE_KEY = exports.BLUR_BACKGROUND_ASSETS_PATH = void 0;
+exports.BackgroundEffectController = exports.loadBackgroundImage = exports.writeEffectPreference = exports.readEffectPreference = exports.loadTwilioVideoProcessorsModule = exports.BLUR_BACKGROUND_STORAGE_KEY = exports.BACKGROUND_EFFECT_STORAGE_KEY = exports.getBackgroundEffectsAssetsPath = exports.setBackgroundEffectsAssetsPath = exports.BLUR_BACKGROUND_ASSETS_PATH = void 0;
 exports.BLUR_BACKGROUND_ASSETS_PATH = '/twilio-video-processors';
+// The processors fetch their model + wasm from this path at runtime, so an app served from a non-root
+// base (preview deploys, a Vite `base`) has to point it at `${BASE_URL}twilio-video-processors`. A
+// plain setter keeps this library free of bundler-specific globals such as import.meta.env; call it
+// once at app startup, before any video call is joined.
+var backgroundEffectsAssetsPath = exports.BLUR_BACKGROUND_ASSETS_PATH;
+var setBackgroundEffectsAssetsPath = function (path) { backgroundEffectsAssetsPath = path; };
+exports.setBackgroundEffectsAssetsPath = setBackgroundEffectsAssetsPath;
+var getBackgroundEffectsAssetsPath = function () { return backgroundEffectsAssetsPath; };
+exports.getBackgroundEffectsAssetsPath = getBackgroundEffectsAssetsPath;
 // Current (three-state) preference key
 exports.BACKGROUND_EFFECT_STORAGE_KEY = 'tellescope.twilio.backgroundEffect';
 // Legacy boolean blur preference key, kept for backward-compatible migration
@@ -187,12 +196,12 @@ var BackgroundEffectController = /** @class */ (function () {
                         processor = void 0;
                         if (effect === 'blur') {
                             processor = new mod.GaussianBlurBackgroundProcessor({
-                                assetsPath: exports.BLUR_BACKGROUND_ASSETS_PATH,
+                                assetsPath: (0, exports.getBackgroundEffectsAssetsPath)(),
                             });
                         }
                         else {
                             processor = new mod.VirtualBackgroundProcessor({
-                                assetsPath: exports.BLUR_BACKGROUND_ASSETS_PATH,
+                                assetsPath: (0, exports.getBackgroundEffectsAssetsPath)(),
                                 backgroundImage: imageEl,
                                 fitType: mod.ImageFit.Cover,
                             });

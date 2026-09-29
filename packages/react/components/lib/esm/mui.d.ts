@@ -1,6 +1,4 @@
 import React, { CSSProperties } from "react";
-import { ViewStyle } from "react-native";
-import { GestureResponderEvent } from "react-native";
 import { PaperProps as MuiPaperProps } from "@mui/material/Paper";
 import { AutoComplete } from "./forms";
 import CancelIcon from '@mui/icons-material/Cancel';
@@ -31,7 +29,7 @@ export type Styled = {
     style?: CSSProperties;
 };
 export type NativeStyled = {
-    style?: CSSProperties | ViewStyle;
+    style?: CSSProperties;
 };
 export type CanFlex = {
     flex?: boolean;
@@ -45,16 +43,16 @@ export type Elevated = {
 };
 type MuiColor = 'inherit' | 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning';
 export interface Clickable {
-    onClick?: React.MouseEventHandler<HTMLElement> | ((e: GestureResponderEvent) => void);
-    onPress?: React.MouseEventHandler<HTMLElement> | ((e: GestureResponderEvent) => void);
+    onClick?: React.MouseEventHandler<HTMLElement>;
+    onPress?: React.MouseEventHandler<HTMLElement>;
 }
 export interface ClickableWeb extends Clickable {
     onClick?: React.MouseEventHandler<HTMLElement>;
     onPress?: React.MouseEventHandler<HTMLElement>;
 }
 export interface ClickableNative extends Clickable {
-    onClick?: ((e: GestureResponderEvent) => void);
-    onPress?: ((e: GestureResponderEvent) => void);
+    onClick?: ((e: React.MouseEvent<HTMLElement>) => void);
+    onPress?: ((e: React.MouseEvent<HTMLElement>) => void);
 }
 export interface Changeable<T = string> {
     onChange?: (s: T) => void;

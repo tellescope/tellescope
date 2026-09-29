@@ -1,11 +1,12 @@
 /// <reference types="node" />
+/// <reference types="node" />
 import React from "react";
 import { FileBlob, FileDetails, ReactNativeFile } from "@tellescope/types-utilities";
 import { File as FileClientType } from "@tellescope/types-client";
 import { Styled } from "./mui";
 import { SubmitButtonOptions } from "./forms";
 import { TextFieldProps, LabeledIconButtonProps } from ".";
-export { FileBlob, };
+export type { FileBlob, };
 interface DropzoneContentProps extends Styled {
     isDragActive: boolean;
     file?: FileDetails;
@@ -104,7 +105,7 @@ export declare const SearchTextInput: ({ onChange, hideIcon, ...props }: {
     fullWidth?: boolean | undefined;
     name?: string | undefined;
     sx?: import("@mui/material").SxProps<{}> | undefined;
-    variant?: "filled" | "outlined" | "flat" | undefined;
+    variant?: "outlined" | "filled" | "flat" | undefined;
     type?: React.HTMLInputTypeAttribute | undefined;
     autoCapitalize?: "none" | "characters" | "sentences" | "words" | undefined;
     autoCorrect?: boolean | undefined;

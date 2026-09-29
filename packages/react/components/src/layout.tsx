@@ -1,6 +1,5 @@
 import React, { CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Grid, Typography } from "@mui/material";
-import { ViewStyle } from "react-native"
 import { ErrorOptions, useHandleError } from "./errors";
 
 import {
@@ -68,11 +67,11 @@ export interface Flex_T {
   shrink?: number,
   children?: React.ReactNode,
   reverse?: boolean,
-  wrap?: CSSProperties['flexWrap'] & ViewStyle['flexWrap'],
-  alignItems?: CSSProperties['alignItems'] & ViewStyle['alignItems'],
-  alignContent?: CSSProperties['alignContent'] & ViewStyle['alignContent'],
-  justifyContent?: CSSProperties['justifyContent'] & ViewStyle['justifyContent'],
-  alignSelf?: CSSProperties['alignSelf'] & ViewStyle['alignSelf'],
+  wrap?: CSSProperties['flexWrap'],
+  alignItems?: CSSProperties['alignItems'],
+  alignContent?: CSSProperties['alignContent'],
+  justifyContent?: CSSProperties['justifyContent'],
+  alignSelf?: CSSProperties['alignSelf'],
   component?: "div" | 'span',
   id?: string,
 }

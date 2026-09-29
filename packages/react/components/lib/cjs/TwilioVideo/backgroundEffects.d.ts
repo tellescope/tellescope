@@ -1,6 +1,8 @@
 import type { LocalVideoTrack } from 'twilio-video';
 export type BackgroundEffect = 'none' | 'blur' | 'image';
 export declare const BLUR_BACKGROUND_ASSETS_PATH = "/twilio-video-processors";
+export declare const setBackgroundEffectsAssetsPath: (path: string) => void;
+export declare const getBackgroundEffectsAssetsPath: () => string;
 export declare const BACKGROUND_EFFECT_STORAGE_KEY = "tellescope.twilio.backgroundEffect";
 export declare const BLUR_BACKGROUND_STORAGE_KEY = "tellescope.twilio.blurBackground";
 export declare const loadTwilioVideoProcessorsModule: () => Promise<typeof import("@twilio/video-processors")>;

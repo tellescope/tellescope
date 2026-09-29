@@ -1,0 +1,17 @@
+{
+  // CommonJS build (lib/cjs, also where the runnable tests land); see constants/tsconfig.cjs.json.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "outDir": "lib/cjs",
+    "tsBuildInfoFile": "lib/cjs/tsconfig.cjs.tsbuildinfo"
+  },
+  "references": [
+    { "path": "../constants/tsconfig.cjs.json" },
+    { "path": "../schema/tsconfig.cjs.json" },
+    { "path": "../testing/tsconfig.cjs.json" },
+    { "path": "../types-client/tsconfig.cjs.json" },
+    { "path": "../utilities/tsconfig.cjs.json" },
+    { "path": "../validation/tsconfig.cjs.json" }
+  ]
+}

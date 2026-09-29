@@ -1,10 +1,9 @@
 # Tellescope React Components
 
 ## Purpose
-Shared UI component library for both React and React Native applications with healthcare-optimized components, consistent design, accessibility, and HIPAA-compliant functionality.
+Shared UI component library for the React web applications (webapp, portal) with healthcare-optimized components, consistent design, accessibility, and HIPAA-compliant functionality. The React Native entry (`*.native.tsx`, `index.native.ts`, the `react-native` peer and the `react-native-*` dependencies) was removed on 2026-09-11: no React Native app existed in this repo and that dependency chain was the reason every install needed `--legacy-peer-deps`.
 
 ## Key Features
-- Cross-platform support (React web + React Native mobile)
 - Healthcare-optimized form system with dynamic builders
 - HIPAA-compliant authentication and security components
 - Accessibility-focused design (WCAG 2.1 AA compliant)
@@ -12,8 +11,7 @@ Shared UI component library for both React and React Native applications with he
 
 ## Entry Points
 - **Web**: `index.ts` - Material-UI integrated components
-- **React Native**: `index.native.ts` - Native mobile components
-- **Shared Logic**: `hooks.ts`, `state.tsx` - Cross-platform business logic
+- **Shared Logic**: `hooks.ts`, `state.tsx` - business logic shared across the web apps
 - **Specialized**: `Forms/`, `Community/`, `CMS/`, `Calendar/` modules
 
 ## Component Categories
@@ -22,14 +20,14 @@ Shared UI component library for both React and React Native applications with he
 - **Data Management**: Tables, loading states, error handling
 - **Healthcare Specific**: Patient inputs, vital signs, medication components
 
-## Cross-Platform Architecture
+## File Layout
 ```
 component.tsx           # Web (Material-UI)
-component.native.tsx    # React Native
 component_shared.tsx    # Shared business logic
-types.ts               # Cross-platform types
-hooks.ts               # Platform-agnostic hooks
+types.ts                # Types
+hooks.ts                # Hooks
 ```
+(`component.native.tsx` files no longer exist; do not add new ones.)
 
 ## Healthcare Form System
 - Dynamic healthcare form builder with conditional logic
@@ -43,5 +41,5 @@ hooks.ts               # Platform-agnostic hooks
 - Cross-platform export strategies
 
 ## Dependencies
-- React 17+, Material-UI v5 (web), React Native
+- React 17+, Material-UI v5
 - All `@tellescope/` type and utility packages

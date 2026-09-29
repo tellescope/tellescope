@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TwilioLocalPreview = exports.TwilioVideoRoom = exports.TwilioControlBar = exports.TwilioParticipant = exports.useTwilioMeetingForCalendarEvent = exports.useJoinTwilioVideoCall = exports.useStartTwilioVideoCall = exports.BackgroundEffectSelector = exports.BackgroundEffectController = exports.loadBackgroundImage = exports.writeEffectPreference = exports.readEffectPreference = exports.BLUR_BACKGROUND_STORAGE_KEY = exports.BACKGROUND_EFFECT_STORAGE_KEY = exports.BLUR_BACKGROUND_ASSETS_PATH = exports.loadTwilioVideoProcessorsModule = exports.SCREEN_SHARE_AUDIO_TRACK_NAME = exports.SCREEN_SHARE_TRACK_NAME = exports.useTwilioVideo = exports.TwilioVideoProvider = void 0;
+exports.TwilioLocalPreview = exports.TwilioVideoRoom = exports.TwilioControlBar = exports.TwilioParticipant = exports.useTwilioMeetingForCalendarEvent = exports.useJoinTwilioVideoCall = exports.useStartTwilioVideoCall = exports.BackgroundEffectSelector = exports.BackgroundEffectController = exports.loadBackgroundImage = exports.writeEffectPreference = exports.readEffectPreference = exports.getBackgroundEffectsAssetsPath = exports.setBackgroundEffectsAssetsPath = exports.BLUR_BACKGROUND_STORAGE_KEY = exports.BACKGROUND_EFFECT_STORAGE_KEY = exports.BLUR_BACKGROUND_ASSETS_PATH = exports.loadTwilioVideoProcessorsModule = exports.SCREEN_SHARE_AUDIO_TRACK_NAME = exports.SCREEN_SHARE_TRACK_NAME = exports.useTwilioVideo = exports.TwilioVideoProvider = void 0;
 var TwilioVideoContext_1 = require("./TwilioVideoContext");
 Object.defineProperty(exports, "TwilioVideoProvider", { enumerable: true, get: function () { return TwilioVideoContext_1.TwilioVideoProvider; } });
 Object.defineProperty(exports, "useTwilioVideo", { enumerable: true, get: function () { return TwilioVideoContext_1.useTwilioVideo; } });
@@ -11,6 +11,8 @@ Object.defineProperty(exports, "BLUR_BACKGROUND_ASSETS_PATH", { enumerable: true
 var backgroundEffects_1 = require("./backgroundEffects");
 Object.defineProperty(exports, "BACKGROUND_EFFECT_STORAGE_KEY", { enumerable: true, get: function () { return backgroundEffects_1.BACKGROUND_EFFECT_STORAGE_KEY; } });
 Object.defineProperty(exports, "BLUR_BACKGROUND_STORAGE_KEY", { enumerable: true, get: function () { return backgroundEffects_1.BLUR_BACKGROUND_STORAGE_KEY; } });
+Object.defineProperty(exports, "setBackgroundEffectsAssetsPath", { enumerable: true, get: function () { return backgroundEffects_1.setBackgroundEffectsAssetsPath; } });
+Object.defineProperty(exports, "getBackgroundEffectsAssetsPath", { enumerable: true, get: function () { return backgroundEffects_1.getBackgroundEffectsAssetsPath; } });
 Object.defineProperty(exports, "readEffectPreference", { enumerable: true, get: function () { return backgroundEffects_1.readEffectPreference; } });
 Object.defineProperty(exports, "writeEffectPreference", { enumerable: true, get: function () { return backgroundEffects_1.writeEffectPreference; } });
 Object.defineProperty(exports, "loadBackgroundImage", { enumerable: true, get: function () { return backgroundEffects_1.loadBackgroundImage; } });

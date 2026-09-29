@@ -13,7 +13,8 @@ import {
   Typography,
 } from "./mui"
 
-export { LoadedData, LoadedDataSuccess, APIError, LoadingStatus }
+export type { LoadedData, LoadedDataSuccess, APIError }
+export { LoadingStatus }
 
 interface LoadingElement <T>{
   data: LoadedData<T>,

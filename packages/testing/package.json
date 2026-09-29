@@ -1,6 +1,6 @@
 {
   "name": "@tellescope/testing",
-  "version": "1.256.16",
+  "version": "2.0.0-beta.0",
   "description": "General purpose testing utilities",
   "main": "./lib/cjs/testing.js",
   "module": "./lib/esm/testing.js",
@@ -9,8 +9,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npm run-script build:esm && npm run-script build:cjs",
     "build:esm": "tsc",
-    "build:cjs": "tsc --module commonjs --outDir lib/cjs",
-    "watch:cjs": "tsc --module commonjs --outDir lib/cjs --watch"
+    "build:cjs": "tsc -b tsconfig.cjs.json",
+    "watch:cjs": "tsc -b -w --preserveWatchOutput tsconfig.cjs.json"
   },
   "repository": {
     "type": "git",
@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/tellescope-os/tellescope#readme",
   "dependencies": {
-    "@tellescope/types-utilities": "1.256.16"
+    "@tellescope/types-utilities": "2.0.0-beta.0"
   },
   "devDependencies": {
     "@types/express": "4.17.14",

@@ -112625,6 +112625,10 @@
               "example string"
             ]
           },
+          "healthieImportLockedNotesFromTellescope": {
+            "type": "boolean",
+            "example": true
+          },
           "analyticsIframes": {
             "type": "array",
             "items": {
@@ -114342,6 +114346,10 @@
               "example string"
             ]
           },
+          "healthieImportLockedNotesFromTellescope": {
+            "type": "boolean",
+            "example": true
+          },
           "analyticsIframes": {
             "type": "array",
             "items": {
@@ -116057,6 +116065,10 @@
             "example": [
               "example string"
             ]
+          },
+          "healthieImportLockedNotesFromTellescope": {
+            "type": "boolean",
+            "example": true
           },
           "analyticsIframes": {
             "type": "array",
@@ -148571,6 +148583,34 @@
           "protocol": {
             "type": "string",
             "example": "example string"
+          },
+          "references": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string"
+                },
+                "id": {
+                  "type": "string"
+                },
+                "creator": {
+                  "type": "string"
+                },
+                "environment": {
+                  "type": "string"
+                }
+              }
+            },
+            "example": [
+              {
+                "type": "example string",
+                "id": "example string",
+                "creator": "60398b0231a295e64f084fd9",
+                "environment": "example string"
+              }
+            ]
           }
         },
         "required": [

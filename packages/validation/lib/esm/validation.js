@@ -29,7 +29,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     }
     return to.concat(ar || Array.prototype.slice.call(from));
 };
-import { remove_script_tags, sanitize_html } from "@tellescope/utilities";
+import { remove_script_tags, sanitize_html, sanitize_user_html } from "@tellescope/utilities";
 import { WEBHOOK_MODELS, TIMEZONE_MAP, VALID_STATES, } from "@tellescope/types-models";
 import v from 'validator';
 export var isDate = v.isDate, isEmail = v.isEmail, isMobilePhone = v.isMobilePhone, isSlug = v.isSlug, isMongoId = v.isMongoId, isMimeType = v.isMimeType, isURL = v.isURL;
@@ -50,7 +50,7 @@ export var MAX_FILE_SIZE = 1000000000; // 1gb megabytes in bytes
 var DEFAULT_MAX_LENGTH = 50000;
 export var build_validator = function (escapeFunction, options) {
     if (options === void 0) { options = {}; }
-    var shouldTruncate = options.shouldTruncate, isOptional = options.isOptional, toLower = options.toLower, emptyStringOk = options.emptyStringOk, emptyListOk = options.emptyListOk, nullOk = options.nullOk, isObject = options.isObject, isNumber = options.isNumber, listOf = options.listOf, isBoolean = options.isBoolean, unique = options.unique, _a = options.field, field = _a === void 0 ? '' : _a, escapeHTML = options.escapeHTML;
+    var shouldTruncate = options.shouldTruncate, isOptional = options.isOptional, toLower = options.toLower, emptyStringOk = options.emptyStringOk, emptyListOk = options.emptyListOk, nullOk = options.nullOk, isObject = options.isObject, isNumber = options.isNumber, listOf = options.listOf, isBoolean = options.isBoolean, unique = options.unique, _a = options.field, field = _a === void 0 ? '' : _a, escapeHTML = options.escapeHTML, sanitizeUserHTML = options.sanitizeUserHTML;
     var minLength = options.minLength || 0;
     var maxLength = options.maxLength || DEFAULT_MAX_LENGTH;
     return function (fieldValue) {
@@ -114,6 +114,11 @@ export var build_validator = function (escapeFunction, options) {
             var escapedValue = escapeFunction(value); // may throw exception, this is fine
             if (typeof escapedValue === 'string' && escapeHTML) {
                 escapedValue = sanitize_html(escapedValue);
+            }
+            // before the maxLength check below, so the limit applies to what actually gets stored
+            // (sanitizing can lengthen a value: external links gain target/rel)
+            if (typeof escapedValue === 'string' && sanitizeUserHTML) {
+                escapedValue = sanitize_user_html(escapedValue);
             }
             if (typeof escapedValue === 'string') { // is string
                 if (escapedValue.length > maxLength) {
@@ -704,6 +709,19 @@ export var stringValidator25000OptionalEmptyOkay = {
     getExample: getExampleString,
     getType: getTypeString,
 };
+// For HTML authored by whoever fills out a form (including anonymous visitors on public intake pages),
+// which is stored as HTML and later rendered as HTML. 30000 rather than the 25000 of its plain-text
+// neighbor is headroom for the sanitizer's own additions (~40 characters of target/rel per external
+// link), so an answer that was accepted once is still accepted when the client re-submits the stored,
+// slightly longer version of it.
+export var stringValidator30000RichTextHTML = {
+    validate: function (o) {
+        if (o === void 0) { o = {}; }
+        return build_validator(escapeString(o), __assign(__assign({}, o), { maxLength: 30000, isOptional: true, listOf: false, emptyStringOk: true, sanitizeUserHTML: true }));
+    },
+    getExample: getExampleString,
+    getType: getTypeString,
+};
 export var stringValidator25000EmptyOkay = {
     validate: function (o) {
         if (o === void 0) { o = {}; }
@@ -826,13 +844,35 @@ export var listOfMongoIdStringValidatorEmptyOk = listValidatorEmptyOk(mongoIdStr
 export var listOfMongoIdStringValidatorOptionalOrEmptyOk = listValidatorOptionalOrEmptyOk(mongoIdStringRequired);
 export var sharedWithOrganizationIdsValidator = listValidatorEmptyOk(listValidator(mongoIdStringRequired));
 export var listOfListsOfMongoIdStringsValidatorOptionalOrEmptyOk = listValidatorOptionalOrEmptyOk(listValidator(mongoIdStringRequired));
+/**
+ * The `isSlug` check that validator 13.11.0 applied, inlined verbatim.
+ *
+ * Production has always validated Organization `subdomain` with this exact pattern, and this is a
+ * dependency upgrade, so the accept-set must not move: it keeps "Acme", "My-Org" and "demo_org_1"
+ * valid, and — deliberately — also keeps accepting values that are NOT really valid DNS labels
+ * ("acme.health", "org/sub", "my@org", "caf\u00e9", 64+ characters). Tightening that is a separate,
+ * API-visible decision.
+ *
+ * Inlined rather than left as `isSlug(s)` because validator 13.15.35 narrowed the pattern to
+ * lowercase-only with alphanumeric ends, which would start rejecting mixed-case subdomains that
+ * customers already have, and would newly accept 1- and 2-character slugs that the UI has always
+ * refused. Unlike `isDate`, this one is a genuine behavior change in the upgrade, so it is pinned
+ * here. Verified identical to 13.11.0's `isSlug` across 24 inputs; regex, so timezone-independent.
+ *
+ * If the DNS-label tightening is wanted later, it needs its own PR plus a check of existing
+ * `organizations.subdomain` values.
+ *
+ * Exported so the webapp's client-side check uses the same pattern: its bundled `isSlug` would
+ * otherwise move to 13.15.35's stricter one and start rejecting subdomains the API still accepts.
+ */
+export var SUBDOMAIN_SLUG_REGEX = /^[^\s-_](?!.*?[-_]{2,})[a-z0-9-\\][^\s]*[^-_\s]$/;
 export var slugValidator = {
     validate: function (o) {
         if (o === void 0) { o = {}; }
         return build_validator(function (s) {
             if (typeof s !== 'string')
                 throw new Error("Expecting a string");
-            if (!isSlug(s))
+            if (!SUBDOMAIN_SLUG_REGEX.test(s))
                 throw new Error("Invalid format for ".concat(s));
             return s;
         }, __assign(__assign({}, optionsWithDefaults(o)), { maxLength: 10000, listOf: false }));
@@ -957,6 +997,22 @@ export var numberOrStringValidatorOptional = orValidator({
 // spec is generated, producing ~512 timestamps. A live clock made every regeneration of
 // packages/public/schema/openapi.json emit a ~1900-line diff of nothing but changed examples.
 var EXAMPLE_DATE_ISO = new Date('2024-01-01T00:00:00.000Z').toISOString();
+// NOTE on `isDate` below, which reads backwards and is deliberately left that way.
+//
+// A true return REJECTS. That is not what it looks like, but it IS what production has always done:
+// bare YYYY-MM-DD is rejected, ISO datetimes are accepted, and an unparseable string is accepted and
+// stored as an `Invalid Date`. Changing any of that is an API-visible change to ~135 schema fields
+// and belongs in its own PR, not in a dependency upgrade.
+//
+// What DID change, and why this comment exists: in validator 13.11.0 `isDate` was timezone-dependent
+// (its last step compared a UTC-parsed date against a local-time `.getDate()`), so it returned false
+// west of Greenwich and true in UTC. The servers run UTC, so the behavior above is what production
+// did — but a US developer's machine disagreed, which made this code look broken locally. 13.12.0
+// fixed the timezone bug (#2257). Verified across 26 inputs and four timezones: 13.15.35 returns
+// exactly what 13.11.0 returned under UTC, everywhere. So the upgrade preserves production behavior
+// and additionally makes it reproducible off-server. `api_tests/validation_behavior_locks` pins it.
+//
+// Known, deliberately NOT fixed here: an unparseable string persists as an `Invalid Date`.
 export var dateValidator = {
     validate: function (options) {
         if (options === void 0) { options = {}; }
@@ -1820,9 +1876,15 @@ export var formResponseAnswerValidator = orValidator({
         type: exactMatchValidator(['stringLong']),
         value: stringValidator20000ptional,
     }),
+    // Rich Text answers are HTML written by the form filler and rendered as HTML by staff-facing views,
+    // exports and PDFs, so they're sanitized here, on write: every client write path (create/update,
+    // submit_form_response, save_field_response) goes through this validator, which makes it the one
+    // place all of them share. Server-side writers that bypass validation (Formsort, Healthie sync,
+    // AI form filling) don't construct 'Rich Text' answers today — any that starts to must pass the
+    // value through sanitize_user_html itself.
     "Rich Text": objectValidator({
         type: exactMatchValidator(['Rich Text']),
-        value: stringValidator25000OptionalEmptyOkay,
+        value: stringValidator30000RichTextHTML,
     }),
     date: objectValidator({
         type: exactMatchValidator(['date']),

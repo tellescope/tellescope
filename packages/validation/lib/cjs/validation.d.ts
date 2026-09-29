@@ -23,6 +23,7 @@ export interface ValidatorOptions {
     unique?: boolean;
     field?: string;
     escapeHTML?: boolean;
+    sanitizeUserHTML?: boolean;
 }
 export interface ValidatorOptionsForValue extends ValidatorOptions {
     listOf?: false;
@@ -203,6 +204,7 @@ export declare const stringValidator100000EmptyOkay: ValidatorDefinition<string>
 export declare const stringValidator100000OptionalEmptyOkay: ValidatorDefinition<string>;
 export declare const stringValidator100000OptionalEmptyOkayEscapeHTML: ValidatorDefinition<string>;
 export declare const stringValidator25000OptionalEmptyOkay: ValidatorDefinition<string>;
+export declare const stringValidator30000RichTextHTML: ValidatorDefinition<string>;
 export declare const stringValidator25000EmptyOkay: ValidatorDefinition<string>;
 export declare const SMSMessageValidator: ValidatorDefinition<string>;
 export declare const listValidator: <T>(b: ValidatorDefinition<T>, _o?: ValidatorOptions | ValidatorOptionsForList) => ValidatorDefinition<T[]>;
@@ -236,6 +238,28 @@ export declare const listOfMongoIdStringValidatorEmptyOk: ValidatorDefinition<st
 export declare const listOfMongoIdStringValidatorOptionalOrEmptyOk: ValidatorDefinition<string[]>;
 export declare const sharedWithOrganizationIdsValidator: ValidatorDefinition<string[][]>;
 export declare const listOfListsOfMongoIdStringsValidatorOptionalOrEmptyOk: ValidatorDefinition<string[][]>;
+/**
+ * The `isSlug` check that validator 13.11.0 applied, inlined verbatim.
+ *
+ * Production has always validated Organization `subdomain` with this exact pattern, and this is a
+ * dependency upgrade, so the accept-set must not move: it keeps "Acme", "My-Org" and "demo_org_1"
+ * valid, and — deliberately — also keeps accepting values that are NOT really valid DNS labels
+ * ("acme.health", "org/sub", "my@org", "caf\u00e9", 64+ characters). Tightening that is a separate,
+ * API-visible decision.
+ *
+ * Inlined rather than left as `isSlug(s)` because validator 13.15.35 narrowed the pattern to
+ * lowercase-only with alphanumeric ends, which would start rejecting mixed-case subdomains that
+ * customers already have, and would newly accept 1- and 2-character slugs that the UI has always
+ * refused. Unlike `isDate`, this one is a genuine behavior change in the upgrade, so it is pinned
+ * here. Verified identical to 13.11.0's `isSlug` across 24 inputs; regex, so timezone-independent.
+ *
+ * If the DNS-label tightening is wanted later, it needs its own PR plus a check of existing
+ * `organizations.subdomain` values.
+ *
+ * Exported so the webapp's client-side check uses the same pattern: its bundled `isSlug` would
+ * otherwise move to 13.15.35's stricter one and start rejecting subdomains the API still accepts.
+ */
+export declare const SUBDOMAIN_SLUG_REGEX: RegExp;
 export declare const slugValidator: ValidatorDefinition<string>;
 export declare const first_letter_capitalized: (s?: string) => string;
 export declare const escape_name: (namestring: string) => string;

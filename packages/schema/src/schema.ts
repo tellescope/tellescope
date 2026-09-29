@@ -7639,6 +7639,7 @@ export const schema: SchemaV1 = build_schema({
         }))
       },
       externalFormIdsToSync: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+      healthieImportLockedNotesFromTellescope: { validator: booleanValidator },
       analyticsIframes: { 
         validator: listValidatorOptionalOrEmptyOk(objectValidator<{ iframeURL: string, title: string }>({
           title: stringValidator1000,
@@ -9850,6 +9851,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       medication: { validator: stringValidatorOptional },
       medicationSku: { validator: stringValidatorOptional },
       protocol: { validator: stringValidator1000 },
+      references: { validator: listOfRelatedRecordsValidator, readonly: true },
     }
   },
   vital_configurations: {

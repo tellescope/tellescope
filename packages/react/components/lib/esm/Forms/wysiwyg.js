@@ -25,7 +25,14 @@ import draftToHtml from 'draftjs-to-html';
 import htmlToDraft from 'html-to-draftjs';
 import { EditorState, ContentState, convertToRaw } from 'draft-js';
 import { Paper } from '@mui/material';
+import { sanitize_user_html } from '@tellescope/utilities';
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
+// Stored HTML is only ever script-stripped on write, and html-to-draftjs turns an <iframe> into an
+// EMBEDDED_LINK entity that react-draft-wysiwyg renders as an unsandboxed iframe (a javascript: src runs
+// in this origin). Answers are loaded into this editor by people other than their author (staff editing
+// an enduser's response), so sanitize with the same allowlist used for rendering before parsing. This
+// editor has no image/embed buttons, so legitimate content never loses anything here.
+var toEditorHTML = function (html) { return sanitize_user_html(html) || '<p></p>'; };
 var getToolbar = function (_a) {
     var hideEmoji = _a.hideEmoji;
     return ({
@@ -187,13 +194,13 @@ export var WYSIWYG = function (_a) {
     var initialHTML = (trimmed.startsWith('<p>') && trimmed.endsWith('</p>')
         ? trimmed
         : "<p>".concat(trimmed, "</p>"));
-    var _c = useState(EditorState.createWithContent(ContentState.createFromBlockArray(htmlToDraft(initialHTML).contentBlocks))), editorState = _c[0], setEditorState = _c[1];
+    var _c = useState(EditorState.createWithContent(ContentState.createFromBlockArray(htmlToDraft(toEditorHTML(initialHTML)).contentBlocks))), editorState = _c[0], setEditorState = _c[1];
     var editorStateRef = useRef(editorState);
     var editorRef = useRef(null);
     useEffect(function () {
         if (!updateHtml)
             return;
-        setEditorState(EditorState.createWithContent(ContentState.createFromBlockArray(htmlToDraft(updateHtml).contentBlocks)));
+        setEditorState(EditorState.createWithContent(ContentState.createFromBlockArray(htmlToDraft(toEditorHTML(updateHtml)).contentBlocks)));
     }, [updateHtml]);
     useEffect(function () {
         var _a, _b;

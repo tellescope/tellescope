@@ -1,6 +1,7 @@
 import React from "react";
 import { APIError, LoadedData, LoadedDataSuccess, LoadingStatus } from "@tellescope/types-utilities";
-export { LoadedData, LoadedDataSuccess, APIError, LoadingStatus };
+export type { LoadedData, LoadedDataSuccess, APIError };
+export { LoadingStatus };
 interface LoadingElement<T> {
     data: LoadedData<T>;
     render: (data: T) => React.ReactElement;

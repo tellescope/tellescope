@@ -1,10 +1,9 @@
 {
   "name": "@tellescope/react-components",
-  "version": "1.256.16",
+  "version": "2.0.0-beta.0",
   "description": "",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",
-  "react-native": "./lib/esm/index.js",
   "types": "./lib/esm/index.d.ts",
   "exports": {
     ".": "./lib/esm/index.js",
@@ -15,8 +14,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npm run-script build:esm && npm run-script build:cjs",
     "build:esm": "tsc",
-    "build:cjs": "tsc --module commonjs --outDir lib/cjs",
-    "watch:cjs": "tsc --module commonjs --outDir lib/cjs --watch"
+    "build:cjs": "tsc -b tsconfig.cjs.json",
+    "watch:cjs": "tsc -b -w --preserveWatchOutput tsconfig.cjs.json"
   },
   "repository": {
     "type": "git",
@@ -28,20 +27,20 @@
     "url": "https://github.com/tellescope-os/enduser-authentication/issues"
   },
   "homepage": "https://github.com/tellescope-os/enduser-authentication#readme",
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "devDependencies": {
     "@babel/core": "7.28.5",
-    "@types/css-to-react-native": "3.0.0",
     "@types/react": "17.0.52",
     "@types/react-beautiful-dnd": "13.1.2",
     "@types/react-dom": "17.0.18",
-    "@types/react-native": "0.65.27",
     "@types/react-window": "1.8.5",
     "@typescript-eslint/eslint-plugin": "4.33.0",
     "@typescript-eslint/parser": "4.33.0",
     "babel-loader": "8.4.1",
     "eslint": "7.32.0",
     "eslint-plugin-react": "7.31.11",
-    "react-native": "0.68.0",
     "typescript": "4.9.3"
   },
   "dependencies": {
@@ -51,30 +50,27 @@
     "@reduxjs/toolkit": "1.9.0",
     "@stripe/react-stripe-js": "2.9.0",
     "@stripe/stripe-js": "1.52.1",
-    "@tellescope/constants": "1.256.16",
-    "@tellescope/sdk": "1.256.16",
-    "@tellescope/types-client": "1.256.16",
-    "@tellescope/types-models": "1.256.16",
-    "@tellescope/types-utilities": "1.256.16",
-    "@tellescope/utilities": "1.256.16",
-    "@tellescope/validation": "1.256.16",
+    "@tellescope/constants": "2.0.0-beta.0",
+    "@tellescope/sdk": "2.0.0-beta.0",
+    "@tellescope/types-client": "2.0.0-beta.0",
+    "@tellescope/types-models": "2.0.0-beta.0",
+    "@tellescope/types-utilities": "2.0.0-beta.0",
+    "@tellescope/utilities": "2.0.0-beta.0",
+    "@tellescope/validation": "2.0.0-beta.0",
     "@twilio/video-processors": "3.2.0",
-    "css-to-react-native": "3.0.0",
+    "axios": "0.33.0",
     "draft-js": "0.11.7",
     "draftjs-to-html": "0.9.1",
     "formik": "2.2.9",
     "heic2any": "0.0.4",
     "html-to-draftjs": "1.5.0",
+    "immutable": "3.7.6",
     "react-beautiful-dnd": "13.1.1",
     "react-datepicker": "3.8.0",
     "react-draft-wysiwyg": "1.15.0",
     "react-draggable": "4.4.6",
     "react-dropzone": "11.7.1",
     "react-ga4": "1.4.1",
-    "react-native-paper": "4.12.5",
-    "react-native-render-html": "6.3.4",
-    "react-native-vector-icons": "9.2.0",
-    "react-native-video": "5.2.1",
     "react-redux": "7.2.9",
     "react-window": "1.8.9",
     "twilio-video": "2.35.0",
@@ -83,7 +79,7 @@
   "peerDependencies": {
     "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0",
     "react-dom": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0",
-    "react-native": "^0.65.0 || ^0.66.0 || ^0.67.0 || ^0.68.0 || ^0.71.0"
+    "react-router-dom": "^5.0.0 || ^6.0.0"
   },
   "gitHead": "0e6d5109d104500982d3d8abe20b33965e7fcfeb",
   "publishConfig": {

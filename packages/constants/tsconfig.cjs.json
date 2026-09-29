@@ -1,0 +1,17 @@
+{
+  // CommonJS build of this package (lib/cjs, consumed by the API, worker and tests at runtime).
+  // Own build-info file: the esm build writes lib/tsconfig.tsbuildinfo, and sharing it made the two
+  // builds invalidate each other. `references` are not inherited through `extends`, so they are
+  // restated here against the dependencies' cjs projects (build order). Built by
+  // `tsc -b packages/tsconfig.cjs.json` (./build_cjs.sh) or `npm run build:cjs` here.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "outDir": "lib/cjs",
+    "tsBuildInfoFile": "lib/cjs/tsconfig.cjs.tsbuildinfo"
+  },
+  "references": [
+    { "path": "../types-utilities/tsconfig.cjs.json" },
+    { "path": "../types-models/tsconfig.cjs.json" }
+  ]
+}

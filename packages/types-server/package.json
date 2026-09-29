@@ -1,6 +1,6 @@
 {
   "name": "@tellescope/types-server",
-  "version": "1.256.16",
+  "version": "2.0.0-beta.0",
   "description": "Types for Tellescope models used in the server-side",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",
@@ -9,7 +9,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npm run-script build:esm && npm run-script build:cjs",
     "build:esm": "tsc",
-    "build:cjs": "tsc --module commonjs --outDir lib/cjs"
+    "build:cjs": "tsc -b tsconfig.cjs.json"
   },
   "repository": {
     "type": "git",
@@ -22,12 +22,12 @@
   },
   "homepage": "https://github.com/tellescope-os/tellescope#readme",
   "devDependencies": {
-    "@tellescope/types-models": "1.256.16",
+    "@tellescope/types-models": "2.0.0-beta.0",
     "@typescript-eslint/eslint-plugin": "4.33.0",
     "@typescript-eslint/parser": "4.33.0",
     "eslint": "7.32.0",
     "eslint-plugin-react": "7.31.11",
-    "mongodb": "5.8.0",
+    "mongodb": "5.7.0",
     "typescript": "4.9.3"
   },
   "publishConfig": {

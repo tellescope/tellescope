@@ -1,4 +1,5 @@
 /// <reference types="node" />
+/// <reference types="node" />
 export interface Indexable<T = any> {
     [index: string]: T;
 }
