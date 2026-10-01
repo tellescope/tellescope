@@ -536,6 +536,9 @@ export var AUTOMATED_ACTION_CANCEL_REASONS = [
     'Incoming Communication',
     'Removed by Automation',
     'Journey Deleted',
+    // APPEND ONLY: AutomatedAction.cancelReason is a numeric index into this array,
+    // so inserting or reordering would silently relabel every historical cancelled action.
+    'Restored from Deletion',
 ];
 export var RELATIONSHIP_TYPES = [
     'Caregiver',

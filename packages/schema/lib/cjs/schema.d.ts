@@ -273,6 +273,17 @@ type BookingInfoEnduserFields = {
     state?: string;
 };
 export type CustomActions = {
+    user_logs: {
+        restore_deleted: CustomAction<{
+            userLogId: string;
+        }, {
+            resource: string;
+            resourceId: string;
+            restoredCounts: Indexable<number>;
+            skippedCounts: Indexable<number>;
+            failedModels: string[];
+        }>;
+    };
     availability_blocks: {
         update_order: CustomAction<{
             indexUpdates: IndexUpdate[];
@@ -671,6 +682,7 @@ export type CustomActions = {
             vital_user_id?: string;
             scriptsure_patient_id?: string;
             scriptsure_deep_link?: string;
+            scriptsure_practice_id?: string;
         }>;
         bulk_update: CustomAction<{
             ids: string[];
@@ -1811,6 +1823,7 @@ export type CustomActions = {
             excludeIds?: string[];
             lastTimestamp?: Date;
             userIds?: string[];
+            careTeamUserIds?: string[];
             enduserIds?: string[];
             phoneNumber?: string;
             returnCount?: boolean;

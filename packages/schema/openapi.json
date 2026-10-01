@@ -30903,6 +30903,20 @@
             }
           },
           {
+            "name": "careTeamUserIds",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "example": [
+                "60398b0231a295e64f084fd9"
+              ]
+            }
+          },
+          {
             "name": "phoneNumber",
             "in": "query",
             "required": false,
@@ -55796,6 +55810,88 @@
         }
       }
     },
+    "/v1/user-logs/restore-deleted": {
+      "post": {
+        "summary": "Restore a deleted record",
+        "description": "**Admin only.** Re-creates a deleted record, and the records that were cascade-deleted with it, from the audit log. Admin only. Currently supports contacts (endusers) only. Idempotent: pressing it again finishes an interrupted restore and duplicates nothing. Best-effort: only records captured in the audit log are restored.",
+        "tags": [
+          "UserLogs"
+        ],
+        "operationId": "user_logs_restore_deleted",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "resource": {
+                      "type": "string",
+                      "example": "example string"
+                    },
+                    "resourceId": {
+                      "type": "string",
+                      "example": "60398b0231a295e64f084fd9"
+                    },
+                    "restoredCounts": {
+                      "type": "object",
+                      "additionalProperties": true
+                    },
+                    "skippedCounts": {
+                      "type": "object",
+                      "additionalProperties": true
+                    },
+                    "failedModels": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "example": [
+                        "example string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "userLogId": {
+                    "type": "string",
+                    "example": "60398b0231a295e64f084fd9"
+                  }
+                },
+                "required": [
+                  "userLogId"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/user-notification": {
       "post": {
         "summary": "Create user-notification",
@@ -73848,6 +73944,10 @@
             "type": "boolean",
             "example": true
           },
+          "syncAddressAsPlainText": {
+            "type": "boolean",
+            "example": true
+          },
           "scoresSync": {
             "type": "array",
             "items": {
@@ -73864,6 +73964,30 @@
             "example": [
               {
                 "score": "example string",
+                "externalId": "example string"
+              }
+            ]
+          },
+          "syncEnduserFieldsToEHR": {
+            "type": "boolean",
+            "example": true
+          },
+          "enduserFieldsSync": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string"
+                },
+                "externalId": {
+                  "type": "string"
+                }
+              }
+            },
+            "example": [
+              {
+                "field": "example string",
                 "externalId": "example string"
               }
             ]
@@ -74627,6 +74751,10 @@
             "type": "boolean",
             "example": true
           },
+          "syncAddressAsPlainText": {
+            "type": "boolean",
+            "example": true
+          },
           "scoresSync": {
             "type": "array",
             "items": {
@@ -74643,6 +74771,30 @@
             "example": [
               {
                 "score": "example string",
+                "externalId": "example string"
+              }
+            ]
+          },
+          "syncEnduserFieldsToEHR": {
+            "type": "boolean",
+            "example": true
+          },
+          "enduserFieldsSync": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string"
+                },
+                "externalId": {
+                  "type": "string"
+                }
+              }
+            },
+            "example": [
+              {
+                "field": "example string",
                 "externalId": "example string"
               }
             ]
@@ -75406,6 +75558,10 @@
             "type": "boolean",
             "example": true
           },
+          "syncAddressAsPlainText": {
+            "type": "boolean",
+            "example": true
+          },
           "scoresSync": {
             "type": "array",
             "items": {
@@ -75422,6 +75578,30 @@
             "example": [
               {
                 "score": "example string",
+                "externalId": "example string"
+              }
+            ]
+          },
+          "syncEnduserFieldsToEHR": {
+            "type": "boolean",
+            "example": true
+          },
+          "enduserFieldsSync": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string"
+                },
+                "externalId": {
+                  "type": "string"
+                }
+              }
+            },
+            "example": [
+              {
+                "field": "example string",
                 "externalId": "example string"
               }
             ]
@@ -76444,6 +76624,10 @@
               "example string"
             ]
           },
+          "mdiIgnore": {
+            "type": "boolean",
+            "example": true
+          },
           "highlightOnTimeline": {
             "type": "boolean",
             "example": true
@@ -77286,6 +77470,10 @@
               "example string"
             ]
           },
+          "mdiIgnore": {
+            "type": "boolean",
+            "example": true
+          },
           "highlightOnTimeline": {
             "type": "boolean",
             "example": true
@@ -78127,6 +78315,10 @@
             "example": [
               "example string"
             ]
+          },
+          "mdiIgnore": {
+            "type": "boolean",
+            "example": true
           },
           "highlightOnTimeline": {
             "type": "boolean",
@@ -137438,6 +137630,18 @@
                             "type": "string"
                           }
                         },
+                        "titlePartials": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "titlePartialsIgnoreCase": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
                         "fills": {
                           "type": "array",
                           "items": {
@@ -137464,6 +137668,18 @@
                       "type": "object",
                       "properties": {
                         "titles": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "titlePartials": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "titlePartialsIgnoreCase": {
                           "type": "array",
                           "items": {
                             "type": "string"
@@ -139286,6 +139502,18 @@
                             "type": "string"
                           }
                         },
+                        "titlePartials": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "titlePartialsIgnoreCase": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
                         "fills": {
                           "type": "array",
                           "items": {
@@ -139312,6 +139540,18 @@
                       "type": "object",
                       "properties": {
                         "titles": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "titlePartials": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "titlePartialsIgnoreCase": {
                           "type": "array",
                           "items": {
                             "type": "string"
@@ -141134,6 +141374,18 @@
                             "type": "string"
                           }
                         },
+                        "titlePartials": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "titlePartialsIgnoreCase": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
                         "fills": {
                           "type": "array",
                           "items": {
@@ -141160,6 +141412,18 @@
                       "type": "object",
                       "properties": {
                         "titles": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "titlePartials": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "titlePartialsIgnoreCase": {
                           "type": "array",
                           "items": {
                             "type": "string"

@@ -3757,6 +3757,9 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
 type Queries = {
     [K in keyof ClientModelForName]: APIQuery<K>;
 } & {
+    user_logs: {
+        restore_deleted: (args: extractFields<CustomActions['user_logs']['restore_deleted']['parameters']>) => (Promise<extractFields<CustomActions['user_logs']['restore_deleted']['returns']>>);
+    };
     inbox_threads: {
         build_threads: (args: extractFields<CustomActions['inbox_threads']['build_threads']['parameters']>) => (Promise<extractFields<CustomActions['inbox_threads']['build_threads']['returns']>>);
         load_threads: (args: extractFields<CustomActions['inbox_threads']['load_threads']['parameters']>) => (Promise<extractFields<CustomActions['inbox_threads']['load_threads']['returns']>>);

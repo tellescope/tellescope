@@ -704,6 +704,18 @@ type BookingInfoEnduserFields = {
   state?: string,
 }
 export type CustomActions = {
+  user_logs: {
+    restore_deleted: CustomAction<
+      { userLogId: string }, 
+      { 
+        resource: string, 
+        resourceId: string, 
+        restoredCounts: Indexable<number>, 
+        skippedCounts: Indexable<number>, 
+        failedModels: string[],
+      }
+    >,
+  },
   availability_blocks: {
     update_order: CustomAction<{ indexUpdates: IndexUpdate[] }, { }>,
     handle_autoreply: CustomAction<AutoreplyInfo, { }>,
@@ -885,7 +897,7 @@ export type CustomActions = {
     add_to_journey: CustomAction<{ enduserIds: string[], journeyId: string, startAt?: Date, automationStepId?: string, journeyContext?: JourneyContext, throttle?: boolean, source?: string, enduserStartTimes?: Record<string, Date> }, { }>, 
     remove_from_journey: CustomAction<{ enduserIds: string[], journeyId: string }, { }>, 
     merge: CustomAction<{ sourceEnduserId: string, destinationEnduserId: string, }, { }>, 
-    push: CustomAction<{ enduserId: string, destinations?: string[], externalIds?: string[], entrypoint?: string }, { fullscriptRedirectURL?: string, vital_user_id?: string, scriptsure_patient_id?: string, scriptsure_deep_link?: string }>,
+    push: CustomAction<{ enduserId: string, destinations?: string[], externalIds?: string[], entrypoint?: string }, { fullscriptRedirectURL?: string, vital_user_id?: string, scriptsure_patient_id?: string, scriptsure_deep_link?: string, scriptsure_practice_id?: string }>,
     bulk_update: CustomAction<
       { ids: string[], primaryAssignee?: string, state?: string, fields?: CustomFields, pushTags?: string[], replaceTags?: string[], updateAccessTags?: boolean, customTypeId?: string }, 
       { updated: Enduser[] }
@@ -1341,7 +1353,7 @@ export type CustomActions = {
       { alreadyBuilt: boolean }
     >,
     load_threads: CustomAction<
-      { limit?: number, ids?: string[], excludeIds?: string[], lastTimestamp?: Date, userIds?: string[], enduserIds?: string[], phoneNumber?: string, returnCount?: boolean, mdbFilter?: object, sortBy?: 'timestamp' | 'outboundTimestamp', autobuild?: boolean, search?: string },
+      { limit?: number, ids?: string[], excludeIds?: string[], lastTimestamp?: Date, userIds?: string[], careTeamUserIds?: string[], enduserIds?: string[], phoneNumber?: string, returnCount?: boolean, mdbFilter?: object, sortBy?: 'timestamp' | 'outboundTimestamp', autobuild?: boolean, search?: string },
       { threads: InboxThread[], count?: number }
     >,
     reset_threads: CustomAction<
@@ -1479,6 +1491,9 @@ const procedureCodesValidator = listValidatorOptionalOrEmptyOk(objectValidator<F
   feeCents: nonNegNumberValidatorOptional,
   modifiers: listOfStringsValidatorOptionalOrEmptyOk,
 }))
+
+// { [modelName]: count } maps returned by user_logs.restore_deleted
+const countsByModelValidator = objectAnyFieldsValidator(nonNegNumberValidator)
 
 const diagnosisCodesValidator = listValidatorOptionalOrEmptyOk(objectValidator<FormResponseDiagnosisCode>({
   code: stringValidator100,
@@ -5091,9 +5106,17 @@ export const schema: SchemaV1 = build_schema({
       syncToOLH: { validator: booleanValidator },
       syncWithResponsesFromFormIds: { validator: listOfUniqueStringsValidatorEmptyOk },
       syncAnswersAsHtml: { validator: booleanValidator },
+      syncAddressAsPlainText: { validator: booleanValidator },
       scoresSync: {
         validator: listValidatorOptionalOrEmptyOk(objectValidator<{ score: string, externalId: string }>({ 
           score: stringValidator100,
+          externalId: stringValidator100,
+        }))
+      },
+      syncEnduserFieldsToEHR: { validator: booleanValidator },
+      enduserFieldsSync: {
+        validator: listValidatorOptionalOrEmptyOk(objectValidator<{ field: string, externalId: string }>({
+          field: stringValidator100,
           externalId: stringValidator100,
         }))
       },
@@ -5210,6 +5233,7 @@ export const schema: SchemaV1 = build_schema({
       calloutConditions: { validator: formFieldCalloutConditionsValidator },
       mdiImportantValues: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       mdiCriticalValues: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+      mdiIgnore: { validator: booleanValidator },
       highlightOnTimeline: { validator: booleanValidator },
       prepopulateFromFields: { validator: booleanValidator },
       prepopulateFromDatabase: {
@@ -6621,7 +6645,27 @@ export const schema: SchemaV1 = build_schema({
       access: []
     },
     defaultActions: { read: {}, readMany: {} },
-    customActions: { },
+    customActions: { 
+      restore_deleted: {
+        op: "custom", access: 'create', method: "post",
+        name: 'Restore a deleted record',
+        path: '/user-logs/restore-deleted',
+        description: "Re-creates a deleted record, and the records that were cascade-deleted with it, from the audit log. "
+          + "Admin only. Currently supports contacts (endusers) only. Idempotent: pressing it again finishes an "
+          + "interrupted restore and duplicates nothing. Best-effort: only records captured in the audit log are restored.",
+        adminOnly: true,
+        parameters: { 
+          userLogId: { validator: mongoIdStringValidator, required: true },
+        },
+        returns: { 
+          resource: { validator: stringValidator100 },
+          resourceId: { validator: mongoIdStringValidator },
+          restoredCounts: { validator: countsByModelValidator },
+          skippedCounts: { validator: countsByModelValidator },
+          failedModels: { validator: listOfStringsValidatorEmptyOk },
+        },
+      },
+    },
     enduserActions: { },
     fields: {
       ...BuiltInFields, 
@@ -10449,6 +10493,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           lastTimestamp: { validator: dateValidatorOptional },
           enduserIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
           userIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
+          careTeamUserIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
           phoneNumber: { validator: phoneValidatorOptional },
           returnCount: { validator: booleanValidatorOptional },
           mdbFilter: { validator: objectAnyFieldsAnyValuesValidator },

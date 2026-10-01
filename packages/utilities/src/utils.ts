@@ -1351,6 +1351,50 @@ export const evaluate_string_field_comparison = (
   return true
 }
 
+/**
+ * Substring ("contains") matching for automation trigger title filters.
+ *
+ * `partials` is case sensitive, `partialsIgnoreCase` is not. Each list is OR internally (any entry
+ * matching is enough) and the two lists AND together, so a trigger can require both a case-exact
+ * fragment and a loose one. A list that is absent, empty, or empty once blanks are dropped counts as
+ * unset and imposes no filter — matching the "leave blank for all" convention of the exact `titles`
+ * lists these sit beside.
+ *
+ * Entries are trimmed before matching, and entries that are blank after trimming are dropped rather
+ * than used: a raw `includes('')` is true for every string, so one stray whitespace entry would
+ * silently turn a filtered trigger into a fire-on-everything automation.
+ *
+ * An absent or empty title never matches a non-empty list.
+ */
+export const title_matches_partials = (
+  value: string | undefined | null,
+  partials?: string[],
+  partialsIgnoreCase?: string[],
+): boolean => {
+  const clean = (list?: string[]) => (
+    (list ?? [])
+    .map(p => typeof p === 'string' ? p.trim() : '')
+    .filter(p => !!p)
+  )
+
+  const caseSensitive = clean(partials)
+  const caseInsensitive = clean(partialsIgnoreCase)
+
+  if (caseSensitive.length === 0 && caseInsensitive.length === 0) return true
+
+  const title = value ?? ''
+  if (!title) return false // a filter is set and there is nothing to match it against
+
+  if (caseSensitive.length && !caseSensitive.some(p => title.includes(p))) return false
+
+  if (caseInsensitive.length) {
+    const lowercased = title.toLowerCase()
+    if (!caseInsensitive.some(p => lowercased.includes(p.toLowerCase()))) return false
+  }
+
+  return true
+}
+
 export const evaluate_conditional_logic_for_medication_title = (
   title: string,
   conditions: CompoundFilter<'title'>,
@@ -3702,7 +3746,7 @@ export const downloadFile = (data: Uint8Array | Blob | Buffer | string, options 
 
 export const is_timezone = (value: any): value is Timezone => (typeof value === 'string' && TIMEZONES.includes(value as Timezone))
 
-export const enduser_address_string = (e: Enduser) => (
+export const enduser_address_string = (e: Pick<Enduser, 'addressLineOne' | 'addressLineTwo' | 'city' | 'state' | 'zipCode' | 'zipPlusFour'>) => (
   `${e.addressLineOne ? e.addressLineOne : ''}${e.addressLineTwo ? ` ${e.addressLineTwo}` : ''}${e.addressLineOne || e.addressLineTwo ? ', ' : ''}${e.city ? `${e.city}, ` : ''}${e.state ? `${e.state}${e.zipCode ? ', ' : ''}` : ''}${e.zipCode ? e.zipCode : ''}${e.zipPlusFour && e.zipCode ? `-${e.zipPlusFour}`: ''}`
 )
 export const enduser_insurance_string = (i?: EnduserInsurance) => !i ? '' : (

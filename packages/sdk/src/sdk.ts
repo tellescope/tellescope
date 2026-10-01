@@ -234,6 +234,11 @@ const loadDefaultQueries = (s: Session): { [K in keyof ClientModelForName] : API
 })
 
 type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
+  user_logs: {
+    restore_deleted: (args: extractFields<CustomActions['user_logs']['restore_deleted']['parameters']>) => (
+      Promise<extractFields<CustomActions['user_logs']['restore_deleted']['returns']>>
+    ),
+  },
   inbox_threads: {
     build_threads: (args: extractFields<CustomActions['inbox_threads']['build_threads']['parameters']>) => (
       Promise<extractFields<CustomActions['inbox_threads']['build_threads']['returns']>>
@@ -996,6 +1001,7 @@ export class Session extends SessionManager {
     queries.api_keys.get_organization_api_keys = () => this._GET(`/v1${schema.api_keys.customActions.get_organization_api_keys.path}`)
     queries.api_keys.delete_organization_api_key = ({ id }) => this._DELETE(`/v1/organization-api-key/${id}`)
 
+    queries.user_logs.restore_deleted = a => this._POST(`/v1${schema.user_logs.customActions.restore_deleted.path}`, a)
     queries.enduser_orders.get_available_tests = a => this._GET(`/v1${schema.enduser_orders.customActions.get_available_tests.path}`, a)
     queries.enduser_orders.create_lab_order = a => this._POST(`/v1${schema.enduser_orders.customActions.create_lab_order.path}`, a)
     queries.enduser_orders.cancel_order = a => this._POST(`/v1${schema.enduser_orders.customActions.cancel_order.path}`, a)

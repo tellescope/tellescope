@@ -1820,10 +1820,14 @@ export declare const automationTriggerEventValidator: ValidatorDefinition<import
     inputs?: string[] | undefined;
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Order Created", {
     titles?: string[] | undefined;
+    titlePartials?: string[] | undefined;
+    titlePartialsIgnoreCase?: string[] | undefined;
     fills?: string[] | undefined;
     partialFrequency?: string | undefined;
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Problem Created", {
     titles?: string[] | undefined;
+    titlePartials?: string[] | undefined;
+    titlePartialsIgnoreCase?: string[] | undefined;
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Pregnancy Ended", {
     reason?: string | undefined;
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Form Group Completed", {

@@ -76,7 +76,13 @@ export declare const useFormDisplayLanguage: ({ form, initialLanguage, detectBro
             score: string;
             externalId: string;
         }[] | undefined;
+        syncEnduserFieldsToEHR?: boolean | undefined;
+        enduserFieldsSync?: {
+            field: string;
+            externalId: string;
+        }[] | undefined;
         syncAnswersAsHtml?: boolean | undefined;
+        syncAddressAsPlainText?: boolean | undefined;
         hideAfterUnsubmittedInMS?: number | undefined;
         hideFromCompose?: boolean | undefined;
         hideFromBulkSubmission?: boolean | undefined;
@@ -250,6 +256,7 @@ export declare const useTellescopeForm: ({ dontAutoadvance, isPublicForm, form, 
             calloutConditions?: import("@tellescope/types-models").FormFieldCalloutCondition[] | undefined;
             mdiImportantValues?: string[] | undefined;
             mdiCriticalValues?: string[] | undefined;
+            mdiIgnore?: boolean | undefined;
             feedback?: import("@tellescope/types-models").FormFieldFeedback[] | undefined;
             highlightOnTimeline?: boolean | undefined;
             prepopulateFromDatabase?: {
@@ -314,6 +321,7 @@ export declare const useTellescopeForm: ({ dontAutoadvance, isPublicForm, form, 
             calloutConditions?: import("@tellescope/types-models").FormFieldCalloutCondition[] | undefined;
             mdiImportantValues?: string[] | undefined;
             mdiCriticalValues?: string[] | undefined;
+            mdiIgnore?: boolean | undefined;
             feedback?: import("@tellescope/types-models").FormFieldFeedback[] | undefined;
             highlightOnTimeline?: boolean | undefined;
             prepopulateFromDatabase?: {

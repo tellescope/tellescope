@@ -4531,6 +4531,8 @@ export var automationTriggerEventValidator = orValidator({
         type: exactMatchValidator(['Order Created']),
         info: objectValidator({
             titles: listOfStringsValidatorOptionalOrEmptyOk,
+            titlePartials: listOfStringsValidatorOptionalOrEmptyOk,
+            titlePartialsIgnoreCase: listOfStringsValidatorOptionalOrEmptyOk,
             fills: listOfStringsValidatorOptionalOrEmptyOk,
             partialFrequency: stringValidatorOptional,
         }),
@@ -4540,6 +4542,8 @@ export var automationTriggerEventValidator = orValidator({
         type: exactMatchValidator(['Problem Created']),
         info: objectValidator({
             titles: listOfStringsValidatorOptionalOrEmptyOk,
+            titlePartials: listOfStringsValidatorOptionalOrEmptyOk,
+            titlePartialsIgnoreCase: listOfStringsValidatorOptionalOrEmptyOk,
         }),
         conditions: optionalEmptyObjectValidator,
     }),

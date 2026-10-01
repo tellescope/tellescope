@@ -1250,6 +1250,41 @@ export var evaluate_string_field_comparison = function (fieldValue, operator) {
     }
     return true;
 };
+/**
+ * Substring ("contains") matching for automation trigger title filters.
+ *
+ * `partials` is case sensitive, `partialsIgnoreCase` is not. Each list is OR internally (any entry
+ * matching is enough) and the two lists AND together, so a trigger can require both a case-exact
+ * fragment and a loose one. A list that is absent, empty, or empty once blanks are dropped counts as
+ * unset and imposes no filter — matching the "leave blank for all" convention of the exact `titles`
+ * lists these sit beside.
+ *
+ * Entries are trimmed before matching, and entries that are blank after trimming are dropped rather
+ * than used: a raw `includes('')` is true for every string, so one stray whitespace entry would
+ * silently turn a filtered trigger into a fire-on-everything automation.
+ *
+ * An absent or empty title never matches a non-empty list.
+ */
+export var title_matches_partials = function (value, partials, partialsIgnoreCase) {
+    var clean = function (list) { return ((list !== null && list !== void 0 ? list : [])
+        .map(function (p) { return typeof p === 'string' ? p.trim() : ''; })
+        .filter(function (p) { return !!p; })); };
+    var caseSensitive = clean(partials);
+    var caseInsensitive = clean(partialsIgnoreCase);
+    if (caseSensitive.length === 0 && caseInsensitive.length === 0)
+        return true;
+    var title = value !== null && value !== void 0 ? value : '';
+    if (!title)
+        return false; // a filter is set and there is nothing to match it against
+    if (caseSensitive.length && !caseSensitive.some(function (p) { return title.includes(p); }))
+        return false;
+    if (caseInsensitive.length) {
+        var lowercased_1 = title.toLowerCase();
+        if (!caseInsensitive.some(function (p) { return lowercased_1.includes(p.toLowerCase()); }))
+            return false;
+    }
+    return true;
+};
 export var evaluate_conditional_logic_for_medication_title = function (title, conditions) { return evaluate_conditional_logic(conditions, function (key, value) {
     return key === 'title' ? evaluate_string_field_comparison(title, value) : true;
 }); };

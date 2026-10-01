@@ -419,6 +419,7 @@ var Session = /** @class */ (function (_super) {
             var id = _a.id;
             return _this._DELETE("/v1/organization-api-key/".concat(id));
         };
+        queries.user_logs.restore_deleted = function (a) { return _this._POST("/v1".concat(schema.user_logs.customActions.restore_deleted.path), a); };
         queries.enduser_orders.get_available_tests = function (a) { return _this._GET("/v1".concat(schema.enduser_orders.customActions.get_available_tests.path), a); };
         queries.enduser_orders.create_lab_order = function (a) { return _this._POST("/v1".concat(schema.enduser_orders.customActions.create_lab_order.path), a); };
         queries.enduser_orders.cancel_order = function (a) { return _this._POST("/v1".concat(schema.enduser_orders.customActions.cancel_order.path), a); };

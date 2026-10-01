@@ -306,7 +306,7 @@ export interface OktaSSOConfiguration extends InternalBusinessRecord {
 }
 
 export interface InternalSecret extends InternalBusinessRecord {
-  type: 'twilio-ios' | 'twilio-android' | 'customer-usage-data' | 'beluga-sandbox' | 'beluga-production' | 'scriptsure-sandbox' | 'scriptsure-production' | 'scriptsure-webhooks' | 'stripe-platform-webhook' | 'usda' | 'stedi-sandbox' | 'stedi-production'
+  type: 'twilio-ios' | 'twilio-android' | 'customer-usage-data' | 'beluga-sandbox' | 'beluga-production' | 'beluga-webhooks-staging' | 'beluga-webhooks-production' | 'scriptsure-sandbox' | 'scriptsure-production' | 'scriptsure-webhooks' | 'stripe-platform-webhook' | 'usda' | 'stedi-sandbox' | 'stedi-production'
   publicKey: string,
   secretKey: string,
 }

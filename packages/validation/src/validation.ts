@@ -5525,6 +5525,8 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     type: exactMatchValidator(['Order Created']),
     info: objectValidator<AutomationTriggerEvents['Order Created']['info']>({
       titles: listOfStringsValidatorOptionalOrEmptyOk,
+      titlePartials: listOfStringsValidatorOptionalOrEmptyOk,
+      titlePartialsIgnoreCase: listOfStringsValidatorOptionalOrEmptyOk,
       fills: listOfStringsValidatorOptionalOrEmptyOk,
       partialFrequency: stringValidatorOptional,
     }),
@@ -5534,6 +5536,8 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     type: exactMatchValidator(['Problem Created']),
     info: objectValidator<AutomationTriggerEvents['Problem Created']['info']>({
       titles: listOfStringsValidatorOptionalOrEmptyOk,
+      titlePartials: listOfStringsValidatorOptionalOrEmptyOk,
+      titlePartialsIgnoreCase: listOfStringsValidatorOptionalOrEmptyOk,
     }),
     conditions: optionalEmptyObjectValidator,
   }), 

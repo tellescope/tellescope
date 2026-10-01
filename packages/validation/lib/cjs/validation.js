@@ -4585,6 +4585,8 @@ exports.automationTriggerEventValidator = (0, exports.orValidator)({
         type: (0, exports.exactMatchValidator)(['Order Created']),
         info: (0, exports.objectValidator)({
             titles: exports.listOfStringsValidatorOptionalOrEmptyOk,
+            titlePartials: exports.listOfStringsValidatorOptionalOrEmptyOk,
+            titlePartialsIgnoreCase: exports.listOfStringsValidatorOptionalOrEmptyOk,
             fills: exports.listOfStringsValidatorOptionalOrEmptyOk,
             partialFrequency: exports.stringValidatorOptional,
         }),
@@ -4594,6 +4596,8 @@ exports.automationTriggerEventValidator = (0, exports.orValidator)({
         type: (0, exports.exactMatchValidator)(['Problem Created']),
         info: (0, exports.objectValidator)({
             titles: exports.listOfStringsValidatorOptionalOrEmptyOk,
+            titlePartials: exports.listOfStringsValidatorOptionalOrEmptyOk,
+            titlePartialsIgnoreCase: exports.listOfStringsValidatorOptionalOrEmptyOk,
         }),
         conditions: exports.optionalEmptyObjectValidator,
     }),

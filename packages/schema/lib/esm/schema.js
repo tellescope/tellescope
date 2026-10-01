@@ -122,6 +122,8 @@ var procedureCodesValidator = listValidatorOptionalOrEmptyOk(objectValidator({
     feeCents: nonNegNumberValidatorOptional,
     modifiers: listOfStringsValidatorOptionalOrEmptyOk,
 }));
+// { [modelName]: count } maps returned by user_logs.restore_deleted
+var countsByModelValidator = objectAnyFieldsValidator(nonNegNumberValidator);
 var diagnosisCodesValidator = listValidatorOptionalOrEmptyOk(objectValidator({
     code: stringValidator100,
     description: stringValidatorOptionalEmptyOkay,
@@ -3248,9 +3250,14 @@ export var schema = build_schema({
                     language: stringValidator100,
                     configurationId: mongoIdStringRequired,
                 }))
-            }, isNonVisitElationNote: { validator: booleanValidator }, elationVisitNotePractitionerIds: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, elationVisitNoteType: { validator: stringValidator100 }, elationSkipBlankResponses: { validator: booleanValidator }, publicShowLanguage: { validator: booleanValidator }, publicShowDownload: { validator: booleanValidator }, canvasId: { validator: stringValidator100 }, canvasQuestionId: { validator: stringValidator100 }, syncToOLH: { validator: booleanValidator }, syncWithResponsesFromFormIds: { validator: listOfUniqueStringsValidatorEmptyOk }, syncAnswersAsHtml: { validator: booleanValidator }, scoresSync: {
+            }, isNonVisitElationNote: { validator: booleanValidator }, elationVisitNotePractitionerIds: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, elationVisitNoteType: { validator: stringValidator100 }, elationSkipBlankResponses: { validator: booleanValidator }, publicShowLanguage: { validator: booleanValidator }, publicShowDownload: { validator: booleanValidator }, canvasId: { validator: stringValidator100 }, canvasQuestionId: { validator: stringValidator100 }, syncToOLH: { validator: booleanValidator }, syncWithResponsesFromFormIds: { validator: listOfUniqueStringsValidatorEmptyOk }, syncAnswersAsHtml: { validator: booleanValidator }, syncAddressAsPlainText: { validator: booleanValidator }, scoresSync: {
                 validator: listValidatorOptionalOrEmptyOk(objectValidator({
                     score: stringValidator100,
+                    externalId: stringValidator100,
+                }))
+            }, syncEnduserFieldsToEHR: { validator: booleanValidator }, enduserFieldsSync: {
+                validator: listValidatorOptionalOrEmptyOk(objectValidator({
+                    field: stringValidator100,
                     externalId: stringValidator100,
                 }))
             }, hideAfterUnsubmittedInMS: { validator: numberValidator }, hideFromCompose: { validator: booleanValidator }, hideFromBulkSubmission: { validator: booleanValidator }, enduserFieldsToAppendForSync: { validator: listOfUniqueStringsValidatorEmptyOk }, allowPortalSubmission: { validator: booleanValidator }, allowPortalSubmissionEnduserCondition: { validator: optionalAnyObjectValidator }, canvasNoteCoding: { validator: canvasCodingValidatorOptional }, syncToCanvasAsDataImport: { validator: booleanValidator }, matchCareTeamTagsForCanvasPractitionerResolution: { validator: listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay }, ipAddressCustomField: { validator: stringValidatorOptionalEmptyOkay }, version: { validator: exactMatchValidatorOptional(['v1', 'v2']) }, aiSummaryConfiguration: { validator: aiSummaryConfigurationValidator }, responseAISummaryConfiguration: { validator: aiSummaryConfigurationValidator } })
@@ -3331,7 +3338,7 @@ export var schema = build_schema({
                 validator: previousFormFieldsValidator,
                 initializer: function () { return []; },
                 examples: [[{ type: 'root', info: {} }]]
-            }, flowchartUI: { validator: flowchartUIValidator }, options: { validator: formFieldOptionsValidator }, description: { validator: stringValidator25000EmptyOkay }, htmlDescription: { validator: stringValidator25000EmptyOkay }, intakeField: { validator: stringValidator5000EmptyOkay }, isOptional: { validator: booleanValidator }, fullZIP: { validator: booleanValidator }, isInGroup: { validator: booleanValidator }, externalId: { validator: stringValidator1000 }, sharedWithEnduser: { validator: booleanValidator }, calloutConditions: { validator: formFieldCalloutConditionsValidator }, mdiImportantValues: { validator: listOfStringsValidatorOptionalOrEmptyOk }, mdiCriticalValues: { validator: listOfStringsValidatorOptionalOrEmptyOk }, highlightOnTimeline: { validator: booleanValidator }, prepopulateFromFields: { validator: booleanValidator }, prepopulateFromDatabase: {
+            }, flowchartUI: { validator: flowchartUIValidator }, options: { validator: formFieldOptionsValidator }, description: { validator: stringValidator25000EmptyOkay }, htmlDescription: { validator: stringValidator25000EmptyOkay }, intakeField: { validator: stringValidator5000EmptyOkay }, isOptional: { validator: booleanValidator }, fullZIP: { validator: booleanValidator }, isInGroup: { validator: booleanValidator }, externalId: { validator: stringValidator1000 }, sharedWithEnduser: { validator: booleanValidator }, calloutConditions: { validator: formFieldCalloutConditionsValidator }, mdiImportantValues: { validator: listOfStringsValidatorOptionalOrEmptyOk }, mdiCriticalValues: { validator: listOfStringsValidatorOptionalOrEmptyOk }, mdiIgnore: { validator: booleanValidator }, highlightOnTimeline: { validator: booleanValidator }, prepopulateFromFields: { validator: booleanValidator }, prepopulateFromDatabase: {
                 validator: objectValidator({
                     databaseId: mongoIdStringOptional,
                     field: stringValidatorOptionalEmptyOkay,
@@ -4435,7 +4442,27 @@ export var schema = build_schema({
             access: []
         },
         defaultActions: { read: {}, readMany: {} },
-        customActions: {},
+        customActions: {
+            restore_deleted: {
+                op: "custom", access: 'create', method: "post",
+                name: 'Restore a deleted record',
+                path: '/user-logs/restore-deleted',
+                description: "Re-creates a deleted record, and the records that were cascade-deleted with it, from the audit log. "
+                    + "Admin only. Currently supports contacts (endusers) only. Idempotent: pressing it again finishes an "
+                    + "interrupted restore and duplicates nothing. Best-effort: only records captured in the audit log are restored.",
+                adminOnly: true,
+                parameters: {
+                    userLogId: { validator: mongoIdStringValidator, required: true },
+                },
+                returns: {
+                    resource: { validator: stringValidator100 },
+                    resourceId: { validator: mongoIdStringValidator },
+                    restoredCounts: { validator: countsByModelValidator },
+                    skippedCounts: { validator: countsByModelValidator },
+                    failedModels: { validator: listOfStringsValidatorEmptyOk },
+                },
+            },
+        },
         enduserActions: {},
         fields: __assign(__assign({}, BuiltInFields), { userId: {
                 validator: mongoIdStringValidator,
@@ -7425,6 +7452,7 @@ export var schema = build_schema({
                     lastTimestamp: { validator: dateValidatorOptional },
                     enduserIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
                     userIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
+                    careTeamUserIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
                     phoneNumber: { validator: phoneValidatorOptional },
                     returnCount: { validator: booleanValidatorOptional },
                     mdbFilter: { validator: objectAnyFieldsAnyValuesValidator },

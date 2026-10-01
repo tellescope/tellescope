@@ -2200,6 +2200,7 @@ export interface FormField extends FormField_readonly, FormField_required, FormF
   calloutConditions?: FormFieldCalloutCondition[],
   mdiImportantValues?: string[],  // answer values that flag the MDI case question as important (MDI_FLAG_ALL_ANSWERS sentinel => any answer)
   mdiCriticalValues?: string[],   // answer values that flag the MDI case question as is_critical (MDI_FLAG_ALL_ANSWERS sentinel => any answer)
+  mdiIgnore?: boolean,            // omit this field's answer (case question and file uploads) from MDI cases; patient-mapped fields are unaffected
   feedback?: FormFieldFeedback[],
   highlightOnTimeline?: boolean,
   prepopulateFromDatabase?: {
@@ -2355,7 +2356,12 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
     score: string,
     externalId: string,
   }[]
+  // EHR-agnostic: the externalId on each row is the question id in whichever EHR this form
+  // syncs to (Form.externalId). Only the Healthie push reads these today.
+  syncEnduserFieldsToEHR?: boolean,
+  enduserFieldsSync?: { field: string, externalId: string }[],
   syncAnswersAsHtml?: boolean,
+  syncAddressAsPlainText?: boolean,
   hideAfterUnsubmittedInMS?: number,
   hideFromCompose?: boolean,
   hideFromBulkSubmission?: boolean,
@@ -5162,8 +5168,8 @@ export type AutomationTriggerEvents = {
     phoneNumbers?: string[], 
     inputs?: string[], 
   }, {}>,
-  'Order Created': AutomationTriggerEventBuilder<"Order Created", { titles?: string[], fills?: string[], partialFrequency?: string, }, {}>,
-  'Problem Created': AutomationTriggerEventBuilder<"Problem Created", { titles?: string[] }, {}>,
+  'Order Created': AutomationTriggerEventBuilder<"Order Created", { titles?: string[], titlePartials?: string[], titlePartialsIgnoreCase?: string[], fills?: string[], partialFrequency?: string, }, {}>,
+  'Problem Created': AutomationTriggerEventBuilder<"Problem Created", { titles?: string[], titlePartials?: string[], titlePartialsIgnoreCase?: string[] }, {}>,
   'Message Delivery Failure': AutomationTriggerEventBuilder<"Message Delivery Failure", { }, {}>,
   'Incoming Message': AutomationTriggerEventBuilder<"Incoming Message", { noCareTeam?: boolean, destinations?: string[], channels?: string[], keywords?: string[] }, {}>,
   'Outbound Chat Sent': AutomationTriggerEventBuilder<"Outbound Chat Sent", { }, {}>,

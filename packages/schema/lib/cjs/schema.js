@@ -127,6 +127,8 @@ var procedureCodesValidator = (0, validation_1.listValidatorOptionalOrEmptyOk)((
     feeCents: validation_1.nonNegNumberValidatorOptional,
     modifiers: validation_1.listOfStringsValidatorOptionalOrEmptyOk,
 }));
+// { [modelName]: count } maps returned by user_logs.restore_deleted
+var countsByModelValidator = (0, validation_1.objectAnyFieldsValidator)(validation_1.nonNegNumberValidator);
 var diagnosisCodesValidator = (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
     code: validation_1.stringValidator100,
     description: validation_1.stringValidatorOptionalEmptyOkay,
@@ -3253,9 +3255,14 @@ exports.schema = (0, exports.build_schema)({
                     language: validation_1.stringValidator100,
                     configurationId: validation_1.mongoIdStringRequired,
                 }))
-            }, isNonVisitElationNote: { validator: validation_1.booleanValidator }, elationVisitNotePractitionerIds: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, elationVisitNoteType: { validator: validation_1.stringValidator100 }, elationSkipBlankResponses: { validator: validation_1.booleanValidator }, publicShowLanguage: { validator: validation_1.booleanValidator }, publicShowDownload: { validator: validation_1.booleanValidator }, canvasId: { validator: validation_1.stringValidator100 }, canvasQuestionId: { validator: validation_1.stringValidator100 }, syncToOLH: { validator: validation_1.booleanValidator }, syncWithResponsesFromFormIds: { validator: validation_1.listOfUniqueStringsValidatorEmptyOk }, syncAnswersAsHtml: { validator: validation_1.booleanValidator }, scoresSync: {
+            }, isNonVisitElationNote: { validator: validation_1.booleanValidator }, elationVisitNotePractitionerIds: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, elationVisitNoteType: { validator: validation_1.stringValidator100 }, elationSkipBlankResponses: { validator: validation_1.booleanValidator }, publicShowLanguage: { validator: validation_1.booleanValidator }, publicShowDownload: { validator: validation_1.booleanValidator }, canvasId: { validator: validation_1.stringValidator100 }, canvasQuestionId: { validator: validation_1.stringValidator100 }, syncToOLH: { validator: validation_1.booleanValidator }, syncWithResponsesFromFormIds: { validator: validation_1.listOfUniqueStringsValidatorEmptyOk }, syncAnswersAsHtml: { validator: validation_1.booleanValidator }, syncAddressAsPlainText: { validator: validation_1.booleanValidator }, scoresSync: {
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     score: validation_1.stringValidator100,
+                    externalId: validation_1.stringValidator100,
+                }))
+            }, syncEnduserFieldsToEHR: { validator: validation_1.booleanValidator }, enduserFieldsSync: {
+                validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
+                    field: validation_1.stringValidator100,
                     externalId: validation_1.stringValidator100,
                 }))
             }, hideAfterUnsubmittedInMS: { validator: validation_1.numberValidator }, hideFromCompose: { validator: validation_1.booleanValidator }, hideFromBulkSubmission: { validator: validation_1.booleanValidator }, enduserFieldsToAppendForSync: { validator: validation_1.listOfUniqueStringsValidatorEmptyOk }, allowPortalSubmission: { validator: validation_1.booleanValidator }, allowPortalSubmissionEnduserCondition: { validator: validation_1.optionalAnyObjectValidator }, canvasNoteCoding: { validator: validation_1.canvasCodingValidatorOptional }, syncToCanvasAsDataImport: { validator: validation_1.booleanValidator }, matchCareTeamTagsForCanvasPractitionerResolution: { validator: validation_1.listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay }, ipAddressCustomField: { validator: validation_1.stringValidatorOptionalEmptyOkay }, version: { validator: (0, validation_1.exactMatchValidatorOptional)(['v1', 'v2']) }, aiSummaryConfiguration: { validator: validation_1.aiSummaryConfigurationValidator }, responseAISummaryConfiguration: { validator: validation_1.aiSummaryConfigurationValidator } })
@@ -3336,7 +3343,7 @@ exports.schema = (0, exports.build_schema)({
                 validator: validation_1.previousFormFieldsValidator,
                 initializer: function () { return []; },
                 examples: [[{ type: 'root', info: {} }]]
-            }, flowchartUI: { validator: validation_1.flowchartUIValidator }, options: { validator: validation_1.formFieldOptionsValidator }, description: { validator: validation_1.stringValidator25000EmptyOkay }, htmlDescription: { validator: validation_1.stringValidator25000EmptyOkay }, intakeField: { validator: validation_1.stringValidator5000EmptyOkay }, isOptional: { validator: validation_1.booleanValidator }, fullZIP: { validator: validation_1.booleanValidator }, isInGroup: { validator: validation_1.booleanValidator }, externalId: { validator: validation_1.stringValidator1000 }, sharedWithEnduser: { validator: validation_1.booleanValidator }, calloutConditions: { validator: validation_1.formFieldCalloutConditionsValidator }, mdiImportantValues: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, mdiCriticalValues: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, highlightOnTimeline: { validator: validation_1.booleanValidator }, prepopulateFromFields: { validator: validation_1.booleanValidator }, prepopulateFromDatabase: {
+            }, flowchartUI: { validator: validation_1.flowchartUIValidator }, options: { validator: validation_1.formFieldOptionsValidator }, description: { validator: validation_1.stringValidator25000EmptyOkay }, htmlDescription: { validator: validation_1.stringValidator25000EmptyOkay }, intakeField: { validator: validation_1.stringValidator5000EmptyOkay }, isOptional: { validator: validation_1.booleanValidator }, fullZIP: { validator: validation_1.booleanValidator }, isInGroup: { validator: validation_1.booleanValidator }, externalId: { validator: validation_1.stringValidator1000 }, sharedWithEnduser: { validator: validation_1.booleanValidator }, calloutConditions: { validator: validation_1.formFieldCalloutConditionsValidator }, mdiImportantValues: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, mdiCriticalValues: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, mdiIgnore: { validator: validation_1.booleanValidator }, highlightOnTimeline: { validator: validation_1.booleanValidator }, prepopulateFromFields: { validator: validation_1.booleanValidator }, prepopulateFromDatabase: {
                 validator: (0, validation_1.objectValidator)({
                     databaseId: validation_1.mongoIdStringOptional,
                     field: validation_1.stringValidatorOptionalEmptyOkay,
@@ -4440,7 +4447,27 @@ exports.schema = (0, exports.build_schema)({
             access: []
         },
         defaultActions: { read: {}, readMany: {} },
-        customActions: {},
+        customActions: {
+            restore_deleted: {
+                op: "custom", access: 'create', method: "post",
+                name: 'Restore a deleted record',
+                path: '/user-logs/restore-deleted',
+                description: "Re-creates a deleted record, and the records that were cascade-deleted with it, from the audit log. "
+                    + "Admin only. Currently supports contacts (endusers) only. Idempotent: pressing it again finishes an "
+                    + "interrupted restore and duplicates nothing. Best-effort: only records captured in the audit log are restored.",
+                adminOnly: true,
+                parameters: {
+                    userLogId: { validator: validation_1.mongoIdStringRequired, required: true },
+                },
+                returns: {
+                    resource: { validator: validation_1.stringValidator100 },
+                    resourceId: { validator: validation_1.mongoIdStringRequired },
+                    restoredCounts: { validator: countsByModelValidator },
+                    skippedCounts: { validator: countsByModelValidator },
+                    failedModels: { validator: validation_1.listOfStringsValidatorEmptyOk },
+                },
+            },
+        },
         enduserActions: {},
         fields: __assign(__assign({}, BuiltInFields), { userId: {
                 validator: validation_1.mongoIdStringRequired,
@@ -7430,6 +7457,7 @@ exports.schema = (0, exports.build_schema)({
                     lastTimestamp: { validator: validation_1.dateValidatorOptional },
                     enduserIds: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk },
                     userIds: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk },
+                    careTeamUserIds: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk },
                     phoneNumber: { validator: validation_1.phoneValidatorOptional },
                     returnCount: { validator: validation_1.booleanValidatorOptional },
                     mdbFilter: { validator: validation_1.objectAnyFieldsAnyValuesValidator },
