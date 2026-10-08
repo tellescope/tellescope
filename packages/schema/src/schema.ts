@@ -19,6 +19,7 @@ import {
   SessionType,
 } from "@tellescope/types-utilities"
 import * as Utilities from "@tellescope/utilities" // suppresses error on BuiltInFields
+import type { Filter } from "mongodb"
 import {
   WEBHOOK_MODELS,
 
@@ -105,6 +106,8 @@ import {
   APIKeyScope,
   API_KEY_SCOPES,
   UserOutOfOffice,
+  StripeCheckoutItem,
+  AutomationTriggerActionType,
 } from "@tellescope/types-models"
 
 import {
@@ -157,9 +160,12 @@ import {
   nameValidator,
   nonNegNumberValidator,
   nonNegNumberValidatorOptional,
+  minimumShouldMatchValidatorOptional,
   mongoIdValidator,
   mongoIdStringRequired as mongoIdStringValidator,
   listOfMongoIdStringValidator,
+  listOfMongoIdStringValidatorOptional,
+  listOfStripeCheckoutItemsValidatorOptional,
   preferenceValidator,
   objectAnyFieldsAnyValuesValidator,
   stringValidator,
@@ -368,6 +374,9 @@ import {
   bookingRestrictionsByTemplateValidator,
   listOfNumbersValidatorUniqueOptionalOrEmptyOkay,
   enduserDiagnosisValidator,
+  enduserProgramsValidator,
+  organizationProgramsValidator,
+  recordProgramsValidator,
   canvasCodingValidatorOptional,
   calendarEventAttendeesValidator,
   developHealthDrugsValidator,
@@ -387,6 +396,7 @@ import {
   listOfEmailCCsValidator,
   externalIdNumberValidatorOptional,
   DEPRECATED_AUTOMATION_TRIGGER_EVENT_TYPES,
+  AUTOMATION_TRIGGER_ACTION_EVENT_RESTRICTIONS,
   compoundFilterValidator,
 } from "@tellescope/validation"
 
@@ -765,7 +775,7 @@ export type CustomActions = {
     push: CustomAction<{ id: string, destination: string, type?: string, typeId?: string, canvasCategory?: string, canvasType?: CanvasCoding, canvasReviewMode?: string, canvasComment?: string }, { file?: File }>,
   },
   form_fields: {
-    load_choices_from_database: CustomAction<{ fieldId: string, lastId?: string, limit?: number, databaseId?: string, search?: string }, { choices: DatabaseRecordClient[] }>,
+    load_choices_from_database: CustomAction<{ fieldId: string, lastId?: string, limit?: number, databaseId?: string, search?: string, minSearchScore?: number, minimumShouldMatch?: number }, { choices: DatabaseRecordClient[] }>,
     booking_info: CustomAction<{ bookingPageId: string, enduserId?: string, enduserFields?: BookingInfoEnduserFields }, { bookingURL: string, warningMessage?: string, entropy: string, }>,
   },
   forms: {
@@ -876,8 +886,8 @@ export type CustomActions = {
     delete_states: CustomAction<{ id: string, states: string[] }, { updated: Journey }>,
     handle_incoming_communication: CustomAction<{ enduserId: string, channel?: string, messageId?: string, destination?: string }, { }>,
     get_journey_statistics: CustomAction<
-      { journeyId: string, metric?: JourneyStatisticsMetric }, 
-      { statistics: JourneyStatistics }
+      { journeyId: string, metric?: JourneyStatisticsMetric, cachedOnly?: boolean }, 
+      { statistics: JourneyStatistics, cachedAt?: Date }
     >,
   },
   endusers: {
@@ -897,7 +907,7 @@ export type CustomActions = {
     add_to_journey: CustomAction<{ enduserIds: string[], journeyId: string, startAt?: Date, automationStepId?: string, journeyContext?: JourneyContext, throttle?: boolean, source?: string, enduserStartTimes?: Record<string, Date> }, { }>, 
     remove_from_journey: CustomAction<{ enduserIds: string[], journeyId: string }, { }>, 
     merge: CustomAction<{ sourceEnduserId: string, destinationEnduserId: string, }, { }>, 
-    push: CustomAction<{ enduserId: string, destinations?: string[], externalIds?: string[], entrypoint?: string }, { fullscriptRedirectURL?: string, vital_user_id?: string, scriptsure_patient_id?: string, scriptsure_deep_link?: string, scriptsure_practice_id?: string }>,
+    push: CustomAction<{ enduserId: string, destinations?: string[], externalIds?: string[], entrypoint?: string }, { fullscriptRedirectURL?: string, vital_user_id?: string, scriptsure_patient_id?: string, scriptsure_deep_link?: string, scriptsure_practice_id?: string, vitl_uid?: string }>,
     bulk_update: CustomAction<
       { ids: string[], primaryAssignee?: string, state?: string, fields?: CustomFields, pushTags?: string[], replaceTags?: string[], updateAccessTags?: boolean, customTypeId?: string }, 
       { updated: Enduser[] }
@@ -1248,7 +1258,7 @@ export type CustomActions = {
   },
   products: {
     prepare_stripe_checkout: CustomAction<
-      { productIds: string[], stripeKey?: string },
+      { productIds?: string[], items?: StripeCheckoutItem[], stripeKey?: string },
       { customerId: string, clientSecret: string, publishableKey: string, stripeAccount?: string, isCheckout?: boolean, businessName: string }
     >,
     get_stripe_portal_session: CustomAction<{ 
@@ -1340,7 +1350,7 @@ export type CustomActions = {
       enduserId?: string, // optional patient this conversation is about
       journeyId?: string, // optional journey that produced this conversation
       automationStepId?: string, // optional automation step that produced this conversation
-      model?: string, // 'Claude Sonnet 5' (default) | 'Claude Opus 4.8'; must match the conversation's model when continuing
+      model?: string, // friendly AI model name, see SELECTABLE_AI_MODELS (constants); defaults to DEFAULT_AI_MODEL; must match the conversation's model when continuing
     }, { ai_conversation: AIConversation }>,
     generate_ai_decision: CustomAction<
       AIDecisionAutomationAction['info'] & { enduserId: string, automationStepId: string, journeyContext?: JourneyContext },
@@ -1353,7 +1363,7 @@ export type CustomActions = {
       { alreadyBuilt: boolean }
     >,
     load_threads: CustomAction<
-      { limit?: number, ids?: string[], excludeIds?: string[], lastTimestamp?: Date, userIds?: string[], careTeamUserIds?: string[], enduserIds?: string[], phoneNumber?: string, returnCount?: boolean, mdbFilter?: object, sortBy?: 'timestamp' | 'outboundTimestamp', autobuild?: boolean, search?: string },
+      { limit?: number, ids?: string[], excludeIds?: string[], lastTimestamp?: Date, userIds?: string[], careTeamUserIds?: string[], enduserIds?: string[], phoneNumber?: string, returnCount?: boolean, mdbFilter?: Filter<InboxThread>, sortBy?: 'timestamp' | 'outboundTimestamp', autobuild?: boolean, search?: string, minSearchScore?: number, minimumShouldMatch?: number },
       { threads: InboxThread[], count?: number }
     >,
     reset_threads: CustomAction<
@@ -1789,6 +1799,11 @@ export const schema: SchemaV1 = build_schema({
         })),
         redactions: ['enduser'],
       },
+      programs: {
+        validator: enduserProgramsValidator,
+        redactions: ['enduser'],
+        enduserUpdatesDisabled: true,
+      },
       references: { validator: listOfRelatedRecordsValidator, redactions: ['enduser'], enduserUpdatesDisabled: true },
       athenaDepartmentId: { validator: stringValidator100, redactions: ['enduser'], enduserUpdatesDisabled: true },
       athenaPracticeId: { validator: stringValidator100, redactions: ['enduser'], enduserUpdatesDisabled: true },
@@ -2008,6 +2023,7 @@ export const schema: SchemaV1 = build_schema({
           scriptsure_patient_id: { validator: stringValidator },
           scriptsure_deep_link: { validator: stringValidator },
           scriptsure_practice_id: { validator: stringValidator },
+          vitl_uid: { validator: stringValidator }, // VITL upsert key; equals the Tellescope enduser id
         },
       },
       bulk_update: {
@@ -2863,10 +2879,16 @@ export const schema: SchemaV1 = build_schema({
           journeyId: { validator: mongoIdStringValidator, required: true },
           // omitted => both, preserving the existing response for external API consumers
           metric: { validator: exactMatchValidatorOptional<JourneyStatisticsMetric>(['steps', 'engagement']) },
+          // return the stored result without aggregating. Omitted keeps the existing behaviour
+          // (compute, store, respond), so unchanged API consumers never receive stale data.
+          cachedOnly: { validator: booleanValidatorOptional },
         },
         returns: { 
           // todo: document shape with validator
-          statistics: { validator: objectAnyFieldsAnyValuesValidator as any } 
+          statistics: { validator: objectAnyFieldsAnyValuesValidator as any },
+          // when the returned statistics were computed. Absent => nothing is stored for this
+          // journey yet (never computed, or still being computed by another request).
+          cachedAt: { validator: dateValidatorOptional },
         },
       },
     },
@@ -5160,6 +5182,8 @@ export const schema: SchemaV1 = build_schema({
           lastId: { validator: mongoIdStringValidator, required: false },
           databaseId: { validator: mongoIdStringValidator, required: false },
           search: { validator: stringValidatorOptionalEmptyOkay, required: false },
+          minSearchScore: { validator: nonNegNumberValidatorOptional, required: false },
+          minimumShouldMatch: { validator: minimumShouldMatchValidatorOptional, required: false },
         },
         returns: {
           choices: { validator: 'database_records' as any, required: true }
@@ -6380,6 +6404,7 @@ export const schema: SchemaV1 = build_schema({
       preventRescheduleMinutesInAdvance: { validator: numberValidator },
       preventCancelInPortal: { validator: booleanValidator },
       preventRescheduleInPortal: { validator: booleanValidator },
+      preventBookingWhenUpcomingExists: { validator: booleanValidator },
       dontSyncToCanvas: { validator: booleanValidator },
       archivedAt: { validator: dateOptionalOrEmptyStringValidator },
       allowGroupReschedule: { validator: booleanValidator },
@@ -6864,6 +6889,7 @@ export const schema: SchemaV1 = build_schema({
       showWithPlotsByUnit: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       invalidationReason: { validator: stringValidatorOptionalEmptyOkay },
       externalId: { validator: stringValidator250 },
+      programs: { validator: recordProgramsValidator },
     }
   },
   managed_content_records: {
@@ -7737,6 +7763,7 @@ export const schema: SchemaV1 = build_schema({
           summaryFormId: mongoIdStringOptional,
         }))
       },
+      programs: { validator: organizationProgramsValidator },
       belugaAutomationMappings: {
         validator: listValidatorOptionalOrEmptyOk(objectValidator<BelugaAutomationMappingEntry>({
           title: stringValidator5000OptionalEmptyOkay,
@@ -8137,7 +8164,10 @@ export const schema: SchemaV1 = build_schema({
         path: '/products/prepare-stripe-checkout',
         description: "Prepares a Stripe checkout process",
         parameters: {
-          productIds: { validator: listOfMongoIdStringValidator, required: true },
+          // exactly one of productIds / items is required - enforced in the handler, which can
+          // distinguish "both" from "neither" and say so, rather than by required: true here
+          productIds: { validator: listOfMongoIdStringValidatorOptional },
+          items: { validator: listOfStripeCheckoutItemsValidatorOptional },
           stripeKey: { validator: stringValidator250 },
         },
         returns: {
@@ -8879,6 +8909,21 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
               return `Cannot change trigger event type to "${eventType}". This event type has been deprecated.`
             }
           }
+        }
+      }, {
+        explanation: 'Some actions act on a record that only certain events supply',
+        evaluate: (trigger, _deps, _session, _method, options) => {
+          // a partial update may carry only one of the two, so fall back to the stored record
+          const actionType = trigger.action?.type ?? (options.original as any)?.action?.type
+          if (actionType === undefined) return
+
+          const allowed = AUTOMATION_TRIGGER_ACTION_EVENT_RESTRICTIONS[actionType as AutomationTriggerActionType]
+          if (!allowed) return
+
+          const eventType = trigger.event?.type ?? (options.original as any)?.event?.type
+          if (eventType && allowed.includes(eventType)) return
+
+          return `The "${actionType}" action can only be used with the ${allowed.map(e => `"${e}"`).join(' or ')} event.`
         }
       }],
     },
@@ -9895,6 +9940,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       medication: { validator: stringValidatorOptional },
       medicationSku: { validator: stringValidatorOptional },
       protocol: { validator: stringValidator1000 },
+      programs: { validator: recordProgramsValidator },
       references: { validator: listOfRelatedRecordsValidator, readonly: true },
     }
   },
@@ -10360,7 +10406,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           enduserId: { validator: mongoIdStringValidator }, // optional patient this conversation is about
           journeyId: { validator: mongoIdStringValidator }, // optional journey that produced this conversation
           automationStepId: { validator: mongoIdStringValidator }, // optional automation step that produced this conversation
-          model: { validator: selectableAIModelValidator }, // 'Claude Sonnet 5' (default) | 'Claude Opus 4.8'; must match the conversation's model when continuing
+          model: { validator: selectableAIModelValidator }, // see SELECTABLE_AI_MODELS (constants); defaults to DEFAULT_AI_MODEL; must match the conversation's model when continuing
         },
         returns: {
           ai_conversation: { validator: 'ai_conversation' as any, required: true },
@@ -10387,7 +10433,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
     fields: {
       ...BuiltInFields,
       type: { validator: stringValidator, required: true, examples: ['HTML Template Generation'] },
-      modelName: { validator: stringValidator, required: true, examples: ['Claude Sonnet 4', 'Claude Sonnet 4.5', 'Claude Sonnet 4.6', 'Claude Sonnet 5', 'Claude Opus 4.8'] },
+      modelName: { validator: stringValidator, required: true, examples: ['Claude Sonnet 5.5', 'Claude Opus 5.5', 'Claude Sonnet 5', 'Claude Opus 5', 'Claude Opus 4.8'] },
       orchestrationId: { validator: stringValidatorOptional, examples: ['workflow-123', 'batch-456'] },
       enduserId: {
         validator: mongoIdStringOptional,
@@ -10500,6 +10546,8 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           sortBy: { validator: exactMatchValidatorOptional<'timestamp' | 'outboundTimestamp'>(['timestamp', 'outboundTimestamp']) },
           autobuild: { validator: booleanValidatorOptional },
           search: { validator: stringValidatorOptional },
+          minSearchScore: { validator: nonNegNumberValidatorOptional },
+          minimumShouldMatch: { validator: minimumShouldMatchValidatorOptional },
         },
         returns: {
           threads: { validator: 'inbox_threads' as any },

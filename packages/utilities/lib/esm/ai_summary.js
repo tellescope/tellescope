@@ -219,9 +219,21 @@ export var DATA_SOURCE_MAP = {
     chats: {
         collection: 'chats',
         sortField: 'timestamp',
-        // enduserId is set only on enduser-authored chats (schema initializer); senderId is always set
-        // (userId for staff, enduserId for patients) so it can't distinguish the sender.
-        format: function (m) { var _a, _b; return "[Chat ".concat(fmt((_a = m.timestamp) !== null && _a !== void 0 ? _a : m.createdAt), " ").concat(m.enduserId ? 'patient' : 'staff', "] ").concat((_b = m.message) !== null && _b !== void 0 ? _b : ''); },
+        // Loaded by room rather than by `enduserId`: that field is set both by the enduser-session
+        // initializer and by the worker's outbound automation chats, so it identifies neither the
+        // patient nor the sender. The room's member list does both (analogue: api/modules/inbox.ts).
+        roomScoped: true,
+        lookbackIncludesUnstampedRecords: true,
+        excludeUnsentRecords: true,
+        format: function (m, _enduser, context) {
+            var _a, _b, _c;
+            var members = (_a = context === null || context === void 0 ? void 0 : context.enduserIdsByRoomId) === null || _a === void 0 ? void 0 : _a[m.roomId];
+            // A sender in the room's enduserIds is the patient; anyone else (and an unknown room) is
+            // staff. Erring towards 'staff' keeps an automated outbound chat from reading to the model
+            // as the patient speaking.
+            var sender = (m.senderId && (members === null || members === void 0 ? void 0 : members.includes(m.senderId))) ? 'patient' : 'staff';
+            return "[Chat ".concat(fmt((_b = m.timestamp) !== null && _b !== void 0 ? _b : m.createdAt), " ").concat(sender, "] ").concat((_c = m.message) !== null && _c !== void 0 ? _c : '');
+        },
     },
     phone_calls: {
         collection: 'phone_calls',
@@ -231,6 +243,8 @@ export var DATA_SOURCE_MAP = {
     calendar_events: {
         collection: 'calendar_events',
         sortField: 'startTimeInMS',
+        // startTimeInMS holds epoch milliseconds, so the lookback must compare numbers
+        lookbackIsNumeric: true,
         format: function (e) { var _a, _b; return "[Appt ".concat(fmtFromMS(e.startTimeInMS), "] ").concat((_a = e.title) !== null && _a !== void 0 ? _a : '', " (").concat((_b = e.type) !== null && _b !== void 0 ? _b : '', ")"); },
         enduserMatchClause: function (enduserId) { return ({ 'attendees.id': enduserId }); },
     },
@@ -242,6 +256,7 @@ export var DATA_SOURCE_MAP = {
     sms_messages: {
         collection: 'sms_messages',
         sortField: 'timestamp',
+        lookbackIncludesUnstampedRecords: true,
         format: function (s) { var _a, _b; return "[SMS ".concat(fmt((_a = s.timestamp) !== null && _a !== void 0 ? _a : s.createdAt), " ").concat(s.inbound ? 'in' : 'out', "] ").concat((_b = s.message) !== null && _b !== void 0 ? _b : ''); },
     },
     emails: {
@@ -355,23 +370,82 @@ export var sanitizeFilter = function (filter) {
     }
     return filter;
 };
+// The lookback window for one source. Built fresh on every call: transformFilterForQuery
+// (api/modules/database.ts) rewrites the never-stored `createdAt` to `_id` by MUTATING the filter
+// it is handed, so a shared clause object would be corrupted by the first source that used it.
+export var buildAISummaryLookbackClause = function (lookbackMS, mapEntry) {
+    var _a, _b, _c, _d;
+    if (!lookbackMS)
+        return {};
+    var since = Date.now() - lookbackMS;
+    // startTimeInMS holds epoch milliseconds, so this has to be a plain number — and must stay one
+    // through the webapp transport, which JSON-serialises the clause and revives ISO date strings
+    // as Dates. Comparing a Date against a number matched nothing at all.
+    if (mapEntry.lookbackIsNumeric)
+        return _a = {}, _a[mapEntry.sortField] = { $gte: since }, _a;
+    // Sources whose sortField is only set by whatever stamped it. An inbound Twilio SMS is written
+    // with a raw insert that bypasses the routed-create initializer, so it has no `timestamp` at
+    // all and `{timestamp:{$gte:D}}` silently dropped the patient's own message. Event time is
+    // still preferred where it exists — a scheduled send is created days before it goes out, so
+    // windowing on creation time alone would place it wrongly.
+    if (mapEntry.lookbackIncludesUnstampedRecords) {
+        return {
+            $or: [
+                (_b = {}, _b[mapEntry.sortField] = { $gte: new Date(since) }, _b),
+                (_c = {}, _c[mapEntry.sortField] = { $exists: false }, _c.createdAt = { $gte: new Date(since) }, _c),
+            ],
+        };
+    }
+    return _d = {}, _d[mapEntry.sortField] = { $gte: new Date(since) }, _d;
+};
+// Drafts and future-dated scheduled sends are not conversation: nobody has said them yet. The old
+// `{enduserId}` chats clause excluded them as a side effect (a staff draft carries no enduserId);
+// scoping by room does not, so they are excluded explicitly rather than being allowed to steer an
+// AI Decision branch or land in a generated note. Shape copied from the enduser-session guard in
+// api/modules/database.ts, which strips exactly these for patients.
+export var buildAISummaryUnsentClause = function () { return ({
+    $and: [
+        { isDraft: { $ne: true } },
+        { $or: [{ sendAt: { $in: [null, ''] } }, { sendAt: { $exists: false } }, { sendAt: { $lte: new Date() } }] },
+    ],
+}); };
 // Build the mongo filter + effective limit for a single data source. Shared by both loaders so
 // the lookback / enduserMatch / sanitized-filter / default-limit logic stays identical.
 // `ids` is returned rather than folded into mdbFilter: _id needs ObjectId conversion on the DB
 // side, and the readMany endpoint takes `ids` natively, so each transport applies it.
 export var buildAISummarySourceFilter = function (_a) {
-    var _b;
-    var _c, _d, _e;
-    var ds = _a.ds, enduserId = _a.enduserId, mapEntry = _a.mapEntry;
+    var _b, _c, _d;
+    var ds = _a.ds, enduserId = _a.enduserId, mapEntry = _a.mapEntry, roomIds = _a.roomIds;
     var userFilter = sanitizeFilter(ds.filter);
-    var lookbackClause = ds.lookbackMS
-        ? (_b = {}, _b[mapEntry.sortField] = { $gte: new Date(Date.now() - ds.lookbackMS) }, _b) : {};
+    var lookbackClause = buildAISummaryLookbackClause(ds.lookbackMS, mapEntry);
     var enduserMatch = (mapEntry.enduserScoped === false
         ? {}
-        : mapEntry.enduserMatchClause ? mapEntry.enduserMatchClause(enduserId) : { enduserId: enduserId });
-    var mdbFilter = { $and: [userFilter, lookbackClause, enduserMatch, (_c = mapEntry.baseFilter) !== null && _c !== void 0 ? _c : {}] };
-    var effectiveLimit = (_d = ds.limit) !== null && _d !== void 0 ? _d : DEFAULT_AI_SUMMARY_DATA_SOURCE_LIMIT;
-    return { mdbFilter: mdbFilter, effectiveLimit: effectiveLimit, ids: ((_e = ds.ids) === null || _e === void 0 ? void 0 : _e.length) ? ds.ids : undefined };
+        // A patient with no rooms must load NOTHING. `{roomId:{$in:[]}}` says exactly that; omitting
+        // the clause would hand the prompt the newest chats in the whole organization.
+        : mapEntry.roomScoped ? { roomId: { $in: roomIds !== null && roomIds !== void 0 ? roomIds : [] } }
+            : mapEntry.enduserMatchClause ? mapEntry.enduserMatchClause(enduserId) : { enduserId: enduserId });
+    var unsentClause = mapEntry.excludeUnsentRecords ? buildAISummaryUnsentClause() : {};
+    var mdbFilter = { $and: [userFilter, lookbackClause, enduserMatch, (_b = mapEntry.baseFilter) !== null && _b !== void 0 ? _b : {}, unsentClause] };
+    var effectiveLimit = (_c = ds.limit) !== null && _c !== void 0 ? _c : DEFAULT_AI_SUMMARY_DATA_SOURCE_LIMIT;
+    return { mdbFilter: mdbFilter, effectiveLimit: effectiveLimit, ids: ((_d = ds.ids) === null || _d === void 0 ? void 0 : _d.length) ? ds.ids : undefined };
+};
+// Normalise whatever shape a transport's chat_rooms fetcher returned into room ids + members.
+// The two shapes differ: DB.chat_rooms.findPage yields `_id` as an ObjectId, while
+// session.api.chat_rooms.getSome yields a string `id`. chats.roomId is a STRING
+// (mongoIdStringValidator), so every id must be stringified or the `$in` matches nothing.
+export var normalizeAISummaryChatRooms = function (rooms) {
+    var _a, _b, _c;
+    var roomIds = [];
+    var enduserIdsByRoomId = {};
+    for (var _i = 0, _d = (Array.isArray(rooms) ? rooms : []); _i < _d.length; _i++) {
+        var room = _d[_i];
+        var id = (_a = room === null || room === void 0 ? void 0 : room.id) !== null && _a !== void 0 ? _a : (_c = (_b = room === null || room === void 0 ? void 0 : room._id) === null || _b === void 0 ? void 0 : _b.toString) === null || _c === void 0 ? void 0 : _c.call(_b);
+        if (!id)
+            continue;
+        roomIds.push(id);
+        enduserIdsByRoomId[id] = Array.isArray(room === null || room === void 0 ? void 0 : room.enduserIds) ? room.enduserIds : [];
+    }
+    return { roomIds: roomIds, enduserIdsByRoomId: enduserIdsByRoomId };
 };
 // Join the profile block + per-source blocks, estimate tokens, and enforce the input budget.
 export var assembleAISummaryContext = function (_a) {
@@ -390,28 +464,44 @@ export var assembleAISummaryContext = function (_a) {
 // the DB (api). Per-source failures degrade to an empty section so one broken collection doesn't
 // sink the whole summary; filter-sanitization (400) and the token-budget (413) errors still throw.
 export var loadAISummaryContext = function (_a) {
-    var enduserId = _a.enduserId, configuration = _a.configuration, loadProfile = _a.loadProfile, loadRecords = _a.loadRecords, _b = _a.includeProfile, includeProfile = _b === void 0 ? true : _b;
+    var enduserId = _a.enduserId, configuration = _a.configuration, loadProfile = _a.loadProfile, loadRecords = _a.loadRecords, loadChatRooms = _a.loadChatRooms, _b = _a.includeProfile, includeProfile = _b === void 0 ? true : _b;
     return __awaiter(void 0, void 0, void 0, function () {
-        var dataSources, needsEnduserForFormat, enduser, _c, profileBlock, sections, sources;
-        var _d;
-        return __generator(this, function (_e) {
-            switch (_e.label) {
+        var dataSources, needsEnduserForFormat, enduser, _c, profileBlock, chatRooms, _d, err_1, formatContext, sections, sources;
+        var _e;
+        return __generator(this, function (_f) {
+            switch (_f.label) {
                 case 0:
-                    dataSources = (_d = configuration.dataSources) !== null && _d !== void 0 ? _d : [];
+                    dataSources = (_e = configuration.dataSources) !== null && _e !== void 0 ? _e : [];
                     needsEnduserForFormat = dataSources.some(function (ds) { var _a; return (_a = DATA_SOURCE_MAP[ds.type]) === null || _a === void 0 ? void 0 : _a.formatNeedsEnduser; });
                     if (!(includeProfile || needsEnduserForFormat)) return [3 /*break*/, 2];
                     return [4 /*yield*/, loadProfile(enduserId)];
                 case 1:
-                    _c = _e.sent();
+                    _c = _f.sent();
                     return [3 /*break*/, 3];
                 case 2:
                     _c = null;
-                    _e.label = 3;
+                    _f.label = 3;
                 case 3:
                     enduser = _c;
                     profileBlock = (includeProfile && enduser) ? enduserProfileToText(enduser) : '';
+                    chatRooms = { roomIds: [], enduserIdsByRoomId: {} };
+                    if (!(loadChatRooms && dataSources.some(function (ds) { var _a; return (_a = DATA_SOURCE_MAP[ds.type]) === null || _a === void 0 ? void 0 : _a.roomScoped; }))) return [3 /*break*/, 7];
+                    _f.label = 4;
+                case 4:
+                    _f.trys.push([4, 6, , 7]);
+                    _d = normalizeAISummaryChatRooms;
+                    return [4 /*yield*/, loadChatRooms(enduserId)];
+                case 5:
+                    chatRooms = _d.apply(void 0, [_f.sent()]);
+                    return [3 /*break*/, 7];
+                case 6:
+                    err_1 = _f.sent();
+                    console.error('Failed to load chat rooms for AI summary', err_1);
+                    return [3 /*break*/, 7];
+                case 7:
+                    formatContext = { enduserIdsByRoomId: chatRooms.enduserIdsByRoomId };
                     return [4 /*yield*/, Promise.all(dataSources.map(function (ds) { return __awaiter(void 0, void 0, void 0, function () {
-                            var m, _a, mdbFilter, effectiveLimit, ids, base, records, list, formattedLines, skipped, _i, list_1, record, line, err_1;
+                            var m, _a, mdbFilter, effectiveLimit, ids, base, records, list, formattedLines, skipped, _i, list_1, record, line, err_2;
                             var _b, _c, _d, _e, _f;
                             return __generator(this, function (_g) {
                                 switch (_g.label) {
@@ -419,7 +509,7 @@ export var loadAISummaryContext = function (_a) {
                                         m = DATA_SOURCE_MAP[ds.type];
                                         if (!m)
                                             return [2 /*return*/, null];
-                                        _a = buildAISummarySourceFilter({ ds: ds, enduserId: enduserId, mapEntry: m }), mdbFilter = _a.mdbFilter, effectiveLimit = _a.effectiveLimit, ids = _a.ids;
+                                        _a = buildAISummarySourceFilter({ ds: ds, enduserId: enduserId, mapEntry: m, roomIds: chatRooms.roomIds }), mdbFilter = _a.mdbFilter, effectiveLimit = _a.effectiveLimit, ids = _a.ids;
                                         base = {
                                             type: ds.type,
                                             label: (_b = DATA_SOURCE_LABELS[ds.type]) !== null && _b !== void 0 ? _b : ds.type,
@@ -442,7 +532,7 @@ export var loadAISummaryContext = function (_a) {
                                         skipped = [];
                                         for (_i = 0, list_1 = list; _i < list_1.length; _i++) {
                                             record = list_1[_i];
-                                            line = m.format(record, enduser);
+                                            line = m.format(record, enduser, formatContext);
                                             if (line)
                                                 formattedLines.push(line);
                                             else
@@ -450,15 +540,15 @@ export var loadAISummaryContext = function (_a) {
                                         }
                                         return [2 /*return*/, __assign(__assign({}, base), { records: list, formattedLines: formattedLines, skipped: skipped })];
                                     case 3:
-                                        err_1 = _g.sent();
-                                        console.error("Failed to load ".concat(ds.type, " for AI summary"), err_1);
+                                        err_2 = _g.sent();
+                                        console.error("Failed to load ".concat(ds.type, " for AI summary"), err_2);
                                         return [2 /*return*/, __assign(__assign({}, base), { records: [], formattedLines: [], skipped: [] })];
                                     case 4: return [2 /*return*/];
                                 }
                             });
                         }); }))];
-                case 4:
-                    sections = _e.sent();
+                case 8:
+                    sections = _f.sent();
                     sources = sections.filter(function (s) { return s !== null; });
                     return [2 /*return*/, assembleAISummaryContext({ profileBlock: profileBlock, sources: sources })];
             }

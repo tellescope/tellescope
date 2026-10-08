@@ -230,13 +230,6 @@ var createSliceForList = function (name) { return (0, toolkit_1.createSlice)({
     },
 }); };
 exports.createSliceForList = createSliceForList;
-// export type GCalEventTime = { dateTime: string, date: never } | { dateTime: never, date: string /* YYYY-MM-DD */  }
-// export type GCalEvent = {
-//   id: string,
-//   summary: string,
-//   start: GCalEventTime,
-//   end: GCalEventTime,
-// }
 var appointmentBookingPagesSlice = (0, exports.createSliceForList)('appointment_booking_pages');
 var appointmentLocationsSlice = (0, exports.createSliceForList)('appointment_locations');
 var chatRoomsSlice = (0, exports.createSliceForList)('chat_rooms');

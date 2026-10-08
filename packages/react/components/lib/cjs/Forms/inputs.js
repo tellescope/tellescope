@@ -358,7 +358,7 @@ var EmailInput = function (_a) {
 };
 exports.EmailInput = EmailInput;
 var NumberInput = function (_a) {
-    var field = _a.field, value = _a.value, onChange = _a.onChange, form = _a.form, props = __rest(_a, ["field", "value", "onChange", "form"]);
+    var field = _a.field, value = _a.value, onChange = _a.onChange, form = _a.form, isSinglePage = _a.isSinglePage, autoFocus = _a.autoFocus, props = __rest(_a, ["field", "value", "onChange", "form", "isSinglePage", "autoFocus"]);
     // Prevent the default scroll behavior when focused on this input
     var inputRef = (0, react_2.useRef)(null);
     (0, react_2.useEffect)(function () {
@@ -377,7 +377,11 @@ var NumberInput = function (_a) {
             };
         }
     }, []);
-    return ((0, jsx_runtime_1.jsx)(material_1.TextField, __assign({ ref: inputRef, autoFocus: true, InputProps: exports.defaultInputProps }, props, { required: !field.isOptional, fullWidth: true, type: "number", value: value, onChange: function (e) { return onChange(parseInt(e.target.value), field.id); }, label: (!field.title && field.placeholder) ? field.placeholder : props.label, placeholder: field.placeholder || (0, __1.form_display_text_for_language)(form, "Enter a number...", ''), onScroll: function (e) { return e.preventDefault(); }, sx: {
+    return (
+    // autoFocus only in the one-question-at-a-time wizard: on a single-page form this input can mount below
+    // the caret (conditional logic revealing it mid-edit) and steal focus, scrolling itself into view.
+    // Callers that pass neither isSinglePage nor autoFocus keep today's behavior.
+    (0, jsx_runtime_1.jsx)(material_1.TextField, __assign({ ref: inputRef, autoFocus: autoFocus !== null && autoFocus !== void 0 ? autoFocus : !isSinglePage, InputProps: exports.defaultInputProps }, props, { required: !field.isOptional, fullWidth: true, type: "number", value: value, onChange: function (e) { return onChange(parseInt(e.target.value), field.id); }, label: (!field.title && field.placeholder) ? field.placeholder : props.label, placeholder: field.placeholder || (0, __1.form_display_text_for_language)(form, "Enter a number...", ''), onScroll: function (e) { return e.preventDefault(); }, sx: {
             '& input[type=number]': {
                 '-moz-appearance': 'textfield'
             },
@@ -1262,7 +1266,10 @@ var ESignatureTerms = function () {
 exports.ESignatureTerms = ESignatureTerms;
 var SignatureInput = function (_a) {
     var _b, _d, _e, _f, _g;
-    var value = _a.value, field = _a.field, _h = _a.autoFocus, autoFocus = _h === void 0 ? true : _h, enduser = _a.enduser, onChange = _a.onChange, form = _a.form;
+    var value = _a.value, field = _a.field, autoFocus = _a.autoFocus, isSinglePage = _a.isSinglePage, enduser = _a.enduser, onChange = _a.onChange, form = _a.form;
+    // see NumberInput: autoFocus only in the one-question-at-a-time wizard, default unchanged (true) for
+    // callers that pass neither flag
+    var resolvedAutoFocus = autoFocus !== null && autoFocus !== void 0 ? autoFocus : !isSinglePage;
     var prefill = (((_b = field.options) === null || _b === void 0 ? void 0 : _b.prefillSignature) && (enduser === null || enduser === void 0 ? void 0 : enduser.fname) && enduser.lname
         ? "".concat(enduser.fname, " ").concat(enduser.lname)
         : undefined);
@@ -1292,7 +1299,7 @@ var SignatureInput = function (_a) {
                                 height: 400,
                                 width: '100%',
                                 marginBottom: '5px'
-                            } }), (0, jsx_runtime_1.jsx)("a", __assign({ href: field.options.signatureUrl, target: "_blank", rel: "noopener noreferrer" }, { children: (0, __1.form_display_text_for_language)(form, "View document in new tab") }))] })), (0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ item: true, xs: 12 }, { children: [(0, jsx_runtime_1.jsx)(material_1.Checkbox, { style: { margin: 0, marginTop: 5, padding: 0, paddingRight: 3 }, color: "primary", checked: !!(value === null || value === void 0 ? void 0 : value.signed), onClick: function () { return handleConsentChange(); }, inputProps: { 'aria-label': 'consent to e-signature checkbox' } }), (0, jsx_runtime_1.jsxs)(material_1.Typography, __assign({ component: "span", style: { position: 'relative', top: 5, left: 2 } }, { children: [(0, __1.form_display_text_for_language)(form, "I consent to use"), " ", (0, jsx_runtime_1.jsxs)("a", __assign({ href: "/e-signature-terms?name=".concat(((_g = field.options) === null || _g === void 0 ? void 0 : _g.esignatureTermsCompanyName) || ''), target: "_blank", rel: "noopener noreferrer" }, { children: [" ", (0, __1.form_display_text_for_language)(form, "electronic signatures"), " "] }))] }))] })), (0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ item: true, xs: 12, style: { marginTop: 12 } }, { children: [(0, jsx_runtime_1.jsx)(material_1.TextField, { disabled: !(value === null || value === void 0 ? void 0 : value.signed), autoFocus: autoFocus, style: { width: '100%' }, size: "small", "aria-label": (0, __1.form_display_text_for_language)(form, "Full Name"), value: value === null || value === void 0 ? void 0 : value.fullName, placeholder: prefill || (0, __1.form_display_text_for_language)(form, "Full Name"), variant: "outlined", onChange: function (e) { return handleNameChange(e.target.value); }, InputProps: exports.defaultInputProps }), (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ color: "primary", style: { fontSize: 15, marginTop: 2 } }, { children: (0, __1.form_display_text_for_language)(form, "Enter your legal full name to complete the signature") }))] }))] })));
+                            } }), (0, jsx_runtime_1.jsx)("a", __assign({ href: field.options.signatureUrl, target: "_blank", rel: "noopener noreferrer" }, { children: (0, __1.form_display_text_for_language)(form, "View document in new tab") }))] })), (0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ item: true, xs: 12 }, { children: [(0, jsx_runtime_1.jsx)(material_1.Checkbox, { style: { margin: 0, marginTop: 5, padding: 0, paddingRight: 3 }, color: "primary", checked: !!(value === null || value === void 0 ? void 0 : value.signed), onClick: function () { return handleConsentChange(); }, inputProps: { 'aria-label': 'consent to e-signature checkbox' } }), (0, jsx_runtime_1.jsxs)(material_1.Typography, __assign({ component: "span", style: { position: 'relative', top: 5, left: 2 } }, { children: [(0, __1.form_display_text_for_language)(form, "I consent to use"), " ", (0, jsx_runtime_1.jsxs)("a", __assign({ href: "/e-signature-terms?name=".concat(((_g = field.options) === null || _g === void 0 ? void 0 : _g.esignatureTermsCompanyName) || ''), target: "_blank", rel: "noopener noreferrer" }, { children: [" ", (0, __1.form_display_text_for_language)(form, "electronic signatures"), " "] }))] }))] })), (0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ item: true, xs: 12, style: { marginTop: 12 } }, { children: [(0, jsx_runtime_1.jsx)(material_1.TextField, { disabled: !(value === null || value === void 0 ? void 0 : value.signed), autoFocus: resolvedAutoFocus, style: { width: '100%' }, size: "small", "aria-label": (0, __1.form_display_text_for_language)(form, "Full Name"), value: value === null || value === void 0 ? void 0 : value.fullName, placeholder: prefill || (0, __1.form_display_text_for_language)(form, "Full Name"), variant: "outlined", onChange: function (e) { return handleNameChange(e.target.value); }, InputProps: exports.defaultInputProps }), (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ color: "primary", style: { fontSize: 15, marginTop: 2 } }, { children: (0, __1.form_display_text_for_language)(form, "Enter your legal full name to complete the signature") }))] }))] })));
 };
 exports.SignatureInput = SignatureInput;
 var formatBytes = function (bytes) {

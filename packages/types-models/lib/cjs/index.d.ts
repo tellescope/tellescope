@@ -4,7 +4,17 @@ export interface EnduserPortalVisibility {
 }
 export interface SearchOptions {
     query: string;
+    /**
+     * Drops results whose Atlas search score is below this value. Slow on large datasets, because every
+     * candidate is scored before filtering; prefer `minimumShouldMatch` to exclude non-matching results.
+     */
     minSearchScore?: number;
+    /**
+     * Non-negative integer: the minimum number of search clauses a result must match. `1` returns only
+     * results that match the query; when omitted, the query only affects ranking. Has no effect when the
+     * search is not backed by Atlas Search.
+     */
+    minimumShouldMatch?: number;
 }
 export type StripeCountryCode = "US" | "GB";
 export type StripeCheckoutInfo = {
@@ -237,12 +247,20 @@ export type OrganizationSettings = {
         sharedInboxReadStatus?: boolean;
         dontMarkReadForAssigned?: boolean;
         matchEmailAndNames?: boolean;
+        /** Public form intake matches an existing contact even when fname/lname differ in capitalization. Off by default. */
+        caseInsensitiveMatching?: boolean;
         hideNotesFromComposeForm?: boolean;
         showSalesforceId?: boolean;
         loopQueueCallSound?: boolean;
         showOrdersInSidebar?: boolean;
         showDiagnoses?: boolean;
         showDeviceOrders?: boolean;
+        /** Offers the "View Programs" link on the patient profile, for viewing and editing
+         *  Enduser.programs by hand. Off by default — most organizations still use the Care Type /
+         *  Care Stage custom fields. A patient who already has programs shows the link regardless, so
+         *  integration-set programs are never hidden. Gates the link only, never the Programs
+         *  condition key. */
+        showPrograms?: boolean;
         requireObservationInvalidationReason?: boolean;
         defaultHideFilesFromPortal?: boolean;
         hideUnorderedFullscriptMeds?: boolean;
@@ -497,6 +515,7 @@ export interface Organization extends Organization_readonly, Organization_requir
     hasConnectedCandid?: boolean;
     hasConnectedGoGoMeds?: boolean;
     hasScriptSure?: boolean;
+    hasConnectedVITL?: boolean;
     hasConnectedPagerDuty?: boolean;
     hasConnectedSeason?: boolean;
     hasConnectedWelle?: boolean;
@@ -623,6 +642,9 @@ export interface Organization extends Organization_readonly, Organization_requir
     skipActivePatientBilling?: boolean;
     portalV2SchemaURL?: string;
     timeTrackingPrograms?: TimeTrackingProgram[];
+    /** the program names and per-program statuses this organization offers; see OrganizationProgram.
+     *  Unrelated to timeTrackingPrograms, which are billing programs. */
+    programs?: OrganizationProgram[];
     belugaAutomationMappings?: BelugaAutomationMappingEntry[];
 }
 export type OrganizationTheme = {
@@ -979,6 +1001,28 @@ export type EnduserDevice = {
     disabled?: boolean;
     archivedAt?: Date | '';
 };
+export type RecordProgram = {
+    name: string;
+};
+export type EnduserProgram = {
+    name: string;
+    deviceIds?: string[];
+    status?: string;
+};
+/** A program an organization offers, and the statuses a patient's enrollment in it may be in.
+ *
+ *  This is the registry the Programs editor and the Programs condition key select from — neither offers
+ *  free text. It is NOT a constraint on what is stored: Enduser.programs, EnduserObservation.programs
+ *  and EnduserOrder.programs stay writable by any API client, so a name or status that is not listed
+ *  here can still reach the database, and the UI surfaces those as unconfigured rather than hiding them.
+ *
+ *  Names are matched EXACTLY (case-sensitive, never trimmed) by the Programs condition key, the saved V2
+ *  Mongo filters, and the Vital Update / Order Status Equals triggers. Renaming a program here does not
+ *  migrate any of them. */
+export type OrganizationProgram = {
+    name: string;
+    statuses?: string[];
+};
 export type EnduserDiagnosis = {
     id?: string;
     createdAt?: Date;
@@ -1092,6 +1136,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
         note: string;
     }[];
     devices?: EnduserDevice[];
+    programs?: EnduserProgram[];
     salesforceId?: string;
     athenaPracticeId?: string;
     athenaDepartmentId?: string;
@@ -1103,6 +1148,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
     stripeCustomerId?: string;
     stripeKey?: string;
     lastDoseSpotSyncAt?: Date;
+    lastVITLSyncAt?: Date;
     diagnoses?: EnduserDiagnosis[];
     lockedFromPortal?: boolean;
     chargebeeEnvironment?: string;
@@ -2054,6 +2100,7 @@ export type FormFieldOptions = FormFieldValidation & {
     observationCode?: string;
     observationDisplay?: string;
     observationUnit?: string;
+    vitalUnit?: string;
     autoUploadFiles?: boolean;
     chargebeeEnvironment?: string;
     chargebeeBusinessEntityId?: string;
@@ -2962,6 +3009,12 @@ export interface Product extends Product_readonly, Product_required, Product_upd
     additionalStripePriceIds?: string[];
     chargebeeItemPriceId?: string;
 }
+export type StripeCheckoutItem = {
+    productId?: string;
+    stripePriceId?: string;
+    subscriptionPriceId?: string;
+    quantity: number;
+};
 export interface Purchase_readonly extends ClientRecord {
 }
 export interface Purchase_required {
@@ -3070,6 +3123,7 @@ export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, C
     preventCancelMinutesInAdvance?: number;
     preventRescheduleInPortal?: boolean;
     preventCancelInPortal?: boolean;
+    preventBookingWhenUpcomingExists?: boolean;
     athenaDepartmentId?: string;
     generateAthenaTelehealthLink?: boolean;
     athenaTypeId?: string;
@@ -3746,6 +3800,7 @@ export type CreateScriptSureDraftAutomationAction = AutomationActionBuilder<'cre
     matchMedicationTitle?: string;
     matchEnduserState?: boolean;
 }>;
+export type PushVITLPatientAutomationAction = AutomationActionBuilder<'pushVITLPatient', {}>;
 export type StartAIConversationActionInfo = AIAgentBaseConfig & {
     channel: 'SMS';
     senderId: string;
@@ -3823,6 +3878,7 @@ export type AutomationActionForType = {
     assignCareTeam: AssignCareTeamAutomationAction;
     callUser: CallUserAutomationAction;
     createScriptSureDraft: CreateScriptSureDraftAutomationAction;
+    pushVITLPatient: PushVITLPatientAutomationAction;
 };
 export type AutomationActionType = keyof AutomationActionForType;
 export type AutomationAction = AutomationActionForType[AutomationActionType];
@@ -3919,6 +3975,7 @@ export interface EnduserObservation extends EnduserObservation_readonly, Enduser
     invalidationReason?: string;
     excludeFromVitalCountLookback?: boolean;
     components?: ObservationComponent[];
+    programs?: RecordProgram[];
 }
 export type BlockType = 'h1' | 'h2' | 'html' | 'raw-html' | 'image' | 'youtube' | 'pdf' | 'iframe' | 'content-link';
 export type BlockStyle = {
@@ -4952,6 +5009,7 @@ export type AutomationTriggerActions = {
         maxUsers?: number;
     }>;
     "Zendesk: Update Ticket Assignee": AutomationTriggerActionBuilder<'Zendesk: Update Ticket Assignee', {}>;
+    "Review Vital Reading": AutomationTriggerActionBuilder<'Review Vital Reading', {}>;
 };
 export type AutomationTriggerActionType = keyof AutomationTriggerActions;
 export type AutomationTriggerAction = AutomationTriggerActions[AutomationTriggerActionType];
@@ -5057,6 +5115,7 @@ export type AutomationTriggerEvents = {
         configurationIds: string[];
         classifications: string[];
         ignoreDelayedReadings?: boolean;
+        programs?: string[];
     }, {}>;
     'SMS Reply': AutomationTriggerEventBuilder<"SMS Reply", {
         templateIds: string[];
@@ -5072,6 +5131,7 @@ export type AutomationTriggerEvents = {
         titlePartialsAnd?: string[];
         protocols?: string[];
         frequencies?: string[];
+        programs?: string[];
     }, {}>;
     'Missed Call': AutomationTriggerEventBuilder<"Missed Call", {
         phoneNumbers?: string[];
@@ -5387,6 +5447,7 @@ export type PhoneTreeActions = {
             userId: string;
         }[];
         playback?: Partial<PhonePlayback>;
+        duration?: number;
     }>;
     'Add to Journey': PhoneTreeActionBuilder<"Add to Journey", {
         journeyId: string;
@@ -5631,6 +5692,7 @@ export interface EnduserOrder extends EnduserOrder_readonly, EnduserOrder_requir
     medication?: string;
     medicationSku?: string;
     protocol?: string;
+    programs?: RecordProgram[];
     references?: RelatedRecord[];
 }
 export interface EnduserProblem_readonly extends ClientRecord {

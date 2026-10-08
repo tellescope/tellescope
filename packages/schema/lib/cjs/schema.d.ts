@@ -1,7 +1,8 @@
 import { ServerModelForName, DatabaseModel, DatabaseRecord, ObjectId, ModelName, User } from "@tellescope/types-server";
 import { ErrorInfo, Indexable, Operation, JSONType, CRUD, HTTPMethod, UserIdentity, SessionType } from "@tellescope/types-utilities";
 import * as Utilities from "@tellescope/utilities";
-import { EnduserSession, ChatRoom, UserSession, MeetingStatus, WebhookSubscriptionsType, Attendee, FormResponseValue, MeetingInfo, OrganizationTheme, WithLinkOpenTrackingIds, CommunicationsChannel, AppointmentTerm, JourneyContext, AnalyticsQuery, AnalyticsQueryResult, AnalyticsAggregationRequest, DateRange, BaseAvailabilityBlock, IndexUpdate, Timezone, UserCallRoutingBehavior, ExternalChatGPTMessage, StripeCheckoutInfo, StripeCountryCode, JourneyStatistics, JourneyStatisticsMetric, FormStatistics, CustomFields, TicketsReport, EndusersReportQueries, EndusersReport, Report, FormResponsesReportQueries, PhoneCallsReportQueries, ListOfStringsWithQualifier, GoGoMedsPet, InsuranceType, SmartMeterOrderLineItem, PhoneCallsReport, AthenaSubscription, TellescopeGender, LabeledField, HealthieSendChatAutomationAction, TwilioQueue, SendWebhookAutomationAction, FormResponseProcedureCode, FormResponseDiagnosisCode, DevelopHealthRunBenefitVerificationBaseArguments, WeeklyAvailability, CanvasCreateNoteAutomationAction, CanvasCoding, InboxThread, AIDecisionAutomationAction, LinkedAccount, MFAMethod, APIKeyScope, UserOutOfOffice } from "@tellescope/types-models";
+import type { Filter } from "mongodb";
+import { EnduserSession, ChatRoom, UserSession, MeetingStatus, WebhookSubscriptionsType, Attendee, FormResponseValue, MeetingInfo, OrganizationTheme, WithLinkOpenTrackingIds, CommunicationsChannel, AppointmentTerm, JourneyContext, AnalyticsQuery, AnalyticsQueryResult, AnalyticsAggregationRequest, DateRange, BaseAvailabilityBlock, IndexUpdate, Timezone, UserCallRoutingBehavior, ExternalChatGPTMessage, StripeCheckoutInfo, StripeCountryCode, JourneyStatistics, JourneyStatisticsMetric, FormStatistics, CustomFields, TicketsReport, EndusersReportQueries, EndusersReport, Report, FormResponsesReportQueries, PhoneCallsReportQueries, ListOfStringsWithQualifier, GoGoMedsPet, InsuranceType, SmartMeterOrderLineItem, PhoneCallsReport, AthenaSubscription, TellescopeGender, LabeledField, HealthieSendChatAutomationAction, TwilioQueue, SendWebhookAutomationAction, FormResponseProcedureCode, FormResponseDiagnosisCode, DevelopHealthRunBenefitVerificationBaseArguments, WeeklyAvailability, CanvasCreateNoteAutomationAction, CanvasCoding, InboxThread, AIDecisionAutomationAction, LinkedAccount, MFAMethod, APIKeyScope, UserOutOfOffice, StripeCheckoutItem } from "@tellescope/types-models";
 import { AppointmentBookingPage as AppointmentBookingPageClient, UserDisplayInfo, Enduser, Journey, FormResponse, FormField, Form, Meeting, Email, File, CalendarEvent, Organization, User as UserClient, EnduserObservation as EnduserObservationClient, AppointmentLocation, CalendarEventTemplate, Product, ManagedContentRecord, DatabaseRecord as DatabaseRecordClient, Ticket, GroupMMSConversation, EnduserOrder, EnduserEncounter, Purchase, Integration, TicketQueue, SMSMessage, EnduserEligibilityResult, Waitlist, PhoneCall, TicketThreadComment, ChatRoom as ChatRoomClient, AIConversation } from "@tellescope/types-client";
 import { ValidatorDefinition, LoginFlowResult, IntegrationsTitleType } from "@tellescope/validation";
 export declare const get_next_reminder_timestamp_for_ticket: ({ dueDateInMS, reminders, closedAt }: Pick<Ticket, 'dueDateInMS' | 'reminders' | 'closedAt'>) => number;
@@ -401,6 +402,8 @@ export type CustomActions = {
             limit?: number;
             databaseId?: string;
             search?: string;
+            minSearchScore?: number;
+            minimumShouldMatch?: number;
         }, {
             choices: DatabaseRecordClient[];
         }>;
@@ -600,8 +603,10 @@ export type CustomActions = {
         get_journey_statistics: CustomAction<{
             journeyId: string;
             metric?: JourneyStatisticsMetric;
+            cachedOnly?: boolean;
         }, {
             statistics: JourneyStatistics;
+            cachedAt?: Date;
         }>;
     };
     endusers: {
@@ -683,6 +688,7 @@ export type CustomActions = {
             scriptsure_patient_id?: string;
             scriptsure_deep_link?: string;
             scriptsure_practice_id?: string;
+            vitl_uid?: string;
         }>;
         bulk_update: CustomAction<{
             ids: string[];
@@ -1637,7 +1643,8 @@ export type CustomActions = {
     };
     products: {
         prepare_stripe_checkout: CustomAction<{
-            productIds: string[];
+            productIds?: string[];
+            items?: StripeCheckoutItem[];
             stripeKey?: string;
         }, {
             customerId: string;
@@ -1827,10 +1834,12 @@ export type CustomActions = {
             enduserIds?: string[];
             phoneNumber?: string;
             returnCount?: boolean;
-            mdbFilter?: object;
+            mdbFilter?: Filter<InboxThread>;
             sortBy?: 'timestamp' | 'outboundTimestamp';
             autobuild?: boolean;
             search?: string;
+            minSearchScore?: number;
+            minimumShouldMatch?: number;
         }, {
             threads: InboxThread[];
             count?: number;

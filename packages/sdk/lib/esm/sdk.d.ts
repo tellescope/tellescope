@@ -4,6 +4,7 @@ import { CustomActions, extractFields, PublicActions } from "@tellescope/schema"
 import { UserSession, ReadFilter, WebhookSubscriptionsType, Attendee, SearchOptions, AccessPermissions, OrganizationLimits, SortBy, AnalyticsQuery, UserUIRestrictions, UserFieldRedactions, ModelName, CustomDashboardView, DataSyncRecord } from "@tellescope/types-models";
 import { ClientModelForName, ClientModelForName_readonly, ClientModelForName_required, ClientModelForName_updatesDisabled, ChatRoom, Enduser, Meeting, CreateFields, User } from "@tellescope/types-client";
 import { CustomUpdateOptions, SortOption, UserIdentity, FileDetails, ReactNativeFile, SessionType } from "@tellescope/types-utilities";
+import type { Filter } from "mongodb";
 import { Session as SessionManager, SessionOptions } from "./session";
 export * from "./public";
 export * from "./enduser";
@@ -28,7 +29,7 @@ export interface LoadFunctionArguments<T> {
     search?: SearchOptions;
     ids?: string[];
     returnCount?: boolean;
-    mdbFilter?: any;
+    mdbFilter?: Filter<T>;
     mdbSort?: any;
     projection?: {
         [K in keyof T]?: 1;
@@ -49,7 +50,7 @@ export interface APIQuery<N extends keyof ClientModelForName, T = ClientModelFor
         created: T[];
         errors: object[];
     }>;
-    getOne: (argument: string | ReadFilter<T>, mdbFilter?: any) => Promise<T>;
+    getOne: (argument: string | ReadFilter<T>, mdbFilter?: Filter<T>) => Promise<T>;
     getSome: LoadFunction<T>;
     getByIds: ({ ids }: {
         ids: string[];
@@ -797,7 +798,376 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
         id: string;
         createdAt: Date;
     };
-}[N]>, mdbFilter?: any) => Promise<{
+}[N]>, mdbFilter?: Filter<{
+    inbox_threads: import("@tellescope/types-models").InboxThread & {
+        id: string;
+        createdAt: Date;
+    };
+    ai_conversations: import("@tellescope/types-models").AIConversation & {
+        id: string;
+        createdAt: Date;
+    };
+    waitlists: import("@tellescope/types-models").Waitlist & {
+        id: string;
+        createdAt: Date;
+    };
+    agent_records: import("@tellescope/types-models").AgentRecord & {
+        id: string;
+        createdAt: Date;
+    };
+    enduser_eligibility_results: import("@tellescope/types-models").EnduserEligibilityResult & {
+        id: string;
+        createdAt: Date;
+    };
+    integration_logs: import("@tellescope/types-models").IntegrationLog & {
+        id: string;
+        createdAt: Date;
+    };
+    organization_payments: import("@tellescope/types-models").OrganizationPayment & {
+        id: string;
+        createdAt: Date;
+    };
+    allergy_codes: import("@tellescope/types-models").AllergyCode & {
+        id: string;
+        createdAt: Date;
+    };
+    diagnosis_codes: import("@tellescope/types-models").DiagnosisCode & {
+        id: string;
+        createdAt: Date;
+    };
+    suggested_contacts: import("@tellescope/types-models").SuggestedContact & {
+        id: string;
+        createdAt: Date;
+    };
+    call_hold_queues: import("@tellescope/types-models").CallHoldQueue & {
+        id: string;
+        createdAt: Date;
+    };
+    fax_logs: import("@tellescope/types-models").FaxLog & {
+        id: string;
+        createdAt: Date;
+    };
+    message_template_snippets: import("@tellescope/types-models").MessageTemplateSnippet & {
+        id: string;
+        createdAt: Date;
+    };
+    portal_brandings: import("@tellescope/types-models").PortalBranding & {
+        id: string;
+        createdAt: Date;
+    };
+    form_groups: import("@tellescope/types-models").FormGroup & {
+        id: string;
+        createdAt: Date;
+    };
+    webhook_logs: import("@tellescope/types-models").WebhookLog & {
+        id: string;
+        createdAt: Date;
+    };
+    flowchart_notes: import("@tellescope/types-models").FlowchartNote & {
+        id: string;
+        createdAt: Date;
+    };
+    enduser_problems: import("@tellescope/types-models").EnduserProblem & {
+        id: string;
+        createdAt: Date;
+    };
+    prescription_routes: import("@tellescope/types-models").PrescriptionRoute & {
+        id: string;
+        createdAt: Date;
+    };
+    blocked_phones: import("@tellescope/types-models").BlockedPhone & {
+        id: string;
+        createdAt: Date;
+    };
+    vital_configurations: import("@tellescope/types-models").VitalConfiguration & {
+        id: string;
+        createdAt: Date;
+    };
+    enduser_encounters: import("@tellescope/types-models").EnduserEncounter & {
+        id: string;
+        createdAt: Date;
+    };
+    enduser_orders: import("@tellescope/types-models").EnduserOrder & {
+        id: string;
+        createdAt: Date;
+    };
+    group_mms_conversations: import("@tellescope/types-models").GroupMMSConversation & {
+        id: string;
+        createdAt: Date;
+    };
+    ticket_queues: import("@tellescope/types-models").TicketQueue & {
+        id: string;
+        createdAt: Date;
+    };
+    configurations: import("@tellescope/types-models").Configuration & {
+        id: string;
+        createdAt: Date;
+    };
+    ticket_threads: import("@tellescope/types-models").TicketThread & {
+        id: string;
+        createdAt: Date;
+    };
+    ticket_thread_comments: import("@tellescope/types-models").TicketThreadComment & {
+        id: string;
+        createdAt: Date;
+    };
+    enduser_custom_types: import("@tellescope/types-models").EnduserCustomType & {
+        id: string;
+        createdAt: Date;
+    };
+    phone_trees: import("@tellescope/types-models").PhoneTree & {
+        id: string;
+        createdAt: Date;
+    };
+    enduser_medications: import("@tellescope/types-models").EnduserMedication & {
+        id: string;
+        createdAt: Date;
+    };
+    superbill_providers: import("@tellescope/types-models").SuperbillProvider & {
+        id: string;
+        createdAt: Date;
+    };
+    superbills: import("@tellescope/types-models").Superbill & {
+        id: string;
+        createdAt: Date;
+    };
+    automation_triggers: import("@tellescope/types-models").AutomationTrigger & {
+        id: string;
+        createdAt: Date;
+    };
+    background_errors: import("@tellescope/types-models").BackgroundError & {
+        id: string;
+        createdAt: Date;
+    };
+    enduser_views: import("@tellescope/types-models").EnduserView & {
+        id: string;
+        createdAt: Date;
+    };
+    availability_blocks: import("@tellescope/types-models").AvailabilityBlock & {
+        id: string;
+        createdAt: Date;
+    };
+    analytics_frames: import("@tellescope/types-models").AnalyticsFrame & {
+        id: string;
+        createdAt: Date;
+    };
+    endusers: import("@tellescope/types-models").Enduser & {
+        id: string;
+        createdAt: Date;
+    };
+    engagement_events: import("@tellescope/types-models").EngagementEvent & {
+        id: string;
+        createdAt: Date;
+    };
+    journeys: import("@tellescope/types-models").Journey & {
+        id: string;
+        createdAt: Date;
+    };
+    api_keys: import("@tellescope/types-models").APIKey & {
+        id: string;
+        createdAt: Date;
+    };
+    emails: import("@tellescope/types-models").Email & {
+        id: string;
+        createdAt: Date;
+    };
+    sms_messages: import("@tellescope/types-models").SMSMessage & {
+        id: string;
+        createdAt: Date;
+    };
+    chat_rooms: import("@tellescope/types-models").ChatRoom & {
+        id: string;
+        createdAt: Date;
+    };
+    chats: import("@tellescope/types-models").ChatMessage & {
+        id: string;
+        createdAt: Date;
+    };
+    users: import("@tellescope/types-models").User & {
+        id: string;
+        createdAt: Date;
+    };
+    templates: import("@tellescope/types-models").MessageTemplate & {
+        id: string;
+        createdAt: Date;
+    };
+    files: import("@tellescope/types-models").File & {
+        id: string;
+        createdAt: Date;
+    };
+    tickets: import("@tellescope/types-models").Ticket & {
+        id: string;
+        createdAt: Date;
+    };
+    ticket_templates: import("@tellescope/types-models").TicketTemplate & {
+        id: string;
+        createdAt: Date;
+    };
+    meetings: import("@tellescope/types-models").Meeting & {
+        id: string;
+        createdAt: Date;
+    };
+    notes: import("@tellescope/types-models").Note & {
+        id: string;
+        createdAt: Date;
+    };
+    forms: import("@tellescope/types-models").Form & {
+        id: string;
+        createdAt: Date;
+    };
+    form_fields: import("@tellescope/types-models").FormField & {
+        id: string;
+        createdAt: Date;
+    };
+    form_responses: import("@tellescope/types-models").FormResponse & {
+        id: string;
+        createdAt: Date;
+    };
+    calendar_events: import("@tellescope/types-models").CalendarEvent & {
+        id: string;
+        createdAt: Date;
+    };
+    calendar_event_templates: import("@tellescope/types-models").CalendarEventTemplate & {
+        id: string;
+        createdAt: Date;
+    };
+    calendar_event_RSVPs: import("@tellescope/types-models").CalendarEventRSVP & {
+        id: string;
+        createdAt: Date;
+    };
+    automation_steps: import("@tellescope/types-models").AutomationStep & {
+        id: string;
+        createdAt: Date;
+    };
+    automated_actions: import("@tellescope/types-models").AutomatedAction & {
+        id: string;
+        createdAt: Date;
+    };
+    webhooks: import("@tellescope/types-models").WebHook & {
+        id: string;
+        createdAt: Date;
+    };
+    user_logs: import("@tellescope/types-models").UserLog & {
+        id: string;
+        createdAt: Date;
+    };
+    user_notifications: import("@tellescope/types-models").UserNotification & {
+        id: string;
+        createdAt: Date;
+    };
+    enduser_status_updates: import("@tellescope/types-models").EnduserStatusUpdate & {
+        id: string;
+        createdAt: Date;
+    };
+    enduser_observations: import("@tellescope/types-models").EnduserObservation & {
+        id: string;
+        createdAt: Date;
+    };
+    managed_content_records: import("@tellescope/types-models").ManagedContentRecord & {
+        id: string;
+        createdAt: Date;
+    };
+    managed_content_record_assignments: import("@tellescope/types-models").ManagedContentRecordAssignment & {
+        id: string;
+        createdAt: Date;
+    };
+    forums: import("@tellescope/types-models").Forum & {
+        id: string;
+        createdAt: Date;
+    };
+    forum_posts: import("@tellescope/types-models").ForumPost & {
+        id: string;
+        createdAt: Date;
+    };
+    post_likes: import("@tellescope/types-models").PostLike & {
+        id: string;
+        createdAt: Date;
+    };
+    comment_likes: import("@tellescope/types-models").CommentLike & {
+        id: string;
+        createdAt: Date;
+    };
+    post_comments: import("@tellescope/types-models").PostComment & {
+        id: string;
+        createdAt: Date;
+    };
+    organizations: import("@tellescope/types-models").Organization & {
+        id: string;
+        createdAt: Date;
+    };
+    integrations: import("@tellescope/types-models").Integration & {
+        id: string;
+        createdAt: Date;
+    };
+    databases: import("@tellescope/types-models").Database & {
+        id: string;
+        createdAt: Date;
+    };
+    database_records: import("@tellescope/types-models").DatabaseRecord & {
+        id: string;
+        createdAt: Date;
+    };
+    portal_customizations: import("@tellescope/types-models").PortalCustomization & {
+        id: string;
+        createdAt: Date;
+    };
+    enduser_tasks: import("@tellescope/types-models").EnduserTask & {
+        id: string;
+        createdAt: Date;
+    };
+    care_plans: import("@tellescope/types-models").CarePlan & {
+        id: string;
+        createdAt: Date;
+    };
+    role_based_access_permissions: import("@tellescope/types-models").RoleBasedAccessPermission & {
+        id: string;
+        createdAt: Date;
+    };
+    appointment_booking_pages: import("@tellescope/types-models").AppointmentBookingPage & {
+        id: string;
+        createdAt: Date;
+    };
+    appointment_locations: import("@tellescope/types-models").AppointmentLocation & {
+        id: string;
+        createdAt: Date;
+    };
+    products: import("@tellescope/types-models").Product & {
+        id: string;
+        createdAt: Date;
+    };
+    purchases: import("@tellescope/types-models").Purchase & {
+        id: string;
+        createdAt: Date;
+    };
+    purchase_credits: import("@tellescope/types-models").PurchaseCredit & {
+        id: string;
+        createdAt: Date;
+    };
+    phone_calls: import("@tellescope/types-models").PhoneCall & {
+        id: string;
+        createdAt: Date;
+    };
+    enduser_profile_views: import("@tellescope/types-models").EnduserProfileView & {
+        id: string;
+        createdAt: Date;
+    };
+    custom_dashboards: import("@tellescope/types-models").CustomDashboard & {
+        id: string;
+        createdAt: Date;
+    };
+    table_views: import("@tellescope/types-models").TableView & {
+        id: string;
+        createdAt: Date;
+    };
+    email_sync_denials: import("@tellescope/types-models").EmailSyncDenial & {
+        id: string;
+        createdAt: Date;
+    };
+    time_tracks: import("@tellescope/types-models").TimeTrack & {
+        id: string;
+        createdAt: Date;
+    };
+}[N]> | undefined) => Promise<{
     inbox_threads: import("@tellescope/types-models").InboxThread & {
         id: string;
         createdAt: Date;

@@ -6,7 +6,17 @@ export interface EnduserPortalVisibility {
 
 export interface SearchOptions {
   query: string,
+  /**
+   * Drops results whose Atlas search score is below this value. Slow on large datasets, because every
+   * candidate is scored before filtering; prefer `minimumShouldMatch` to exclude non-matching results.
+   */
   minSearchScore?: number,
+  /**
+   * Non-negative integer: the minimum number of search clauses a result must match. `1` returns only
+   * results that match the query; when omitted, the query only affects ranking. Has no effect when the
+   * search is not backed by Atlas Search.
+   */
+  minimumShouldMatch?: number,
 }
 
 export type StripeCountryCode = "US" | "GB"
@@ -267,12 +277,20 @@ export type OrganizationSettings = {
     sharedInboxReadStatus?: boolean,
     dontMarkReadForAssigned?: boolean,
     matchEmailAndNames?: boolean,
+    /** Public form intake matches an existing contact even when fname/lname differ in capitalization. Off by default. */
+    caseInsensitiveMatching?: boolean,
     hideNotesFromComposeForm?: boolean,
     showSalesforceId?: boolean,
     loopQueueCallSound?: boolean,
     showOrdersInSidebar?: boolean,
     showDiagnoses?: boolean,
     showDeviceOrders?: boolean,
+    /** Offers the "View Programs" link on the patient profile, for viewing and editing
+     *  Enduser.programs by hand. Off by default — most organizations still use the Care Type /
+     *  Care Stage custom fields. A patient who already has programs shows the link regardless, so
+     *  integration-set programs are never hidden. Gates the link only, never the Programs
+     *  condition key. */
+    showPrograms?: boolean,
     requireObservationInvalidationReason?: boolean,
     defaultHideFilesFromPortal?: boolean,
     hideUnorderedFullscriptMeds?: boolean,
@@ -546,6 +564,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   hasConnectedCandid?: boolean,
   hasConnectedGoGoMeds?: boolean,
   hasScriptSure?: boolean,
+  hasConnectedVITL?: boolean, // VITL eRx — set server-side on connect; not the tryvital.io "Vital" integration
   hasConnectedPagerDuty?: boolean,
   hasConnectedSeason?: boolean,
   hasConnectedWelle?: boolean,
@@ -647,6 +666,9 @@ export interface Organization extends Organization_readonly, Organization_requir
   skipActivePatientBilling?: boolean,
   portalV2SchemaURL?: string,
   timeTrackingPrograms?: TimeTrackingProgram[],
+  /** the program names and per-program statuses this organization offers; see OrganizationProgram.
+   *  Unrelated to timeTrackingPrograms, which are billing programs. */
+  programs?: OrganizationProgram[],
   belugaAutomationMappings?: BelugaAutomationMappingEntry[],
 }
 export type OrganizationTheme = {
@@ -1082,6 +1104,31 @@ export type EnduserDevice = {
   archivedAt?: Date | '',
 }
 
+// a program association on a child record (observation, order, ...). An object rather than a bare
+// string so per-record program detail can be added later without a breaking type change
+export type RecordProgram = {
+  name: string,
+}
+export type EnduserProgram = {
+  name: string,
+  deviceIds?: string[], // ids matching Enduser.devices[].id
+  status?: string, // one of the statuses Organization.programs configures for this program name
+}
+/** A program an organization offers, and the statuses a patient's enrollment in it may be in.
+ *
+ *  This is the registry the Programs editor and the Programs condition key select from — neither offers
+ *  free text. It is NOT a constraint on what is stored: Enduser.programs, EnduserObservation.programs
+ *  and EnduserOrder.programs stay writable by any API client, so a name or status that is not listed
+ *  here can still reach the database, and the UI surfaces those as unconfigured rather than hiding them.
+ *
+ *  Names are matched EXACTLY (case-sensitive, never trimmed) by the Programs condition key, the saved V2
+ *  Mongo filters, and the Vital Update / Order Status Equals triggers. Renaming a program here does not
+ *  migrate any of them. */
+export type OrganizationProgram = {
+  name: string,
+  statuses?: string[],
+}
+
 export type EnduserDiagnosis = {
   id?: string, // if created in Tellescope
   createdAt?: Date,
@@ -1193,6 +1240,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   insuranceSecondary?: EnduserInsurance,
   bookingNotes?: { bookingPageId: string, note: string }[]
   devices?: EnduserDevice[],
+  programs?: EnduserProgram[],
   salesforceId?: string,
   athenaPracticeId?: string,
   athenaDepartmentId?: string,
@@ -1204,6 +1252,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   stripeCustomerId?: string,
   stripeKey?: string,
   lastDoseSpotSyncAt?: Date,
+  lastVITLSyncAt?: Date, // last successful push of this enduser to VITL (server-written only)
   diagnoses?: EnduserDiagnosis[]
   lockedFromPortal?: boolean,
   chargebeeEnvironment?: string,
@@ -2150,6 +2199,10 @@ export type FormFieldOptions = FormFieldValidation & {
   observationCode?: string,
   observationDisplay?: string,
   observationUnit?: string,
+  // Opt-in, per question: when set to a VITAL_UNITS value, a final submission of this form turns the
+  // field's numeric answer into an enduser_observations vital reading in that unit. Absent or empty
+  // is off. Independent of observationUnit (Canvas LOINC/units) and of intakeField.
+  vitalUnit?: string,
   autoUploadFiles?: boolean,
   chargebeeEnvironment?: string,
   chargebeeBusinessEntityId?: string,
@@ -2262,7 +2315,7 @@ export type AISummaryConfiguration = {
   dataSources?: AISummaryDataSourceConfig[],
   maxOutputTokens?: number,
   includeProfileFields?: boolean, // include the enduser profile block (name/DOB/fields/custom fields) in the AI context
-  model?: string, // 'Claude Sonnet 5' (default) | 'Claude Opus 4.8'
+  model?: string, // friendly AI model name, see SELECTABLE_AI_MODELS (constants); defaults to DEFAULT_AI_MODEL
 }
 
 export type FormCustomization = {
@@ -3129,6 +3182,17 @@ export interface Product extends Product_readonly, Product_required, Product_upd
   chargebeeItemPriceId?: string,
 }
 
+// One line of a products/prepare-stripe-checkout cart, naming either a Tellescope Product or a raw
+// Stripe price that has no Product behind it. Exactly one of the three id fields must be set;
+// subscriptionPriceId is what declares a raw item recurring (nothing infers it from Stripe).
+// Raw price ids are rejected for enduser sessions - see the handler in api/v1/api.ts.
+export type StripeCheckoutItem = {
+  productId?: string,
+  stripePriceId?: string,
+  subscriptionPriceId?: string,
+  quantity: number,
+}
+
 export interface Purchase_readonly extends ClientRecord {}
 export interface Purchase_required {
   title: string,
@@ -3235,6 +3299,11 @@ export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, C
   preventCancelMinutesInAdvance?: number,
   preventRescheduleInPortal?: boolean,
   preventCancelInPortal?: boolean,
+  // When enabled, an enduser cannot book this template while they already have an unresolved
+  // upcoming event of the same template (any host). Absent/false means unrestricted, which is the
+  // behavior for every template that predates this setting. Staff booking is not blocked; the
+  // webapp shows an overridable warning instead.
+  preventBookingWhenUpcomingExists?: boolean,
   athenaDepartmentId?: string,
   generateAthenaTelehealthLink?: boolean,
   athenaTypeId?: string, // for searching slots (default booking type)
@@ -3858,6 +3927,9 @@ export type CreateScriptSureDraftAutomationAction = AutomationActionBuilder<'cre
   matchMedicationTitle?: string,          // when set, restrict to routes with this exact title
   matchEnduserState?: boolean,            // when true, restrict to routes whose state === enduser.state
 }>
+// Pushes the enduser to VITL as a create-or-update, keyed on the Tellescope enduser id (uid).
+// Takes no configuration — the webhook URL and shared secret come from the org's VITL integration record.
+export type PushVITLPatientAutomationAction = AutomationActionBuilder<'pushVITLPatient', {}>
 // Starts an AI agent conversation with the enduser over a messaging channel (SMS v1) — the
 // messaging sibling of the phone tree 'AI Agent' step. The step's automated_action completes
 // immediately; the journey branches later via 'onAIConversationOutcome' events when the agent
@@ -3940,6 +4012,7 @@ export type AutomationActionForType = {
   assignCareTeam: AssignCareTeamAutomationAction,
   callUser: CallUserAutomationAction,
   createScriptSureDraft: CreateScriptSureDraftAutomationAction,
+  pushVITLPatient: PushVITLPatientAutomationAction,
 }
 export type AutomationActionType = keyof AutomationActionForType
 export type AutomationAction = AutomationActionForType[AutomationActionType]
@@ -4033,6 +4106,7 @@ export interface EnduserObservation extends EnduserObservation_readonly, Enduser
   invalidationReason?: string,
   excludeFromVitalCountLookback?: boolean,
   components?: ObservationComponent[],
+  programs?: RecordProgram[],
 }
 
 export type BlockType = 'h1' | 'h2' | 'html' | 'raw-html' | 'image' | 'youtube' | 'pdf' | 'iframe' | 'content-link'
@@ -5087,6 +5161,10 @@ export type AutomationTriggerActions = {
   }>,
   "Zendesk: Update Ticket Assignee": AutomationTriggerActionBuilder<'Zendesk: Update Ticket Assignee', {
   }>,
+  // marks the reading in journeyContext.observationId as reviewed. Only events that identify a single
+  // reading can supply that, so this is restricted to 'Vital Update' by
+  // AUTOMATION_TRIGGER_ACTION_EVENT_RESTRICTIONS in @tellescope/validation
+  "Review Vital Reading": AutomationTriggerActionBuilder<'Review Vital Reading', { }>,
 }
 export type AutomationTriggerActionType = keyof AutomationTriggerActions
 export type AutomationTriggerAction = AutomationTriggerActions[AutomationTriggerActionType]
@@ -5143,10 +5221,11 @@ export type AutomationTriggerEvents = {
     comparison: VitalComparison,
     periodInMS: number,
   }, {}>,
-  'Vital Update': AutomationTriggerEventBuilder<"Vital Update", { 
+  'Vital Update': AutomationTriggerEventBuilder<"Vital Update", {
     configurationIds: string[],
-    classifications:  string[], 
+    classifications:  string[],
     ignoreDelayedReadings?: boolean,
+    programs?: string[], // program names, matched against EnduserObservation.programs[].name
   }, {}>,
   'SMS Reply': AutomationTriggerEventBuilder<"SMS Reply", { templateIds: string[], replyKeywords?: string[] }, {}>,
   'Order Status Equals': AutomationTriggerEventBuilder<"Order Status Equals", {
@@ -5159,6 +5238,7 @@ export type AutomationTriggerEvents = {
     titlePartialsAnd?: string[],
     protocols?: string[],
     frequencies?: string[],
+    programs?: string[], // program names, matched against EnduserOrder.programs[].name
   }, { }>,
   'Missed Call': AutomationTriggerEventBuilder<"Missed Call", { 
     phoneNumbers?: string[], 
@@ -5348,7 +5428,7 @@ export type AIAgentBaseConfig = {
   prompt: string, // org-authored additions to the channel's base system prompt
   outcomes: { value: string, description: string }[], // the agent must end with one of these
   tools?: PhoneTreeAgentTool[], // capabilities the agent may use mid-conversation (e.g. 'Submit Form', 'Book Appointment')
-  model?: string, // friendly AI model name, see SELECTABLE_AI_MODELS (constants); defaults to Claude Sonnet 5
+  model?: string, // friendly AI model name, see SELECTABLE_AI_MODELS (constants); defaults to DEFAULT_AI_MODEL
   maxTokensPerTurn?: number,
   maxTurns?: number,
   maxCreditsPerCall?: number, // per-call/per-conversation spend circuit breaker, default from constants
@@ -5404,6 +5484,7 @@ export type PhoneTreeActions = {
   'Route Extensions': PhoneTreeActionBuilder<"Route Extensions", {
     extensions: { input: string, userId: string }[],
     playback?: Partial<PhonePlayback>,
+    duration?: number, // seconds to ring the dialed extension before the no-answer branch, default 30
   }>
   'Add to Journey': PhoneTreeActionBuilder<"Add to Journey", { journeyId: string }>
   // Conversational AI agent (Twilio ConversationRelay + Bedrock). A generic "end call with outcome"
@@ -5648,6 +5729,7 @@ export interface EnduserOrder extends EnduserOrder_readonly, EnduserOrder_requir
   medication?: string,
   medicationSku?: string,
   protocol?: string,
+  programs?: RecordProgram[],
   references?: RelatedRecord[],
 }
 

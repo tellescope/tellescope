@@ -49,9 +49,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.calculate_date_difference_for_set_fields = exports.calculate_days_between_dates_from_enduser = exports.resolve_date_value = exports.calculate_days_between_dates = exports.parse_date_string = exports.mm_dd_yyyy = exports.yyyy_mm_dd_numeric = exports.yyyy_mm_dd = exports.formatted_date_hh_mm = exports.get_add_to_gcal_link = exports.formatted_date = exports.get_time_values = exports.MONTHS = exports.MONTHS_FULL = exports.sorted_records = exports.wait = exports.findFirstUnansweredField = exports.throwFunction = exports.ensure_https_url = exports.to_absolute_url = exports.build_portal_link_string = exports.build_content_link_string = exports.build_shared_file_link_string = exports.build_file_link_string = exports.build_form_group_link_string = exports.build_form_link_string = exports.build_link_string = exports.getTemplatedData = exports.parse_link_template = exports.map_object = exports.format_stripe_subscription_interval = exports.truncate_string = exports.defined_fields = exports.user_is_active = exports.user_display_name = exports.objects_equivalent = exports.to_object_id = exports.url_safe_path = exports.is_whitespace = exports.matching_fields = exports.is_object = exports.filter_object = exports.is_defined = exports.is_truthy = exports.object_is_empty = exports.first_letter_lowercase = exports.first_letter_capitalized = exports.user_is_locked_out = exports.user_is_admin = exports.ObjectId = void 0;
-exports.UPCOMING_EVENT_COUNT_KEY = exports.get_enduser_field_value_for_key = exports.age_for_dob_mmddyyyy = exports.replace_keys_and_values_in_object = exports.get_conditional_logic_values = exports.evaluate_conditional_logic_for_medication_title = exports.title_matches_partials = exports.evaluate_string_field_comparison = exports.evaluate_conditional_logic = exports.shuffle_array_in_place = exports.plaintext_for_managed_content_record = exports.sanitize_html = exports.timezone_for_enduser = exports.safeJSONParseTemplate = exports.safeJSONParse = exports.payment_cost_to_string = exports.read_local_storage = exports.update_local_storage = exports.is_organization_owner = exports.form_response_value_to_string = exports.is_table_input_response = exports.user_has_record_access = exports.is_suborganization = exports.matches_organization = exports.getDefaultPortalURL = exports.getPublicFileURL = exports.getOrgnizationFaviconURL = exports.getOrgnizationLogoURL = exports.getBuiltInPublicFileName = exports.getGoogleClientAPIKey = exports.getGoogleClientId = exports.getApiURL = exports.getEnvironment = exports.setLocalPortalURL = exports.setLocalApiURL = exports.isLocalDevOrigin = exports.TEST_API_URL = exports.STAGING_API_URL = exports.PROD_API_URL = exports.query_string_for_object = exports.sanitize_user_html_with_iframes = exports.DEFAULT_IFRAME_SANDBOX = exports.sanitize_user_html = exports.sanitize_html_for_cms = exports.sanitize_html_with_links = exports.remove_image_tags = exports.remove_style_tags = exports.remove_script_tags = exports.time_for_calendar_event = exports.fullMonth_day_year = void 0;
-exports.replace_sms_template_values = exports.replace_form_field_template_values = exports.replace_order_template_values = exports.replace_medication_template_values = exports.replace_calendar_event_template_values = exports.replace_purchase_template_values = exports.replace_tag_template_values_for_enduser = exports.append_current_utm_params = exports.get_utm_params = exports.TRACKED_URL_PARAMS = exports.is_out_of_office = exports.color_for_classification = exports.classification_for_vital = exports.SMS_UNSUBSCRIBE_KEYWORDS = exports.satisfies_vital_comparison = exports.field_can_autosubmit = exports.field_can_autoadvance = exports.decodeJWT = exports.validate_organization_for_develop_health = exports.validate_user_for_develop_health = exports.validate_enduser_for_develop_health = exports.validate_enduser_for_script_sure = exports.validate_enduser_for_dose_spot = exports.validate_enduser_for_smart_meter = exports.validate_enduser_for_gogo = exports.json_error_string = exports.validate_enduser_for_candid = exports.validate_provider_for_candid = exports.validate_organization_for_candid = exports.validate_insurance_for_eligibility = exports.weighted_round_robin = exports.responses_satisfy_conditions = exports.calculate_bmi_from_responses = exports.calculate_bmi = exports.FORM_LOGIC_URL_PARAMETER = exports.FORM_LOGIC_CALCULATED_FIELDS = exports.calculate_form_scoring = exports.batch_array = exports.capture_is_supported = exports.get_next_reminder_timestamp = exports.mfa_is_enabled = exports.decode_email_for_display = exports.URIDecodeEmail = exports.get_recent_outbound_communication_date = exports.get_recent_engagement_date = exports.MM_DD_YYYY_to_YYYY_MM_DD = exports.YYYY_MM_DD_to_MM_DD_YYYY = exports.getLocalTimezone = exports.string_matches_key_or_value = exports.evaluate_conditional_logic_for_enduser_fields = void 0;
-exports.constructT2BaseURL = exports.formatDuration = exports.calculateTimeTrackDuration = exports.validate_custom_field_references = exports.slot_violates_calendar_event_limits = exports.replace_form_response_template_values = exports.resolve_integration_id = exports.replace_snippet_template_values = exports.get_snippet_keys = exports.emit_gtm_event = exports.get_care_team_primary = exports.is_checkbox_custom_field_value = exports.enrich_doxy_url = exports.to_human_readable_phone_number = exports.get_canvas_id = exports.should_show_unsubmitted_form_response_for_interval = exports.enduser_insurance_string = exports.enduser_address_string = exports.is_timezone = exports.downloadFile = exports.get_prepopulated_responses = exports.INVALID_PREPOPULATION_TYPES = exports.add_value_for_dotted_key = exports.value_for_dotted_key = exports.get_flattened_fields = exports.skip_due_date_as_needed = exports.is_full_iso_string_heuristic = exports.display_time_for_seconds = exports.replace_enduser_template_values = exports.replace_secret_values = exports.get_secret_names = void 0;
+exports.string_matches_key_or_value = exports.evaluate_conditional_logic_for_enduser_fields = exports.UPCOMING_EVENT_COUNT_KEY = exports.get_enduser_field_value_for_key = exports.age_for_dob_mmddyyyy = exports.replace_keys_and_values_in_object = exports.get_conditional_logic_values = exports.evaluate_conditional_logic_for_medication_title = exports.title_matches_partials = exports.evaluate_string_field_comparison = exports.evaluate_conditional_logic = exports.shuffle_array_in_place = exports.plaintext_for_managed_content_record = exports.sanitize_html = exports.timezone_for_enduser = exports.safeJSONParseTemplate = exports.safeJSONParse = exports.payment_cost_to_string = exports.read_local_storage = exports.update_local_storage = exports.is_organization_owner = exports.form_response_value_to_string = exports.is_table_input_response = exports.user_has_record_access = exports.is_suborganization = exports.matches_organization = exports.getDefaultPortalURL = exports.getPublicFileURL = exports.getOrgnizationFaviconURL = exports.getOrgnizationLogoURL = exports.getBuiltInPublicFileName = exports.getApiURL = exports.getEnvironment = exports.setLocalPortalURL = exports.setLocalApiURL = exports.isLocalDevOrigin = exports.TEST_API_URL = exports.STAGING_API_URL = exports.PROD_API_URL = exports.query_string_for_object = exports.sanitize_user_html_with_iframes = exports.DEFAULT_IFRAME_SANDBOX = exports.sanitize_user_html = exports.sanitize_html_for_cms = exports.sanitize_html_with_links = exports.remove_image_tags = exports.remove_style_tags = exports.remove_script_tags = exports.time_for_calendar_event = exports.fullMonth_day_year = void 0;
+exports.replace_order_template_values = exports.replace_medication_template_values = exports.replace_calendar_event_template_values = exports.replace_purchase_template_values = exports.replace_tag_template_values_for_enduser = exports.append_current_utm_params = exports.get_utm_params = exports.TRACKED_URL_PARAMS = exports.is_out_of_office = exports.color_for_classification = exports.classification_for_vital = exports.SMS_UNSUBSCRIBE_KEYWORDS = exports.satisfies_vital_comparison = exports.field_can_autosubmit = exports.field_can_autoadvance = exports.decodeJWT = exports.validate_organization_for_develop_health = exports.validate_user_for_develop_health = exports.validate_enduser_for_develop_health = exports.vitl_gender = exports.vitl_date_of_birth = exports.vitl_zipcode = exports.validate_enduser_for_vitl = exports.validate_enduser_for_script_sure = exports.validate_enduser_for_dose_spot = exports.validate_enduser_for_smart_meter = exports.validate_enduser_for_gogo = exports.json_error_string = exports.validate_enduser_for_candid = exports.validate_provider_for_candid = exports.validate_organization_for_candid = exports.validate_insurance_for_eligibility = exports.weighted_round_robin = exports.responses_satisfy_conditions = exports.calculate_bmi_from_responses = exports.calculate_bmi = exports.FORM_LOGIC_URL_PARAMETER = exports.FORM_LOGIC_CALCULATED_FIELDS = exports.calculate_form_scoring = exports.batch_array = exports.capture_is_supported = exports.get_next_reminder_timestamp = exports.mfa_is_enabled = exports.decode_email_for_display = exports.URIDecodeEmail = exports.get_recent_outbound_communication_date = exports.get_recent_engagement_date = exports.MM_DD_YYYY_to_YYYY_MM_DD = exports.YYYY_MM_DD_to_MM_DD_YYYY = exports.getLocalTimezone = void 0;
+exports.constructT2BaseURL = exports.formatDuration = exports.calculateTimeTrackDuration = exports.validate_custom_field_references = exports.slot_violates_calendar_event_limits = exports.find_conflicting_upcoming_event = exports.BOOKING_RESOLVED_ATTENDEE_STATUSES = exports.replace_form_response_template_values = exports.resolve_integration_id = exports.replace_snippet_template_values = exports.get_snippet_keys = exports.emit_gtm_event = exports.get_care_team_primary = exports.is_checkbox_custom_field_value = exports.enrich_doxy_url = exports.to_human_readable_phone_number = exports.get_canvas_id = exports.should_show_unsubmitted_form_response_for_interval = exports.enduser_insurance_string = exports.enduser_address_string = exports.is_timezone = exports.downloadFile = exports.get_prepopulated_responses = exports.INVALID_PREPOPULATION_TYPES = exports.add_value_for_dotted_key = exports.value_for_dotted_key = exports.get_flattened_fields = exports.skip_due_date_as_needed = exports.is_full_iso_string_heuristic = exports.display_time_for_seconds = exports.replace_enduser_template_values = exports.replace_secret_values = exports.get_secret_names = exports.replace_sms_template_values = exports.replace_form_field_template_values = void 0;
 var types_models_1 = require("@tellescope/types-models");
 var constants_1 = require("@tellescope/constants");
 var sanitize_html_1 = __importDefault(require("sanitize-html"));
@@ -1041,24 +1041,6 @@ var getApiURL = function () { return (window.location.origin.includes('staging')
         ? (localApiURL || exports.TEST_API_URL) // a slot's API when the app set it; the default local API otherwise
         : exports.PROD_API_URL); };
 exports.getApiURL = getApiURL;
-var getGoogleClientId = function () {
-    var api = (0, exports.getApiURL)();
-    return (api === exports.PROD_API_URL
-        ? "526353775713-puib79782ac254evqj2fs0sb7acsij65.apps.googleusercontent.com"
-        : api === exports.STAGING_API_URL
-            ? '826276796073-6rcrqp4duqatbhn8k71saopenqc2fb0i.apps.googleusercontent.com'
-            : '842986734352-2c73i6iq2aoau3dj1jvqtmufn2j9g0dm.apps.googleusercontent.com');
-};
-exports.getGoogleClientId = getGoogleClientId;
-var getGoogleClientAPIKey = function () {
-    var api = (0, exports.getApiURL)();
-    return (api === exports.PROD_API_URL
-        ? 'AIzaSyCYCWiLkYifffepu5L-p1x4yUExf5aWpuA'
-        : api === exports.STAGING_API_URL
-            ? "AIzaSyDUCT6r5qQx8yniMuP-Y9Ni08THoLQtG6M"
-            : "AIzaSyBW9D0mg3ISvNQcSB0Z_PwHNuD0OhFdMKg");
-};
-exports.getGoogleClientAPIKey = getGoogleClientAPIKey;
 var PUBLIC_ASSET_BUCKET = "tellescope-public-files";
 var getBuiltInPublicFileName = function (_a) {
     var _b;
@@ -1655,95 +1637,124 @@ var evaluate_conditional_logic_for_enduser_fields = function (enduser, condition
                             }
                             return false;
                         })()
-                        : typeof value === 'object'
+                        // Programs is a derived key over the Enduser.programs list: "has a program named N, and — when a
+                        // status is given — that same program's status is S". Operators are read BY NAME rather than via
+                        // the generic `Object.keys(value)[0]` dispatch below, because $status can be serialised before
+                        // $in/$nin and that dispatch would then pick $status as the operator and fall through to false.
+                        // All comparison is exact string, matching the shipped Order Status Equals / Vital Update filters.
+                        // Narrowed to the two operators this key actually uses, so any other object-valued condition under
+                        // a key named 'Programs' (a custom field an organization happens to have named that) falls through
+                        // to the generic handler below — which is also what the V2 translator does, keeping the two engines
+                        // in agreement.
+                        : (key === 'Programs' && typeof value === 'object' && value !== null
+                            && (typeof value['$in'] === 'string'
+                                || typeof value['$nin'] === 'string'))
                             ? (function () {
-                                var _a, _b, _d, _e, _f, _g, _h, _j, _k, _l;
-                                var k = Object.keys(value)[0];
-                                var v = Object.values(value)[0];
-                                if (key === 'Journeys' && (k === '$in' || k === '$nin')) {
-                                    var isInJourney = ((_a = enduser === null || enduser === void 0 ? void 0 : enduser.journeys) === null || _a === void 0 ? void 0 : _a[v]) !== undefined;
-                                    return ((k === '$in' && isInJourney)
-                                        || (k === "$nin" && !isInJourney));
-                                }
-                                if (k === '$lt' || k === '$gt') {
-                                    var enduserValue = (_b = enduser.fields) === null || _b === void 0 ? void 0 : _b[key];
-                                    if (typeof enduserValue !== 'number')
-                                        return false;
-                                    var _v = (typeof v === 'number'
-                                        ? v
-                                        : parseInt(v));
-                                    if (isNaN(_v))
-                                        return false;
-                                    return ((k === '$lt' && enduserValue < _v)
-                                        || (k === '$gt' && enduserValue > _v));
-                                }
-                                if (k === '$contains' || k === '$doesNotContain') {
-                                    var enduserValue = ((_e = (_d = enduser.fields) === null || _d === void 0 ? void 0 : _d[key]) !== null && _e !== void 0 ? _e : (0, exports.get_enduser_field_value_for_key)(enduser, key));
-                                    var contains = (Array.isArray(enduserValue)
-                                        ? !!enduserValue.find(function (ev) { return typeof ev === 'string' && ev.includes(v); })
-                                        : typeof enduserValue === 'string'
-                                            ? enduserValue.includes(v)
-                                            : enduserValue === v);
-                                    return ((k === '$contains' && contains)
-                                        || (k === '$doesNotContain' && !contains));
-                                }
-                                if (k === '$isSet' || k === '$isNotSet') {
-                                    var enduserValue = ((_g = (_f = enduser.fields) === null || _f === void 0 ? void 0 : _f[key]) !== null && _g !== void 0 ? _g : (0, exports.get_enduser_field_value_for_key)(enduser, key));
-                                    var isSet = (Array.isArray(enduserValue)
-                                        ? enduserValue.length > 0
-                                        : !!enduserValue);
-                                    return (k === "$isSet" && isSet) || (k === '$isNotSet' && !isSet);
-                                }
-                                // should negate the typeof value === 'string' (defaults to $equals) condition
-                                if (k === '$ne') {
-                                    var enduserValue = ((_j = (_h = enduser.fields) === null || _h === void 0 ? void 0 : _h[key]) !== null && _j !== void 0 ? _j : (0, exports.get_enduser_field_value_for_key)(enduser, key));
-                                    return !(enduserValue === v
-                                        || (Array.isArray(enduserValue) && (enduserValue).includes(v)));
-                                }
-                                // Find $before/$after operator regardless of key order (resilient to $offsetMs appearing first)
-                                // Placed at end of operator chain so other operators get evaluated first if they share keys
-                                var dateOperator = Object.keys(value).find(function (k) { return k === '$before' || k === '$after'; });
-                                if (dateOperator) {
-                                    var dateValue = value[dateOperator];
-                                    var vDate = dateValue === '$now' ? new Date() : new Date(dateValue);
-                                    if (isNaN(vDate.getTime()))
-                                        return false;
-                                    // Apply offset to comparison date if specified
-                                    var offsetMs = value === null || value === void 0 ? void 0 : value['$offsetMs'];
-                                    if (typeof offsetMs === 'number') {
-                                        vDate = new Date(vDate.getTime() + offsetMs);
-                                    }
-                                    var eDateField = (_l = (_k = enduser.fields) === null || _k === void 0 ? void 0 : _k[key]) !== null && _l !== void 0 ? _l : (0, exports.get_enduser_field_value_for_key)(enduser, key);
-                                    if (!eDateField)
-                                        return false;
-                                    // Handle Date objects (from MongoDB), ISO strings, and MM-DD-YYYY strings
-                                    var eDate = void 0;
-                                    if (eDateField instanceof Date) {
-                                        eDate = eDateField;
-                                    }
-                                    else if (typeof eDateField === 'string') {
-                                        eDate = ((eDateField.includes('-') && eDateField.length === 10)
-                                            ? new Date((0, exports.MM_DD_YYYY_to_YYYY_MM_DD)(eDateField))
-                                            : new Date(eDateField));
-                                    }
-                                    else {
-                                        return false;
-                                    }
-                                    if (isNaN(eDate.getTime()))
-                                        return false;
-                                    return ((dateOperator === '$before' && eDate.getTime() < vDate.getTime())
-                                        || (dateOperator === '$after' && eDate.getTime() > vDate.getTime()));
-                                }
-                                return false;
+                                var _a;
+                                var inName = value['$in'];
+                                var isNegated = typeof inName !== 'string';
+                                var name = isNegated ? value['$nin'] : inName;
+                                // A blank name is an unconfigured condition and matches nobody in BOTH directions. Note this is
+                                // a deliberate DIVERGENCE from Journeys, not a copy of it: `{ Journeys: { $nin: '' } }` matches
+                                // everybody, because the blank id is simply absent from enduser.journeys. Failing open on $nin
+                                // would fire a trigger for every patient in the organization, so Programs fails closed instead.
+                                if (!name)
+                                    return false;
+                                var status = value['$status'];
+                                var matchStatus = typeof status === 'string' && status ? status : undefined;
+                                var hasProgram = !!((_a = enduser.programs) === null || _a === void 0 ? void 0 : _a.find(function (p) { return ((p === null || p === void 0 ? void 0 : p.name) === name
+                                    && (!matchStatus || (p === null || p === void 0 ? void 0 : p.status) === matchStatus)); }));
+                                return isNegated ? !hasProgram : hasProgram;
                             })()
-                            : typeof value === 'string'
-                                ? (((_d = (_b = enduser.fields) === null || _b === void 0 ? void 0 : _b[key]) !== null && _d !== void 0 ? _d : (0, exports.get_enduser_field_value_for_key)(enduser, key)) === value
-                                    || ((_f = (_e = enduser.fields) === null || _e === void 0 ? void 0 : _e[key]) !== null && _f !== void 0 ? _f : (0, exports.get_enduser_field_value_for_key)(enduser, key)) === parseInt(value)
-                                    || (Array.isArray((_g = enduser.fields) === null || _g === void 0 ? void 0 : _g[key])
-                                        && ((_h = enduser === null || enduser === void 0 ? void 0 : enduser.fields) === null || _h === void 0 ? void 0 : _h[key]).includes(value))
-                                    || (Array.isArray((0, exports.get_enduser_field_value_for_key)(enduser, key))
-                                        && enduser[key].includes(value)))
-                                : false);
+                            : typeof value === 'object'
+                                ? (function () {
+                                    var _a, _b, _d, _e, _f, _g, _h, _j, _k, _l;
+                                    var k = Object.keys(value)[0];
+                                    var v = Object.values(value)[0];
+                                    if (key === 'Journeys' && (k === '$in' || k === '$nin')) {
+                                        var isInJourney = ((_a = enduser === null || enduser === void 0 ? void 0 : enduser.journeys) === null || _a === void 0 ? void 0 : _a[v]) !== undefined;
+                                        return ((k === '$in' && isInJourney)
+                                            || (k === "$nin" && !isInJourney));
+                                    }
+                                    if (k === '$lt' || k === '$gt') {
+                                        var enduserValue = (_b = enduser.fields) === null || _b === void 0 ? void 0 : _b[key];
+                                        if (typeof enduserValue !== 'number')
+                                            return false;
+                                        var _v = (typeof v === 'number'
+                                            ? v
+                                            : parseInt(v));
+                                        if (isNaN(_v))
+                                            return false;
+                                        return ((k === '$lt' && enduserValue < _v)
+                                            || (k === '$gt' && enduserValue > _v));
+                                    }
+                                    if (k === '$contains' || k === '$doesNotContain') {
+                                        var enduserValue = ((_e = (_d = enduser.fields) === null || _d === void 0 ? void 0 : _d[key]) !== null && _e !== void 0 ? _e : (0, exports.get_enduser_field_value_for_key)(enduser, key));
+                                        var contains = (Array.isArray(enduserValue)
+                                            ? !!enduserValue.find(function (ev) { return typeof ev === 'string' && ev.includes(v); })
+                                            : typeof enduserValue === 'string'
+                                                ? enduserValue.includes(v)
+                                                : enduserValue === v);
+                                        return ((k === '$contains' && contains)
+                                            || (k === '$doesNotContain' && !contains));
+                                    }
+                                    if (k === '$isSet' || k === '$isNotSet') {
+                                        var enduserValue = ((_g = (_f = enduser.fields) === null || _f === void 0 ? void 0 : _f[key]) !== null && _g !== void 0 ? _g : (0, exports.get_enduser_field_value_for_key)(enduser, key));
+                                        var isSet = (Array.isArray(enduserValue)
+                                            ? enduserValue.length > 0
+                                            : !!enduserValue);
+                                        return (k === "$isSet" && isSet) || (k === '$isNotSet' && !isSet);
+                                    }
+                                    // should negate the typeof value === 'string' (defaults to $equals) condition
+                                    if (k === '$ne') {
+                                        var enduserValue = ((_j = (_h = enduser.fields) === null || _h === void 0 ? void 0 : _h[key]) !== null && _j !== void 0 ? _j : (0, exports.get_enduser_field_value_for_key)(enduser, key));
+                                        return !(enduserValue === v
+                                            || (Array.isArray(enduserValue) && (enduserValue).includes(v)));
+                                    }
+                                    // Find $before/$after operator regardless of key order (resilient to $offsetMs appearing first)
+                                    // Placed at end of operator chain so other operators get evaluated first if they share keys
+                                    var dateOperator = Object.keys(value).find(function (k) { return k === '$before' || k === '$after'; });
+                                    if (dateOperator) {
+                                        var dateValue = value[dateOperator];
+                                        var vDate = dateValue === '$now' ? new Date() : new Date(dateValue);
+                                        if (isNaN(vDate.getTime()))
+                                            return false;
+                                        // Apply offset to comparison date if specified
+                                        var offsetMs = value === null || value === void 0 ? void 0 : value['$offsetMs'];
+                                        if (typeof offsetMs === 'number') {
+                                            vDate = new Date(vDate.getTime() + offsetMs);
+                                        }
+                                        var eDateField = (_l = (_k = enduser.fields) === null || _k === void 0 ? void 0 : _k[key]) !== null && _l !== void 0 ? _l : (0, exports.get_enduser_field_value_for_key)(enduser, key);
+                                        if (!eDateField)
+                                            return false;
+                                        // Handle Date objects (from MongoDB), ISO strings, and MM-DD-YYYY strings
+                                        var eDate = void 0;
+                                        if (eDateField instanceof Date) {
+                                            eDate = eDateField;
+                                        }
+                                        else if (typeof eDateField === 'string') {
+                                            eDate = ((eDateField.includes('-') && eDateField.length === 10)
+                                                ? new Date((0, exports.MM_DD_YYYY_to_YYYY_MM_DD)(eDateField))
+                                                : new Date(eDateField));
+                                        }
+                                        else {
+                                            return false;
+                                        }
+                                        if (isNaN(eDate.getTime()))
+                                            return false;
+                                        return ((dateOperator === '$before' && eDate.getTime() < vDate.getTime())
+                                            || (dateOperator === '$after' && eDate.getTime() > vDate.getTime()));
+                                    }
+                                    return false;
+                                })()
+                                : typeof value === 'string'
+                                    ? (((_d = (_b = enduser.fields) === null || _b === void 0 ? void 0 : _b[key]) !== null && _d !== void 0 ? _d : (0, exports.get_enduser_field_value_for_key)(enduser, key)) === value
+                                        || ((_f = (_e = enduser.fields) === null || _e === void 0 ? void 0 : _e[key]) !== null && _f !== void 0 ? _f : (0, exports.get_enduser_field_value_for_key)(enduser, key)) === parseInt(value)
+                                        || (Array.isArray((_g = enduser.fields) === null || _g === void 0 ? void 0 : _g[key])
+                                            && ((_h = enduser === null || enduser === void 0 ? void 0 : enduser.fields) === null || _h === void 0 ? void 0 : _h[key]).includes(value))
+                                        || (Array.isArray((0, exports.get_enduser_field_value_for_key)(enduser, key))
+                                            && enduser[key].includes(value)))
+                                    : false);
 })); };
 exports.evaluate_conditional_logic_for_enduser_fields = evaluate_conditional_logic_for_enduser_fields;
 var string_matches_key_or_value = function (value, match) {
@@ -2795,6 +2806,106 @@ var validate_enduser_for_script_sure = function (enduser) {
         return "Phone is required";
 };
 exports.validate_enduser_for_script_sure = validate_enduser_for_script_sure;
+/**
+ * VITL rejects a request as a whole when any required field is missing or malformed, and saves nothing.
+ * So every required field is checked here BEFORE the request is built, and every problem is reported at
+ * once — a caller who is missing three fields should not have to push three times to discover that.
+ *
+ * Returns undefined when the enduser is pushable, otherwise a message naming the offending fields.
+ * Shared by the webapp (to disable the push button and explain why) and the API (the authoritative check).
+ */
+var VITL_EMAIL_REGEX = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/;
+var validate_enduser_for_vitl = function (enduser) {
+    var _a, _b, _d, _e, _f, _g, _h, _j, _k;
+    if (!enduser)
+        return "Enduser is required";
+    var missing = [];
+    if (!((_a = enduser.fname) === null || _a === void 0 ? void 0 : _a.trim()))
+        missing.push("First Name");
+    if (!((_b = enduser.lname) === null || _b === void 0 ? void 0 : _b.trim()))
+        missing.push("Last Name");
+    if (!((_d = enduser.email) === null || _d === void 0 ? void 0 : _d.trim()))
+        missing.push("Email");
+    if (!((_e = enduser.phone) === null || _e === void 0 ? void 0 : _e.trim()))
+        missing.push("Phone");
+    if (!((_f = enduser.addressLineOne) === null || _f === void 0 ? void 0 : _f.trim()))
+        missing.push("Address (Line One)");
+    if (!((_g = enduser.city) === null || _g === void 0 ? void 0 : _g.trim()))
+        missing.push("City");
+    if (!((_h = enduser.state) === null || _h === void 0 ? void 0 : _h.trim()))
+        missing.push("State");
+    if (!((_j = enduser.zipCode) === null || _j === void 0 ? void 0 : _j.trim()))
+        missing.push("ZIP");
+    if (!((_k = enduser.dateOfBirth) === null || _k === void 0 ? void 0 : _k.trim()))
+        missing.push("Date of Birth");
+    if (missing.length) {
+        return "VITL requires the following, which ".concat(missing.length === 1 ? 'is' : 'are', " missing for this patient: ").concat(missing.join(', '));
+    }
+    // VITL requires a VALID email and rejects the whole request otherwise, so a present-but-malformed
+    // address would produce exactly the confusing all-or-nothing vendor rejection this check exists to
+    // prevent. Deliberately a shape check, not RFC 5322 — it only has to catch what VITL would reject.
+    if (!VITL_EMAIL_REGEX.test(enduser.email.trim())) {
+        return "Email must be a valid email address to push to VITL (got \"".concat(enduser.email, "\")");
+    }
+    // zipCode is free-form in our model (stringValidator25000EmptyOkay), so a record may hold "12345-6789".
+    // VITL wants the 5-digit zip, and zipPlusFour is never appended, so require five digits to be derivable.
+    if (!(0, exports.vitl_zipcode)(enduser.zipCode)) {
+        return "ZIP must contain a 5-digit zip code to push to VITL (got \"".concat(enduser.zipCode, "\")");
+    }
+    // Our stored format is MM-DD-YYYY; VITL accepts only YYYY-MM-DD or MM/DD/YYYY. Sending an
+    // unparseable value is a guaranteed rejection, so treat it as a pre-flight failure instead.
+    if (!(0, exports.vitl_date_of_birth)(enduser.dateOfBirth)) {
+        return "Date of Birth must be a real date in MM-DD-YYYY format to push to VITL (got \"".concat(enduser.dateOfBirth, "\")");
+    }
+};
+exports.validate_enduser_for_vitl = validate_enduser_for_vitl;
+/**
+ * The 5-digit zip VITL expects, taken from our free-form zipCode.
+ *
+ * "12345-6789" and "12345 6789" both yield "12345"; zipPlusFour is never appended, per the vendor
+ * contract. Returns undefined when five leading digits cannot be found, which is a pre-flight failure.
+ */
+var vitl_zipcode = function (zipCode) {
+    var trimmed = (zipCode !== null && zipCode !== void 0 ? zipCode : '').trim();
+    // "12345-6789" / "12345 6789" — a separator, then anything.
+    var separated = /^(\d{5})[^\d].*$/.exec(trimmed);
+    if (separated)
+        return separated[1];
+    // "12345" or a run-together "123456789". Exactly 5 or exactly 9 digits, so a 6- or 7-digit value is
+    // still refused rather than silently truncated to something that is not this patient's zip.
+    var digitsOnly = /^(\d{5})(?:\d{4})?$/.exec(trimmed);
+    return digitsOnly ? digitsOnly[1] : undefined;
+};
+exports.vitl_zipcode = vitl_zipcode;
+/**
+ * MM-DD-YYYY (our stored format) -> YYYY-MM-DD (a format VITL accepts).
+ * Returns undefined — never a partially-converted string — when the input is not a real calendar date,
+ * so callers cannot accidentally forward "undefined-undefined-garbage" to the vendor.
+ */
+var vitl_date_of_birth = function (dateOfBirth) {
+    var match = /^(\d{2})-(\d{2})-(\d{4})$/.exec((dateOfBirth !== null && dateOfBirth !== void 0 ? dateOfBirth : '').trim());
+    if (!match)
+        return undefined;
+    var mm = match[1], dd = match[2], yyyy = match[3];
+    var _a = [parseInt(mm, 10), parseInt(dd, 10), parseInt(yyyy, 10)], month = _a[0], day = _a[1], year = _a[2];
+    // Date.UTC rolls invalid days over (Feb 30 -> Mar 2), so compare the parts back to reject them.
+    var asDate = new Date(Date.UTC(year, month - 1, day));
+    if (asDate.getUTCFullYear() !== year
+        || asDate.getUTCMonth() !== month - 1
+        || asDate.getUTCDate() !== day)
+        return undefined;
+    return "".concat(yyyy, "-").concat(mm, "-").concat(dd);
+};
+exports.vitl_date_of_birth = vitl_date_of_birth;
+/**
+ * VITL accepts only Male/Female and rejects the whole request on anything else. TellescopeGender also
+ * has Other/Unknown, so map only what maps cleanly and return undefined otherwise — the caller omits
+ * the field, which VITL stores as Unknown.
+ */
+var vitl_gender = function (gender) { return (gender === 'Male' ? 'Male'
+    : gender === 'Female' ? 'Female'
+        : undefined); };
+exports.vitl_gender = vitl_gender;
 var validate_enduser_for_develop_health = function (enduser, insuranceType) {
     if (!enduser)
         return "Enduser is required";
@@ -3209,15 +3320,16 @@ var replace_order_template_values = function (s, order) {
                                                 : match === '{{order.pharmacyOrderId}}' ? (order.pharmacyOrderId || '')
                                                     : match === '{{order.fill}}' ? (order.fill || '')
                                                         : match === '{{order.sku}}' ? (order.sku || '')
-                                                            : match === '{{order.frequency}}' ? (order.frequency || '')
-                                                                : match === '{{order.medication}}' ? (order.medication || '')
-                                                                    : match === '{{order.medicationSku}}' ? (order.medicationSku || '')
-                                                                        : match === '{{order.protocol}}' ? (order.protocol || '')
-                                                                            : match === '{{order.instructions}}' ? (order.instructions || '')
-                                                                                : match === '{{order.description}}' ? (order.description || '')
-                                                                                    : match === '{{order.cancelledDate}}' ? (order.cancelledDate || '')
-                                                                                        : match === '{{order.cancellationReason}}' ? (order.cancellationReason || '')
-                                                                                            : '')
+                                                            : match === '{{order.bookingLink}}' ? (order.bookingLink || '')
+                                                                : match === '{{order.frequency}}' ? (order.frequency || '')
+                                                                    : match === '{{order.medication}}' ? (order.medication || '')
+                                                                        : match === '{{order.medicationSku}}' ? (order.medicationSku || '')
+                                                                            : match === '{{order.protocol}}' ? (order.protocol || '')
+                                                                                : match === '{{order.instructions}}' ? (order.instructions || '')
+                                                                                    : match === '{{order.description}}' ? (order.description || '')
+                                                                                        : match === '{{order.cancelledDate}}' ? (order.cancelledDate || '')
+                                                                                            : match === '{{order.cancellationReason}}' ? (order.cancellationReason || '')
+                                                                                                : '')
         });
         start = end + 2;
     }
@@ -3838,6 +3950,82 @@ var replace_form_response_template_values = function (s, formResponse) {
 };
 exports.replace_form_response_template_values = replace_form_response_template_values;
 /**
+ * The attendeeStatuses values that RESOLVE an appointment for the purposes of
+ * preventBookingWhenUpcomingExists: a patient marked with any of these is free to rebook.
+ * Note the exact spelling of 'No-showed' — it is not 'NoShow'.
+ */
+exports.BOOKING_RESOLVED_ATTENDEE_STATUSES = ['Cancelled', 'No-showed', 'Rescheduled'];
+/**
+ * Finds an enduser's unresolved upcoming event for a given template — the conflict that the
+ * template's `preventBookingWhenUpcomingExists` setting refuses a new booking on.
+ *
+ * Pure: the caller supplies the candidate events (the backend from a scoped mongo query, the
+ * webapp staff warning from an on-demand fetch), so the same rule decides in both places.
+ *
+ * An event conflicts when ALL of the following hold:
+ *  - it is for the same template
+ *  - it starts in the future (`nowInMS`); past appointments never block, resolved or not
+ *  - it is not the event being rescheduled away (`excludeEventId`), so reschedules still work
+ *  - it is not the slot currently being booked (`excludeSlot`) — a retry or a reconnected voice
+ *    session re-issuing a book that already succeeded is the SAME appointment, not a second one.
+ *    Only self-scheduled candidates are excused this way, because the atomic same-slot upsert we
+ *    defer to matches on `wasSelfScheduled: true`: a staff-created or EHR-synced event at the same
+ *    instant would be excused here but NOT caught there, which would let a second event through.
+ *  - it carries no event-level cancelledAt / noShowedAt / rescheduledAt
+ *  - THIS enduser is not cancelled/no-showed/rescheduled on it. An explicit attendeeStatuses entry
+ *    is authoritative; only in its absence does the legacy cancelledGroupAttendees mirror count.
+ *    That precedence is deliberately identical to enduser_ids_for_event_wide_completion in
+ *    api/v1/event_handlers_v2/calendar.ts — Healthie and the portal cancel a group attendee by
+ *    writing ONLY cancelledGroupAttendees, leaving the patient in attendees, so ignoring it would
+ *    block that patient from ever rebooking.
+ *  - this enduser's id appears ANYWHERE in attendees (not merely as the first enduser attendee,
+ *    which is the convention elsewhere but is rarely the patient on a group event)
+ *
+ * Events on hold (holdUntil) are deliberately NOT excluded: an abandoned hold blocks rebooking
+ * until it expires.
+ *
+ * @returns the first conflicting event, or undefined when booking is allowed
+ */
+var find_conflicting_upcoming_event = function (_a) {
+    var events = _a.events, enduserId = _a.enduserId, templateId = _a.templateId, nowInMS = _a.nowInMS, excludeEventId = _a.excludeEventId, excludeSlot = _a.excludeSlot;
+    if (!enduserId || !templateId)
+        return undefined;
+    return events.find(function (e) {
+        var _a, _b, _d, _e, _f, _g;
+        if (((_a = e.templateId) !== null && _a !== void 0 ? _a : '') !== templateId)
+            return false;
+        if (e.startTimeInMS <= nowInMS)
+            return false;
+        if (excludeEventId && e.id === excludeEventId)
+            return false;
+        // The slot being booked right now, with the same host: this is a retry of THIS booking, and the
+        // atomic same-slot upsert downstream is the authority on whether it is available. Matched on
+        // host as well as time so that a genuine second appointment at the same moment with a DIFFERENT
+        // provider still conflicts, and on wasSelfScheduled so we only defer to the upsert for events
+        // the upsert can actually match.
+        if (excludeSlot
+            && e.wasSelfScheduled
+            && e.startTimeInMS === excludeSlot.startTimeInMS
+            && ((_b = e.attendees) === null || _b === void 0 ? void 0 : _b.some(function (a) { return a.id === excludeSlot.hostUserId; })))
+            return false;
+        if (e.cancelledAt || e.noShowedAt || e.rescheduledAt)
+            return false;
+        if (!((_d = e.attendees) === null || _d === void 0 ? void 0 : _d.some(function (a) { return a.id === enduserId; })))
+            return false;
+        var status = (_f = (_e = e.attendeeStatuses) === null || _e === void 0 ? void 0 : _e.find(function (s) { return s.id === enduserId; })) === null || _f === void 0 ? void 0 : _f.status;
+        if (status) {
+            // an explicit per-attendee status is authoritative
+            if (exports.BOOKING_RESOLVED_ATTENDEE_STATUSES.includes(status))
+                return false;
+        }
+        else if ((_g = e.cancelledGroupAttendees) === null || _g === void 0 ? void 0 : _g.some(function (c) { return c.id === enduserId; })) {
+            return false; // legacy mirror, written by Healthie / the portal with no attendeeStatuses entry
+        }
+        return true;
+    });
+};
+exports.find_conflicting_upcoming_event = find_conflicting_upcoming_event;
+/**
  * Checks if a potential availability slot violates any calendar event limits.
  *
  * @returns true if the slot should be EXCLUDED (violates a limit), false if allowed
@@ -3954,6 +4142,7 @@ var validate_custom_field_references = function (conditions, validFields) {
         'Age',
         'BMI',
         'Journeys',
+        'Programs',
         'Tags',
         'tags',
         'Healthie ID',

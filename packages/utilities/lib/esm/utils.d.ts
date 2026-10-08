@@ -274,8 +274,6 @@ export declare const setLocalApiURL: (url?: string) => void;
 export declare const setLocalPortalURL: (url?: string) => void;
 export declare const getEnvironment: () => "staging" | "test" | "prod";
 export declare const getApiURL: () => string;
-export declare const getGoogleClientId: () => "526353775713-puib79782ac254evqj2fs0sb7acsij65.apps.googleusercontent.com" | "826276796073-6rcrqp4duqatbhn8k71saopenqc2fb0i.apps.googleusercontent.com" | "842986734352-2c73i6iq2aoau3dj1jvqtmufn2j9g0dm.apps.googleusercontent.com";
-export declare const getGoogleClientAPIKey: () => "AIzaSyCYCWiLkYifffepu5L-p1x4yUExf5aWpuA" | "AIzaSyDUCT6r5qQx8yniMuP-Y9Ni08THoLQtG6M" | "AIzaSyBW9D0mg3ISvNQcSB0Z_PwHNuD0OhFdMKg";
 export declare const getBuiltInPublicFileName: ({ name, organizationIds }: {
     name: 'logo' | 'favicon';
     organizationIds?: string[] | undefined;
@@ -415,6 +413,26 @@ export declare const validate_enduser_for_gogo: (enduser?: Omit<Enduser, 'id'> |
 export declare const validate_enduser_for_smart_meter: (enduser?: Omit<Enduser, 'id'> | null) => "Enduser is required" | "First name is required" | "Last name is required" | "Address is required (Line One)" | "Address is required (City)" | "Address is required (State)" | "Address is required (ZIP)" | undefined;
 export declare const validate_enduser_for_dose_spot: (enduser?: Omit<Enduser, 'id'> | null) => "Enduser is required" | "First name is required" | "Last name is required" | "Gender is required" | "Address is required (Line One)" | "Address is required (City)" | "Address is required (State)" | "Address is required (ZIP)" | "Phone is required" | "Date of Birth is required" | "Height is required for patients under 19" | "Weight is required for patients under 19" | undefined;
 export declare const validate_enduser_for_script_sure: (enduser?: Omit<Enduser, 'id'> | null) => "Enduser is required" | "First name is required" | "Last name is required" | "Gender is required" | "Address is required (Line One)" | "Address is required (City)" | "Address is required (State)" | "Address is required (ZIP)" | "Phone is required" | "Date of Birth is required" | undefined;
+export declare const validate_enduser_for_vitl: (enduser?: Omit<Enduser, 'id'> | null) => string | undefined;
+/**
+ * The 5-digit zip VITL expects, taken from our free-form zipCode.
+ *
+ * "12345-6789" and "12345 6789" both yield "12345"; zipPlusFour is never appended, per the vendor
+ * contract. Returns undefined when five leading digits cannot be found, which is a pre-flight failure.
+ */
+export declare const vitl_zipcode: (zipCode?: string) => string | undefined;
+/**
+ * MM-DD-YYYY (our stored format) -> YYYY-MM-DD (a format VITL accepts).
+ * Returns undefined — never a partially-converted string — when the input is not a real calendar date,
+ * so callers cannot accidentally forward "undefined-undefined-garbage" to the vendor.
+ */
+export declare const vitl_date_of_birth: (dateOfBirth?: string) => string | undefined;
+/**
+ * VITL accepts only Male/Female and rejects the whole request on anything else. TellescopeGender also
+ * has Other/Unknown, so map only what maps cleanly and return undefined otherwise — the caller omits
+ * the field, which VITL stores as Unknown.
+ */
+export declare const vitl_gender: (gender?: string) => "Male" | "Female" | undefined;
 export declare const validate_enduser_for_develop_health: (enduser?: Omit<Enduser, 'id'> | null, insuranceType?: string) => "Enduser is required" | "First name is required" | "Last name is required" | "Gender is required" | "Date of Birth is required in MM-DD-YYYY format" | "Patient address is required (Line One)" | "Patient address is required (City)" | "Patient address is required (State)" | "Patient address is required (ZIP)" | "Patient insurance is not set" | "Payer name and member ID or front and back insurance images are required" | undefined;
 export declare const validate_user_for_develop_health: (user?: Omit<User, 'id'> | null) => "First name is required" | "Last name is required" | "Provider is required" | "NPI is required" | undefined;
 export declare const validate_organization_for_develop_health: (organization?: Omit<Organization, 'id'> | null) => "Organization is required" | "Billing organization name is required" | "Billing organization address is required (Line One)" | "Billing organization address is required (City)" | "Billing organization address is required (State)" | "Billing organization address is required (ZIP)" | "Billing organization Tax ID" | undefined;
@@ -512,6 +530,74 @@ export declare const replace_snippet_template_values: (s: string, snippets?: {
 }[]) => string;
 export declare const resolve_integration_id: (e: Pick<Enduser, 'references' | 'source' | 'externalId'>, integrationTitle: string) => string | undefined;
 export declare const replace_form_response_template_values: (s: string, formResponse?: Pick<FormResponse, 'responses'> | null) => string;
+/**
+ * The attendeeStatuses values that RESOLVE an appointment for the purposes of
+ * preventBookingWhenUpcomingExists: a patient marked with any of these is free to rebook.
+ * Note the exact spelling of 'No-showed' — it is not 'NoShow'.
+ */
+export declare const BOOKING_RESOLVED_ATTENDEE_STATUSES: readonly ["Cancelled", "No-showed", "Rescheduled"];
+/** Minimum shape of a calendar event needed to evaluate an upcoming-duplicate conflict. */
+export type UpcomingDuplicateCandidateEvent = {
+    id?: string;
+    startTimeInMS: number;
+    templateId?: string;
+    attendees: {
+        id: string;
+    }[];
+    cancelledAt?: Date | '' | null;
+    noShowedAt?: Date | '' | null;
+    rescheduledAt?: Date | '' | null;
+    attendeeStatuses?: {
+        id: string;
+        status: string;
+    }[];
+    cancelledGroupAttendees?: {
+        id: string;
+    }[];
+    wasSelfScheduled?: boolean;
+};
+/**
+ * Finds an enduser's unresolved upcoming event for a given template — the conflict that the
+ * template's `preventBookingWhenUpcomingExists` setting refuses a new booking on.
+ *
+ * Pure: the caller supplies the candidate events (the backend from a scoped mongo query, the
+ * webapp staff warning from an on-demand fetch), so the same rule decides in both places.
+ *
+ * An event conflicts when ALL of the following hold:
+ *  - it is for the same template
+ *  - it starts in the future (`nowInMS`); past appointments never block, resolved or not
+ *  - it is not the event being rescheduled away (`excludeEventId`), so reschedules still work
+ *  - it is not the slot currently being booked (`excludeSlot`) — a retry or a reconnected voice
+ *    session re-issuing a book that already succeeded is the SAME appointment, not a second one.
+ *    Only self-scheduled candidates are excused this way, because the atomic same-slot upsert we
+ *    defer to matches on `wasSelfScheduled: true`: a staff-created or EHR-synced event at the same
+ *    instant would be excused here but NOT caught there, which would let a second event through.
+ *  - it carries no event-level cancelledAt / noShowedAt / rescheduledAt
+ *  - THIS enduser is not cancelled/no-showed/rescheduled on it. An explicit attendeeStatuses entry
+ *    is authoritative; only in its absence does the legacy cancelledGroupAttendees mirror count.
+ *    That precedence is deliberately identical to enduser_ids_for_event_wide_completion in
+ *    api/v1/event_handlers_v2/calendar.ts — Healthie and the portal cancel a group attendee by
+ *    writing ONLY cancelledGroupAttendees, leaving the patient in attendees, so ignoring it would
+ *    block that patient from ever rebooking.
+ *  - this enduser's id appears ANYWHERE in attendees (not merely as the first enduser attendee,
+ *    which is the convention elsewhere but is rarely the patient on a group event)
+ *
+ * Events on hold (holdUntil) are deliberately NOT excluded: an abandoned hold blocks rebooking
+ * until it expires.
+ *
+ * @returns the first conflicting event, or undefined when booking is allowed
+ */
+export declare const find_conflicting_upcoming_event: <T extends UpcomingDuplicateCandidateEvent>({ events, enduserId, templateId, nowInMS, excludeEventId, excludeSlot, }: {
+    events: T[];
+    enduserId: string;
+    templateId: string;
+    nowInMS: number;
+    excludeEventId?: string | undefined;
+    excludeSlot?: {
+        startTimeInMS: number;
+        hostUserId: string;
+    } | undefined;
+}) => T | undefined;
 /**
  * Checks if a potential availability slot violates any calendar event limits.
  *

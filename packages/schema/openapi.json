@@ -1215,7 +1215,7 @@
                       ],
                       "maxOutputTokens": 0,
                       "includeProfileFields": true,
-                      "model": "Claude Sonnet 5"
+                      "model": "Claude Sonnet 5.5"
                     }
                   },
                   "journeyContext": {
@@ -1433,7 +1433,7 @@
                   },
                   "model": {
                     "type": "string",
-                    "example": "Claude Sonnet 5"
+                    "example": "Claude Sonnet 5.5"
                   }
                 }
               }
@@ -23510,6 +23510,10 @@
                     "scriptsure_practice_id": {
                       "type": "string",
                       "example": "example string"
+                    },
+                    "vitl_uid": {
+                      "type": "string",
+                      "example": "example string"
                     }
                   }
                 }
@@ -26592,6 +26596,24 @@
             "schema": {
               "type": "string",
               "example": "example string"
+            }
+          },
+          {
+            "name": "minSearchScore",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "example": 0
+            }
+          },
+          {
+            "name": "minimumShouldMatch",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "example": 1
             }
           }
         ]
@@ -30969,6 +30991,24 @@
               "type": "string",
               "example": "example string"
             }
+          },
+          {
+            "name": "minSearchScore",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "example": 0
+            }
+          },
+          {
+            "name": "minimumShouldMatch",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "example": 1
+            }
           }
         ]
       }
@@ -33502,6 +33542,11 @@
                     "statistics": {
                       "type": "object",
                       "additionalProperties": true
+                    },
+                    "cachedAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2024-01-01T00:00:00.000Z"
                     }
                   }
                 }
@@ -33532,6 +33577,15 @@
             "schema": {
               "type": "string",
               "example": "steps"
+            }
+          },
+          {
+            "name": "cachedOnly",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "example": true
             }
           }
         ]
@@ -41254,14 +41308,40 @@
                       "60398b0231a295e64f084fd9"
                     ]
                   },
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "productId": {
+                          "type": "string"
+                        },
+                        "stripePriceId": {
+                          "type": "string"
+                        },
+                        "subscriptionPriceId": {
+                          "type": "string"
+                        },
+                        "quantity": {
+                          "type": "number",
+                          "example": 1
+                        }
+                      }
+                    },
+                    "example": [
+                      {
+                        "productId": "60398b0231a295e64f084fd9",
+                        "stripePriceId": "example string",
+                        "subscriptionPriceId": "example string",
+                        "quantity": 1
+                      }
+                    ]
+                  },
                   "stripeKey": {
                     "type": "string",
                     "example": "example string"
                   }
-                },
-                "required": [
-                  "productIds"
-                ]
+                }
               }
             }
           }
@@ -61817,6 +61897,36 @@
             ],
             "description": "Not visible to endusers"
           },
+          "programs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "deviceIds": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "status": {
+                  "type": "string"
+                }
+              }
+            },
+            "example": [
+              {
+                "name": "example string",
+                "deviceIds": [
+                  "example string"
+                ],
+                "status": "example string"
+              }
+            ],
+            "description": "Not visible to endusers"
+          },
           "references": {
             "type": "array",
             "items": {
@@ -62876,6 +62986,35 @@
               }
             ]
           },
+          "programs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "deviceIds": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "status": {
+                  "type": "string"
+                }
+              }
+            },
+            "example": [
+              {
+                "name": "example string",
+                "deviceIds": [
+                  "example string"
+                ],
+                "status": "example string"
+              }
+            ]
+          },
           "references": {
             "type": "array",
             "items": {
@@ -63916,6 +64055,35 @@
                 "gatewayId": "example string",
                 "disabled": true,
                 "archivedAt": "2024-01-01T00:00:00.000Z"
+              }
+            ]
+          },
+          "programs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "deviceIds": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "status": {
+                  "type": "string"
+                }
+              }
+            },
+            "example": [
+              {
+                "name": "example string",
+                "deviceIds": [
+                  "example string"
+                ],
+                "status": "example string"
               }
             ]
           },
@@ -74139,7 +74307,7 @@
               ],
               "maxOutputTokens": 0,
               "includeProfileFields": true,
-              "model": "Claude Sonnet 5"
+              "model": "Claude Sonnet 5.5"
             }
           },
           "responseAISummaryConfiguration": {
@@ -74209,7 +74377,7 @@
               ],
               "maxOutputTokens": 0,
               "includeProfileFields": true,
-              "model": "Claude Sonnet 5"
+              "model": "Claude Sonnet 5.5"
             }
           }
         },
@@ -74946,7 +75114,7 @@
               ],
               "maxOutputTokens": 0,
               "includeProfileFields": true,
-              "model": "Claude Sonnet 5"
+              "model": "Claude Sonnet 5.5"
             }
           },
           "responseAISummaryConfiguration": {
@@ -75016,7 +75184,7 @@
               ],
               "maxOutputTokens": 0,
               "includeProfileFields": true,
-              "model": "Claude Sonnet 5"
+              "model": "Claude Sonnet 5.5"
             }
           }
         },
@@ -75753,7 +75921,7 @@
               ],
               "maxOutputTokens": 0,
               "includeProfileFields": true,
-              "model": "Claude Sonnet 5"
+              "model": "Claude Sonnet 5.5"
             }
           },
           "responseAISummaryConfiguration": {
@@ -75823,7 +75991,7 @@
               ],
               "maxOutputTokens": 0,
               "includeProfileFields": true,
-              "model": "Claude Sonnet 5"
+              "model": "Claude Sonnet 5.5"
             }
           }
         },
@@ -76317,6 +76485,9 @@
               "observationUnit": {
                 "type": "string"
               },
+              "vitalUnit": {
+                "type": "string"
+              },
               "autoUploadFiles": {
                 "type": "boolean"
               },
@@ -76528,6 +76699,7 @@
               "observationCode": "example string",
               "observationDisplay": "example string",
               "observationUnit": "example string",
+              "vitalUnit": "example string",
               "autoUploadFiles": true,
               "chargebeeEnvironment": "example string",
               "chargebeeBusinessEntityId": "example string",
@@ -77163,6 +77335,9 @@
               "observationUnit": {
                 "type": "string"
               },
+              "vitalUnit": {
+                "type": "string"
+              },
               "autoUploadFiles": {
                 "type": "boolean"
               },
@@ -77374,6 +77549,7 @@
               "observationCode": "example string",
               "observationDisplay": "example string",
               "observationUnit": "example string",
+              "vitalUnit": "example string",
               "autoUploadFiles": true,
               "chargebeeEnvironment": "example string",
               "chargebeeBusinessEntityId": "example string",
@@ -78009,6 +78185,9 @@
               "observationUnit": {
                 "type": "string"
               },
+              "vitalUnit": {
+                "type": "string"
+              },
               "autoUploadFiles": {
                 "type": "boolean"
               },
@@ -78220,6 +78399,7 @@
               "observationCode": "example string",
               "observationDisplay": "example string",
               "observationUnit": "example string",
+              "vitalUnit": "example string",
               "autoUploadFiles": true,
               "chargebeeEnvironment": "example string",
               "chargebeeBusinessEntityId": "example string",
@@ -87349,6 +87529,10 @@
             "type": "boolean",
             "example": true
           },
+          "preventBookingWhenUpcomingExists": {
+            "type": "boolean",
+            "example": true
+          },
           "dontSyncToCanvas": {
             "type": "boolean",
             "example": true
@@ -87726,6 +87910,10 @@
             "type": "boolean",
             "example": true
           },
+          "preventBookingWhenUpcomingExists": {
+            "type": "boolean",
+            "example": true
+          },
           "dontSyncToCanvas": {
             "type": "boolean",
             "example": true
@@ -88100,6 +88288,10 @@
             "example": true
           },
           "preventRescheduleInPortal": {
+            "type": "boolean",
+            "example": true
+          },
+          "preventBookingWhenUpcomingExists": {
             "type": "boolean",
             "example": true
           },
@@ -91432,6 +91624,24 @@
                     },
                     "info": {
                       "type": "object",
+                      "properties": {}
+                    }
+                  }
+                },
+                "69": {
+                  "type": "object",
+                  "properties": {
+                    "continueOnError": {
+                      "type": "boolean"
+                    },
+                    "isBrandedWebhook": {
+                      "type": "boolean"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "info": {
+                      "type": "object",
                       "properties": {
                         "message": {
                           "type": "string"
@@ -94396,6 +94606,24 @@
                     },
                     "info": {
                       "type": "object",
+                      "properties": {}
+                    }
+                  }
+                },
+                "69": {
+                  "type": "object",
+                  "properties": {
+                    "continueOnError": {
+                      "type": "boolean"
+                    },
+                    "isBrandedWebhook": {
+                      "type": "boolean"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "info": {
+                      "type": "object",
                       "properties": {
                         "message": {
                           "type": "string"
@@ -97347,6 +97575,24 @@
                   }
                 },
                 "68": {
+                  "type": "object",
+                  "properties": {
+                    "continueOnError": {
+                      "type": "boolean"
+                    },
+                    "isBrandedWebhook": {
+                      "type": "boolean"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "info": {
+                      "type": "object",
+                      "properties": {}
+                    }
+                  }
+                },
+                "69": {
                   "type": "object",
                   "properties": {
                     "continueOnError": {
@@ -100708,6 +100954,24 @@
                   }
                 },
                 "68": {
+                  "type": "object",
+                  "properties": {
+                    "continueOnError": {
+                      "type": "boolean"
+                    },
+                    "isBrandedWebhook": {
+                      "type": "boolean"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "info": {
+                      "type": "object",
+                      "properties": {}
+                    }
+                  }
+                },
+                "69": {
                   "type": "object",
                   "properties": {
                     "continueOnError": {
@@ -104116,6 +104380,24 @@
                     },
                     "info": {
                       "type": "object",
+                      "properties": {}
+                    }
+                  }
+                },
+                "69": {
+                  "type": "object",
+                  "properties": {
+                    "continueOnError": {
+                      "type": "boolean"
+                    },
+                    "isBrandedWebhook": {
+                      "type": "boolean"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "info": {
+                      "type": "object",
                       "properties": {
                         "message": {
                           "type": "string"
@@ -107511,6 +107793,24 @@
                     },
                     "info": {
                       "type": "object",
+                      "properties": {}
+                    }
+                  }
+                },
+                "69": {
+                  "type": "object",
+                  "properties": {
+                    "continueOnError": {
+                      "type": "boolean"
+                    },
+                    "isBrandedWebhook": {
+                      "type": "boolean"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "info": {
+                      "type": "object",
                       "properties": {
                         "message": {
                           "type": "string"
@@ -108379,6 +108679,22 @@
           "externalId": {
             "type": "string",
             "example": "example string"
+          },
+          "programs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                }
+              }
+            },
+            "example": [
+              {
+                "name": "example string"
+              }
+            ]
           }
         },
         "required": [
@@ -108593,6 +108909,22 @@
           "externalId": {
             "type": "string",
             "example": "example string"
+          },
+          "programs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                }
+              }
+            },
+            "example": [
+              {
+                "name": "example string"
+              }
+            ]
           }
         },
         "required": [
@@ -108807,6 +109139,22 @@
           "externalId": {
             "type": "string",
             "example": "example string"
+          },
+          "programs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                }
+              }
+            },
+            "example": [
+              {
+                "name": "example string"
+              }
+            ]
           }
         },
         "description": "Fields to update (all optional)"
@@ -111925,6 +112273,9 @@
                   "matchEmailAndNames": {
                     "type": "boolean"
                   },
+                  "caseInsensitiveMatching": {
+                    "type": "boolean"
+                  },
                   "hideNotesFromComposeForm": {
                     "type": "boolean"
                   },
@@ -111944,6 +112295,9 @@
                     "type": "boolean"
                   },
                   "showDeviceOrders": {
+                    "type": "boolean"
+                  },
+                  "showPrograms": {
                     "type": "boolean"
                   },
                   "defaultHideFilesFromPortal": {
@@ -112247,6 +112601,7 @@
                 "sharedInboxReadStatus": true,
                 "dontMarkReadForAssigned": true,
                 "matchEmailAndNames": true,
+                "caseInsensitiveMatching": true,
                 "hideNotesFromComposeForm": true,
                 "showSalesforceId": true,
                 "loopQueueCallSound": true,
@@ -112254,6 +112609,7 @@
                 "showDiagnoses": true,
                 "requireObservationInvalidationReason": true,
                 "showDeviceOrders": true,
+                "showPrograms": true,
                 "defaultHideFilesFromPortal": true,
                 "hideUnorderedFullscriptMeds": true,
                 "detailField": "example string",
@@ -113014,6 +113370,31 @@
                   }
                 ],
                 "summaryFormId": "60398b0231a295e64f084fd9"
+              }
+            ]
+          },
+          "programs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "statuses": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "example": [
+              {
+                "name": "example string",
+                "statuses": [
+                  "example string"
+                ]
               }
             ]
           },
@@ -113646,6 +114027,9 @@
                   "matchEmailAndNames": {
                     "type": "boolean"
                   },
+                  "caseInsensitiveMatching": {
+                    "type": "boolean"
+                  },
                   "hideNotesFromComposeForm": {
                     "type": "boolean"
                   },
@@ -113665,6 +114049,9 @@
                     "type": "boolean"
                   },
                   "showDeviceOrders": {
+                    "type": "boolean"
+                  },
+                  "showPrograms": {
                     "type": "boolean"
                   },
                   "defaultHideFilesFromPortal": {
@@ -113968,6 +114355,7 @@
                 "sharedInboxReadStatus": true,
                 "dontMarkReadForAssigned": true,
                 "matchEmailAndNames": true,
+                "caseInsensitiveMatching": true,
                 "hideNotesFromComposeForm": true,
                 "showSalesforceId": true,
                 "loopQueueCallSound": true,
@@ -113975,6 +114363,7 @@
                 "showDiagnoses": true,
                 "requireObservationInvalidationReason": true,
                 "showDeviceOrders": true,
+                "showPrograms": true,
                 "defaultHideFilesFromPortal": true,
                 "hideUnorderedFullscriptMeds": true,
                 "detailField": "example string",
@@ -114735,6 +115124,31 @@
                   }
                 ],
                 "summaryFormId": "60398b0231a295e64f084fd9"
+              }
+            ]
+          },
+          "programs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "statuses": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "example": [
+              {
+                "name": "example string",
+                "statuses": [
+                  "example string"
+                ]
               }
             ]
           },
@@ -115366,6 +115780,9 @@
                   "matchEmailAndNames": {
                     "type": "boolean"
                   },
+                  "caseInsensitiveMatching": {
+                    "type": "boolean"
+                  },
                   "hideNotesFromComposeForm": {
                     "type": "boolean"
                   },
@@ -115385,6 +115802,9 @@
                     "type": "boolean"
                   },
                   "showDeviceOrders": {
+                    "type": "boolean"
+                  },
+                  "showPrograms": {
                     "type": "boolean"
                   },
                   "defaultHideFilesFromPortal": {
@@ -115688,6 +116108,7 @@
                 "sharedInboxReadStatus": true,
                 "dontMarkReadForAssigned": true,
                 "matchEmailAndNames": true,
+                "caseInsensitiveMatching": true,
                 "hideNotesFromComposeForm": true,
                 "showSalesforceId": true,
                 "loopQueueCallSound": true,
@@ -115695,6 +116116,7 @@
                 "showDiagnoses": true,
                 "requireObservationInvalidationReason": true,
                 "showDeviceOrders": true,
+                "showPrograms": true,
                 "defaultHideFilesFromPortal": true,
                 "hideUnorderedFullscriptMeds": true,
                 "detailField": "example string",
@@ -116455,6 +116877,31 @@
                   }
                 ],
                 "summaryFormId": "60398b0231a295e64f084fd9"
+              }
+            ]
+          },
+          "programs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "statuses": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "example": [
+              {
+                "name": "example string",
+                "statuses": [
+                  "example string"
+                ]
               }
             ]
           },
@@ -137459,6 +137906,12 @@
                         },
                         "ignoreDelayedReadings": {
                           "type": "boolean"
+                        },
+                        "programs": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
                         }
                       }
                     },
@@ -137547,6 +138000,12 @@
                           }
                         },
                         "frequencies": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "programs": {
                           "type": "array",
                           "items": {
                             "type": "string"
@@ -138377,6 +138836,17 @@
                     "info": {
                       "type": "object",
                       "properties": {}
+                    }
+                  }
+                },
+                "19": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    },
+                    "info": {
+                      "type": "string"
                     }
                   }
                 }
@@ -139331,6 +139801,12 @@
                         },
                         "ignoreDelayedReadings": {
                           "type": "boolean"
+                        },
+                        "programs": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
                         }
                       }
                     },
@@ -139419,6 +139895,12 @@
                           }
                         },
                         "frequencies": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "programs": {
                           "type": "array",
                           "items": {
                             "type": "string"
@@ -140249,6 +140731,17 @@
                     "info": {
                       "type": "object",
                       "properties": {}
+                    }
+                  }
+                },
+                "19": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    },
+                    "info": {
+                      "type": "string"
                     }
                   }
                 }
@@ -141203,6 +141696,12 @@
                         },
                         "ignoreDelayedReadings": {
                           "type": "boolean"
+                        },
+                        "programs": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
                         }
                       }
                     },
@@ -141291,6 +141790,12 @@
                           }
                         },
                         "frequencies": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "programs": {
                           "type": "array",
                           "items": {
                             "type": "string"
@@ -142121,6 +142626,17 @@
                     "info": {
                       "type": "object",
                       "properties": {}
+                    }
+                  }
+                },
+                "19": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    },
+                    "info": {
+                      "type": "string"
                     }
                   }
                 }
@@ -148848,6 +149364,22 @@
             "type": "string",
             "example": "example string"
           },
+          "programs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                }
+              }
+            },
+            "example": [
+              {
+                "name": "example string"
+              }
+            ]
+          },
           "references": {
             "type": "array",
             "items": {
@@ -149024,6 +149556,22 @@
           "protocol": {
             "type": "string",
             "example": "example string"
+          },
+          "programs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                }
+              }
+            },
+            "example": [
+              {
+                "name": "example string"
+              }
+            ]
           }
         },
         "required": [
@@ -149173,6 +149721,22 @@
           "protocol": {
             "type": "string",
             "example": "example string"
+          },
+          "programs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                }
+              }
+            },
+            "example": [
+              {
+                "name": "example string"
+              }
+            ]
           }
         },
         "description": "Fields to update (all optional)"

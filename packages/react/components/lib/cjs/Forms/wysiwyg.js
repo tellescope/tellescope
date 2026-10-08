@@ -217,14 +217,21 @@ var WYSIWYG = function (_a) {
             setEditorState(function (es) { return draft_js_1.EditorState.moveFocusToEnd(es); });
         }
     }, [editorRef, autoFocus]);
+    // onChange is held in a ref so the debounce effect below depends on editorState alone. Callers pass an
+    // inline closure, so its identity changes on most parent renders (e.g. a sibling form field re-rendering,
+    // or conditional logic adding/removing a field). When onChange was a dependency, such a render re-ran the
+    // effect, the cleanup cleared the pending timeout, and the early return (editorStateRef.current ===
+    // editorState) stopped the new run from scheduling a replacement - silently dropping the last edit.
+    var onChangeRef = (0, react_1.useRef)(onChange);
+    (0, react_1.useEffect)(function () { onChangeRef.current = onChange; }, [onChange]);
     (0, react_1.useEffect)(function () {
         if (editorStateRef.current === editorState)
             return;
         editorStateRef.current = editorState;
         // unbounce a bit for perf
-        var t = setTimeout(function () { return (onChange((0, draftjs_to_html_1.default)((0, draft_js_1.convertToRaw)(editorState.getCurrentContent())))); }, 99);
+        var t = setTimeout(function () { return (onChangeRef.current((0, draftjs_to_html_1.default)((0, draft_js_1.convertToRaw)(editorState.getCurrentContent())))); }, 99);
         return function () { clearTimeout(t); };
-    }, [onChange, editorState]);
+    }, [editorState]);
     var toolbar = (0, react_1.useMemo)(function () { return getToolbar({ hideEmoji: hideEmoji }); }, [hideEmoji]);
     return ((0, jsx_runtime_1.jsx)(material_1.Paper, __assign({ sx: { padding: 1 }, style: style }, { children: (0, jsx_runtime_1.jsx)(react_draft_wysiwyg_1.Editor, __assign({ spellCheck: true, ref: editorRef, editorStyle: __assign({ overflow: 'visible' }, editorStyle) }, { preventScroll: true }, { editorState: editorState, wrapperClassName: "demo-wrapper", editorClassName: "demo-editor", onEditorStateChange: setEditorState, toolbar: toolbar, handleReturn: function (e) {
                 if (stopEnterPropagation) {

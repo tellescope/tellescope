@@ -238,10 +238,10 @@ var QuestionForField = function (_a) {
                                                                             : field.type === 'stringLong' ? ((0, jsx_runtime_1.jsx)(StringLong, { field: field, disabled: value.disabled, value: value.answer.value, onChange: onFieldChange, form: form }))
                                                                                 : field.type === 'Rich Text' ? ((0, jsx_runtime_1.jsx)(RichText, { field: field, disabled: value.disabled, value: value.answer.value, onChange: onFieldChange, form: form }, field.id))
                                                                                     : field.type === 'email' ? ((0, jsx_runtime_1.jsx)(Email, { field: field, disabled: value.disabled, value: value.answer.value, onChange: onFieldChange, form: form }))
-                                                                                        : field.type === 'number' ? ((0, jsx_runtime_1.jsx)(Number, { field: field, disabled: value.disabled, value: value.answer.value, onChange: onFieldChange, form: form }))
+                                                                                        : field.type === 'number' ? ((0, jsx_runtime_1.jsx)(Number, { isSinglePage: isSinglePage, field: field, disabled: value.disabled, value: value.answer.value, onChange: onFieldChange, form: form }))
                                                                                             : field.type === 'phone' ? ((0, jsx_runtime_1.jsx)(Phone, { field: field, disabled: value.disabled, value: value.answer.value, onChange: onFieldChange, form: form }))
                                                                                                 : field.type === 'date' ? ((0, jsx_runtime_1.jsx)(ResolvedDateInput, { field: field, disabled: value.disabled, value: value.answer.value ? new Date(value.answer.value) : undefined, onChange: onFieldChange, form: form }))
-                                                                                                    : field.type === 'signature' ? ((0, jsx_runtime_1.jsx)(Signature, { enduser: enduser, field: field, value: value.answer.value, onChange: onFieldChange, form: form }))
+                                                                                                    : field.type === 'signature' ? ((0, jsx_runtime_1.jsx)(Signature, { isSinglePage: isSinglePage, enduser: enduser, field: field, value: value.answer.value, onChange: onFieldChange, form: form }))
                                                                                                         : field.type === 'multiple_choice' ? ((0, jsx_runtime_1.jsx)(MultipleChoice, { field: field, value: value.answer.value, onChange: onFieldChange, form: form, responses: responses, enduser: enduser }))
                                                                                                             : field.type === 'Dropdown' ? ((0, jsx_runtime_1.jsx)(Dropdown, { field: field, value: value.answer.value, onChange: onFieldChange, form: form }))
                                                                                                                 : field.type === 'Database Select' ? ((0, jsx_runtime_1.jsx)(DatabaseSelect, { field: field, disabled: value.disabled, value: value.answer.value, onChange: onFieldChange, onDatabaseSelect: handleDatabaseSelect, responses: responses, form: form, AddToDatabase: AddToDatabase }))
@@ -269,7 +269,7 @@ var QuestionForField = function (_a) {
                                                                                                                                                                                 return null;
                                                                                                                                                                             if (!file)
                                                                                                                                                                                 return null;
-                                                                                                                                                                            return ((0, jsx_runtime_1.jsx)(index_1.Flex, __assign({ flex: 1 }, { children: (0, jsx_runtime_1.jsx)(exports.QuestionForField, { groupId: groupId, groupInstance: groupInstance, customInputs: customInputs, field: match, fields: fields, handleDatabaseSelect: handleDatabaseSelect, enduser: enduser, goToPreviousField: goToPreviousField, isPreviousDisabled: isPreviousDisabled, goToNextField: goToNextField, form: form, formResponseId: formResponseId, rootResponseId: rootResponseId, submit: submit, repeats: repeats, onRepeatsChange: onRepeatsChange, setCustomerId: setCustomerId, value: value, file: file, onAddFile: onAddFile, onFieldChange: onFieldChange, responses: responses, selectedFiles: selectedFiles, validateField: validateField, enduserId: enduserId, spacing: (_b = field.options) === null || _b === void 0 ? void 0 : _b.groupPadding, logicOptions: logicOptions, isInQuestionGroup: true, groupFields: fields.filter(function (f) { var _a, _b; return (_b = (_a = field.options) === null || _a === void 0 ? void 0 : _a.subFields) === null || _b === void 0 ? void 0 : _b.find(function (s) { return s.id === f.id; }); }), questionGroupSize: (_d = (_c = field.options) === null || _c === void 0 ? void 0 : _c.subFields) === null || _d === void 0 ? void 0 : _d.length, uploadingFiles: uploadingFiles, setUploadingFiles: setUploadingFiles, handleFileUpload: handleFileUpload, AddToDatabase: AddToDatabase, lastNavigationDirectionRef: lastNavigationDirectionRef }) }), id));
+                                                                                                                                                                            return ((0, jsx_runtime_1.jsx)(index_1.Flex, __assign({ flex: 1 }, { children: (0, jsx_runtime_1.jsx)(exports.QuestionForField, { isSinglePage: isSinglePage, groupId: groupId, groupInstance: groupInstance, customInputs: customInputs, field: match, fields: fields, handleDatabaseSelect: handleDatabaseSelect, enduser: enduser, goToPreviousField: goToPreviousField, isPreviousDisabled: isPreviousDisabled, goToNextField: goToNextField, form: form, formResponseId: formResponseId, rootResponseId: rootResponseId, submit: submit, repeats: repeats, onRepeatsChange: onRepeatsChange, setCustomerId: setCustomerId, value: value, file: file, onAddFile: onAddFile, onFieldChange: onFieldChange, responses: responses, selectedFiles: selectedFiles, validateField: validateField, enduserId: enduserId, spacing: (_b = field.options) === null || _b === void 0 ? void 0 : _b.groupPadding, logicOptions: logicOptions, isInQuestionGroup: true, groupFields: fields.filter(function (f) { var _a, _b; return (_b = (_a = field.options) === null || _a === void 0 ? void 0 : _a.subFields) === null || _b === void 0 ? void 0 : _b.find(function (s) { return s.id === f.id; }); }), questionGroupSize: (_d = (_c = field.options) === null || _c === void 0 ? void 0 : _c.subFields) === null || _d === void 0 ? void 0 : _d.length, uploadingFiles: uploadingFiles, setUploadingFiles: setUploadingFiles, handleFileUpload: handleFileUpload, AddToDatabase: AddToDatabase, lastNavigationDirectionRef: lastNavigationDirectionRef }) }), id));
                                                                                                                                                                         }) })))
                                                                                                                                                                         : null, ((_18 = field.options) === null || _18 === void 0 ? void 0 : _18.repeat) && ((0, jsx_runtime_1.jsx)(index_1.Flex, __assign({ style: { marginTop: '8px' } }, { children: field.type === 'string' ? ((0, jsx_runtime_1.jsx)(String, { field: field, label: "Repeat", value: (_19 = repeats[field.id]) !== null && _19 !== void 0 ? _19 : '', onChange: function (u) {
                         var _a;
@@ -279,7 +279,7 @@ var QuestionForField = function (_a) {
                             var _a;
                             return onRepeatsChange(__assign(__assign({}, repeats), (_a = {}, _a[field.id] = u, _a)));
                         }, form: form }))
-                        : field.type === 'number' ? ((0, jsx_runtime_1.jsx)(Number, { field: field, label: "Repeat", value: (_21 = repeats[field.id]) !== null && _21 !== void 0 ? _21 : '', onChange: function (u) {
+                        : field.type === 'number' ? ((0, jsx_runtime_1.jsx)(Number, { isSinglePage: isSinglePage, field: field, label: "Repeat", value: (_21 = repeats[field.id]) !== null && _21 !== void 0 ? _21 : '', onChange: function (u) {
                                 var _a;
                                 return onRepeatsChange(__assign(__assign({}, repeats), (_a = {}, _a[field.id] = u, _a)));
                             }, form: form }))
@@ -760,10 +760,104 @@ var Description = function (_a) {
     return ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [existingContent, field.type === 'description' && ((_c = (_b = field.options) === null || _b === void 0 ? void 0 : _b.historicalDataSources) === null || _c === void 0 ? void 0 : _c.length) && enduserId ? ((0, jsx_runtime_1.jsx)(exports.HistoricalDataSection, { sources: field.options.historicalDataSources, enduserId: enduserId, onDataLoaded: onFieldChange ? function (jsonString) { return onFieldChange(jsonString, field.id); } : undefined })) : null] }));
 };
 exports.Description = Description;
+var SCROLLABLE_OVERFLOW = /auto|scroll/;
+/**
+ * The nearest scrolling ancestor of `node`, resolved with the same rule as fbjs `Style.getScrollParent`
+ * (the helper draft-js uses when it snapshots and restores scroll around focus()/restoreEditorDOM()):
+ * the first ancestor whose computed `overflow` or `overflow-y` is `auto` or `scroll`. Resolving it the
+ * same way means the scroll guard below and draft-js agree on which element is the scroll container.
+ * fbjs falls back to the window; the document's scrolling element is the element form of that.
+ */
+var get_scroll_parent = function (node) {
+    var _a, _b;
+    var ownerDocument = node === null || node === void 0 ? void 0 : node.ownerDocument;
+    var view = ownerDocument === null || ownerDocument === void 0 ? void 0 : ownerDocument.defaultView;
+    if (!node || !ownerDocument || !view)
+        return null;
+    var current = node;
+    while (current && current !== ownerDocument.body) {
+        var style = null;
+        try {
+            style = view.getComputedStyle(current);
+        }
+        catch (err) {
+            return null;
+        }
+        if (style && (SCROLLABLE_OVERFLOW.test(style.overflow) || SCROLLABLE_OVERFLOW.test(style.overflowY))) {
+            return current;
+        }
+        current = current.parentElement;
+    }
+    return (_b = (_a = ownerDocument.scrollingElement) !== null && _a !== void 0 ? _a : ownerDocument.documentElement) !== null && _b !== void 0 ? _b : null;
+};
+/** scroll events for the root scroller are dispatched at the Document, not at the element itself */
+var scroll_event_target_for = function (element) { return (element === element.ownerDocument.scrollingElement || element === element.ownerDocument.documentElement
+    ? element.ownerDocument
+    : element); };
 var TellescopeSinglePageForm = function (_a) {
     var _b, _c, _d;
     var customInputs = _a.customInputs, submitErrorMessage = _a.submitErrorMessage, onAddFile = _a.onAddFile, onFieldChange = _a.onFieldChange, goToNextField = _a.goToNextField, goToPreviousField = _a.goToPreviousField, isNextDisabled = _a.isNextDisabled, isPreviousDisabled = _a.isPreviousDisabled, submit = _a.submit, showSubmit = _a.showSubmit, showSaveDraft = _a.showSaveDraft, submittingStatus = _a.submittingStatus, updating = _a.updating, validateField = _a.validateField, validateResponsesForFields = _a.validateResponsesForFields, formTitle = _a.formTitle, _e = _a.thanksMessage, thanksMessage = _e === void 0 ? exports.DEFAULT_THANKS_MESSAGE : _e, htmlThanksMessage = _a.htmlThanksMessage, submitted = _a.submitted, style = _a.style, onSuccess = _a.onSuccess, isPreview = _a.isPreview, fields = _a.fields, selectedFiles = _a.selectedFiles, responses = _a.responses, isInternalNote = _a.isInternalNote, existingResponses = _a.existingResponses, repeats = _a.repeats, setRepeats = _a.setRepeats, setCustomerId = _a.setCustomerId, rootResponseId = _a.rootResponseId, parentResponseId = _a.parentResponseId, handleDatabaseSelect = _a.handleDatabaseSelect, submittedAt = _a.submittedAt, updatedAt = _a.updatedAt, otherEnduserIds = _a.otherEnduserIds, onBulkErrors = _a.onBulkErrors, enduser = _a.enduser, groupId = _a.groupId, groupInstance = _a.groupInstance, uploadingFiles = _a.uploadingFiles, setUploadingFiles = _a.setUploadingFiles, handleFileUpload = _a.handleFileUpload, AddToDatabase = _a.AddToDatabase, lastNavigationDirectionRef = _a.lastNavigationDirectionRef, props = __rest(_a, ["customInputs", "submitErrorMessage", "onAddFile", "onFieldChange", "goToNextField", "goToPreviousField", "isNextDisabled", "isPreviousDisabled", "submit", "showSubmit", "showSaveDraft", "submittingStatus", "updating", "validateField", "validateResponsesForFields", "formTitle", "thanksMessage", "htmlThanksMessage", "submitted", "style", "onSuccess", "isPreview", "fields", "selectedFiles", "responses", "isInternalNote", "existingResponses", "repeats", "setRepeats", "setCustomerId", "rootResponseId", "parentResponseId", "handleDatabaseSelect", "submittedAt", "updatedAt", "otherEnduserIds", "onBulkErrors", "enduser", "groupId", "groupInstance", "uploadingFiles", "setUploadingFiles", "handleFileUpload", "AddToDatabase", "lastNavigationDirectionRef"]);
     var list = (0, hooks_1.useListForFormFields)(fields, responses, { form: props.form, gender: enduser === null || enduser === void 0 ? void 0 : enduser.gender });
+    // Conditional logic recomputes the rendered field list as answers change, so fields mount and unmount
+    // below (and above) the caret while the user is still typing - which moves the content under the
+    // viewport and scrolls the note on its own. Hold the scroll container still across those list changes.
+    var fieldListRef = (0, react_1.useRef)(null);
+    var scrollParentRef = (0, react_1.useRef)(null);
+    var scrollTopRef = (0, react_1.useRef)(0);
+    var fieldIdsKey = list.map(function (f) { return f.id; }).join('|');
+    var previousFieldIdsKeyRef = (0, react_1.useRef)(null);
+    // The position to restore has to be tracked as it changes: by the time the field list has changed, the
+    // DOM is already committed and the container's own scrollTop may no longer be where the user left it.
+    var detachScrollTrackingRef = (0, react_1.useRef)(null);
+    var trackScrollParent = (0, react_1.useCallback)(function () {
+        var _a;
+        (_a = detachScrollTrackingRef.current) === null || _a === void 0 ? void 0 : _a.call(detachScrollTrackingRef);
+        detachScrollTrackingRef.current = null;
+        var parent = get_scroll_parent(fieldListRef.current);
+        scrollParentRef.current = parent;
+        if (!parent)
+            return null;
+        scrollTopRef.current = parent.scrollTop;
+        var eventTarget = scroll_event_target_for(parent);
+        var onScroll = function () { scrollTopRef.current = parent.scrollTop; };
+        eventTarget.addEventListener('scroll', onScroll, { passive: true });
+        detachScrollTrackingRef.current = function () { return eventTarget.removeEventListener('scroll', onScroll); };
+        return parent;
+    }, []);
+    (0, react_1.useLayoutEffect)(function () {
+        trackScrollParent();
+        return function () {
+            var _a;
+            (_a = detachScrollTrackingRef.current) === null || _a === void 0 ? void 0 : _a.call(detachScrollTrackingRef);
+            detachScrollTrackingRef.current = null;
+            scrollParentRef.current = null;
+        };
+    }, [trackScrollParent, submitted]);
+    (0, react_1.useLayoutEffect)(function () {
+        var previousKey = previousFieldIdsKeyRef.current;
+        previousFieldIdsKeyRef.current = fieldIdsKey;
+        if (previousKey === null)
+            return; // first mount - nothing moved, and nothing to restore
+        if (previousKey === fieldIdsKey)
+            return; // not a field-list change
+        var parent = scrollParentRef.current;
+        if (parent && !parent.isConnected) {
+            // the container was replaced while the form stayed mounted: re-resolve it and start tracking the new
+            // one, whose position is its own baseline - the snapshot from the old container means nothing here
+            trackScrollParent();
+            return;
+        }
+        if (!parent)
+            return;
+        // clamp to the new content height instead of forcing the container to grow: when the list got
+        // shorter, settle at the new bottom rather than pinning to a position that no longer exists
+        var maxScrollTop = Math.max(0, parent.scrollHeight - parent.clientHeight);
+        var target = Math.min(Math.max(0, scrollTopRef.current), maxScrollTop);
+        if (Math.abs(parent.scrollTop - target) < 1)
+            return;
+        parent.scrollTop = target;
+        scrollTopRef.current = target;
+    }, [fieldIdsKey, trackScrollParent]);
     var includedFieldIds = (Array.from(new Set(__spreadArray(__spreadArray([], list.map(function (f) { return f.id; }), true), (existingResponses !== null && existingResponses !== void 0 ? existingResponses : []).filter(function (e) { return !e.isPrepopulatedFromEnduserField; }).map(function (e) { return e.fieldId; }), true))));
     var handleSubmit = (0, react_1.useCallback)(function () { return __awaiter(void 0, void 0, void 0, function () {
         return __generator(this, function (_a) {
@@ -861,7 +955,10 @@ var TellescopeSinglePageForm = function (_a) {
                                         fontWeight: 'bold',
                                         color: constants_1.PRIMARY_HEX,
                                         fontSize: 18
-                                    } }, { children: score.value }))] }), index)); }) }))), (0, jsx_runtime_1.jsx)(index_1.Flex, __assign({ flex: 1, justifyContent: "center", column: true, style: { marginBottom: 15 } }, { children: list.map(function (activeField) {
+                                    } }, { children: score.value }))] }), index)); }) }))), (0, jsx_runtime_1.jsx)("div", __assign({ ref: fieldListRef, style: {
+                            display: 'flex', flex: 1, flexDirection: 'column', flexWrap: 'wrap',
+                            alignContent: 'stretch', justifyContent: 'center', flexShrink: 1, marginBottom: 15,
+                        } }, { children: list.map(function (activeField) {
                             var value = responses.find(function (r) { return r.fieldId === activeField.id; });
                             var file = selectedFiles.find(function (r) { return r.fieldId === activeField.id; });
                             return ((0, jsx_runtime_1.jsx)(index_1.Flex, __assign({ style: { marginBottom: 5 } }, { children: (0, jsx_runtime_1.jsx)(index_1.Flex, __assign({ column: true, flex: 1 }, { children: (0, jsx_runtime_1.jsx)(exports.QuestionForField, { isSinglePage: true, fields: fields, field: activeField, handleDatabaseSelect: handleDatabaseSelect, enduserId: props.enduserId, formResponseId: props.formResponseId, rootResponseId: rootResponseId, submit: submit, enduser: enduser, goToPreviousField: goToPreviousField, isPreviousDisabled: isPreviousDisabled, goToNextField: goToNextField, repeats: repeats, onRepeatsChange: setRepeats, setCustomerId: setCustomerId, value: value, file: file, customInputs: customInputs, onAddFile: onAddFile, onFieldChange: onFieldChange, responses: responses, selectedFiles: selectedFiles, validateField: validateField, groupId: groupId, groupInstance: groupInstance, uploadingFiles: uploadingFiles, setUploadingFiles: setUploadingFiles, handleFileUpload: handleFileUpload, AddToDatabase: AddToDatabase, lastNavigationDirectionRef: lastNavigationDirectionRef }) })) }), activeField.id));

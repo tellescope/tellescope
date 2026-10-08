@@ -359,6 +359,10 @@ exports.schema = (0, exports.build_schema)({
                     archivedAt: validation_1.dateValidatorOptional,
                 })),
                 redactions: ['enduser'],
+            }, programs: {
+                validator: validation_1.enduserProgramsValidator,
+                redactions: ['enduser'],
+                enduserUpdatesDisabled: true,
             }, references: { validator: validation_1.listOfRelatedRecordsValidator, redactions: ['enduser'], enduserUpdatesDisabled: true }, athenaDepartmentId: { validator: validation_1.stringValidator100, redactions: ['enduser'], enduserUpdatesDisabled: true }, athenaPracticeId: { validator: validation_1.stringValidator100, redactions: ['enduser'], enduserUpdatesDisabled: true }, salesforceId: { validator: validation_1.stringValidator100, redactions: ['enduser'], enduserUpdatesDisabled: true }, vitalTriggersDisabled: { validator: validation_1.booleanValidator }, defaultFromPhone: { validator: validation_1.phoneValidator, redactions: ['enduser'] }, defaultFromEmail: { validator: validation_1.emailValidator, redactions: ['enduser'] }, useDefaultFromEmailInAutomations: { validator: validation_1.booleanValidator }, useDefaultFromPhoneInAutomations: { validator: validation_1.booleanValidator }, stripeCustomerId: { validator: validation_1.stringValidator100, redactions: ['enduser'], enduserUpdatesDisabled: true }, stripeKey: { validator: validation_1.stringValidator250, redactions: ['enduser'], enduserUpdatesDisabled: true }, 
             // Chargebee linkage fields. Normally written server-side at customer creation, but exposed as
             // staff-editable (enduserUpdatesDisabled) for manual correction — e.g. reflecting a Chargebee-side
@@ -553,6 +557,7 @@ exports.schema = (0, exports.build_schema)({
                     scriptsure_patient_id: { validator: validation_1.stringValidator },
                     scriptsure_deep_link: { validator: validation_1.stringValidator },
                     scriptsure_practice_id: { validator: validation_1.stringValidator },
+                    vitl_uid: { validator: validation_1.stringValidator }, // VITL upsert key; equals the Tellescope enduser id
                 },
             },
             bulk_update: {
@@ -1345,10 +1350,16 @@ exports.schema = (0, exports.build_schema)({
                     journeyId: { validator: validation_1.mongoIdStringRequired, required: true },
                     // omitted => both, preserving the existing response for external API consumers
                     metric: { validator: (0, validation_1.exactMatchValidatorOptional)(['steps', 'engagement']) },
+                    // return the stored result without aggregating. Omitted keeps the existing behaviour
+                    // (compute, store, respond), so unchanged API consumers never receive stale data.
+                    cachedOnly: { validator: validation_1.booleanValidatorOptional },
                 },
                 returns: {
                     // todo: document shape with validator
-                    statistics: { validator: validation_1.objectAnyFieldsAnyValuesValidator }
+                    statistics: { validator: validation_1.objectAnyFieldsAnyValuesValidator },
+                    // when the returned statistics were computed. Absent => nothing is stored for this
+                    // journey yet (never computed, or still being computed by another request).
+                    cachedAt: { validator: validation_1.dateValidatorOptional },
                 },
             },
         },
@@ -3292,6 +3303,8 @@ exports.schema = (0, exports.build_schema)({
                     lastId: { validator: validation_1.mongoIdStringRequired, required: false },
                     databaseId: { validator: validation_1.mongoIdStringRequired, required: false },
                     search: { validator: validation_1.stringValidatorOptionalEmptyOkay, required: false },
+                    minSearchScore: { validator: validation_1.nonNegNumberValidatorOptional, required: false },
+                    minimumShouldMatch: { validator: validation_1.minimumShouldMatchValidatorOptional, required: false },
                 },
                 returns: {
                     choices: { validator: 'database_records', required: true }
@@ -4258,7 +4271,7 @@ exports.schema = (0, exports.build_schema)({
         defaultActions: constants_1.DEFAULT_OPERATIONS,
         customActions: {},
         enduserActions: { read: {}, readMany: {} },
-        fields: __assign(__assign({}, BuiltInFields), { accessTags: { redactions: ['enduser'], validator: validation_1.listOfStringsValidatorEmptyOk }, dontSyncToElation: { validator: validation_1.booleanValidator }, sendIcsEmail: { validator: validation_1.booleanValidator }, createAndBookAthenaSlot: { validator: validation_1.booleanValidator }, athenaDepartmentId: { validator: validation_1.stringValidator1000 }, generateAthenaTelehealthLink: { validator: validation_1.booleanValidator }, athenaTypeId: { validator: validation_1.stringValidator1000 }, athenaBookingTypeId: { validator: validation_1.stringValidator1000 }, preventCancelMinutesInAdvance: { validator: validation_1.numberValidator }, preventRescheduleMinutesInAdvance: { validator: validation_1.numberValidator }, preventCancelInPortal: { validator: validation_1.booleanValidator }, preventRescheduleInPortal: { validator: validation_1.booleanValidator }, dontSyncToCanvas: { validator: validation_1.booleanValidator }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, allowGroupReschedule: { validator: validation_1.booleanValidator }, dontAutoSyncPatientToHealthie: { validator: validation_1.booleanValidator }, title: {
+        fields: __assign(__assign({}, BuiltInFields), { accessTags: { redactions: ['enduser'], validator: validation_1.listOfStringsValidatorEmptyOk }, dontSyncToElation: { validator: validation_1.booleanValidator }, sendIcsEmail: { validator: validation_1.booleanValidator }, createAndBookAthenaSlot: { validator: validation_1.booleanValidator }, athenaDepartmentId: { validator: validation_1.stringValidator1000 }, generateAthenaTelehealthLink: { validator: validation_1.booleanValidator }, athenaTypeId: { validator: validation_1.stringValidator1000 }, athenaBookingTypeId: { validator: validation_1.stringValidator1000 }, preventCancelMinutesInAdvance: { validator: validation_1.numberValidator }, preventRescheduleMinutesInAdvance: { validator: validation_1.numberValidator }, preventCancelInPortal: { validator: validation_1.booleanValidator }, preventRescheduleInPortal: { validator: validation_1.booleanValidator }, preventBookingWhenUpcomingExists: { validator: validation_1.booleanValidator }, dontSyncToCanvas: { validator: validation_1.booleanValidator }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, allowGroupReschedule: { validator: validation_1.booleanValidator }, dontAutoSyncPatientToHealthie: { validator: validation_1.booleanValidator }, title: {
                 validator: validation_1.stringValidator250,
                 required: true,
                 examples: ["Text"],
@@ -4622,7 +4635,7 @@ exports.schema = (0, exports.build_schema)({
                         relationship: 'foreignKey',
                         onDependencyDelete: 'delete',
                     }]
-            }, code: { validator: validation_1.stringValidator }, source: { validator: validation_1.stringValidator }, type: { validator: validation_1.stringValidator }, notes: { validator: validation_1.stringValidator }, qualitativeResult: { validator: validation_1.stringValidator250 }, refRange: { validator: validation_1.stringValidator250 }, statusIndicator: { validator: validation_1.stringValidator100 }, recordedAt: { validator: validation_1.dateValidator }, reviewedAt: { validator: validation_1.dateValidatorOptional }, timestamp: { validator: validation_1.dateValidator, initializer: function () { return new Date(); } }, statusChangedBy: { validator: validation_1.mongoIdStringRequired }, beforeMeal: { validator: validation_1.booleanValidator }, medStatus: { validator: validation_1.stringValidator }, irregularHeartbeat: { validator: validation_1.booleanValidator }, dontTrigger: { validator: validation_1.booleanValidator }, references: { validator: validation_1.listOfRelatedRecordsValidator, readonly: true }, showWithPlotsByUnit: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, invalidationReason: { validator: validation_1.stringValidatorOptionalEmptyOkay }, externalId: { validator: validation_1.stringValidator250 } })
+            }, code: { validator: validation_1.stringValidator }, source: { validator: validation_1.stringValidator }, type: { validator: validation_1.stringValidator }, notes: { validator: validation_1.stringValidator }, qualitativeResult: { validator: validation_1.stringValidator250 }, refRange: { validator: validation_1.stringValidator250 }, statusIndicator: { validator: validation_1.stringValidator100 }, recordedAt: { validator: validation_1.dateValidator }, reviewedAt: { validator: validation_1.dateValidatorOptional }, timestamp: { validator: validation_1.dateValidator, initializer: function () { return new Date(); } }, statusChangedBy: { validator: validation_1.mongoIdStringRequired }, beforeMeal: { validator: validation_1.booleanValidator }, medStatus: { validator: validation_1.stringValidator }, irregularHeartbeat: { validator: validation_1.booleanValidator }, dontTrigger: { validator: validation_1.booleanValidator }, references: { validator: validation_1.listOfRelatedRecordsValidator, readonly: true }, showWithPlotsByUnit: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, invalidationReason: { validator: validation_1.stringValidatorOptionalEmptyOkay }, externalId: { validator: validation_1.stringValidator250 }, programs: { validator: validation_1.recordProgramsValidator } })
     },
     managed_content_records: {
         info: {},
@@ -5347,7 +5360,7 @@ exports.schema = (0, exports.build_schema)({
                     })),
                     summaryFormId: validation_1.mongoIdStringOptional,
                 }))
-            }, belugaAutomationMappings: {
+            }, programs: { validator: validation_1.organizationProgramsValidator }, belugaAutomationMappings: {
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     title: validation_1.stringValidator5000OptionalEmptyOkay,
                     enduserCondition: validation_1.optionalAnyObjectValidator,
@@ -5631,7 +5644,10 @@ exports.schema = (0, exports.build_schema)({
                 path: '/products/prepare-stripe-checkout',
                 description: "Prepares a Stripe checkout process",
                 parameters: {
-                    productIds: { validator: validation_1.listOfMongoIdStringValidator, required: true },
+                    // exactly one of productIds / items is required - enforced in the handler, which can
+                    // distinguish "both" from "neither" and say so, rather than by required: true here
+                    productIds: { validator: validation_1.listOfMongoIdStringValidatorOptional },
+                    items: { validator: validation_1.listOfStripeCheckoutItemsValidatorOptional },
                     stripeKey: { validator: validation_1.stringValidator250 },
                 },
                 returns: {
@@ -6213,6 +6229,22 @@ exports.schema = (0, exports.build_schema)({
                                 return "Cannot change trigger event type to \"".concat(eventType, "\". This event type has been deprecated.");
                             }
                         }
+                    }
+                }, {
+                    explanation: 'Some actions act on a record that only certain events supply',
+                    evaluate: function (trigger, _deps, _session, _method, options) {
+                        var _a, _b, _c, _d, _e, _f, _g, _h;
+                        // a partial update may carry only one of the two, so fall back to the stored record
+                        var actionType = (_b = (_a = trigger.action) === null || _a === void 0 ? void 0 : _a.type) !== null && _b !== void 0 ? _b : (_d = (_c = options.original) === null || _c === void 0 ? void 0 : _c.action) === null || _d === void 0 ? void 0 : _d.type;
+                        if (actionType === undefined)
+                            return;
+                        var allowed = validation_1.AUTOMATION_TRIGGER_ACTION_EVENT_RESTRICTIONS[actionType];
+                        if (!allowed)
+                            return;
+                        var eventType = (_f = (_e = trigger.event) === null || _e === void 0 ? void 0 : _e.type) !== null && _f !== void 0 ? _f : (_h = (_g = options.original) === null || _g === void 0 ? void 0 : _g.event) === null || _h === void 0 ? void 0 : _h.type;
+                        if (eventType && allowed.includes(eventType))
+                            return;
+                        return "The \"".concat(actionType, "\" action can only be used with the ").concat(allowed.map(function (e) { return "\"".concat(e, "\""); }).join(' or '), " event.");
                     }
                 }],
         },
@@ -7017,7 +7049,7 @@ exports.schema = (0, exports.build_schema)({
             }, userId: { validator: validation_1.mongoIdStringRequired }, title: { validator: validation_1.stringValidator, required: true, examples: ['title'] }, status: { validator: validation_1.stringValidator, required: true, examples: ['status'] }, description: { validator: validation_1.stringValidator1000 }, frequency: { validator: validation_1.stringValidator100 }, items: { validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     title: validation_1.stringValidator,
                     tracking: validation_1.stringValidatorOptional,
-                })) }, tracking: { validator: validation_1.stringValidatorOptional }, carrier: { validator: validation_1.stringValidatorOptional }, shippedDate: { validator: validation_1.stringValidatorOptional }, deliveredDate: { validator: validation_1.stringValidatorOptional }, fill: { validator: validation_1.stringValidatorOptional }, sku: { validator: validation_1.stringValidatorOptional }, bookingLink: { validator: validation_1.stringValidatorOptional }, pharmacy: { validator: validation_1.stringValidatorOptional }, pharmacyOrderId: { validator: validation_1.stringValidatorOptional }, cancelledDate: { validator: validation_1.stringValidatorOptional }, cancellationReason: { validator: validation_1.stringValidatorOptional }, medication: { validator: validation_1.stringValidatorOptional }, medicationSku: { validator: validation_1.stringValidatorOptional }, protocol: { validator: validation_1.stringValidator1000 }, references: { validator: validation_1.listOfRelatedRecordsValidator, readonly: true } })
+                })) }, tracking: { validator: validation_1.stringValidatorOptional }, carrier: { validator: validation_1.stringValidatorOptional }, shippedDate: { validator: validation_1.stringValidatorOptional }, deliveredDate: { validator: validation_1.stringValidatorOptional }, fill: { validator: validation_1.stringValidatorOptional }, sku: { validator: validation_1.stringValidatorOptional }, bookingLink: { validator: validation_1.stringValidatorOptional }, pharmacy: { validator: validation_1.stringValidatorOptional }, pharmacyOrderId: { validator: validation_1.stringValidatorOptional }, cancelledDate: { validator: validation_1.stringValidatorOptional }, cancellationReason: { validator: validation_1.stringValidatorOptional }, medication: { validator: validation_1.stringValidatorOptional }, medicationSku: { validator: validation_1.stringValidatorOptional }, protocol: { validator: validation_1.stringValidator1000 }, programs: { validator: validation_1.recordProgramsValidator }, references: { validator: validation_1.listOfRelatedRecordsValidator, readonly: true } })
     },
     vital_configurations: {
         info: {},
@@ -7336,7 +7368,7 @@ exports.schema = (0, exports.build_schema)({
                     enduserId: { validator: validation_1.mongoIdStringRequired },
                     journeyId: { validator: validation_1.mongoIdStringRequired },
                     automationStepId: { validator: validation_1.mongoIdStringRequired },
-                    model: { validator: validation_1.selectableAIModelValidator }, // 'Claude Sonnet 5' (default) | 'Claude Opus 4.8'; must match the conversation's model when continuing
+                    model: { validator: validation_1.selectableAIModelValidator }, // see SELECTABLE_AI_MODELS (constants); defaults to DEFAULT_AI_MODEL; must match the conversation's model when continuing
                 },
                 returns: {
                     ai_conversation: { validator: 'ai_conversation', required: true },
@@ -7359,7 +7391,7 @@ exports.schema = (0, exports.build_schema)({
                 returns: {},
             },
         },
-        fields: __assign(__assign({}, BuiltInFields), { type: { validator: validation_1.stringValidator, required: true, examples: ['HTML Template Generation'] }, modelName: { validator: validation_1.stringValidator, required: true, examples: ['Claude Sonnet 4', 'Claude Sonnet 4.5', 'Claude Sonnet 4.6', 'Claude Sonnet 5', 'Claude Opus 4.8'] }, orchestrationId: { validator: validation_1.stringValidatorOptional, examples: ['workflow-123', 'batch-456'] }, enduserId: {
+        fields: __assign(__assign({}, BuiltInFields), { type: { validator: validation_1.stringValidator, required: true, examples: ['HTML Template Generation'] }, modelName: { validator: validation_1.stringValidator, required: true, examples: ['Claude Sonnet 5.5', 'Claude Opus 5.5', 'Claude Sonnet 5', 'Claude Opus 5', 'Claude Opus 4.8'] }, orchestrationId: { validator: validation_1.stringValidatorOptional, examples: ['workflow-123', 'batch-456'] }, enduserId: {
                 validator: validation_1.mongoIdStringOptional,
                 examples: [constants_1.PLACEHOLDER_ID],
                 dependencies: [{
@@ -7464,6 +7496,8 @@ exports.schema = (0, exports.build_schema)({
                     sortBy: { validator: (0, validation_1.exactMatchValidatorOptional)(['timestamp', 'outboundTimestamp']) },
                     autobuild: { validator: validation_1.booleanValidatorOptional },
                     search: { validator: validation_1.stringValidatorOptional },
+                    minSearchScore: { validator: validation_1.nonNegNumberValidatorOptional },
+                    minimumShouldMatch: { validator: validation_1.minimumShouldMatchValidatorOptional },
                 },
                 returns: {
                     threads: { validator: 'inbox_threads' },

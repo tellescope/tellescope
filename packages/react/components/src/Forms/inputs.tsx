@@ -524,7 +524,7 @@ export const EmailInput = ({ field, value, onChange, form, ...props }: FormInput
   />
 )
 
-export const NumberInput = ({ field, value, onChange, form, ...props }: FormInputProps<'number'>) => {
+export const NumberInput = ({ field, value, onChange, form, isSinglePage, autoFocus, ...props }: FormInputProps<'number'>) => {
   // Prevent the default scroll behavior when focused on this input
   const inputRef = useRef<HTMLInputElement>(null); 
   useEffect(() => {
@@ -546,7 +546,10 @@ export const NumberInput = ({ field, value, onChange, form, ...props }: FormInpu
   }, []);
 
   return (
-    <TextField ref={inputRef} autoFocus InputProps={defaultInputProps} {...props} required={!field.isOptional} fullWidth type="number" value={value} 
+    // autoFocus only in the one-question-at-a-time wizard: on a single-page form this input can mount below
+    // the caret (conditional logic revealing it mid-edit) and steal focus, scrolling itself into view.
+    // Callers that pass neither isSinglePage nor autoFocus keep today's behavior.
+    <TextField ref={inputRef} autoFocus={autoFocus ?? !isSinglePage} InputProps={defaultInputProps} {...props} required={!field.isOptional} fullWidth type="number" value={value} 
       onChange={e => onChange(parseInt(e.target.value), field.id)}  
       label={(!field.title && field.placeholder) ? field.placeholder : props.label}
       placeholder={field.placeholder || form_display_text_for_language(form, "Enter a number...", '')}
@@ -2279,7 +2282,11 @@ export const ESignatureTerms = () => {
   )
 }
 
-export const SignatureInput = ({ value, field, autoFocus=true, enduser, onChange, form }: FormInputProps<'signature'>) => {
+export const SignatureInput = ({ value, field, autoFocus, isSinglePage, enduser, onChange, form }: FormInputProps<'signature'>) => {
+  // see NumberInput: autoFocus only in the one-question-at-a-time wizard, default unchanged (true) for
+  // callers that pass neither flag
+  const resolvedAutoFocus = autoFocus ?? !isSinglePage
+
   const prefill = (
     field.options?.prefillSignature && enduser?.fname && enduser.lname
       ? `${enduser.fname} ${enduser.lname}`
@@ -2341,7 +2348,7 @@ export const SignatureInput = ({ value, field, autoFocus=true, enduser, onChange
       </Grid>
 
       <Grid item xs={12} style={{ marginTop: 12 }}>
-        <TextField disabled={!value?.signed} autoFocus={autoFocus}
+        <TextField disabled={!value?.signed} autoFocus={resolvedAutoFocus}
           style={{ width: '100%'}}
           size="small"
           aria-label={form_display_text_for_language(form, "Full Name")}

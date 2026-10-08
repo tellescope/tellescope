@@ -194,13 +194,6 @@ export var createSliceForList = function (name) { return createSlice({
         });
     },
 }); };
-// export type GCalEventTime = { dateTime: string, date: never } | { dateTime: never, date: string /* YYYY-MM-DD */  }
-// export type GCalEvent = {
-//   id: string,
-//   summary: string,
-//   start: GCalEventTime,
-//   end: GCalEventTime,
-// }
 var appointmentBookingPagesSlice = createSliceForList('appointment_booking_pages');
 var appointmentLocationsSlice = createSliceForList('appointment_locations');
 var chatRoomsSlice = createSliceForList('chat_rooms');

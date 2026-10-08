@@ -35,6 +35,7 @@ import {
 } from "@tellescope/types-client"
 import { CustomUpdateOptions, SortOption, UserIdentity, FileDetails, ReactNativeFile, SessionType } from "@tellescope/types-utilities"
 import { url_safe_path } from "@tellescope/utilities"
+import type { Filter } from "mongodb"
 
 import { Session as SessionManager, SessionOptions } from "./session"
 
@@ -79,7 +80,7 @@ export interface LoadFunctionArguments <T> {
   search?: SearchOptions,
   ids?: string[],
   returnCount?: boolean,
-  mdbFilter?: any,
+  mdbFilter?: Filter<T>,
   mdbSort?: any,
   projection?: { [K in keyof T]?: 1 },
 }
@@ -95,7 +96,7 @@ export interface APIQuery<
 {
   createOne: (t: CREATE & { sharedWithOrganizations?: string[][], _overrideUnique?: boolean }) => Promise<T>;
   createSome: (ts: CREATE[], o?: { _overrideUnique?: boolean }) => Promise<{ created: T[], errors: object[] }>;
-  getOne: (argument: string | ReadFilter<T>, mdbFilter?: any) => Promise<T>;
+  getOne: (argument: string | ReadFilter<T>, mdbFilter?: Filter<T>) => Promise<T>;
   getSome: LoadFunction<T>;
   getByIds: ({ ids } : { ids: string[] }) => Promise<{ matches: T[] }>;
   updateOne: (id: string, updates: UPDATE, options?: CustomUpdateOptions, _overrideUnique?: boolean) => Promise<T>;

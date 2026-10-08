@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { Button, CircularProgress, FileBlob, FileUploadHandler, Flex, LinearProgress, LoadingButton, Modal, Paper, Styled, Typography, form_display_text_for_language, useFileUpload, useFormResponses, useSession } from "../index"
 import { useListForFormFields, useOrganizationTheme, useTellescopeForm, WithOrganizationTheme, Response, FileResponse, NextFieldLogicOptions } from "./hooks"
 import { ChangeHandler, FormInputs } from "./types"
@@ -362,7 +362,7 @@ export const QuestionForField = ({
           <Email field={field} disabled={value.disabled} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'email'>} form={form} />
         )
         : field.type === 'number' ? (
-          <Number field={field} disabled={value.disabled} value={value.answer.value as number} onChange={onFieldChange as ChangeHandler<'number'>} form={form} />
+          <Number isSinglePage={isSinglePage} field={field} disabled={value.disabled} value={value.answer.value as number} onChange={onFieldChange as ChangeHandler<'number'>} form={form} />
         )
         : field.type === 'phone' ? (
           <Phone field={field} disabled={value.disabled} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'phone'>} form={form} />
@@ -371,7 +371,7 @@ export const QuestionForField = ({
           <ResolvedDateInput field={field} disabled={value.disabled} value={value.answer.value ? new Date(value.answer.value as string | Date) : undefined} onChange={onFieldChange as ChangeHandler<'date'>} form={form} />
         )
         : field.type === 'signature' ? (
-          <Signature enduser={enduser} field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'signature'>} form={form}/>
+          <Signature isSinglePage={isSinglePage} enduser={enduser} field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'signature'>} form={form}/>
         )
         : field.type === 'multiple_choice' ? (
           <MultipleChoice field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'multiple_choice'>} form={form} responses={responses} enduser={enduser}/>
@@ -454,7 +454,7 @@ export const QuestionForField = ({
 
             return (
               <Flex key={id} flex={1}>
-                <QuestionForField groupId={groupId} groupInstance={groupInstance} customInputs={customInputs} field={match} fields={fields} handleDatabaseSelect={handleDatabaseSelect}
+                <QuestionForField isSinglePage={isSinglePage} groupId={groupId} groupInstance={groupInstance} customInputs={customInputs} field={match} fields={fields} handleDatabaseSelect={handleDatabaseSelect}
                   enduser={enduser} goToPreviousField={goToPreviousField} isPreviousDisabled={isPreviousDisabled} goToNextField={goToNextField}
                   form={form} formResponseId={formResponseId} rootResponseId={rootResponseId} submit={submit}
                   repeats={repeats} onRepeatsChange={onRepeatsChange} setCustomerId={setCustomerId}
@@ -492,7 +492,7 @@ export const QuestionForField = ({
             <StringLong field={field} label="Repeat" value={repeats[field.id] as string ?? ''} onChange={u => onRepeatsChange({ ...repeats, [field.id]: u! })} form={form} />
           ) 
           : field.type === 'number' ? (
-            <Number field={field} label="Repeat" value={repeats[field.id] as number ?? ''} onChange={u => onRepeatsChange({ ...repeats, [field.id]: u! })} form={form} />
+            <Number isSinglePage={isSinglePage} field={field} label="Repeat" value={repeats[field.id] as number ?? ''} onChange={u => onRepeatsChange({ ...repeats, [field.id]: u! })} form={form} />
           )
           : null
         }
@@ -1273,6 +1273,41 @@ export const Description = ({ field, color="primary", style, enduserId, onFieldC
   )
 }
 
+const SCROLLABLE_OVERFLOW = /auto|scroll/
+
+/**
+ * The nearest scrolling ancestor of `node`, resolved with the same rule as fbjs `Style.getScrollParent`
+ * (the helper draft-js uses when it snapshots and restores scroll around focus()/restoreEditorDOM()):
+ * the first ancestor whose computed `overflow` or `overflow-y` is `auto` or `scroll`. Resolving it the
+ * same way means the scroll guard below and draft-js agree on which element is the scroll container.
+ * fbjs falls back to the window; the document's scrolling element is the element form of that.
+ */
+const get_scroll_parent = (node: HTMLElement | null): HTMLElement | null => {
+  const ownerDocument = node?.ownerDocument
+  const view = ownerDocument?.defaultView
+  if (!node || !ownerDocument || !view) return null
+
+  let current: HTMLElement | null = node
+  while (current && current !== ownerDocument.body) {
+    let style: CSSStyleDeclaration | null = null
+    try { style = view.getComputedStyle(current) } catch(err) { return null }
+
+    if (style && (SCROLLABLE_OVERFLOW.test(style.overflow) || SCROLLABLE_OVERFLOW.test(style.overflowY))) {
+      return current
+    }
+    current = current.parentElement
+  }
+
+  return (ownerDocument.scrollingElement as HTMLElement | null) ?? ownerDocument.documentElement ?? null
+}
+
+/** scroll events for the root scroller are dispatched at the Document, not at the element itself */
+const scroll_event_target_for = (element: HTMLElement): HTMLElement | Document => (
+  element === element.ownerDocument.scrollingElement || element === element.ownerDocument.documentElement
+    ? element.ownerDocument
+    : element
+)
+
 export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFormProps & Styled & { 
   updating?: boolean, 
   isInternalNote?: boolean,
@@ -1337,6 +1372,70 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
   ...props
 }) => {
   const list = useListForFormFields(fields, responses, { form: props.form, gender: enduser?.gender })
+
+  // Conditional logic recomputes the rendered field list as answers change, so fields mount and unmount
+  // below (and above) the caret while the user is still typing - which moves the content under the
+  // viewport and scrolls the note on its own. Hold the scroll container still across those list changes.
+  const fieldListRef = useRef<HTMLDivElement | null>(null)
+  const scrollParentRef = useRef<HTMLElement | null>(null)
+  const scrollTopRef = useRef(0)
+  const fieldIdsKey = list.map(f => f.id).join('|')
+  const previousFieldIdsKeyRef = useRef<string | null>(null)
+
+  // The position to restore has to be tracked as it changes: by the time the field list has changed, the
+  // DOM is already committed and the container's own scrollTop may no longer be where the user left it.
+  const detachScrollTrackingRef = useRef<(() => void) | null>(null)
+  const trackScrollParent = useCallback(() => {
+    detachScrollTrackingRef.current?.()
+    detachScrollTrackingRef.current = null
+
+    const parent = get_scroll_parent(fieldListRef.current)
+    scrollParentRef.current = parent
+    if (!parent) return null
+
+    scrollTopRef.current = parent.scrollTop
+
+    const eventTarget = scroll_event_target_for(parent)
+    const onScroll = () => { scrollTopRef.current = parent.scrollTop }
+    eventTarget.addEventListener('scroll', onScroll, { passive: true })
+    detachScrollTrackingRef.current = () => eventTarget.removeEventListener('scroll', onScroll)
+
+    return parent
+  }, [])
+
+  useLayoutEffect(() => {
+    trackScrollParent()
+    return () => {
+      detachScrollTrackingRef.current?.()
+      detachScrollTrackingRef.current = null
+      scrollParentRef.current = null
+    }
+  }, [trackScrollParent, submitted])
+
+  useLayoutEffect(() => {
+    const previousKey = previousFieldIdsKeyRef.current
+    previousFieldIdsKeyRef.current = fieldIdsKey
+    if (previousKey === null) return // first mount - nothing moved, and nothing to restore
+    if (previousKey === fieldIdsKey) return // not a field-list change
+
+    const parent = scrollParentRef.current
+    if (parent && !parent.isConnected) {
+      // the container was replaced while the form stayed mounted: re-resolve it and start tracking the new
+      // one, whose position is its own baseline - the snapshot from the old container means nothing here
+      trackScrollParent()
+      return
+    }
+    if (!parent) return
+
+    // clamp to the new content height instead of forcing the container to grow: when the list got
+    // shorter, settle at the new bottom rather than pinning to a position that no longer exists
+    const maxScrollTop = Math.max(0, parent.scrollHeight - parent.clientHeight)
+    const target = Math.min(Math.max(0, scrollTopRef.current), maxScrollTop)
+    if (Math.abs(parent.scrollTop - target) < 1) return
+
+    parent.scrollTop = target
+    scrollTopRef.current = target
+  }, [fieldIdsKey, trackScrollParent])
 
   const includedFieldIds = (
     Array.from(new Set([
@@ -1451,7 +1550,14 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
           </Flex>
         )}
 
-        <Flex flex={1} justifyContent={"center"} column style={{ marginBottom: 15 }}>
+        {/* a plain div (rather than Flex, which does not forward refs) so the scroll guard above can
+            resolve the scroll container from the field list; the style is what Flex would have rendered */}
+        <div ref={fieldListRef}
+          style={{
+            display: 'flex', flex: 1, flexDirection: 'column', flexWrap: 'wrap',
+            alignContent: 'stretch', justifyContent: 'center', flexShrink: 1, marginBottom: 15,
+          }}
+        >
         {list.map((activeField) => {
           const value = responses.find(r => r.fieldId === activeField.id)!
           const file = selectedFiles.find(r => r.fieldId === activeField.id)!
@@ -1478,7 +1584,7 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
             </Flex>
           )
         })}
-        </Flex>
+        </div>
 
         <Flex flex={1} wrap="nowrap">
           {updating

@@ -215,17 +215,25 @@ export const WYSIWYG = ({ stopEnterPropagation, updateHtml, initialHTML: _initia
     }
   }, [editorRef, autoFocus])
 
+  // onChange is held in a ref so the debounce effect below depends on editorState alone. Callers pass an
+  // inline closure, so its identity changes on most parent renders (e.g. a sibling form field re-rendering,
+  // or conditional logic adding/removing a field). When onChange was a dependency, such a render re-ran the
+  // effect, the cleanup cleared the pending timeout, and the early return (editorStateRef.current ===
+  // editorState) stopped the new run from scheduling a replacement - silently dropping the last edit.
+  const onChangeRef = useRef(onChange)
+  useEffect(() => { onChangeRef.current = onChange }, [onChange])
+
   useEffect(() => {
     if (editorStateRef.current === editorState) return
     editorStateRef.current = editorState
 
     // unbounce a bit for perf
     const t = setTimeout(() => (
-      onChange(draftToHtml(convertToRaw(editorState.getCurrentContent())))
+      onChangeRef.current(draftToHtml(convertToRaw(editorState.getCurrentContent())))
     ), 99)
 
     return () => { clearTimeout(t) }
-  }, [onChange, editorState])
+  }, [editorState])
 
   const toolbar = useMemo(() => getToolbar({ hideEmoji }), [hideEmoji])
 

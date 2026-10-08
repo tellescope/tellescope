@@ -199,6 +199,9 @@ export const METRIPORT_TITLE = "Metriport"
 export const PAUBOX_TITLE = "Paubox"
 export const BRIDGE_TITLE = "Bridge"
 export const MD_INTEGRATIONS_TITLE = "MD Integrations"
+// VITL eRx (vitl-app-automation). Deliberately spelled VITL, never "Vital" — VITAL_TITLE above is the
+// unrelated tryvital.io wearables/labs integration, and confusing the two would route PHI to the wrong vendor.
+export const VITL_TITLE = "VITL"
 // sentinel value for FormField.mdiImportantValues / mdiCriticalValues: when present in a list,
 // the MDI case question is flagged (important / is_critical) for any non-empty answer
 export const MDI_FLAG_ALL_ANSWERS = "*"
@@ -233,6 +236,7 @@ export const ORGANIZATION_WIDE_INTEGRATIONS = [
   SUPERDIAL_TITLE,
   PUPPETEER_TITLE,
   BELUGA_TITLE,
+  VITL_TITLE,
 ]
 
 export const ONE_MINUTE_IN_MS = 1000 * 60
@@ -1299,13 +1303,20 @@ export const MAX_AI_SUMMARY_DATA_SOURCES = 25
 // Per-record body cap for long-form sources (articles, message templates), so one long record
 // can't crowd out the rest of the context. Mirrors the 2000-char slice the emails formatter uses.
 export const MAX_AI_SUMMARY_RECORD_CHARS = 8_000
+// Cap on the chat rooms resolved for the `chats` data source, so a patient who belongs to an
+// unusual number of rooms can't turn one summary into an unbounded read (and a huge `$in`).
+export const MAX_AI_SUMMARY_CHAT_ROOMS = 100
 
 export const DEFAULT_HISTORICAL_DATA_SOURCE_LIMIT = 100 // matches backend DEFAULT_LIMIT — non-breaking
 
 // Friendly names of Bedrock models customers may select (must match AI_MODEL_PRICING rows in the API)
-export const SELECTABLE_AI_MODELS = ['Claude Sonnet 5', 'Claude Opus 5', 'Claude Opus 4.8'] as const
+export const SELECTABLE_AI_MODELS = [
+  'Claude Sonnet 5.5', 'Claude Opus 5.5', 'Claude Sonnet 5', 'Claude Opus 5', 'Claude Opus 4.8',
+] as const
 export type SelectableAIModel = (typeof SELECTABLE_AI_MODELS)[number]
-export const DEFAULT_AI_MODEL: SelectableAIModel = 'Claude Sonnet 5'
+// Moving this re-points every saved config that never chose a model (all four config editors persist
+// `undefined` when the selection equals the default) — stored values are deliberately NOT backfilled.
+export const DEFAULT_AI_MODEL: SelectableAIModel = 'Claude Sonnet 5.5'
 
 export const EXAMPLE_AI_SUMMARY_PROMPT =
 `Summarize this patient's recent activity in 4-6 bullet points.

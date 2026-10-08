@@ -54,6 +54,33 @@ export const enduser_condition_to_mongodb_filter = (condition: Record<string, an
         }
       }
 
+      // programs have a special ui/syntax in filter, like journeys: one key carrying a program name and
+      // (optionally) the status that same program must be in. $elemMatch is what binds the two to a
+      // single entry — a 'programs.name' + 'programs.status' pair would also match a patient whose name
+      // matched one program and whose status matched a different one.
+      if (key === 'Programs') {
+        const v = value as Record<string, any> | undefined
+        const inName = typeof v?.$in === 'string' ? v.$in : undefined
+        const ninName = typeof v?.$nin === 'string' ? v.$nin : undefined
+        const name = inName !== undefined ? inName : ninName
+        const status = (typeof v?.$status === 'string' && v.$status) ? v.$status : undefined
+
+        if (name !== undefined) {
+          // a blank name is an unconfigured condition: match nobody in either direction, which is what
+          // evaluate_conditional_logic_for_enduser_fields does for the same value
+          if (!name) return { 'programs.name': { $in: [] } }
+
+          if (inName !== undefined) {
+            return status
+              ? { programs: { $elemMatch: { name, status } } }
+              : { 'programs.name': name }
+          }
+          return status
+            ? { programs: { $not: { $elemMatch: { name, status } } } }
+            : { 'programs.name': { $ne: name } }
+        }
+      }
+
       if (key === 'Healthie ID') {
         // $setSet ($nin null, '')
         if ((value as any)?.$nin) return { $or: [{ source: HEALTHIE_TITLE, externalId: { $nin: [null, ''] } }, { 'references.type': HEALTHIE_TITLE }] }
@@ -106,6 +133,38 @@ export const enduser_condition_to_mongodb_filter = (condition: Record<string, an
   }
 
   return condition
+}
+
+/**
+ * Inverse of the `Programs` case in enduser_condition_to_mongodb_filter. Returns the builder-side value
+ * for a stored programs filter, or undefined when this is not one. Skipping this fails silently: a saved
+ * filter keeps querying correctly but renders blank the next time the condition builder is opened.
+ */
+const programs_filter_to_enduser_condition = (key: string, value: any): Record<string, any> | undefined => {
+  const from_elem_match = (operator: '$in' | '$nin', match: any) => {
+    if (!match || typeof match !== 'object' || typeof match.name !== 'string') return undefined
+    return {
+      [operator]: match.name,
+      ...((typeof match.status === 'string' && match.status) ? { $status: match.status } : {}),
+    }
+  }
+
+  if (key === 'programs' && value && typeof value === 'object') {
+    if (value.$elemMatch) return from_elem_match('$in', value.$elemMatch)
+    if (value.$not?.$elemMatch) return from_elem_match('$nin', value.$not.$elemMatch)
+    return undefined
+  }
+
+  if (key === 'programs.name') {
+    if (typeof value === 'string') return { $in: value }
+    if (value && typeof value === 'object') {
+      if (typeof value.$ne === 'string') return { $nin: value.$ne }
+      // the match-nothing filter a blank (unconfigured) program name serialises to
+      if (Array.isArray(value.$in) && value.$in.length === 0) return { $in: '' }
+    }
+  }
+
+  return undefined
 }
 
 export const mongo_db_filter_to_enduser_condition = (filter?: FilterV2): Record<string, any> | undefined => {
@@ -165,6 +224,14 @@ export const mongo_db_filter_to_enduser_condition = (filter?: FilterV2): Record<
     const updated = { condition: { } as Record<string, any> }
 
     for (const [_key, value] of Object.entries(filter)) {
+      if (_key === 'programs' || _key === 'programs.name') {
+        const programsCondition = programs_filter_to_enduser_condition(_key, value)
+        if (programsCondition) {
+          updated.condition['Programs'] = programsCondition
+          continue
+        }
+      }
+
       const key = (
         (typeof _key === 'string' && _key.startsWith('fields.')) ? _key.replace('fields.', '')
       : _key === 'height.value' ? 'height'

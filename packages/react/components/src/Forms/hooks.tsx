@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { Session } from "@tellescope/sdk"
 import { ChangeHandler, FormFieldNode } from "./types"
 import { DatabaseRecord, Enduser, Form, FormField, FormResponse } from "@tellescope/types-client"
@@ -1725,10 +1725,25 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
   }, [activeField, validateField, uploadingFiles])
 
   const autoAdvanceRef = useRef(false)
+  // Holds the pending auto-advance timer. It lives outside the effect below (rather than in the
+  // effect's closure, cleared by its cleanup) so that a re-render during the 250ms wait neither
+  // cancels the advance nor schedules a second one.
+  const autoAdvanceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const cancelPendingAutoAdvance = useCallback(() => {
+    if (autoAdvanceTimeoutRef.current === null) return
+    clearTimeout(autoAdvanceTimeoutRef.current)
+    autoAdvanceTimeoutRef.current = null
+  }, [])
   // don't make option, to avoid user passing invalid data, like an onclick event
   const goToNextField = useCallback((answer: FormResponseValue['answer'] | undefined) => {
     if (!currentValue) return
     if (isNextDisabled() && currentValue?.answer.type !== 'Hidden Value') return
+
+    // We are leaving this question, so any auto-advance timer scheduled for it is stale. Drop it:
+    // left pending it would both fail its own fire-time check and, worse, make the pending-timer
+    // guard swallow the next question's auto-advance request. When the timer itself is what called
+    // us it has already cleared the ref, so this is a no-op.
+    cancelPendingAutoAdvance()
 
     lastNavigationDirectionRef.current = 'forward'
     console.log('going to next field')
@@ -1771,21 +1786,61 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
       
       return newField || activeField
     })
-  }, [prevFieldStackRef, currentValue, isNextDisabled, updateFormResponse, session, responses, logicOptions, accessCode, formResponseId, setActiveField, setCurrentPageIndex])
+  }, [prevFieldStackRef, currentValue, isNextDisabled, updateFormResponse, session, responses, logicOptions, accessCode, formResponseId, setActiveField, setCurrentPageIndex, cancelPendingAutoAdvance])
+
+  // The timer below calls whatever goToNextField is current when it fires, not the one captured when
+  // it was scheduled, so the advance sees the latest responses and re-checks isNextDisabled() at fire
+  // time. activeFieldId comes along so the timer can tell whether the form already moved on.
+  // useLayoutEffect, not useEffect: this runs inside the commit, so no timer can fire between a
+  // render that moved the form on and the ref catching up to it.
+  const latestAutoAdvanceRef = useRef({ goToNextField, activeFieldId: activeField?.value?.id })
+  useLayoutEffect(() => {
+    latestAutoAdvanceRef.current = { goToNextField, activeFieldId: activeField?.value?.id }
+  }, [goToNextField, activeField])
 
   useEffect(() => {
-    if (dontAutoadvance) return
+    if (dontAutoadvance) {
+      // a form that can't auto-advance must not fire a timer scheduled before the flag flipped
+      cancelPendingAutoAdvance()
+      autoAdvanceRef.current = false
+      return
+    }
     if (!autoAdvanceRef.current) return
+    // Consume the request before the guard below, never after it: leaving the flag set would schedule
+    // a fresh timer on the render that follows the pending one firing, skipping a question.
     autoAdvanceRef.current = false
 
-    // add slight delay so it's obvious which answer was selected before proceeding
-    const t = setTimeout(goToNextField, 250)
+    // An advance is already pending (a second answer on the same question inside the window, e.g. a
+    // changed radio choice or a double click). Keep the first timer and drop this request: two timers
+    // would advance twice.
+    if (autoAdvanceTimeoutRef.current !== null) return
 
-    return () => { 
-      console.log('clearing autoadvance timeout'); 
-      clearTimeout(t) 
-    }
-  }, [responses, goToNextField, dontAutoadvance])
+    const scheduledForFieldId = activeField?.value?.id
+
+    // add slight delay so it's obvious which answer was selected before proceeding
+    autoAdvanceTimeoutRef.current = setTimeout(() => {
+      autoAdvanceTimeoutRef.current = null
+
+      const { goToNextField: latestGoToNextField, activeFieldId } = latestAutoAdvanceRef.current
+      // The form already moved off the answered question while we waited; advancing now would skip a
+      // question. goToNextField/goToPreviousField cancel this timer themselves, so in practice this
+      // covers the one path that moves activeField without them: the startingFieldId
+      // "pick up where you left off" effect above, which calls setActiveField directly.
+      if (activeFieldId !== scheduledForFieldId) return
+
+      latestGoToNextField(undefined)
+    }, 250)
+
+    // Deliberately no cleanup that clears the timer. This effect re-runs on any change to responses,
+    // goToNextField (which itself changes with currentValue, isNextDisabled, logicOptions and
+    // formResponseId) or dontAutoadvance. Clearing the timer there and bailing out of the re-run
+    // (autoAdvanceRef having already been reset) silently dropped the advance whenever the form
+    // re-rendered inside the 250ms window -- which is exactly what a Stripe payment succeeding does.
+    // The pending timer is cancelled only when the form actually leaves the question it was
+    // scheduled for (goToNextField / goToPreviousField) and on unmount, by the effect below.
+  }, [responses, goToNextField, dontAutoadvance, cancelPendingAutoAdvance, activeField])
+
+  useEffect(() => cancelPendingAutoAdvance, [cancelPendingAutoAdvance])
 
   const isPreviousDisabled = useCallback(() => (
       prevFieldStackRef.current.length === 0 
@@ -1794,6 +1849,8 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
 
   const goToPreviousField = useCallback(() => {
     if (isPreviousDisabled()) return
+
+    cancelPendingAutoAdvance() // leaving this question: see goToNextField
 
     lastNavigationDirectionRef.current = 'backward'
     updateInclusion(false)
@@ -1804,7 +1861,7 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
       setActiveField(previous)
       setCurrentPageIndex(i => i - 1)
     }
-  }, [isPreviousDisabled, updateInclusion, prevFieldStackRef])
+  }, [isPreviousDisabled, updateInclusion, prevFieldStackRef, cancelPendingAutoAdvance])
 
   const onFieldChange: ChangeHandler<any> = useCallback((value: FormResponseValueAnswer['value'], fieldId: string, touched=true) => {
     const field = fields.find(f => f.id === fieldId)

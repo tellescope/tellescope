@@ -1325,6 +1325,29 @@ export var linkedAccountAccessEntryValidator = objectValidator({
     requestExpiresAt: dateValidator,
 });
 export var linkedAccountAccessValidator = listValidatorOptionalOrEmptyOk(linkedAccountAccessEntryValidator);
+// Quantity for one products/prepare-stripe-checkout line. Deliberately only "is a number": the
+// whole-number, at-least-1 and at-most-99 rules are all enforced in resolve_checkout_items /
+// validate_checkout_items (api/integrations/payments/stripe_line_items.ts) instead.
+//
+// Not a style choice - a validator here CANNOT reject quantity: 0. build_validator returns 0 early
+// for any isNumber field ("avoid falsey issues later") before the escape function runs, and every
+// number validator sets isNumber. Dropping isNumber instead would make 0 fail the generic
+// `!fieldValue` check with "missing value", which is wrong and unhelpful. Keeping all four quantity
+// rules in one place also keeps their messages consistent with each other.
+// The wide bounds are a sanity limit only - they are not the quantity rules. getExample is
+// overridden because numberValidatorBuilder examples with its lower bound, which would document
+// the quantity of a checkout line as -1000000.
+export var stripeCheckoutQuantityValidator = __assign(__assign({}, numberValidatorBuilder({ lower: -1000000, upper: 1000000 })), { getExample: function () { return 1; } });
+// The "exactly one of productId / stripePriceId / subscriptionPriceId" rule is NOT enforced here:
+// it is enforced in resolve_checkout_items alongside the other cart guards, so every rejection on
+// this endpoint carries a { code: 400, message } the caller can act on.
+export var stripeCheckoutItemValidator = objectValidator({
+    productId: mongoIdStringOptional,
+    stripePriceId: stringValidator100Optional,
+    subscriptionPriceId: stringValidator100Optional,
+    quantity: stripeCheckoutQuantityValidator,
+});
+export var listOfStripeCheckoutItemsValidatorOptional = listValidator(stripeCheckoutItemValidator, { isOptional: true });
 var DEFAULT_ENDUSER_FIELDS = [
     '_id', 'email', 'phone', 'fname', 'lname', 'journeys', 'tags', 'preference'
 ];
@@ -2295,6 +2318,7 @@ var _AUTOMATION_ACTIONS = {
     startAIConversation: '',
     assignInboxItem: '',
     createScriptSureDraft: '',
+    pushVITLPatient: '',
 };
 export var AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS);
 export var automationActionTypeValidator = exactMatchValidator(AUTOMATION_ACTIONS);
@@ -3017,6 +3041,7 @@ export var automationActionValidator = orValidator({
             matchMedicationTitle: stringValidatorOptional,
             matchEnduserState: booleanValidatorOptional,
         }, { emptyOk: false }) })),
+    pushVITLPatient: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['pushVITLPatient']), info: objectValidator({}, { emptyOk: true }) })),
     "Puppeteer: Start Agent": objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(["Puppeteer: Start Agent"]), info: sendWebhookInfoValidator })),
 });
 export var journeyContextValidator = objectValidator({
@@ -3051,9 +3076,25 @@ export var relatedRecordValidator = objectValidator({
 });
 export var listOfRelatedRecordsValidator = listValidatorEmptyOk(relatedRecordValidator);
 export var relatedRecordsValidatorOptional = listValidatorOptionalOrEmptyOk(relatedRecordValidator);
+export var minimumShouldMatchValidatorOptional = {
+    validate: function (o) {
+        if (o === void 0) { o = {}; }
+        o.isNumber = true;
+        return build_validator(function (value) {
+            var number = Number(value);
+            if (!Number.isInteger(number) || number < 0 || number > 100) {
+                throw new Error(o.errorMessage || "Expecting an integer from 0 to 100");
+            }
+            return number;
+        }, __assign(__assign({}, optionsWithDefaults(__assign({ isOptional: true }, o))), { listOf: false }));
+    },
+    getExample: function () { return 1; },
+    getType: getTypeNumber,
+};
 export var searchOptionsValidator = objectValidator({
     query: stringValidator100,
     minSearchScore: nonNegNumberValidatorOptional,
+    minimumShouldMatch: minimumShouldMatchValidatorOptional,
 });
 export var notificationPreferenceValidator = objectValidator({
     email: booleanValidatorOptional,
@@ -3381,6 +3422,8 @@ export var formFieldOptionsValidator = objectValidator({
     observationCode: stringValidatorOptionalEmptyOkay,
     observationDisplay: stringValidatorOptionalEmptyOkay,
     observationUnit: stringValidatorOptionalEmptyOkay,
+    // empty must round-trip, so clearing the Vitals chart unit select persists as "off"
+    vitalUnit: stringValidatorOptionalEmptyOkay,
     autoUploadFiles: booleanValidatorOptional,
     chargebeeEnvironment: stringValidatorOptional,
     chargebeeBusinessEntityId: stringValidatorOptional,
@@ -4095,6 +4138,7 @@ export var organizationSettingsValidator = objectValidator({
         sharedInboxReadStatus: booleanValidatorOptional,
         dontMarkReadForAssigned: booleanValidatorOptional,
         matchEmailAndNames: booleanValidatorOptional,
+        caseInsensitiveMatching: booleanValidatorOptional,
         hideNotesFromComposeForm: booleanValidatorOptional,
         showSalesforceId: booleanValidatorOptional,
         loopQueueCallSound: booleanValidatorOptional,
@@ -4102,6 +4146,7 @@ export var organizationSettingsValidator = objectValidator({
         showDiagnoses: booleanValidatorOptional,
         requireObservationInvalidationReason: booleanValidatorOptional,
         showDeviceOrders: booleanValidatorOptional,
+        showPrograms: booleanValidatorOptional,
         defaultHideFilesFromPortal: booleanValidatorOptional,
         hideUnorderedFullscriptMeds: booleanValidatorOptional,
         detailField: stringValidatorOptional,
@@ -4485,6 +4530,7 @@ export var automationTriggerEventValidator = orValidator({
             configurationIds: listOfMongoIdStringValidator,
             classifications: listOfStringsValidator,
             ignoreDelayedReadings: booleanValidatorOptional,
+            programs: listOfStringsValidatorOptionalOrEmptyOk,
         }),
         conditions: optionalEmptyObjectValidator,
     }),
@@ -4508,6 +4554,7 @@ export var automationTriggerEventValidator = orValidator({
             titlePartialsAnd: listOfStringsValidatorOptionalOrEmptyOk,
             protocols: listOfStringsValidatorOptionalOrEmptyOk,
             frequencies: listOfStringsValidatorOptionalOrEmptyOk,
+            programs: listOfStringsValidatorOptionalOrEmptyOk,
         }),
         conditions: optionalEmptyObjectValidator,
     }),
@@ -4662,8 +4709,20 @@ var _AUTOMATION_TRIGGER_ACTION_TYPES = {
     "Create User Notifications": true,
     "Assign to Incoming Message": true,
     "Zendesk: Update Ticket Assignee": true,
+    "Review Vital Reading": true,
 };
 export var AUTOMATION_TRIGGER_ACTION_TYPES = Object.keys(_AUTOMATION_TRIGGER_ACTION_TYPES);
+/**
+ * Actions that act on a record only certain events put into journeyContext, so they are meaningless
+ * (and silently do nothing) paired with any other event.
+ *
+ * Declared once here so the API constraint (schema.ts, automation_triggers.constraints.relationship)
+ * and the trigger editor's validate callback enforce and describe the same rule.
+ */
+export var AUTOMATION_TRIGGER_ACTION_EVENT_RESTRICTIONS = {
+    // needs journeyContext.observationId, which only the Vital Update event supplies
+    "Review Vital Reading": ['Vital Update'],
+};
 export var automationTriggerActionValidator = orValidator({
     "Add To Journey": objectValidator({
         type: exactMatchValidator(['Add To Journey']),
@@ -4791,6 +4850,10 @@ export var automationTriggerActionValidator = orValidator({
     "Zendesk: Update Ticket Assignee": objectValidator({
         type: exactMatchValidator(['Zendesk: Update Ticket Assignee']),
         info: objectValidator({}),
+    }),
+    "Review Vital Reading": objectValidator({
+        type: exactMatchValidator(['Review Vital Reading']),
+        info: optionalEmptyObjectValidator,
     }),
 });
 var _AUTOMATION_TRIGGER_STATUSES = {
@@ -5999,6 +6062,7 @@ export var phoneTreeActionValidator = orValidator({
                 input: stringValidator,
             })),
             playback: phonePlaybackValidatorOptional,
+            duration: numberValidatorOptional,
         }),
     }),
     "Add to Journey": objectValidator({
@@ -6277,6 +6341,24 @@ export var enduserDiagnosisValidator = objectValidator({
     references: relatedRecordsValidatorOptional,
     createdAt: dateValidatorOptional,
 });
+// program associations on a child record (observation, order, ...) — name only for now
+export var recordProgramsValidator = listValidatorOptionalOrEmptyOk(objectValidator({
+    name: stringValidator100,
+}));
+// the programs an organization offers, and the statuses each one allows. The registry the editors
+// select from; it does not constrain what an API client can store on a record.
+export var organizationProgramsValidator = listValidatorOptionalOrEmptyOk(objectValidator({
+    name: stringValidator100,
+    // 100 to match EnduserProgram.status: a longer configured status would be selectable in the drawer
+    // and then rejected by the enduser save
+    statuses: listValidatorOptionalOrEmptyOk(stringValidator100),
+}));
+// the enduser's own programs additionally map to the device ids that report for that program
+export var enduserProgramsValidator = listValidatorOptionalOrEmptyOk(objectValidator({
+    name: stringValidator100,
+    deviceIds: listOfStringsValidatorOptionalOrEmptyOk,
+    status: stringValidator100Optional,
+}));
 export var recentViewerValidator = objectValidator({
     id: stringValidator100,
     at: dateValidator,

@@ -167,6 +167,9 @@ export var METRIPORT_TITLE = "Metriport";
 export var PAUBOX_TITLE = "Paubox";
 export var BRIDGE_TITLE = "Bridge";
 export var MD_INTEGRATIONS_TITLE = "MD Integrations";
+// VITL eRx (vitl-app-automation). Deliberately spelled VITL, never "Vital" — VITAL_TITLE above is the
+// unrelated tryvital.io wearables/labs integration, and confusing the two would route PHI to the wrong vendor.
+export var VITL_TITLE = "VITL";
 // sentinel value for FormField.mdiImportantValues / mdiCriticalValues: when present in a list,
 // the MDI case question is flagged (important / is_critical) for any non-empty answer
 export var MDI_FLAG_ALL_ANSWERS = "*";
@@ -199,6 +202,7 @@ export var ORGANIZATION_WIDE_INTEGRATIONS = [
     SUPERDIAL_TITLE,
     PUPPETEER_TITLE,
     BELUGA_TITLE,
+    VITL_TITLE,
 ];
 export var ONE_MINUTE_IN_MS = 1000 * 60;
 export var ONE_HOUR_IN_MS = 60 * ONE_MINUTE_IN_MS; // 1hr
@@ -1193,10 +1197,17 @@ export var MAX_AI_SUMMARY_DATA_SOURCES = 25;
 // Per-record body cap for long-form sources (articles, message templates), so one long record
 // can't crowd out the rest of the context. Mirrors the 2000-char slice the emails formatter uses.
 export var MAX_AI_SUMMARY_RECORD_CHARS = 8000;
+// Cap on the chat rooms resolved for the `chats` data source, so a patient who belongs to an
+// unusual number of rooms can't turn one summary into an unbounded read (and a huge `$in`).
+export var MAX_AI_SUMMARY_CHAT_ROOMS = 100;
 export var DEFAULT_HISTORICAL_DATA_SOURCE_LIMIT = 100; // matches backend DEFAULT_LIMIT — non-breaking
 // Friendly names of Bedrock models customers may select (must match AI_MODEL_PRICING rows in the API)
-export var SELECTABLE_AI_MODELS = ['Claude Sonnet 5', 'Claude Opus 5', 'Claude Opus 4.8'];
-export var DEFAULT_AI_MODEL = 'Claude Sonnet 5';
+export var SELECTABLE_AI_MODELS = [
+    'Claude Sonnet 5.5', 'Claude Opus 5.5', 'Claude Sonnet 5', 'Claude Opus 5', 'Claude Opus 4.8',
+];
+// Moving this re-points every saved config that never chose a model (all four config editors persist
+// `undefined` when the selection equals the default) — stored values are deliberately NOT backfilled.
+export var DEFAULT_AI_MODEL = 'Claude Sonnet 5.5';
 export var EXAMPLE_AI_SUMMARY_PROMPT = "Summarize this patient's recent activity in 4-6 bullet points.\nFocus on changes since their last visit, current medications, recent symptoms or\ncomplaints, and any outstanding follow-ups. Keep clinical and concise.";
 // Shown in the Form Editor's response-summary block. The backend keeps its own fallback prompt
 // (DEFAULT_FORM_RESPONSE_SUMMARY_PROMPT) for configs saved without one.

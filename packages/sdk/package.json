@@ -1,6 +1,6 @@
 {
   "name": "@tellescope/sdk",
-  "version": "2.0.0-beta.1",
+  "version": "2.0.0-beta.2",
   "description": "Code for interacting with the Tellescope API",
   "main": "./lib/cjs/sdk.js",
   "module": "./lib/esm/sdk.js",
@@ -35,17 +35,18 @@
     "node": ">=22.12.0"
   },
   "dependencies": {
-    "@tellescope/constants": "2.0.0-beta.1",
-    "@tellescope/schema": "2.0.0-beta.1",
-    "@tellescope/testing": "2.0.0-beta.1",
-    "@tellescope/types-client": "2.0.0-beta.1",
-    "@tellescope/types-models": "2.0.0-beta.1",
-    "@tellescope/types-utilities": "2.0.0-beta.1",
-    "@tellescope/utilities": "2.0.0-beta.1",
-    "@tellescope/validation": "2.0.0-beta.1",
-    "axios": "0.33.0",
+    "@tellescope/constants": "2.0.0-beta.2",
+    "@tellescope/schema": "2.0.0-beta.2",
+    "@tellescope/testing": "2.0.0-beta.2",
+    "@tellescope/types-client": "2.0.0-beta.2",
+    "@tellescope/types-models": "2.0.0-beta.2",
+    "@tellescope/types-utilities": "2.0.0-beta.2",
+    "@tellescope/utilities": "2.0.0-beta.2",
+    "@tellescope/validation": "2.0.0-beta.2",
+    "axios": "0.34.0",
     "dotenv": "14.3.2",
     "form-data": "4.0.6",
+    "mongodb": "5.7.0",
     "source-map-support": "0.5.21"
   },
   "devDependencies": {

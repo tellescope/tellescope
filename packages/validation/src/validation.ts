@@ -311,6 +311,9 @@ import {
   ElationSyncAutomationAction,
   CanvasSyncAutomationAction,
   EnduserDiagnosis,
+  EnduserProgram,
+  RecordProgram,
+  OrganizationProgram,
   SendChatAutomationAction,
   FormResponseAnswerAllergies,
   AllergyResponse,
@@ -358,6 +361,7 @@ import {
   StartAIConversationActionInfo,
   AssignInboxItemAutomationAction,
   CreateScriptSureDraftAutomationAction,
+  PushVITLPatientAutomationAction,
   BelugaAutoRxAutomationAction,
   BelugaAutoRxPatientPreferenceItem,
   BelugaUpdateVisitAutomationAction,
@@ -374,6 +378,7 @@ import {
   AISummaryDataSource,
   AISummaryDataSourceConfig,
   LinkedAccountAccessEntry,
+  StripeCheckoutItem,
 } from "@tellescope/types-models"
 import {
   AppointmentBookingPage,
@@ -1797,6 +1802,34 @@ export const linkedAccountAccessEntryValidator = objectValidator<LinkedAccountAc
 })
 export const linkedAccountAccessValidator = listValidatorOptionalOrEmptyOk(linkedAccountAccessEntryValidator)
 
+// Quantity for one products/prepare-stripe-checkout line. Deliberately only "is a number": the
+// whole-number, at-least-1 and at-most-99 rules are all enforced in resolve_checkout_items /
+// validate_checkout_items (api/integrations/payments/stripe_line_items.ts) instead.
+//
+// Not a style choice - a validator here CANNOT reject quantity: 0. build_validator returns 0 early
+// for any isNumber field ("avoid falsey issues later") before the escape function runs, and every
+// number validator sets isNumber. Dropping isNumber instead would make 0 fail the generic
+// `!fieldValue` check with "missing value", which is wrong and unhelpful. Keeping all four quantity
+// rules in one place also keeps their messages consistent with each other.
+// The wide bounds are a sanity limit only - they are not the quantity rules. getExample is
+// overridden because numberValidatorBuilder examples with its lower bound, which would document
+// the quantity of a checkout line as -1000000.
+export const stripeCheckoutQuantityValidator: ValidatorDefinition<number> = {
+  ...numberValidatorBuilder({ lower: -1000000, upper: 1000000 }),
+  getExample: () => 1,
+}
+
+// The "exactly one of productId / stripePriceId / subscriptionPriceId" rule is NOT enforced here:
+// it is enforced in resolve_checkout_items alongside the other cart guards, so every rejection on
+// this endpoint carries a { code: 400, message } the caller can act on.
+export const stripeCheckoutItemValidator = objectValidator<StripeCheckoutItem>({
+  productId: mongoIdStringOptional,
+  stripePriceId: stringValidator100Optional,
+  subscriptionPriceId: stringValidator100Optional,
+  quantity: stripeCheckoutQuantityValidator,
+})
+export const listOfStripeCheckoutItemsValidatorOptional = listValidator(stripeCheckoutItemValidator, { isOptional: true })
+
 
 const DEFAULT_ENDUSER_FIELDS = [
   '_id', 'email', 'phone', 'fname', 'lname', 'journeys', 'tags', 'preference'
@@ -2864,6 +2897,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   startAIConversation: '',
   assignInboxItem: '',
   createScriptSureDraft: '',
+  pushVITLPatient: '',
 }
 export const AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS) as AutomationActionType[]
 export const automationActionTypeValidator = exactMatchValidator<AutomationActionType>(AUTOMATION_ACTIONS)
@@ -3924,6 +3958,12 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     }, { emptyOk: false }),
   }),
 
+  pushVITLPatient: objectValidator<PushVITLPatientAutomationAction>({
+    ...sharedAutomationActionValidators,
+    type: exactMatchValidator(['pushVITLPatient']),
+    info: objectValidator<PushVITLPatientAutomationAction['info']>({ }, { emptyOk: true }),
+  }),
+
 
   "Puppeteer: Start Agent": objectValidator<SendWebhookAutomationAction>({
     ...sharedAutomationActionValidators,
@@ -3966,9 +4006,28 @@ export const relatedRecordValidator = objectValidator<RelatedRecord>({
 export const listOfRelatedRecordsValidator = listValidatorEmptyOk(relatedRecordValidator)
 export const relatedRecordsValidatorOptional = listValidatorOptionalOrEmptyOk(relatedRecordValidator)
 
+export const minimumShouldMatchValidatorOptional: ValidatorDefinition<number> = {
+  validate: (o={}) => {
+    o.isNumber = true
+    return build_validator(
+      (value: any) => {
+        const number = Number(value)
+        if (!Number.isInteger(number) || number < 0 || number > 100) {
+          throw new Error(o.errorMessage || `Expecting an integer from 0 to 100`)
+        }
+        return number
+      },
+      { ...optionsWithDefaults({ isOptional: true, ...o }), listOf: false },
+    )
+  },
+  getExample: () => 1,
+  getType: getTypeNumber,
+}
+
 export const searchOptionsValidator = objectValidator<SearchOptions>({
   query: stringValidator100,
   minSearchScore: nonNegNumberValidatorOptional,
+  minimumShouldMatch: minimumShouldMatchValidatorOptional,
 })
 
 export const notificationPreferenceValidator = objectValidator<NotificationPreference>({
@@ -4329,6 +4388,8 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   observationCode: stringValidatorOptionalEmptyOkay,
   observationDisplay: stringValidatorOptionalEmptyOkay,
   observationUnit: stringValidatorOptionalEmptyOkay,
+  // empty must round-trip, so clearing the Vitals chart unit select persists as "off"
+  vitalUnit: stringValidatorOptionalEmptyOkay,
   autoUploadFiles: booleanValidatorOptional,
   chargebeeEnvironment: stringValidatorOptional,
   chargebeeBusinessEntityId: stringValidatorOptional,
@@ -5080,6 +5141,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     sharedInboxReadStatus: booleanValidatorOptional,
     dontMarkReadForAssigned: booleanValidatorOptional,
     matchEmailAndNames: booleanValidatorOptional,
+    caseInsensitiveMatching: booleanValidatorOptional,
     hideNotesFromComposeForm: booleanValidatorOptional,
     showSalesforceId: booleanValidatorOptional,
     loopQueueCallSound: booleanValidatorOptional,
@@ -5087,6 +5149,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     showDiagnoses: booleanValidatorOptional,
     requireObservationInvalidationReason: booleanValidatorOptional,
     showDeviceOrders: booleanValidatorOptional,
+    showPrograms: booleanValidatorOptional,
     defaultHideFilesFromPortal: booleanValidatorOptional,
     hideUnorderedFullscriptMeds: booleanValidatorOptional,
     detailField: stringValidatorOptional,
@@ -5479,6 +5542,7 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
       configurationIds: listOfMongoIdStringValidator,
       classifications: listOfStringsValidator,
       ignoreDelayedReadings: booleanValidatorOptional,
+      programs: listOfStringsValidatorOptionalOrEmptyOk,
     }),
     conditions: optionalEmptyObjectValidator,
   }), 
@@ -5502,6 +5566,7 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
       titlePartialsAnd: listOfStringsValidatorOptionalOrEmptyOk,
       protocols: listOfStringsValidatorOptionalOrEmptyOk,
       frequencies: listOfStringsValidatorOptionalOrEmptyOk,
+      programs: listOfStringsValidatorOptionalOrEmptyOk,
     }),
     conditions: optionalEmptyObjectValidator,
   }),
@@ -5657,8 +5722,23 @@ const _AUTOMATION_TRIGGER_ACTION_TYPES: { [K in AutomationTriggerActionType]: an
   "Create User Notifications": true,
   "Assign to Incoming Message": true,
   "Zendesk: Update Ticket Assignee": true,
+  "Review Vital Reading": true,
 }
 export const AUTOMATION_TRIGGER_ACTION_TYPES = Object.keys(_AUTOMATION_TRIGGER_ACTION_TYPES) as AutomationTriggerActionType[]
+
+/**
+ * Actions that act on a record only certain events put into journeyContext, so they are meaningless
+ * (and silently do nothing) paired with any other event.
+ *
+ * Declared once here so the API constraint (schema.ts, automation_triggers.constraints.relationship)
+ * and the trigger editor's validate callback enforce and describe the same rule.
+ */
+export const AUTOMATION_TRIGGER_ACTION_EVENT_RESTRICTIONS: {
+  [K in AutomationTriggerActionType]?: AutomationTriggerEventType[]
+} = {
+  // needs journeyContext.observationId, which only the Vital Update event supplies
+  "Review Vital Reading": ['Vital Update'],
+}
 
 export const automationTriggerActionValidator = orValidator<{ [K in AutomationTriggerActionType]: AutomationTriggerActions[K] } >({
   "Add To Journey": objectValidator<AutomationTriggerActions["Add To Journey"]>({
@@ -5788,6 +5868,10 @@ export const automationTriggerActionValidator = orValidator<{ [K in AutomationTr
     type: exactMatchValidator(['Zendesk: Update Ticket Assignee']),
     info: objectValidator<AutomationTriggerActions['Zendesk: Update Ticket Assignee']['info']>({
     }),
+  }),
+  "Review Vital Reading": objectValidator<AutomationTriggerActions["Review Vital Reading"]>({
+    type: exactMatchValidator(['Review Vital Reading']),
+    info: optionalEmptyObjectValidator,
   }),
 })
 
@@ -7114,6 +7198,7 @@ export const phoneTreeActionValidator = orValidator<{ [K in PhoneTreeActionType]
         input: stringValidator,
       })),
       playback: phonePlaybackValidatorOptional,
+      duration: numberValidatorOptional,
     }),
   }),
   "Add to Journey": objectValidator<PhoneTreeActions["Add to Journey"]>({
@@ -7417,6 +7502,31 @@ export const enduserDiagnosisValidator = objectValidator<EnduserDiagnosis>({
   references: relatedRecordsValidatorOptional,
   createdAt: dateValidatorOptional,
 })
+
+// program associations on a child record (observation, order, ...) — name only for now
+export const recordProgramsValidator = listValidatorOptionalOrEmptyOk(
+  objectValidator<RecordProgram>({
+    name: stringValidator100,
+  })
+)
+// the programs an organization offers, and the statuses each one allows. The registry the editors
+// select from; it does not constrain what an API client can store on a record.
+export const organizationProgramsValidator = listValidatorOptionalOrEmptyOk(
+  objectValidator<OrganizationProgram>({
+    name: stringValidator100,
+    // 100 to match EnduserProgram.status: a longer configured status would be selectable in the drawer
+    // and then rejected by the enduser save
+    statuses: listValidatorOptionalOrEmptyOk(stringValidator100),
+  })
+)
+// the enduser's own programs additionally map to the device ids that report for that program
+export const enduserProgramsValidator = listValidatorOptionalOrEmptyOk(
+  objectValidator<EnduserProgram>({
+    name: stringValidator100,
+    deviceIds: listOfStringsValidatorOptionalOrEmptyOk,
+    status: stringValidator100Optional,
+  })
+)
 
 export const recentViewerValidator = objectValidator<RecentViewer>({
   id: stringValidator100,

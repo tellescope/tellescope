@@ -55,7 +55,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 import { jsx as _jsx } from "react/jsx-runtime";
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { phoneValidator, is_valid_mm_dd_yyyy } from "@tellescope/validation";
 import { TIMEZONES } from "@tellescope/types-models";
 import { WithTheme, contact_is_valid, useAddGTMTag, useFileUpload, useFormFields, useFormResponses, useResolvedSession, value_is_loaded } from "../index";
@@ -577,9 +577,9 @@ var shouldCallout = function (field, value) {
     return false;
 };
 export var useTellescopeForm = function (_a) {
-    var _b, _c, _d, _e;
+    var _b, _c, _d, _e, _g;
     var dontAutoadvance = _a.dontAutoadvance, isPublicForm = _a.isPublicForm, form = _a.form, urlLogicValue = _a.urlLogicValue, customization = _a.customization, carePlanId = _a.carePlanId, calendarEventId = _a.calendarEventId, context = _a.context, ga4measurementId = _a.ga4measurementId, rootResponseId = _a.rootResponseId, parentResponseId = _a.parentResponseId, accessCode = _a.accessCode, existingResponses = _a.existingResponses, automationStepId = _a.automationStepId, enduserId = _a.enduserId, formResponseId = _a.formResponseId, fields = _a.fields, isInternalNote = _a.isInternalNote, formTitle = _a.formTitle, submitRedirectURL = _a.submitRedirectURL, enduser = _a.enduser, groupId = _a.groupId, groupInstance = _a.groupInstance, groupPosition = _a.groupPosition, startingFieldId = _a.startingFieldId, getEnduserAISummary = _a.getEnduserAISummary, viewedInLanguage = _a.viewedInLanguage, dynamicTranslations = _a.dynamicTranslations;
-    var _g = get_time_values(new Date()), amPm = _g.amPm, hoursAmPm = _g.hoursAmPm, minutes = _g.minutes;
+    var _h = get_time_values(new Date()), amPm = _h.amPm, hoursAmPm = _h.hoursAmPm, minutes = _h.minutes;
     var root = useTreeForFormFields(fields);
     if (!root) {
         console.error(fields);
@@ -589,20 +589,20 @@ export var useTellescopeForm = function (_a) {
     var session = useResolvedSession();
     var sessionType = session.type;
     var handleUpload = useFileUpload({ enduserId: session.type === 'enduser' ? session.userInfo.id : enduserId }).handleUpload;
-    var _h = useFormResponses({ dontFetch: true }), _j = _h[1], updateFormResponse = _j.updateElement, updateLocalFormResponse = _j.updateLocalElement;
-    var _k = useState(), customerId = _k[0], setCustomerId = _k[1];
-    var _l = useState(root), activeField = _l[0], setActiveField = _l[1];
-    var _m = useState(undefined), submittingStatus = _m[0], setSubmittingStatus = _m[1];
-    var _o = useState(''), submitErrorMessage = _o[0], setSubmitErrorMessage = _o[1];
-    var _p = useState(0), currentPageIndex = _p[0], setCurrentPageIndex = _p[1];
-    var _q = useState([]), uploadingFiles = _q[0], setUploadingFiles = _q[1];
+    var _j = useFormResponses({ dontFetch: true }), _k = _j[1], updateFormResponse = _k.updateElement, updateLocalFormResponse = _k.updateLocalElement;
+    var _l = useState(), customerId = _l[0], setCustomerId = _l[1];
+    var _m = useState(root), activeField = _m[0], setActiveField = _m[1];
+    var _o = useState(undefined), submittingStatus = _o[0], setSubmittingStatus = _o[1];
+    var _p = useState(''), submitErrorMessage = _p[0], setSubmitErrorMessage = _p[1];
+    var _q = useState(0), currentPageIndex = _q[0], setCurrentPageIndex = _q[1];
+    var _t = useState([]), uploadingFiles = _t[0], setUploadingFiles = _t[1];
     var prevFieldStackRef = useRef([]);
     var lastNavigationDirectionRef = useRef(null);
     // Auto-advance state for form continuation
-    var _t = useState(false), isAutoAdvancing = _t[0], setIsAutoAdvancing = _t[1];
+    var _u = useState(false), isAutoAdvancing = _u[0], setIsAutoAdvancing = _u[1];
     var autoAdvanceCompletedRef = useRef(false);
     var autoAdvanceStartTimeRef = useRef(null);
-    var _u = useState({}), repeats = _u[0], setRepeats = _u[1];
+    var _v = useState({}), repeats = _v[0], setRepeats = _v[1];
     var gaEventRef = useRef({});
     var gtmEventRef = useRef({});
     var fieldViewCacheRef = useRef({}); // fieldId -> timestamp
@@ -747,7 +747,7 @@ export var useTellescopeForm = function (_a) {
             field: f,
         };
     })); }, [fields, existingResponses, enduser, form]);
-    var _v = useState(initializeFields()), responses = _v[0], setResponses = _v[1];
+    var _w = useState(initializeFields()), responses = _w[0], setResponses = _w[1];
     useEffect(function () {
         // Be very careful about refreshing data to avoid losing progress -- only in the case the selected form has changed
         if (fieldInitRef.current === formId)
@@ -789,7 +789,7 @@ export var useTellescopeForm = function (_a) {
         externalId: f.externalId,
         blob: undefined,
     }); })); }, [fields]);
-    var _w = useState(initializeFiles()), selectedFiles = _w[0], setSelectedFiles = _w[1];
+    var _x = useState(initializeFiles()), selectedFiles = _x[0], setSelectedFiles = _x[1];
     useEffect(function () {
         // Be very careful about refreshing data to avoid losing progress -- only in the case the selected form has changed
         if (fileInitRef.current === formId)
@@ -820,8 +820,8 @@ export var useTellescopeForm = function (_a) {
                 return "continue";
             activeResponses.push(match);
         };
-        for (var _x = 0, _y = ((_c = r.answer.value) !== null && _c !== void 0 ? _c : []); _x < _y.length; _x++) {
-            var f = _y[_x];
+        for (var _y = 0, _z = ((_c = r.answer.value) !== null && _c !== void 0 ? _c : []); _y < _z.length; _y++) {
+            var f = _z[_y];
             _loop_7(f);
         }
     }
@@ -1594,6 +1594,16 @@ export var useTellescopeForm = function (_a) {
         return false;
     }, [activeField, validateField, uploadingFiles]);
     var autoAdvanceRef = useRef(false);
+    // Holds the pending auto-advance timer. It lives outside the effect below (rather than in the
+    // effect's closure, cleared by its cleanup) so that a re-render during the 250ms wait neither
+    // cancels the advance nor schedules a second one.
+    var autoAdvanceTimeoutRef = useRef(null);
+    var cancelPendingAutoAdvance = useCallback(function () {
+        if (autoAdvanceTimeoutRef.current === null)
+            return;
+        clearTimeout(autoAdvanceTimeoutRef.current);
+        autoAdvanceTimeoutRef.current = null;
+    }, []);
     // don't make option, to avoid user passing invalid data, like an onclick event
     var goToNextField = useCallback(function (answer) {
         var _a, _b, _c;
@@ -1601,6 +1611,11 @@ export var useTellescopeForm = function (_a) {
             return;
         if (isNextDisabled() && (currentValue === null || currentValue === void 0 ? void 0 : currentValue.answer.type) !== 'Hidden Value')
             return;
+        // We are leaving this question, so any auto-advance timer scheduled for it is stale. Drop it:
+        // left pending it would both fail its own fire-time check and, worse, make the pending-timer
+        // guard swallow the next question's auto-advance request. When the timer itself is what called
+        // us it has already cleared the ref, so this is a no-op.
+        cancelPendingAutoAdvance();
         lastNavigationDirectionRef.current = 'forward';
         console.log('going to next field');
         if (currentValue.answer.type === 'Question Group') {
@@ -1640,28 +1655,66 @@ export var useTellescopeForm = function (_a) {
             }
             return newField || activeField;
         });
-    }, [prevFieldStackRef, currentValue, isNextDisabled, updateFormResponse, session, responses, logicOptions, accessCode, formResponseId, setActiveField, setCurrentPageIndex]);
+    }, [prevFieldStackRef, currentValue, isNextDisabled, updateFormResponse, session, responses, logicOptions, accessCode, formResponseId, setActiveField, setCurrentPageIndex, cancelPendingAutoAdvance]);
+    // The timer below calls whatever goToNextField is current when it fires, not the one captured when
+    // it was scheduled, so the advance sees the latest responses and re-checks isNextDisabled() at fire
+    // time. activeFieldId comes along so the timer can tell whether the form already moved on.
+    // useLayoutEffect, not useEffect: this runs inside the commit, so no timer can fire between a
+    // render that moved the form on and the ref catching up to it.
+    var latestAutoAdvanceRef = useRef({ goToNextField: goToNextField, activeFieldId: (_d = activeField === null || activeField === void 0 ? void 0 : activeField.value) === null || _d === void 0 ? void 0 : _d.id });
+    useLayoutEffect(function () {
+        var _a;
+        latestAutoAdvanceRef.current = { goToNextField: goToNextField, activeFieldId: (_a = activeField === null || activeField === void 0 ? void 0 : activeField.value) === null || _a === void 0 ? void 0 : _a.id };
+    }, [goToNextField, activeField]);
     useEffect(function () {
-        if (dontAutoadvance)
+        var _a;
+        if (dontAutoadvance) {
+            // a form that can't auto-advance must not fire a timer scheduled before the flag flipped
+            cancelPendingAutoAdvance();
+            autoAdvanceRef.current = false;
             return;
+        }
         if (!autoAdvanceRef.current)
             return;
+        // Consume the request before the guard below, never after it: leaving the flag set would schedule
+        // a fresh timer on the render that follows the pending one firing, skipping a question.
         autoAdvanceRef.current = false;
+        // An advance is already pending (a second answer on the same question inside the window, e.g. a
+        // changed radio choice or a double click). Keep the first timer and drop this request: two timers
+        // would advance twice.
+        if (autoAdvanceTimeoutRef.current !== null)
+            return;
+        var scheduledForFieldId = (_a = activeField === null || activeField === void 0 ? void 0 : activeField.value) === null || _a === void 0 ? void 0 : _a.id;
         // add slight delay so it's obvious which answer was selected before proceeding
-        var t = setTimeout(goToNextField, 250);
-        return function () {
-            console.log('clearing autoadvance timeout');
-            clearTimeout(t);
-        };
-    }, [responses, goToNextField, dontAutoadvance]);
+        autoAdvanceTimeoutRef.current = setTimeout(function () {
+            autoAdvanceTimeoutRef.current = null;
+            var _a = latestAutoAdvanceRef.current, latestGoToNextField = _a.goToNextField, activeFieldId = _a.activeFieldId;
+            // The form already moved off the answered question while we waited; advancing now would skip a
+            // question. goToNextField/goToPreviousField cancel this timer themselves, so in practice this
+            // covers the one path that moves activeField without them: the startingFieldId
+            // "pick up where you left off" effect above, which calls setActiveField directly.
+            if (activeFieldId !== scheduledForFieldId)
+                return;
+            latestGoToNextField(undefined);
+        }, 250);
+        // Deliberately no cleanup that clears the timer. This effect re-runs on any change to responses,
+        // goToNextField (which itself changes with currentValue, isNextDisabled, logicOptions and
+        // formResponseId) or dontAutoadvance. Clearing the timer there and bailing out of the re-run
+        // (autoAdvanceRef having already been reset) silently dropped the advance whenever the form
+        // re-rendered inside the 250ms window -- which is exactly what a Stripe payment succeeding does.
+        // The pending timer is cancelled only when the form actually leaves the question it was
+        // scheduled for (goToNextField / goToPreviousField) and on unmount, by the effect below.
+    }, [responses, goToNextField, dontAutoadvance, cancelPendingAutoAdvance, activeField]);
+    useEffect(function () { return cancelPendingAutoAdvance; }, [cancelPendingAutoAdvance]);
     var isPreviousDisabled = useCallback(function () {
         var _a, _b;
         return (prevFieldStackRef.current.length === 0
             || ((_b = (_a = activeField === null || activeField === void 0 ? void 0 : activeField.value) === null || _a === void 0 ? void 0 : _a.options) === null || _b === void 0 ? void 0 : _b.disableGoBack) === true);
-    }, [prevFieldStackRef, (_e = (_d = activeField === null || activeField === void 0 ? void 0 : activeField.value) === null || _d === void 0 ? void 0 : _d.options) === null || _e === void 0 ? void 0 : _e.disableGoBack]);
+    }, [prevFieldStackRef, (_g = (_e = activeField === null || activeField === void 0 ? void 0 : activeField.value) === null || _e === void 0 ? void 0 : _e.options) === null || _g === void 0 ? void 0 : _g.disableGoBack]);
     var goToPreviousField = useCallback(function () {
         if (isPreviousDisabled())
             return;
+        cancelPendingAutoAdvance(); // leaving this question: see goToNextField
         lastNavigationDirectionRef.current = 'backward';
         updateInclusion(false);
         var previous = prevFieldStackRef.current.pop();
@@ -1673,7 +1726,7 @@ export var useTellescopeForm = function (_a) {
             setActiveField(previous);
             setCurrentPageIndex(function (i) { return i - 1; });
         }
-    }, [isPreviousDisabled, updateInclusion, prevFieldStackRef]);
+    }, [isPreviousDisabled, updateInclusion, prevFieldStackRef, cancelPendingAutoAdvance]);
     var onFieldChange = useCallback(function (value, fieldId, touched) {
         var _a;
         if (touched === void 0) { touched = true; }

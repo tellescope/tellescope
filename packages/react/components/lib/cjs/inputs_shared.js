@@ -136,6 +136,31 @@ var enduser_condition_to_mongodb_filter = function (condition, customFields) {
                     return _b = {}, _b["journeys.".concat(value.$nin)] = { $exists: false }, _b;
                 }
             }
+            // programs have a special ui/syntax in filter, like journeys: one key carrying a program name and
+            // (optionally) the status that same program must be in. $elemMatch is what binds the two to a
+            // single entry — a 'programs.name' + 'programs.status' pair would also match a patient whose name
+            // matched one program and whose status matched a different one.
+            if (key === 'Programs') {
+                var v = value;
+                var inName = typeof (v === null || v === void 0 ? void 0 : v.$in) === 'string' ? v.$in : undefined;
+                var ninName = typeof (v === null || v === void 0 ? void 0 : v.$nin) === 'string' ? v.$nin : undefined;
+                var name_1 = inName !== undefined ? inName : ninName;
+                var status_1 = (typeof (v === null || v === void 0 ? void 0 : v.$status) === 'string' && v.$status) ? v.$status : undefined;
+                if (name_1 !== undefined) {
+                    // a blank name is an unconfigured condition: match nobody in either direction, which is what
+                    // evaluate_conditional_logic_for_enduser_fields does for the same value
+                    if (!name_1)
+                        return { 'programs.name': { $in: [] } };
+                    if (inName !== undefined) {
+                        return status_1
+                            ? { programs: { $elemMatch: { name: name_1, status: status_1 } } }
+                            : { 'programs.name': name_1 };
+                    }
+                    return status_1
+                        ? { programs: { $not: { $elemMatch: { name: name_1, status: status_1 } } } }
+                        : { 'programs.name': { $ne: name_1 } };
+                }
+            }
             if (key === 'Healthie ID') {
                 // $setSet ($nin null, '')
                 if (value === null || value === void 0 ? void 0 : value.$nin)
@@ -188,6 +213,39 @@ var enduser_condition_to_mongodb_filter = function (condition, customFields) {
     return condition;
 };
 exports.enduser_condition_to_mongodb_filter = enduser_condition_to_mongodb_filter;
+/**
+ * Inverse of the `Programs` case in enduser_condition_to_mongodb_filter. Returns the builder-side value
+ * for a stored programs filter, or undefined when this is not one. Skipping this fails silently: a saved
+ * filter keeps querying correctly but renders blank the next time the condition builder is opened.
+ */
+var programs_filter_to_enduser_condition = function (key, value) {
+    var _a;
+    var from_elem_match = function (operator, match) {
+        var _a;
+        if (!match || typeof match !== 'object' || typeof match.name !== 'string')
+            return undefined;
+        return __assign((_a = {}, _a[operator] = match.name, _a), ((typeof match.status === 'string' && match.status) ? { $status: match.status } : {}));
+    };
+    if (key === 'programs' && value && typeof value === 'object') {
+        if (value.$elemMatch)
+            return from_elem_match('$in', value.$elemMatch);
+        if ((_a = value.$not) === null || _a === void 0 ? void 0 : _a.$elemMatch)
+            return from_elem_match('$nin', value.$not.$elemMatch);
+        return undefined;
+    }
+    if (key === 'programs.name') {
+        if (typeof value === 'string')
+            return { $in: value };
+        if (value && typeof value === 'object') {
+            if (typeof value.$ne === 'string')
+                return { $nin: value.$ne };
+            // the match-nothing filter a blank (unconfigured) program name serialises to
+            if (Array.isArray(value.$in) && value.$in.length === 0)
+                return { $in: '' };
+        }
+    }
+    return undefined;
+};
 var mongo_db_filter_to_enduser_condition = function (filter) {
     var _a;
     var _b, _c;
@@ -246,6 +304,13 @@ var mongo_db_filter_to_enduser_condition = function (filter) {
         var updated = { condition: {} };
         for (var _i = 0, _d = Object.entries(filter); _i < _d.length; _i++) {
             var _e = _d[_i], _key = _e[0], value = _e[1];
+            if (_key === 'programs' || _key === 'programs.name') {
+                var programsCondition = programs_filter_to_enduser_condition(_key, value);
+                if (programsCondition) {
+                    updated.condition['Programs'] = programsCondition;
+                    continue;
+                }
+            }
             var key = ((typeof _key === 'string' && _key.startsWith('fields.')) ? _key.replace('fields.', '')
                 : _key === 'height.value' ? 'height'
                     : _key === 'weight.value' ? 'weight'

@@ -35,7 +35,7 @@ export declare const StringInput: ({ field, value, form, onChange, ...props }: F
 export declare const StringLongInput: ({ field, value, onChange, form, ...props }: FormInputProps<'string'>) => JSX.Element;
 export declare const PhoneInput: ({ field, value, onChange, form, ...props }: FormInputProps<'phone'>) => JSX.Element;
 export declare const EmailInput: ({ field, value, onChange, form, ...props }: FormInputProps<'email'>) => JSX.Element;
-export declare const NumberInput: ({ field, value, onChange, form, ...props }: FormInputProps<'number'>) => JSX.Element;
+export declare const NumberInput: ({ field, value, onChange, form, isSinglePage, autoFocus, ...props }: FormInputProps<'number'>) => JSX.Element;
 export declare const InsuranceInput: ({ field, onDatabaseSelect, value, onChange, form, responses, enduser, inputProps, ...props }: FormInputProps<"Insurance"> & {
     inputProps?: {
         sx: SxProps;
@@ -64,7 +64,7 @@ export declare const TimeInput: ({ field, value, onChange, ...props }: FormInput
 export declare const TimezoneInput: ({ value, field, onChange, ...props }: FormInputProps<'Timezone'>) => JSX.Element;
 export declare const AddressInput: ({ field, form, value, onChange, ...props }: FormInputProps<'Address'>) => JSX.Element;
 export declare const ESignatureTerms: () => JSX.Element;
-export declare const SignatureInput: ({ value, field, autoFocus, enduser, onChange, form }: FormInputProps<'signature'>) => JSX.Element;
+export declare const SignatureInput: ({ value, field, autoFocus, isSinglePage, enduser, onChange, form }: FormInputProps<'signature'>) => JSX.Element;
 export declare function convertHEIC(file: FileBlob | string): Promise<string>;
 export declare const ExistingFilePicker: ({ enduserId, excludedSecureNames, validFileTypes, onSelect, form, label }: {
     enduserId?: string | undefined;

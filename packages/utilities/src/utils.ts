@@ -1007,26 +1007,6 @@ export const getApiURL = () => (
       ? (localApiURL || TEST_API_URL) // a slot's API when the app set it; the default local API otherwise
       : PROD_API_URL
 )
-export const getGoogleClientId = () => {
-  const api = getApiURL()
-  return (
-    api === PROD_API_URL 
-      ? "526353775713-puib79782ac254evqj2fs0sb7acsij65.apps.googleusercontent.com"
-  : api === STAGING_API_URL 
-      ? '826276796073-6rcrqp4duqatbhn8k71saopenqc2fb0i.apps.googleusercontent.com'
-      : '842986734352-2c73i6iq2aoau3dj1jvqtmufn2j9g0dm.apps.googleusercontent.com'
-  )
-}
-export const getGoogleClientAPIKey = () => {
-  const api = getApiURL()
-  return (
-    api === PROD_API_URL 
-      ? 'AIzaSyCYCWiLkYifffepu5L-p1x4yUExf5aWpuA'
-  : api === STAGING_API_URL 
-      ? "AIzaSyDUCT6r5qQx8yniMuP-Y9Ni08THoLQtG6M" 
-      : "AIzaSyBW9D0mg3ISvNQcSB0Z_PwHNuD0OhFdMKg"
-  )
-}
 
 const PUBLIC_ASSET_BUCKET = "tellescope-public-files"
 export const getBuiltInPublicFileName = ({ name, organizationIds } : { name: 'logo' | 'favicon', organizationIds?: string[] }) => (
@@ -1665,6 +1645,40 @@ export const evaluate_conditional_logic_for_enduser_fields = (enduser: Omit<Endu
           }
 
           return false
+        })()
+      // Programs is a derived key over the Enduser.programs list: "has a program named N, and — when a
+      // status is given — that same program's status is S". Operators are read BY NAME rather than via
+      // the generic `Object.keys(value)[0]` dispatch below, because $status can be serialised before
+      // $in/$nin and that dispatch would then pick $status as the operator and fall through to false.
+      // All comparison is exact string, matching the shipped Order Status Equals / Vital Update filters.
+      // Narrowed to the two operators this key actually uses, so any other object-valued condition under
+      // a key named 'Programs' (a custom field an organization happens to have named that) falls through
+      // to the generic handler below — which is also what the V2 translator does, keeping the two engines
+      // in agreement.
+      : (
+          key === 'Programs' && typeof value === 'object' && value !== null
+          && (typeof (value as Record<string, any>)['$in'] === 'string'
+           || typeof (value as Record<string, any>)['$nin'] === 'string')
+        )
+        ? (() => {
+          const inName = (value as Record<string, any>)['$in']
+          const isNegated = typeof inName !== 'string'
+          const name = isNegated ? (value as Record<string, any>)['$nin'] : inName
+
+          // A blank name is an unconfigured condition and matches nobody in BOTH directions. Note this is
+          // a deliberate DIVERGENCE from Journeys, not a copy of it: `{ Journeys: { $nin: '' } }` matches
+          // everybody, because the blank id is simply absent from enduser.journeys. Failing open on $nin
+          // would fire a trigger for every patient in the organization, so Programs fails closed instead.
+          if (!name) return false
+
+          const status = (value as Record<string, any>)['$status']
+          const matchStatus = typeof status === 'string' && status ? status : undefined
+          const hasProgram = !!enduser.programs?.find(p => (
+            p?.name === name
+            && (!matchStatus || p?.status === matchStatus)
+          ))
+
+          return isNegated ? !hasProgram : hasProgram
         })()
       : typeof value === 'object'
         ? (() => {
@@ -2826,6 +2840,107 @@ export const validate_enduser_for_script_sure = (enduser?: Omit<Enduser, 'id'> |
   if (!enduser.phone) return "Phone is required"
 }
 
+/**
+ * VITL rejects a request as a whole when any required field is missing or malformed, and saves nothing.
+ * So every required field is checked here BEFORE the request is built, and every problem is reported at
+ * once — a caller who is missing three fields should not have to push three times to discover that.
+ *
+ * Returns undefined when the enduser is pushable, otherwise a message naming the offending fields.
+ * Shared by the webapp (to disable the push button and explain why) and the API (the authoritative check).
+ */
+const VITL_EMAIL_REGEX = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/
+
+export const validate_enduser_for_vitl = (enduser?: Omit<Enduser, 'id'> | null) => {
+  if (!enduser) return "Enduser is required"
+
+  const missing: string[] = []
+  if (!enduser.fname?.trim())           missing.push("First Name")
+  if (!enduser.lname?.trim())           missing.push("Last Name")
+  if (!enduser.email?.trim())           missing.push("Email")
+  if (!enduser.phone?.trim())           missing.push("Phone")
+  if (!enduser.addressLineOne?.trim())  missing.push("Address (Line One)")
+  if (!enduser.city?.trim())            missing.push("City")
+  if (!enduser.state?.trim())           missing.push("State")
+  if (!enduser.zipCode?.trim())         missing.push("ZIP")
+  if (!enduser.dateOfBirth?.trim())     missing.push("Date of Birth")
+
+  if (missing.length) {
+    return `VITL requires the following, which ${missing.length === 1 ? 'is' : 'are'} missing for this patient: ${missing.join(', ')}`
+  }
+
+  // VITL requires a VALID email and rejects the whole request otherwise, so a present-but-malformed
+  // address would produce exactly the confusing all-or-nothing vendor rejection this check exists to
+  // prevent. Deliberately a shape check, not RFC 5322 — it only has to catch what VITL would reject.
+  if (!VITL_EMAIL_REGEX.test((enduser.email as string).trim())) {
+    return `Email must be a valid email address to push to VITL (got "${enduser.email}")`
+  }
+
+  // zipCode is free-form in our model (stringValidator25000EmptyOkay), so a record may hold "12345-6789".
+  // VITL wants the 5-digit zip, and zipPlusFour is never appended, so require five digits to be derivable.
+  if (!vitl_zipcode(enduser.zipCode)) {
+    return `ZIP must contain a 5-digit zip code to push to VITL (got "${enduser.zipCode}")`
+  }
+
+  // Our stored format is MM-DD-YYYY; VITL accepts only YYYY-MM-DD or MM/DD/YYYY. Sending an
+  // unparseable value is a guaranteed rejection, so treat it as a pre-flight failure instead.
+  if (!vitl_date_of_birth(enduser.dateOfBirth as string)) {
+    return `Date of Birth must be a real date in MM-DD-YYYY format to push to VITL (got "${enduser.dateOfBirth}")`
+  }
+}
+
+/**
+ * The 5-digit zip VITL expects, taken from our free-form zipCode.
+ *
+ * "12345-6789" and "12345 6789" both yield "12345"; zipPlusFour is never appended, per the vendor
+ * contract. Returns undefined when five leading digits cannot be found, which is a pre-flight failure.
+ */
+export const vitl_zipcode = (zipCode?: string) => {
+  const trimmed = (zipCode ?? '').trim()
+
+  // "12345-6789" / "12345 6789" — a separator, then anything.
+  const separated = /^(\d{5})[^\d].*$/.exec(trimmed)
+  if (separated) return separated[1]
+
+  // "12345" or a run-together "123456789". Exactly 5 or exactly 9 digits, so a 6- or 7-digit value is
+  // still refused rather than silently truncated to something that is not this patient's zip.
+  const digitsOnly = /^(\d{5})(?:\d{4})?$/.exec(trimmed)
+  return digitsOnly ? digitsOnly[1] : undefined
+}
+
+/**
+ * MM-DD-YYYY (our stored format) -> YYYY-MM-DD (a format VITL accepts).
+ * Returns undefined — never a partially-converted string — when the input is not a real calendar date,
+ * so callers cannot accidentally forward "undefined-undefined-garbage" to the vendor.
+ */
+export const vitl_date_of_birth = (dateOfBirth?: string) => {
+  const match = /^(\d{2})-(\d{2})-(\d{4})$/.exec((dateOfBirth ?? '').trim())
+  if (!match) return undefined
+
+  const [, mm, dd, yyyy] = match
+  const [month, day, year] = [parseInt(mm, 10), parseInt(dd, 10), parseInt(yyyy, 10)]
+
+  // Date.UTC rolls invalid days over (Feb 30 -> Mar 2), so compare the parts back to reject them.
+  const asDate = new Date(Date.UTC(year, month - 1, day))
+  if (
+    asDate.getUTCFullYear() !== year
+    || asDate.getUTCMonth() !== month - 1
+    || asDate.getUTCDate() !== day
+  ) return undefined
+
+  return `${yyyy}-${mm}-${dd}`
+}
+
+/**
+ * VITL accepts only Male/Female and rejects the whole request on anything else. TellescopeGender also
+ * has Other/Unknown, so map only what maps cleanly and return undefined otherwise — the caller omits
+ * the field, which VITL stores as Unknown.
+ */
+export const vitl_gender = (gender?: string) => (
+  gender === 'Male' ? 'Male'
+  : gender === 'Female' ? 'Female'
+  : undefined
+)
+
 export const validate_enduser_for_develop_health = (enduser?: Omit<Enduser, 'id'> | null, insuranceType?: string) => {
   if (!enduser) return "Enduser is required"
   
@@ -3248,6 +3363,7 @@ export const replace_order_template_values = (s: string, order?: Omit<EnduserOrd
         : match === '{{order.pharmacyOrderId}}' ? (order.pharmacyOrderId || '')
         : match === '{{order.fill}}' ? (order.fill || '')
         : match === '{{order.sku}}' ? (order.sku || '')
+        : match === '{{order.bookingLink}}' ? (order.bookingLink || '')
         : match === '{{order.frequency}}' ? (order.frequency || '')
         : match === '{{order.medication}}' ? (order.medication || '')
         : match === '{{order.medicationSku}}' ? (order.medicationSku || '')
@@ -3923,6 +4039,109 @@ export const replace_form_response_template_values = (s: string, formResponse?: 
 }
 
 /**
+ * The attendeeStatuses values that RESOLVE an appointment for the purposes of
+ * preventBookingWhenUpcomingExists: a patient marked with any of these is free to rebook.
+ * Note the exact spelling of 'No-showed' — it is not 'NoShow'.
+ */
+export const BOOKING_RESOLVED_ATTENDEE_STATUSES = ['Cancelled', 'No-showed', 'Rescheduled'] as const
+
+/** Minimum shape of a calendar event needed to evaluate an upcoming-duplicate conflict. */
+export type UpcomingDuplicateCandidateEvent = {
+  id?: string,
+  startTimeInMS: number,
+  templateId?: string,
+  attendees: { id: string }[],
+  // event-level timestamps are typed `Date | ''` on CalendarEvent — test falsiness, not absence
+  cancelledAt?: Date | '' | null,
+  noShowedAt?: Date | '' | null,
+  rescheduledAt?: Date | '' | null,
+  attendeeStatuses?: { id: string, status: string }[],
+  cancelledGroupAttendees?: { id: string }[],
+  wasSelfScheduled?: boolean,
+}
+
+/**
+ * Finds an enduser's unresolved upcoming event for a given template — the conflict that the
+ * template's `preventBookingWhenUpcomingExists` setting refuses a new booking on.
+ *
+ * Pure: the caller supplies the candidate events (the backend from a scoped mongo query, the
+ * webapp staff warning from an on-demand fetch), so the same rule decides in both places.
+ *
+ * An event conflicts when ALL of the following hold:
+ *  - it is for the same template
+ *  - it starts in the future (`nowInMS`); past appointments never block, resolved or not
+ *  - it is not the event being rescheduled away (`excludeEventId`), so reschedules still work
+ *  - it is not the slot currently being booked (`excludeSlot`) — a retry or a reconnected voice
+ *    session re-issuing a book that already succeeded is the SAME appointment, not a second one.
+ *    Only self-scheduled candidates are excused this way, because the atomic same-slot upsert we
+ *    defer to matches on `wasSelfScheduled: true`: a staff-created or EHR-synced event at the same
+ *    instant would be excused here but NOT caught there, which would let a second event through.
+ *  - it carries no event-level cancelledAt / noShowedAt / rescheduledAt
+ *  - THIS enduser is not cancelled/no-showed/rescheduled on it. An explicit attendeeStatuses entry
+ *    is authoritative; only in its absence does the legacy cancelledGroupAttendees mirror count.
+ *    That precedence is deliberately identical to enduser_ids_for_event_wide_completion in
+ *    api/v1/event_handlers_v2/calendar.ts — Healthie and the portal cancel a group attendee by
+ *    writing ONLY cancelledGroupAttendees, leaving the patient in attendees, so ignoring it would
+ *    block that patient from ever rebooking.
+ *  - this enduser's id appears ANYWHERE in attendees (not merely as the first enduser attendee,
+ *    which is the convention elsewhere but is rarely the patient on a group event)
+ *
+ * Events on hold (holdUntil) are deliberately NOT excluded: an abandoned hold blocks rebooking
+ * until it expires.
+ *
+ * @returns the first conflicting event, or undefined when booking is allowed
+ */
+export const find_conflicting_upcoming_event = <T extends UpcomingDuplicateCandidateEvent>({
+  events,
+  enduserId,
+  templateId,
+  nowInMS,
+  excludeEventId,
+  excludeSlot,
+}: {
+  events: T[],
+  enduserId: string,
+  templateId: string,
+  nowInMS: number,
+  excludeEventId?: string,
+  excludeSlot?: { startTimeInMS: number, hostUserId: string },
+}): T | undefined => {
+  if (!enduserId || !templateId) return undefined
+
+  return events.find(e => {
+    if ((e.templateId ?? '') !== templateId) return false
+    if (e.startTimeInMS <= nowInMS) return false
+    if (excludeEventId && e.id === excludeEventId) return false
+
+    // The slot being booked right now, with the same host: this is a retry of THIS booking, and the
+    // atomic same-slot upsert downstream is the authority on whether it is available. Matched on
+    // host as well as time so that a genuine second appointment at the same moment with a DIFFERENT
+    // provider still conflicts, and on wasSelfScheduled so we only defer to the upsert for events
+    // the upsert can actually match.
+    if (
+      excludeSlot
+      && e.wasSelfScheduled
+      && e.startTimeInMS === excludeSlot.startTimeInMS
+      && e.attendees?.some(a => a.id === excludeSlot.hostUserId)
+    ) return false
+
+    if (e.cancelledAt || e.noShowedAt || e.rescheduledAt) return false
+
+    if (!e.attendees?.some(a => a.id === enduserId)) return false
+
+    const status = e.attendeeStatuses?.find(s => s.id === enduserId)?.status
+    if (status) {
+      // an explicit per-attendee status is authoritative
+      if ((BOOKING_RESOLVED_ATTENDEE_STATUSES as readonly string[]).includes(status)) return false
+    } else if (e.cancelledGroupAttendees?.some(c => c.id === enduserId)) {
+      return false // legacy mirror, written by Healthie / the portal with no attendeeStatuses entry
+    }
+
+    return true
+  })
+}
+
+/**
  * Checks if a potential availability slot violates any calendar event limits.
  *
  * @returns true if the slot should be EXCLUDED (violates a limit), false if allowed
@@ -4059,6 +4278,7 @@ export const validate_custom_field_references = (
     'Age',
     'BMI',
     'Journeys',
+    'Programs',
     'Tags', // capitalized version
     'tags', // lowercase version used in actual conditions
     'Healthie ID',
