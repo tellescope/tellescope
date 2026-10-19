@@ -954,8 +954,14 @@ export const sanitize_user_html_with_iframes = (html: string) => {
     // value — is dropped and the frame renders with NO sandbox: strictly more permissive than both
     // the author's intent and DEFAULT_IFRAME_SANDBOX, i.e. a fail-open. 'alt' repeats the option's
     // own default (an empty alt marks a decorative image), which passing this option replaces.
-    // The cast is load-bearing: @types/sanitize-html has never declared allowedEmptyAttributes (not
-    // even in 2.16.1, the latest), and its TS 5.x-only releases can't be used against tsc 4.9 here.
+    // The cast is load-bearing: @types/sanitize-html has never declared allowedEmptyAttributes —
+    // re-verified against 2.16.2, the latest as of 2026-10. Note the pin here is 2.13.0, not the
+    // latest, and deliberately so: from 2.15.0 the types are published TS-5.x-only, and 2.16.2's
+    // index.d.ts opens with an import attribute (`with { "resolution-mode": "import" }`) that
+    // tsc 4.9.3 — the version every manifest in this repo pins — cannot even parse. It is a
+    // TS1005 syntax error that `skipLibCheck` does NOT suppress. 2.13.0 is the npm `ts4.9`
+    // dist-tag and the highest release usable here; moving past it needs a TypeScript upgrade
+    // first, not just a dependabot bump.
     allowedEmptyAttributes: ['alt', 'sandbox'],
   } as sanitizeHtml.IOptions)
 }

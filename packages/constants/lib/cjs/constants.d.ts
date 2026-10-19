@@ -196,6 +196,8 @@ export declare const BRIDGE_TITLE = "Bridge";
 export declare const MD_INTEGRATIONS_TITLE = "MD Integrations";
 export declare const VITL_TITLE = "VITL";
 export declare const MDI_FLAG_ALL_ANSWERS = "*";
+export declare const MDI_FILE_TYPES: readonly ["document", "review", "other", "insurance-policy", "contract", "driver-license", "lab-result", "photo", "av-video", "full-body-photo", "back-photo", "face-photo", "avatar-photo", "ipledge-document", "auth-form"];
+export type MDIFileType = typeof MDI_FILE_TYPES[number];
 export declare const GENERIC_INTEGRATIONS: string[];
 export declare const ORGANIZATION_WIDE_INTEGRATIONS: string[];
 export declare const ONE_MINUTE_IN_MS: number;

@@ -858,6 +858,9 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
     portalSettings?: {
         [key: string]: string | boolean;
     };
+    preferences?: {
+        [key: string]: string | boolean;
+    };
     notificationEmailsDisabled?: boolean;
     disableIncomingPhoneCalls?: boolean;
     disableTicketAutoAssignment?: boolean;
@@ -1276,6 +1279,7 @@ export interface APIKey_readonly extends ClientRecord {
     scopes?: APIKeyScope[];
 }
 export interface APIKey_required {
+    description?: string;
 }
 export interface APIKey_updatesDisabled {
 }
@@ -2671,6 +2675,11 @@ export type FormResponseFollowup = {
     formResponseId?: string;
     completedAt?: Date;
 };
+export type MDISyncError = {
+    message: string;
+    missingFields?: string[];
+    at: Date;
+};
 export interface FormResponse_readonly extends ClientRecord {
     openedAt?: Date;
     references?: RelatedRecord[];
@@ -2756,6 +2765,7 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
     belugaStatus?: string;
     belugaScheduleLink?: string;
     mdiStatus?: string;
+    mdiSyncError?: MDISyncError;
     fieldViews?: {
         fieldId: string;
         fieldTitle: string;
@@ -4943,6 +4953,38 @@ export type ListOfStringsWithQualifier = {
     qualifier: ListQueryQualifier;
     values: string[];
 };
+/**
+ * The enduser list-of-objects fields automations may read and write.
+ *
+ * The runtime description of each — which of its sub-fields identify an entry, which may be written,
+ * and what to call it — is ENDUSER_LIST_FIELD_CONFIG (validation.ts). Nothing outside that registry
+ * names a particular sub-field: adding a list field is a registry entry, not a code change in the
+ * trigger actions, the field-change handler or the editors.
+ */
+export type EnduserListField = 'programs';
+/**
+ * The common half of all three list-item mutations: which list field, which entry within it, and
+ * (for Add / Update) what to write on that entry.
+ *
+ * Both maps are keyed by SUB-FIELD name, and both are constrained to the sub-fields
+ * ENDUSER_LIST_FIELD_CONFIG declares for `field` — enforced when the trigger is SAVED, rather than
+ * skipped silently at fire time, and re-applied when it fires so no stored key can reach a Mongo path.
+ */
+export type ListItemMutation = {
+    field: EnduserListField;
+    /** sub-field -> value, compared EXACTLY (case-sensitive, never trimmed). An entry is acted on when
+     *  it matches every pair. These are match keys, never settable: renaming an entry would migrate no
+     *  condition, saved filter or trigger that matches the old value. */
+    match: {
+        [subField: string]: string;
+    };
+    /** sub-field -> value written on the entry (Add: on the new entry; Update: on every matched entry).
+     *  An empty string CLEARS the sub-field. Values are strings today; widening the value type is a
+     *  change to the registry and its validator, not to this shape. */
+    values?: {
+        [subField: string]: string;
+    };
+};
 export type AutomationTriggerActionBuilder<T, I> = {
     type: T;
     info: I;
@@ -4963,6 +5005,10 @@ export type AutomationTriggerActions = {
     "Remove Tags": AutomationTriggerActionBuilder<'Remove Tags', {
         tags: string[];
     }>;
+    /** Mutations of a list-of-objects field on the enduser, matched by sub-field. See EnduserListField. */
+    "Add List Item": AutomationTriggerActionBuilder<'Add List Item', ListItemMutation>;
+    "Remove List Item": AutomationTriggerActionBuilder<'Remove List Item', Omit<ListItemMutation, 'values'>>;
+    "Update List Item": AutomationTriggerActionBuilder<'Update List Item', ListItemMutation>;
     "Add Access Tags": AutomationTriggerActionBuilder<'Add Access Tags', {
         tags: string[];
     }>;
@@ -6062,8 +6108,90 @@ export interface Waitlist extends Waitlist_readonly, Waitlist_required, Waitlist
     tags?: string[];
 }
 export type AICOnversationMessageContent = {
-    type: 'text' | 'image' | 'file';
+    type: 'text' | 'image' | 'file' | 'tool_use' | 'tool_result';
     text?: string;
+    id?: string;
+    name?: string;
+    input?: Indexable;
+    tool_use_id?: string;
+    content?: string;
+    is_error?: boolean;
+};
+/***************************************************************************************************
+ * ai_conversations.agent_message — Anthropic Messages API request/response shapes.
+ *
+ * These mirror the Messages API rather than Tellescope's own chat shapes on purpose: the endpoint
+ * is a thin proxy, so the caller sends (and receives) what Anthropic documents, and the server
+ * never builds a prompt or executes a tool. Only the block types below are proxied; anything else
+ * (images, documents, server_tool_use, …) is rejected with a 400 rather than forwarded blindly.
+ ***************************************************************************************************/
+/** A client-placed prompt-caching breakpoint. At most AGENT_MAX_CACHE_CONTROL_MARKERS per request. */
+export type AgentCacheControl = {
+    type: 'ephemeral';
+};
+export type AgentTextBlock = {
+    type: 'text';
+    text: string;
+    cache_control?: AgentCacheControl;
+};
+/** Returned by adaptive-thinking models; must be echoed back VERBATIM (signature included). */
+export type AgentThinkingBlock = {
+    type: 'thinking';
+    thinking: string;
+    signature: string;
+};
+export type AgentRedactedThinkingBlock = {
+    type: 'redacted_thinking';
+    data: string;
+};
+export type AgentToolUseBlock = {
+    type: 'tool_use';
+    id: string;
+    name: string;
+    input: Indexable;
+    cache_control?: AgentCacheControl;
+};
+export type AgentToolResultBlock = {
+    type: 'tool_result';
+    tool_use_id: string;
+    content?: string | AgentTextBlock[];
+    is_error?: boolean;
+    cache_control?: AgentCacheControl;
+};
+export type AgentContentBlock = (AgentTextBlock | AgentThinkingBlock | AgentRedactedThinkingBlock | AgentToolUseBlock | AgentToolResultBlock);
+export type AgentMessageInput = {
+    role: 'user' | 'assistant';
+    content: AgentContentBlock[];
+};
+export type AgentToolInput = {
+    name: string;
+    description?: string;
+    input_schema: Indexable;
+    cache_control?: AgentCacheControl;
+};
+export type AgentToolChoice = {
+    type: 'auto' | 'any' | 'tool' | 'none';
+    name?: string;
+    disable_parallel_tool_use?: boolean;
+};
+/** The usage block returned to the caller — Anthropic's, plus what the turn actually cost. */
+export type AgentReplyUsage = {
+    input_tokens: number;
+    output_tokens: number;
+    cache_creation_input_tokens: number;
+    cache_read_input_tokens: number;
+    credits_charged: number;
+};
+/** The model's reply, returned verbatim apart from Bedrock-specific noise being stripped. */
+export type AgentReply = {
+    id: string;
+    type: 'message';
+    role: 'assistant';
+    model: string;
+    content: AgentContentBlock[];
+    stop_reason: string | null;
+    stop_sequence: string | null;
+    usage: AgentReplyUsage;
 };
 export type AIConversationMessageStatus = 'pending' | 'completed' | 'errored_pre_stream' | 'errored_mid_stream' | 'rejected_pre_request';
 export type AIConversationMessage = {

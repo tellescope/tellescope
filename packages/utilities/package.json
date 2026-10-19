@@ -1,6 +1,6 @@
 {
   "name": "@tellescope/utilities",
-  "version": "2.0.0-beta.2",
+  "version": "2.0.0-beta.3",
   "description": "Shared JS code for common actions across API and browser",
   "main": "./lib/cjs/utils.js",
   "module": "./lib/esm/utils.js",
@@ -26,14 +26,14 @@
     "node": ">=22.12.0"
   },
   "dependencies": {
-    "@tellescope/constants": "2.0.0-beta.2",
-    "@tellescope/types-models": "2.0.0-beta.2",
+    "@tellescope/constants": "2.0.0-beta.3",
+    "@tellescope/types-models": "2.0.0-beta.3",
     "luxon": "3.2.1",
-    "sanitize-html": "2.17.7"
+    "sanitize-html": "2.18.0"
   },
   "devDependencies": {
     "@types/luxon": "3.2.1",
-    "@types/sanitize-html": "2.9.0",
+    "@types/sanitize-html": "2.13.0",
     "@typescript-eslint/eslint-plugin": "4.33.0",
     "@typescript-eslint/parser": "4.33.0",
     "eslint": "7.32.0",

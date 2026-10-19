@@ -2,9 +2,10 @@ import { ServerModelForName, DatabaseModel, DatabaseRecord, ObjectId, ModelName,
 import { ErrorInfo, Indexable, Operation, JSONType, CRUD, HTTPMethod, UserIdentity, SessionType } from "@tellescope/types-utilities";
 import * as Utilities from "@tellescope/utilities";
 import type { Filter } from "mongodb";
-import { EnduserSession, ChatRoom, UserSession, MeetingStatus, WebhookSubscriptionsType, Attendee, FormResponseValue, MeetingInfo, OrganizationTheme, WithLinkOpenTrackingIds, CommunicationsChannel, AppointmentTerm, JourneyContext, AnalyticsQuery, AnalyticsQueryResult, AnalyticsAggregationRequest, DateRange, BaseAvailabilityBlock, IndexUpdate, Timezone, UserCallRoutingBehavior, ExternalChatGPTMessage, StripeCheckoutInfo, StripeCountryCode, JourneyStatistics, JourneyStatisticsMetric, FormStatistics, CustomFields, TicketsReport, EndusersReportQueries, EndusersReport, Report, FormResponsesReportQueries, PhoneCallsReportQueries, ListOfStringsWithQualifier, GoGoMedsPet, InsuranceType, SmartMeterOrderLineItem, PhoneCallsReport, AthenaSubscription, TellescopeGender, LabeledField, HealthieSendChatAutomationAction, TwilioQueue, SendWebhookAutomationAction, FormResponseProcedureCode, FormResponseDiagnosisCode, DevelopHealthRunBenefitVerificationBaseArguments, WeeklyAvailability, CanvasCreateNoteAutomationAction, CanvasCoding, InboxThread, AIDecisionAutomationAction, LinkedAccount, MFAMethod, APIKeyScope, UserOutOfOffice, StripeCheckoutItem } from "@tellescope/types-models";
+import { EnduserSession, ChatRoom, UserSession, MeetingStatus, WebhookSubscriptionsType, Attendee, FormResponseValue, MeetingInfo, OrganizationTheme, WithLinkOpenTrackingIds, CommunicationsChannel, AppointmentTerm, JourneyContext, AnalyticsQuery, AnalyticsQueryResult, AnalyticsAggregationRequest, DateRange, BaseAvailabilityBlock, IndexUpdate, Timezone, UserCallRoutingBehavior, ExternalChatGPTMessage, StripeCheckoutInfo, StripeCountryCode, JourneyStatistics, JourneyStatisticsMetric, FormStatistics, CustomFields, TicketsReport, EndusersReportQueries, EndusersReport, Report, FormResponsesReportQueries, PhoneCallsReportQueries, ListOfStringsWithQualifier, GoGoMedsPet, InsuranceType, SmartMeterOrderLineItem, PhoneCallsReport, AthenaSubscription, TellescopeGender, LabeledField, HealthieSendChatAutomationAction, TwilioQueue, SendWebhookAutomationAction, FormResponseProcedureCode, FormResponseDiagnosisCode, DevelopHealthRunBenefitVerificationBaseArguments, WeeklyAvailability, CanvasCreateNoteAutomationAction, CanvasCoding, InboxThread, AIDecisionAutomationAction, AgentMessageInput, AgentReply, AgentTextBlock, AgentToolChoice, AgentToolInput, LinkedAccount, MFAMethod, APIKeyScope, UserOutOfOffice, StripeCheckoutItem } from "@tellescope/types-models";
 import { AppointmentBookingPage as AppointmentBookingPageClient, UserDisplayInfo, Enduser, Journey, FormResponse, FormField, Form, Meeting, Email, File, CalendarEvent, Organization, User as UserClient, EnduserObservation as EnduserObservationClient, AppointmentLocation, CalendarEventTemplate, Product, ManagedContentRecord, DatabaseRecord as DatabaseRecordClient, Ticket, GroupMMSConversation, EnduserOrder, EnduserEncounter, Purchase, Integration, TicketQueue, SMSMessage, EnduserEligibilityResult, Waitlist, PhoneCall, TicketThreadComment, ChatRoom as ChatRoomClient, AIConversation } from "@tellescope/types-client";
 import { ValidatorDefinition, LoginFlowResult, IntegrationsTitleType } from "@tellescope/validation";
+import { MDIFileType } from "@tellescope/constants";
 export declare const get_next_reminder_timestamp_for_ticket: ({ dueDateInMS, reminders, closedAt }: Pick<Ticket, 'dueDateInMS' | 'reminders' | 'closedAt'>) => number;
 export type RelationshipConstraintOptions<T> = {
     updates?: Partial<T>;
@@ -67,6 +68,7 @@ export type Dependency<T = DatabaseRecord> = {
 export type RedactionReason = ('enduser' | 'all');
 export type ModelFieldInfo<T, R> = {
     validator: ValidatorDefinition<R>;
+    description?: string;
     readonly?: boolean;
     required?: boolean;
     updatesDisabled?: boolean;
@@ -273,6 +275,46 @@ export type VitalAOEAnswer = {
 type BookingInfoEnduserFields = {
     state?: string;
 };
+/**
+ * A MongoDB filter over T as accepted by `mdbFilter` parameters. Unlike mongodb's `Filter<T>`,
+ * every field also accepts `null` (directly or inside operators like `$in` / `$ne`), which the
+ * API passes through to MongoDB, where it matches documents whose field is null or missing.
+ */
+export type MDBFilter<T> = Filter<{
+    [K in keyof T]: T[K] | null;
+}>;
+/**
+ * The condition accepted on the `careTeamUserIds` pseudo-field of an InboxThreadLoadFilter.
+ *
+ * Only these shapes are supported. Each resolves, at query time, to the endusers whose care team
+ * (`Enduser.assignedTo`) satisfies it, and matches threads with at least one such enduser:
+ * - a bare id or `$eq`: the care team contains that user
+ * - `$in`: the care team contains any of the users (an empty list matches nothing)
+ * - `$all`: a single enduser's care team contains every listed user
+ *
+ * Negation (`$nin`, `$ne`, `$not`) and every other operator are rejected with a 400. Resolution
+ * is capped at 25,000 endusers per condition, and a request may hold at most 5 distinct conditions.
+ */
+export type CareTeamUserIdsCondition = string | {
+    $eq: string;
+} | {
+    $in: string[];
+} | {
+    $all: string[];
+};
+/**
+ * The `mdbFilter` accepted by `load_threads`: a MongoDB filter over InboxThread, plus the
+ * `careTeamUserIds` pseudo-field, which may appear anywhere a field clause can, including nested
+ * under `$and`, `$or` and `$nor`. The server expands each occurrence into an indexed
+ * `{ enduserIds: { $in: [...] } }` clause before querying. See CareTeamUserIdsCondition for the
+ * supported shapes.
+ */
+export type InboxThreadLoadFilter = MDBFilter<InboxThread> & {
+    careTeamUserIds?: CareTeamUserIdsCondition;
+    $and?: InboxThreadLoadFilter[];
+    $or?: InboxThreadLoadFilter[];
+    $nor?: InboxThreadLoadFilter[];
+};
 export type CustomActions = {
     user_logs: {
         restore_deleted: CustomAction<{
@@ -305,8 +347,13 @@ export type CustomActions = {
                 businessId: string;
                 updatedAt: Date;
                 scopes?: APIKeyScope[];
+                description?: string;
             }[];
         }>;
+        update_organization_api_key: CustomAction<{
+            id: string;
+            description: string;
+        }, {}>;
         delete_organization_api_key: CustomAction<{
             id: string;
         }, {}>;
@@ -377,6 +424,7 @@ export type CustomActions = {
             syncToBeluga?: boolean;
             syncToMDI?: boolean;
             formResponseId?: string;
+            mdiFileType?: MDIFileType;
         }, {}>;
         send_fax: CustomAction<{
             id: string;
@@ -1816,6 +1864,24 @@ export type CustomActions = {
             automationStepId: string;
             journeyContext?: JourneyContext;
         }, {}>;
+        agent_message: CustomAction<{
+            messages: AgentMessageInput[];
+            system?: string | AgentTextBlock[];
+            tools?: AgentToolInput[];
+            tool_choice?: AgentToolChoice;
+            maxTokens?: number;
+            stream?: boolean;
+            conversationId?: string;
+            type?: string;
+            model?: string;
+            orchestrationId?: string;
+            enduserId?: string;
+            journeyId?: string;
+            automationStepId?: string;
+        }, {
+            conversationId: string;
+            reply: AgentReply;
+        }>;
     };
     inbox_threads: {
         build_threads: CustomAction<{
@@ -1834,7 +1900,7 @@ export type CustomActions = {
             enduserIds?: string[];
             phoneNumber?: string;
             returnCount?: boolean;
-            mdbFilter?: Filter<InboxThread>;
+            mdbFilter?: InboxThreadLoadFilter;
             sortBy?: 'timestamp' | 'outboundTimestamp';
             autobuild?: boolean;
             search?: string;
@@ -1961,6 +2027,7 @@ export type PublicActions = {
             password: string;
             termsVersion: string;
             inviteCode?: string;
+            registrationCode?: string;
         }, {}>;
         request_password_reset: CustomAction<{
             email: string;

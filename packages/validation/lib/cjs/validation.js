@@ -39,10 +39,11 @@ exports.numberValidatorMin0Max23Optional = exports.numberValidatorMin1Max31 = ex
 exports.indexableNumberValidator = exports.indexableValidator = exports.validateIndexable = exports.emailEncodingValidator = exports.journeyStatesValidator = exports.journeyStateValidator = exports.journeyStatePriorityValidator = exports.updateOptionsValidator = exports.preferenceValidator = exports.fieldsValidator = exports.FORM_FIELD_VALIDATORS_BY_TYPE = exports.formFieldTypeValidator = exports.FORM_FIELD_TYPES = exports.listOfStripeCheckoutItemsValidatorOptional = exports.stripeCheckoutItemValidator = exports.stripeCheckoutQuantityValidator = exports.linkedAccountAccessValidator = exports.linkedAccountAccessEntryValidator = exports.labeledFieldsValidator = exports.signatureResponseValidator = exports.fileResponseValidator = exports.subdomainValidator = exports.safeBase64Validator = exports.sipUrlValidatorOptional = exports.sipUrlValidator = exports.urlValidator = exports.fileTypeValidator = exports.parse_phone_number = exports.phoneValidatorOptional = exports.phoneValidator = exports.escape_phone_number = exports.journeysValidator = exports.stateValidatorOptional = exports.stateValidator = exports.VALID_STATES = exports.exactMatchListValidator = exports.exactMatchValidatorOptional = exports.exactMatchValidator = exports.dateRangeOptionalValidator = exports.dateRangeValidator = exports.dateValidatorOptional = exports.dateOptionalOrEmptyStringValidator = exports.dateValidator = exports.numberOrStringValidatorOptional = exports.numberOrStringValidatorEmptyOkay = exports.numberValidatorMin1Max100Optional = exports.fileSizeValidator = exports.externalIdNumberValidatorOptional = exports.externalIdNumberValidator = exports.numberValidatorMin0Max59Optional = void 0;
 exports.calendarEventAttendeeValidator = exports.listOfUserIndentitiesValidator = exports.userIdentityValidator = exports.meetingInfoValidator = exports.listOfVideoCallParticipantEventsValidator = exports.videoCallParticipantEventValidator = exports.listOfAttendeesValidator = exports.attendeeValidator = exports.attendeeInfoValidator = exports.listOfDisplayNameInfo = exports.sessionTypeOrAnyoneValidatorOptional = exports.sessionTypeValidator = exports.WebhookSubscriptionValidator = exports.UnitOfTimeValidator = exports.UNITS_OF_TIME = exports.CUDValidator = exports.CUDStringValidator = exports.CUD = exports.meetingStatusValidator = exports.MEETING_STATUSES = exports.messageTemplateTypeValidator = exports.MESSAGE_TEMPLATE_TYPES = exports.accountTypeValidator = exports.ACCOUNT_TYPES = exports.chatRoomTypeValidator = exports.CHAT_ROOM_TYPES = exports.listOfFormFieldsValidator = exports.formFieldValidator = exports.intakeDateOfBirthValidator = exports.intakePhoneValidator = exports.formResponsesValidator = exports.formResponseValidator = exports.fullscriptDisabledForEnduser = exports.photonDisabledForEnduser = exports.mmddyyyyRegex = exports.formResponseAnswerValidator = exports.pharmacyValidator = exports.insuranceOptionalValidator = exports.tellescopeGenderOptionalValidator = exports.tellescopeGenderValidator = exports.TELLESCOPE_GENDER = exports.addressOptionalValidator = exports.addressValidator = exports.INTERNAL_NAME_TO_DISPLAY_FIELD = exports.RESERVED_INTAKE_FIELDS = exports.translationsValidator = exports.fieldTranslationsValidator = exports.idStringToDateValidator = exports.numberToDateValidator = exports.rejectionWithMessage = void 0;
 exports.selectableAIModelValidator = exports.aiSummaryDataSourceConfigValidator = exports.aiSummaryDataSourceTypeValidator = exports.AI_SUMMARY_DATA_SOURCES = exports.canvasCodingValidatorOptional = exports.canvasCodingValidator = exports.developHealthMockResultValidator = exports.developHealthDiagnosesValidator = exports.developHealthDrugsValidator = exports.automationForMessageValidator = exports.smartMeterLinesValidator = exports.senderAssignmentStrategyValidatorOptional = exports.ticketActionsValidator = exports.ticketActionValidator = exports.ticketReminderValidator = exports.listOfAutomationConditionsValidator = exports.automationConditionValidator = exports.automationEventsValidator = exports.automationEventValidator = exports.coldTransfersValidator = exports.cancelConditionsValidatorOptional = exports.cancelConditionsValidator = exports.cancelConditionValidator = exports.listOfCalendarEventRemindersValidator = exports.calendarEventReminderValidator = exports.messageTemplateModeValidator = exports.MESSAGE_TEMPLATE_MODES = exports.communicationsChannelValidatorOptional = exports.communicationsChannelValidator = exports.COMMUNICATIONS_CHANNELS = exports.automationActionTypeValidator = exports.AUTOMATION_ACTIONS = exports.automationEventTypeValidator = exports.AUTOMATION_EVENTS = exports.automatedActionStatusValidator = exports.AUTOMATION_ENDUSER_STATUS = exports.listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay = exports.listOfStringsWithQualifierValidatorOptional = exports.listOfStringsWithQualifierValidator = exports.listQueryQualifiersValidator = exports.LIST_QUERY_QUALIFIERS = exports.chatRoomUserInfoValidator = exports.meetingDisplayInfoValidator = exports.userDisplayInfoValidator = exports.meetingsListValidator = exports.listOfGenericAttachmentsValidator = exports.genericAttachmentValidator = exports.listOfChatAttachmentsValidator = exports.chatAttachmentValidator = exports.calendarEventAttendeesValidator = void 0;
-exports.databaseRecordValuesValidator = exports.databaseRecordValueValidator = exports.databaseFieldsValidator = exports.databaseFieldValidator = exports.is_database_record_field_type = exports.databaseRecordFieldTypeValidator = exports.DATABASE_RECORD_FIELD_TYPES = exports.blocksValidator = exports.is_block_type = exports.blockTypeValidator = exports.BLOCK_TYPES = exports.blockValidator = exports.blockStyleValidator = exports.formFieldOptionsValidator = exports.formFieldOptionDetailsValidator = exports.formFieldFeedbackValidator = exports.tableInputChoiceValidator = exports.tableInputTypesValidator = exports.TABLE_INPUT_TYPES = exports.integrationAuthenticationsValidator = exports.flowchartUIValidator = exports.passwordValidator = exports.managedContentRecordAssignmentTypeValidator = exports.MANAGED_CONTENT_RECORD_ASSIGNMENT_TYPES = exports.managedContentRecordTypeValidator = exports.MANAGED_CONTENT_RECORD_TYPES = exports.organizationThemeValidator = exports.customPoliciesValidator = exports.portalSettingsValidator = exports.previousFormFieldsValidator = exports.previousFormFieldValidator = exports.observationComponentsValidator = exports.FHIRObservationValueValidator = exports.FHIRObservationStatusCodeValidator = exports.FHIR_OBSERVATION_STATUS_CODES = exports.FHIRObservationCategoryValidator = exports.userPortalSettingsValidator = exports.notificationPreferencesValidator = exports.notificationPreferenceValidator = exports.searchOptionsValidator = exports.minimumShouldMatchValidatorOptional = exports.relatedRecordsValidatorOptional = exports.listOfRelatedRecordsValidator = exports.relatedRecordValidator = exports.journeyContextValidator = exports.automationActionValidator = exports.phoneTreeAgentToolValidator = exports.AIMessageInputValidator = exports.AIDecisionSourceValidator = exports.aiSummaryConfigurationValidator = void 0;
-exports.AUTOMATION_TRIGGER_STATUSES = exports.automationTriggerActionValidator = exports.AUTOMATION_TRIGGER_ACTION_EVENT_RESTRICTIONS = exports.AUTOMATION_TRIGGER_ACTION_TYPES = exports.automationTriggerEventValidator = exports.ACTIVE_AUTOMATION_TRIGGER_EVENT_TYPES = exports.DEPRECATED_AUTOMATION_TRIGGER_EVENT_TYPES = exports.AUTOMATION_TRIGGER_EVENT_TYPES = exports.vitalConfigurationRangesValidator = exports.vitalConfigurationRangeValidator = exports.vitalComparisonValidator = exports.calendarEventPortalSettingsValidator = exports.organizationSettingsValidator = exports.customDashboardViewValidator = exports.buildInFieldsValidator = exports.customEnduserFieldsValidatorOptionalOrEmpty = exports.customEnduserFieldValidator = exports.indexUpdatesValidator = exports.indexUpdateValidator = exports.availabilityEntitiesValidator = exports.AVAILABILITY_BLOCK_ENTITIES = exports.customEnduserFieldTypeValidator = exports.CUSTOM_ENDUSER_FIELD_TYPES = exports.accessValidator = exports.timezoneValidatorOptional = exports.timezoneValidator = exports.calendarEventLimitsValidator = exports.calendarEventLimitValidator = exports.weeklyAvailabilitiesValidator = exports.weeklyAvailabilityValidator = exports.monthlyRestrictionOptionalValidator = exports.monthlyRestrictionValidator = exports.baseAvailabilityBlocksValidator = exports.baseAvailabilityBlockValidator = exports.stateCredentialsValidator = exports.stateCredentialValidator = exports.genericUnitWithQuantityValidator = exports.enduserFormResponsesForEventValidator = exports.enduserFormResponseForEventValidator = exports.enduserTasksForEventValidator = exports.enduserTaskForEventValidator = exports.portalTypeValidator = exports.PORTAL_BLOCK_TYPES = exports.portalBlocksValidator = exports.portalBlockValidator = exports.formTypeValidator = exports.FORM_TYPES = exports.portalPageValidator = exports.PORTAL_PAGES = exports.organizationAccessValidator = void 0;
-exports.phoneTreeActionValidator = exports.phonePlaybackValidatorOptional = exports.phonePlaybackValidator = exports.phoneTreeEventsValidator = exports.phoneTreeEventValidator = exports.insurancesValidator = exports.customDashboardBlocksValidator = exports.customDashboardBlockValidator = exports.enduserProfileViewBlocksValidator = exports.enduserProfileViewBlockValidator = exports.sharedEnduserProfileViewBlockFields = exports.externalChatGPTMessagesValidator = exports.portalSchemaRestrictionsValidator = exports.userUIRestrictionsValidator = exports.userFieldRedactionsValidator = exports.userCallRoutingBehaviorValidator = exports.USER_CALL_ROUTING_BEHAVIORS = exports.analyticsQueryTypeValidator = exports.ANALYTICS_QUERY_TYPES = exports.analyticsFrameTypeValidator = exports.ANALYTICS_FRAME_TYPES = exports.analyticsQueriesValidatorOptional = exports.analyticsQueryValidator = exports.formScoringValidator = exports.scheduledJourneysValidator = exports.analyticsQueryResultsValidator = exports.videoIntegrationTypesValidator = exports.VIDEO_INTEGRATION_TYPES = exports.integrationTitleValidator = exports.purchaseCreditValueValidator = exports.costValidator = exports.paymentProcessorValidator = exports.PAYMENT_PROCESSORS = exports.currencyValidator = exports.CURRENCIES = exports.appointmentTermsValidator = exports.loginFlowResultValidator = exports.LOGIN_FLOW_RESULTS = exports.organizationLimitsValidator = exports.accessPermissionsValidator = exports.accessPermissionValidator = exports.ticketSnoozesValidator = exports.superbillLineItemsValidator = exports.billingCodeValidatorOptional = exports.billingCodeValidator = exports.superbillProviderInfoValidator = exports.superbillPatientInfoValidator = exports.embeddingTypeValidator = exports.EMBEDDING_TYPES = exports.automatioNTriggerStatusValidator = void 0;
-exports.listOfEmailCCsValidator = exports.emailCCValidator = exports.userOutOfOfficesValidator = exports.userOutOfOfficeValidator = exports.outOfOfficeBlocksValidator = exports.outOfOfficeBlockValidator = exports.recentViewersValidator = exports.recentViewerValidator = exports.enduserProgramsValidator = exports.organizationProgramsValidator = exports.recordProgramsValidator = exports.enduserDiagnosisValidator = exports.bookingRestrictionsByTemplateValidator = exports.analyticsFrameGroupingCategoriesValidator = exports.analyticsFrameGroupingCategoryValidator = exports.fieldMappingsValidator = exports.fieldMappingValidator = exports.athenaSubscriptionsValidator = exports.athenaSubscriptionValidator = exports.athenaSubscriptionTypeValidator = exports.fieldsSyncValidator = exports.fieldSyncValidator = exports.syncDirectionValidator = exports.enduserProfileWebhooksValidator = exports.diagnosesValidator = exports.diagnosisValidator = exports.candidProcedureCodeValidator = exports.diagnosisTypeValidator = exports.DIAGNOSIS_TYPES = exports.sortingFieldsValidator = exports.groupMMSUserStatesValidator = exports.groupMMSUserStateValidator = exports.mmsMessagesValidator = exports.mmsMessageValidator = exports.imageAttachmentValidator = exports.is_valid_mm_dd_yyyy = exports.isDateString = exports.phoneCallsReportQueriesValidator = exports.formResponsesReportQueriesValidator = exports.endusersReportQueriesValidator = exports.formFieldCalloutConditionsValidator = exports.tableViewColumnsValidator = exports.languageValidator = exports.formCustomizationValidator = exports.phoneTreeEnduserConditionValidator = exports.PHONE_TREE_ENDUSER_CONDITIONS = exports.phoneTreeNodesValidator = exports.phoneTreeNodeValidator = void 0;
+exports.blockStyleValidator = exports.formFieldOptionsValidator = exports.formFieldOptionDetailsValidator = exports.formFieldFeedbackValidator = exports.tableInputChoiceValidator = exports.tableInputTypesValidator = exports.TABLE_INPUT_TYPES = exports.integrationAuthenticationsValidator = exports.flowchartUIValidator = exports.passwordValidator = exports.managedContentRecordAssignmentTypeValidator = exports.MANAGED_CONTENT_RECORD_ASSIGNMENT_TYPES = exports.managedContentRecordTypeValidator = exports.MANAGED_CONTENT_RECORD_TYPES = exports.organizationThemeValidator = exports.customPoliciesValidator = exports.portalSettingsValidator = exports.previousFormFieldsValidator = exports.previousFormFieldValidator = exports.observationComponentsValidator = exports.FHIRObservationValueValidator = exports.FHIRObservationStatusCodeValidator = exports.FHIR_OBSERVATION_STATUS_CODES = exports.FHIRObservationCategoryValidator = exports.userPreferencesValidator = exports.userPortalSettingsValidator = exports.notificationPreferencesValidator = exports.notificationPreferenceValidator = exports.searchOptionsValidator = exports.minimumShouldMatchValidatorOptional = exports.relatedRecordsValidatorOptional = exports.listOfRelatedRecordsValidator = exports.relatedRecordValidator = exports.journeyContextValidator = exports.automationActionValidator = exports.phoneTreeAgentToolValidator = exports.agentToolChoiceValidator = exports.agentToolsValidator = exports.agentSystemValidator = exports.agentMessagesValidator = exports.AI_CONVERSATION_MAX_STORED_MESSAGES = exports.AGENT_MAX_MAX_TOKENS = exports.AGENT_DEFAULT_MAX_TOKENS = exports.AGENT_MAX_CACHE_CONTROL_MARKERS = exports.AGENT_MAX_MESSAGES = exports.AGENT_MAX_REQUEST_CHARS = exports.AGENT_MAX_BLOCK_CHARS = exports.AIMessageInputValidator = exports.AIDecisionSourceValidator = exports.aiSummaryConfigurationValidator = void 0;
+exports.organizationSettingsValidator = exports.customDashboardViewValidator = exports.buildInFieldsValidator = exports.customEnduserFieldsValidatorOptionalOrEmpty = exports.customEnduserFieldValidator = exports.indexUpdatesValidator = exports.indexUpdateValidator = exports.availabilityEntitiesValidator = exports.AVAILABILITY_BLOCK_ENTITIES = exports.customEnduserFieldTypeValidator = exports.CUSTOM_ENDUSER_FIELD_TYPES = exports.accessValidator = exports.timezoneValidatorOptional = exports.timezoneValidator = exports.calendarEventLimitsValidator = exports.calendarEventLimitValidator = exports.weeklyAvailabilitiesValidator = exports.weeklyAvailabilityValidator = exports.monthlyRestrictionOptionalValidator = exports.monthlyRestrictionValidator = exports.baseAvailabilityBlocksValidator = exports.baseAvailabilityBlockValidator = exports.stateCredentialsValidator = exports.stateCredentialValidator = exports.genericUnitWithQuantityValidator = exports.enduserFormResponsesForEventValidator = exports.enduserFormResponseForEventValidator = exports.enduserTasksForEventValidator = exports.enduserTaskForEventValidator = exports.portalTypeValidator = exports.PORTAL_BLOCK_TYPES = exports.portalBlocksValidator = exports.portalBlockValidator = exports.formTypeValidator = exports.FORM_TYPES = exports.portalPageValidator = exports.PORTAL_PAGES = exports.organizationAccessValidator = exports.databaseRecordValuesValidator = exports.databaseRecordValueValidator = exports.databaseFieldsValidator = exports.databaseFieldValidator = exports.is_database_record_field_type = exports.databaseRecordFieldTypeValidator = exports.DATABASE_RECORD_FIELD_TYPES = exports.blocksValidator = exports.is_block_type = exports.blockTypeValidator = exports.BLOCK_TYPES = exports.blockValidator = void 0;
+exports.analyticsQueryTypeValidator = exports.ANALYTICS_QUERY_TYPES = exports.analyticsFrameTypeValidator = exports.ANALYTICS_FRAME_TYPES = exports.analyticsQueriesValidatorOptional = exports.analyticsQueryValidator = exports.formScoringValidator = exports.scheduledJourneysValidator = exports.analyticsQueryResultsValidator = exports.videoIntegrationTypesValidator = exports.VIDEO_INTEGRATION_TYPES = exports.integrationTitleValidator = exports.purchaseCreditValueValidator = exports.costValidator = exports.paymentProcessorValidator = exports.PAYMENT_PROCESSORS = exports.currencyValidator = exports.CURRENCIES = exports.appointmentTermsValidator = exports.loginFlowResultValidator = exports.LOGIN_FLOW_RESULTS = exports.organizationLimitsValidator = exports.accessPermissionsValidator = exports.accessPermissionValidator = exports.ticketSnoozesValidator = exports.superbillLineItemsValidator = exports.billingCodeValidatorOptional = exports.billingCodeValidator = exports.superbillProviderInfoValidator = exports.superbillPatientInfoValidator = exports.embeddingTypeValidator = exports.EMBEDDING_TYPES = exports.automatioNTriggerStatusValidator = exports.AUTOMATION_TRIGGER_STATUSES = exports.automationTriggerActionValidator = exports.list_item_mutation_error = exports.is_list_mutation_action = exports.LIST_MUTATION_ACTION_TYPES = exports.ENDUSER_LIST_FIELDS = exports.ENDUSER_LIST_FIELD_CONFIG = exports.AUTOMATION_TRIGGER_ACTION_EVENT_RESTRICTIONS = exports.AUTOMATION_TRIGGER_ACTION_TYPES = exports.automationTriggerEventValidator = exports.ACTIVE_AUTOMATION_TRIGGER_EVENT_TYPES = exports.DEPRECATED_AUTOMATION_TRIGGER_EVENT_TYPES = exports.AUTOMATION_TRIGGER_EVENT_TYPES = exports.vitalConfigurationRangesValidator = exports.vitalConfigurationRangeValidator = exports.vitalComparisonValidator = exports.calendarEventPortalSettingsValidator = void 0;
+exports.fieldMappingsValidator = exports.fieldMappingValidator = exports.athenaSubscriptionsValidator = exports.athenaSubscriptionValidator = exports.athenaSubscriptionTypeValidator = exports.fieldsSyncValidator = exports.fieldSyncValidator = exports.syncDirectionValidator = exports.enduserProfileWebhooksValidator = exports.diagnosesValidator = exports.diagnosisValidator = exports.candidProcedureCodeValidator = exports.diagnosisTypeValidator = exports.DIAGNOSIS_TYPES = exports.sortingFieldsValidator = exports.groupMMSUserStatesValidator = exports.groupMMSUserStateValidator = exports.mmsMessagesValidator = exports.mmsMessageValidator = exports.imageAttachmentValidator = exports.is_valid_mm_dd_yyyy = exports.isDateString = exports.phoneCallsReportQueriesValidator = exports.formResponsesReportQueriesValidator = exports.endusersReportQueriesValidator = exports.formFieldCalloutConditionsValidator = exports.tableViewColumnsValidator = exports.languageValidator = exports.formCustomizationValidator = exports.phoneTreeEnduserConditionValidator = exports.PHONE_TREE_ENDUSER_CONDITIONS = exports.phoneTreeNodesValidator = exports.phoneTreeNodeValidator = exports.phoneTreeActionValidator = exports.phonePlaybackValidatorOptional = exports.phonePlaybackValidator = exports.phoneTreeEventsValidator = exports.phoneTreeEventValidator = exports.insurancesValidator = exports.customDashboardBlocksValidator = exports.customDashboardBlockValidator = exports.enduserProfileViewBlocksValidator = exports.enduserProfileViewBlockValidator = exports.sharedEnduserProfileViewBlockFields = exports.externalChatGPTMessagesValidator = exports.portalSchemaRestrictionsValidator = exports.userUIRestrictionsValidator = exports.userFieldRedactionsValidator = exports.userCallRoutingBehaviorValidator = exports.USER_CALL_ROUTING_BEHAVIORS = void 0;
+exports.listOfEmailCCsValidator = exports.emailCCValidator = exports.userOutOfOfficesValidator = exports.userOutOfOfficeValidator = exports.outOfOfficeBlocksValidator = exports.outOfOfficeBlockValidator = exports.recentViewersValidator = exports.recentViewerValidator = exports.enduserProgramsValidator = exports.organizationProgramsValidator = exports.recordProgramsValidator = exports.enduserDiagnosisValidator = exports.bookingRestrictionsByTemplateValidator = exports.analyticsFrameGroupingCategoriesValidator = exports.analyticsFrameGroupingCategoryValidator = void 0;
 var utilities_1 = require("@tellescope/utilities");
 var types_models_1 = require("@tellescope/types-models");
 Object.defineProperty(exports, "VALID_STATES", { enumerable: true, get: function () { return types_models_1.VALID_STATES; } });
@@ -2700,6 +2701,250 @@ exports.AIMessageInputValidator = (0, exports.objectValidator)({
     role: (0, exports.exactMatchValidator)(['user', 'assistant']),
     text: exports.stringValidator100000,
 }, { emptyOk: false });
+/***************************************************************************************************
+ * ai_conversations.agent_message — Anthropic Messages API request shapes.
+ *
+ * Hand-rolled rather than composed from objectValidator / orValidator, for two reasons:
+ *  - orValidator's rejection message JSON-dumps the value it could not match, and objectValidator's
+ *    length check dumps the JSON it rejected. A transcript is PHI: it must never travel back inside
+ *    a 400, so every throw below names the offending block by position and nothing else.
+ *  - objectValidator silently DROPS fields it does not recognise. A `thinking` block whose
+ *    `signature` was dropped is rejected by the model on the NEXT turn, far from the cause. Here
+ *    every field is whitelisted explicitly and an unrecognised one is an error, not a silent strip.
+ *
+ * SHAPE ONLY. The cross-field rules — tool_use/tool_result pairing, the total character cap, the
+ * cache_control marker budget, tools being present when the transcript uses them — live in
+ * validateAgentRequest (packages/private/api/api/modules/bedrock.ts), which is a pure function so
+ * those messages are unit-testable without this framework and without a Bedrock client.
+ ***************************************************************************************************/
+/** Per-string ceiling for any single block (text, thinking, a tool_result's text). */
+exports.AGENT_MAX_BLOCK_CHARS = 100000;
+/** Whole-request ceiling, summed over messages + system + tools. */
+exports.AGENT_MAX_REQUEST_CHARS = 1000000;
+/** Transcript length ceiling for one request. */
+exports.AGENT_MAX_MESSAGES = 1000;
+/** Anthropic allows at most 4 prompt-caching breakpoints per request. */
+exports.AGENT_MAX_CACHE_CONTROL_MARKERS = 4;
+/** `maxTokens` default and flat ceiling. The ceiling is checked BEFORE thinking headroom is added,
+ *  so a 400 never depends on which model the request resolves to. */
+exports.AGENT_DEFAULT_MAX_TOKENS = 10000;
+exports.AGENT_MAX_MAX_TOKENS = 64000;
+/** An ai_conversation stops accepting agent_message turns at this many stored entries. */
+exports.AI_CONVERSATION_MAX_STORED_MESSAGES = 1000;
+/** Keys that must never reach a Mongo document (operator/path syntax, prototype pollution). */
+var UNSAFE_JSON_KEYS = ['__proto__', 'constructor', 'prototype'];
+/** Nesting ceiling for a tool's JSON Schema and for the arguments a model produces. */
+var AGENT_MAX_JSON_DEPTH = 20;
+var agent_plain_object = function (value, label) {
+    if (!(0, utilities_2.is_object)(value) || Array.isArray(value))
+        throw new Error("".concat(label, " must be an object"));
+    return value;
+};
+var agent_string = function (value, label, max) {
+    if (max === void 0) { max = exports.AGENT_MAX_BLOCK_CHARS; }
+    if (typeof value !== 'string')
+        throw new Error("".concat(label, " must be a string"));
+    if (value.length > max)
+        throw new Error("".concat(label, " exceeds the ").concat(max, " character limit"));
+    return value;
+};
+var agent_boolean = function (value, label) {
+    if (typeof value !== 'boolean')
+        throw new Error("".concat(label, " must be a boolean"));
+    return value;
+};
+var agent_no_unrecognized_fields = function (value, allowed, label) {
+    var unrecognized = Object.keys(value).filter(function (k) { return !allowed.includes(k); });
+    if (unrecognized.length) {
+        throw new Error("".concat(label, " has unsupported field(s) [").concat(unrecognized.join(', '), "]"));
+    }
+};
+/**
+ * Bounded structural check for free-form JSON (a tool's `input_schema`, a tool_use's `input`).
+ * `restrictKeys` is on only for values that get PERSISTED into the ai_conversations ledger: Mongo
+ * treats `$`-prefixed and dotted keys as operators/paths, and `__proto__` is a pollution vector.
+ * A tool's `input_schema` is never persisted and legitimately uses `$schema` / `$ref` / `$defs`,
+ * so it is checked for depth alone.
+ */
+var agent_json_value = function (value, label, restrictKeys, depth) {
+    if (depth === void 0) { depth = 0; }
+    if (depth > AGENT_MAX_JSON_DEPTH)
+        throw new Error("".concat(label, " is nested more than ").concat(AGENT_MAX_JSON_DEPTH, " levels deep"));
+    if (value === null)
+        return null;
+    if (Array.isArray(value))
+        return value.map(function (v) { return agent_json_value(v, label, restrictKeys, depth + 1); });
+    if ((0, utilities_2.is_object)(value)) {
+        var validated = {};
+        for (var key in value) {
+            if (restrictKeys && (key.startsWith('$') || key.includes('.') || UNSAFE_JSON_KEYS.includes(key))) {
+                throw new Error("".concat(label, " has an unsupported key \"").concat(key, "\""));
+            }
+            validated[key] = agent_json_value(value[key], label, restrictKeys, depth + 1);
+        }
+        return validated;
+    }
+    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean')
+        return value;
+    throw new Error("".concat(label, " contains a value that is not valid JSON"));
+};
+var agent_cache_control = function (value, label) {
+    if (value === undefined)
+        return undefined;
+    var object = agent_plain_object(value, label);
+    agent_no_unrecognized_fields(object, ['type'], label);
+    // `ttl` is deliberately NOT accepted: the 1h cache is billed at a different write rate than the
+    // 1.25x the credit ledger charges (CACHE_WRITE_PRICE_MULTIPLIER), so accepting it would
+    // under-charge. Adding it needs a pricing decision, not a validator change.
+    if (object.type !== 'ephemeral')
+        throw new Error("".concat(label, ".type must be \"ephemeral\""));
+    return { type: 'ephemeral' };
+};
+var agent_text_block = function (value, label) {
+    var object = agent_plain_object(value, label);
+    agent_no_unrecognized_fields(object, ['type', 'text', 'cache_control'], label);
+    var cache_control = agent_cache_control(object.cache_control, "".concat(label, ".cache_control"));
+    return __assign({ type: 'text', text: agent_string(object.text, "".concat(label, ".text")) }, (cache_control ? { cache_control: cache_control } : {}));
+};
+/** The content blocks this proxy forwards. Anything else (image, document, server_tool_use, …) is
+ *  rejected rather than passed through — an unknown block is a shape we neither bill nor audit. */
+var AGENT_SUPPORTED_BLOCK_TYPES = ['text', 'thinking', 'redacted_thinking', 'tool_use', 'tool_result'];
+var agent_content_block = function (value, label) {
+    var object = agent_plain_object(value, label);
+    var type = object.type;
+    if (typeof type !== 'string' || !AGENT_SUPPORTED_BLOCK_TYPES.includes(type)) {
+        throw new Error("".concat(label, ".type ").concat(typeof type === 'string' ? "\"".concat(type, "\" is not supported") : 'is missing')
+            + " (supported: ".concat(AGENT_SUPPORTED_BLOCK_TYPES.join(', '), ")"));
+    }
+    if (type === 'text')
+        return agent_text_block(object, label);
+    if (type === 'thinking') {
+        agent_no_unrecognized_fields(object, ['type', 'thinking', 'signature'], label);
+        return {
+            type: 'thinking',
+            thinking: agent_string(object.thinking, "".concat(label, ".thinking")),
+            // round-tripped verbatim: the model rejects the next turn if the signature is altered/absent
+            signature: agent_string(object.signature, "".concat(label, ".signature")),
+        };
+    }
+    if (type === 'redacted_thinking') {
+        agent_no_unrecognized_fields(object, ['type', 'data'], label);
+        return { type: 'redacted_thinking', data: agent_string(object.data, "".concat(label, ".data")) };
+    }
+    if (type === 'tool_use') {
+        agent_no_unrecognized_fields(object, ['type', 'id', 'name', 'input', 'cache_control'], label);
+        var cache_control_1 = agent_cache_control(object.cache_control, "".concat(label, ".cache_control"));
+        return __assign({ type: 'tool_use', id: agent_string(object.id, "".concat(label, ".id"), 200), name: agent_string(object.name, "".concat(label, ".name"), 200), input: agent_json_value(agent_plain_object(object.input, "".concat(label, ".input")), "".concat(label, ".input"), true) }, (cache_control_1 ? { cache_control: cache_control_1 } : {}));
+    }
+    // tool_result
+    agent_no_unrecognized_fields(object, ['type', 'tool_use_id', 'content', 'is_error', 'cache_control'], label);
+    var cache_control = agent_cache_control(object.cache_control, "".concat(label, ".cache_control"));
+    var content = (object.content === undefined ? undefined
+        : typeof object.content === 'string' ? agent_string(object.content, "".concat(label, ".content"))
+            : Array.isArray(object.content)
+                ? object.content.map(function (block, i) { return agent_text_block(block, "".concat(label, ".content[").concat(i, "]")); })
+                : (function () { throw new Error("".concat(label, ".content must be a string or a list of text blocks")); })());
+    return __assign(__assign(__assign({ type: 'tool_result', tool_use_id: agent_string(object.tool_use_id, "".concat(label, ".tool_use_id"), 200) }, (content !== undefined ? { content: content } : {})), (object.is_error !== undefined ? { is_error: agent_boolean(object.is_error, "".concat(label, ".is_error")) } : {})), (cache_control ? { cache_control: cache_control } : {}));
+};
+var agent_messages = function (value) {
+    if (!Array.isArray(value))
+        throw new Error('messages must be a list of { role, content } objects');
+    if (value.length > exports.AGENT_MAX_MESSAGES) {
+        throw new Error("messages has ".concat(value.length, " entries, more than the ").concat(exports.AGENT_MAX_MESSAGES, " allowed in one request"));
+    }
+    // Cheap guard taken BEFORE the per-block walk so a hostile body is not walked at all, and so
+    // build_validator's own length check (which would dump the JSON into the error) is unreachable.
+    if (JSON.stringify(value).length > exports.AGENT_MAX_REQUEST_CHARS) {
+        throw new Error("messages exceeds the ".concat(exports.AGENT_MAX_REQUEST_CHARS, " character limit"));
+    }
+    return value.map(function (message, i) {
+        var label = "messages[".concat(i, "]");
+        var object = agent_plain_object(message, label);
+        agent_no_unrecognized_fields(object, ['role', 'content'], label);
+        if (object.role !== 'user' && object.role !== 'assistant') {
+            throw new Error("".concat(label, ".role must be \"user\" or \"assistant\""));
+        }
+        if (!Array.isArray(object.content))
+            throw new Error("".concat(label, ".content must be a list of content blocks"));
+        return {
+            role: object.role,
+            content: object.content.map(function (block, j) { return agent_content_block(block, "".concat(label, ".content[").concat(j, "]")); }),
+        };
+    });
+};
+exports.agentMessagesValidator = {
+    // listOf stays false: build_validator's list handling drops falsy entries and reports index-less
+    // errors, and an EMPTY transcript must reach validateAgentRequest, which names it in the 400.
+    validate: function (o) {
+        if (o === void 0) { o = {}; }
+        return (0, exports.build_validator)(agent_messages, __assign(__assign({}, o), { isObject: true, listOf: false, maxLength: exports.AGENT_MAX_REQUEST_CHARS }));
+    },
+    getExample: function () { return [{ role: 'user', content: [{ type: 'text', text: 'Hello' }] }]; },
+    getType: function () { return [{ role: 'user | assistant', content: [{ type: 'text', text: 'string' }] }]; },
+};
+/** `system` is a plain string or a list of text blocks (the list form is what carries cache_control). */
+exports.agentSystemValidator = {
+    validate: function (o) {
+        if (o === void 0) { o = {}; }
+        return (0, exports.build_validator)(function (value) {
+            if (typeof value === 'string')
+                return agent_string(value, 'system', exports.AGENT_MAX_REQUEST_CHARS);
+            if (!Array.isArray(value))
+                throw new Error('system must be a string or a list of text blocks');
+            if (JSON.stringify(value).length > exports.AGENT_MAX_REQUEST_CHARS) {
+                throw new Error("system exceeds the ".concat(exports.AGENT_MAX_REQUEST_CHARS, " character limit"));
+            }
+            return value.map(function (block, i) { return agent_text_block(block, "system[".concat(i, "]")); });
+        }, __assign(__assign({}, o), { isObject: false, listOf: false, isOptional: true, maxLength: exports.AGENT_MAX_REQUEST_CHARS }));
+    },
+    getExample: function () { return [{ type: 'text', text: 'You are a helpful assistant' }]; },
+    getType: function () { return 'string | [{ type: "text", text: string }]'; },
+};
+exports.agentToolsValidator = {
+    validate: function (o) {
+        if (o === void 0) { o = {}; }
+        return (0, exports.build_validator)(function (value) {
+            if (!Array.isArray(value))
+                throw new Error('tools must be a list of tool definitions');
+            if (JSON.stringify(value).length > exports.AGENT_MAX_REQUEST_CHARS) {
+                throw new Error("tools exceeds the ".concat(exports.AGENT_MAX_REQUEST_CHARS, " character limit"));
+            }
+            return value.map(function (tool, i) {
+                var label = "tools[".concat(i, "]");
+                var object = agent_plain_object(tool, label);
+                agent_no_unrecognized_fields(object, ['name', 'description', 'input_schema', 'cache_control'], label);
+                var cache_control = agent_cache_control(object.cache_control, "".concat(label, ".cache_control"));
+                return __assign(__assign(__assign({ name: agent_string(object.name, "".concat(label, ".name"), 200) }, (object.description !== undefined
+                    ? { description: agent_string(object.description, "".concat(label, ".description")) }
+                    : {})), { 
+                    // not persisted, so `$schema` / `$ref` / `$defs` stay legal — depth-checked only
+                    input_schema: agent_json_value(agent_plain_object(object.input_schema, "".concat(label, ".input_schema")), "".concat(label, ".input_schema"), false) }), (cache_control ? { cache_control: cache_control } : {}));
+            });
+        }, __assign(__assign({}, o), { isObject: true, listOf: false, isOptional: true, maxLength: exports.AGENT_MAX_REQUEST_CHARS }));
+    },
+    getExample: function () { return [{ name: 'get_patient', description: 'Look up a patient', input_schema: { type: 'object' } }]; },
+    getType: function () { return [{ name: 'string', description: 'string', input_schema: '{ ... }' }]; },
+};
+exports.agentToolChoiceValidator = {
+    validate: function (o) {
+        if (o === void 0) { o = {}; }
+        return (0, exports.build_validator)(function (value) {
+            var object = agent_plain_object(value, 'tool_choice');
+            agent_no_unrecognized_fields(object, ['type', 'name', 'disable_parallel_tool_use'], 'tool_choice');
+            if (!['auto', 'any', 'tool', 'none'].includes(object.type)) {
+                throw new Error('tool_choice.type must be one of auto, any, tool, none');
+            }
+            if (object.type === 'tool' && typeof object.name !== 'string') {
+                throw new Error('tool_choice.name is required when tool_choice.type is "tool"');
+            }
+            return __assign(__assign({ type: object.type }, (object.name !== undefined ? { name: agent_string(object.name, 'tool_choice.name', 200) } : {})), (object.disable_parallel_tool_use !== undefined
+                ? { disable_parallel_tool_use: agent_boolean(object.disable_parallel_tool_use, 'tool_choice.disable_parallel_tool_use') }
+                : {}));
+        }, __assign(__assign({}, o), { isObject: true, listOf: false, isOptional: true }));
+    },
+    getExample: function () { return ({ type: 'auto' }); },
+    getType: function () { return ({ type: 'auto | any | tool | none', name: 'string' }); },
+};
 // capabilities granted to an AI agent (phone tree 'AI Agent' node or 'startAIConversation' journey
 // action) — extensible like phoneTreeActionValidator (one branch per tool type). Defined ABOVE
 // automationActionValidator, which references it (const TDZ — declaration order matters at module load).
@@ -3162,6 +3407,9 @@ exports.notificationPreferencesValidator = (0, exports.objectAnyFieldsValidator)
 // Named userPortalSettingsValidator to avoid collision with the existing
 // (organization) portalSettingsValidator below.
 exports.userPortalSettingsValidator = (0, exports.indexableValidator)(exports.stringValidator250, (0, exports.orValidator)({ boolean: exports.booleanValidator, string: exports.stringValidator250 }, { isOptional: true }));
+// User.preferences: generic bag for frontend-only per-user settings. Same shape as
+// User.portalSettings, but redacted from endusers (see the users block in schema.ts).
+exports.userPreferencesValidator = exports.userPortalSettingsValidator;
 exports.FHIRObservationCategoryValidator = (0, exports.exactMatchValidator)(['vital-signs', 'laboratory']);
 var _FHIR_OBSERVATION_STATUS_CODES = {
     "entered-in-error": '',
@@ -4751,6 +4999,9 @@ var _AUTOMATION_TRIGGER_ACTION_TYPES = {
     "Add Tags": true,
     "Remove Tags": true,
     "Add Access Tags": true,
+    "Add List Item": true,
+    "Remove List Item": true,
+    "Update List Item": true,
     "Assign Care Team": true,
     "Remove Care Team": true,
     "Remove From All Journeys": true,
@@ -4777,6 +5028,93 @@ exports.AUTOMATION_TRIGGER_ACTION_EVENT_RESTRICTIONS = {
     // needs journeyContext.observationId, which only the Vital Update event supplies
     "Review Vital Reading": ['Vital Update'],
 };
+/**
+ * The enduser list-of-objects fields automations may read and write, and the sub-fields of each that
+ * they may match on and write.
+ *
+ * This is the ONLY place a sub-field of a list entry is named. The action validators, the save-time
+ * check (list_item_mutation_error), the Mongo operations in handle_actions_for_triggers_inner, the
+ * `Field Equals` / `Fields Changed` expansion in handle_field_update_triggers and the trigger editor
+ * are all driven by it, so adding a list field here is a registry entry rather than a change in any
+ * of them.
+ *
+ * Enforced when a trigger is SAVED rather than skipped at fire time: the alternative leaves a trigger
+ * that looks configured in the editor and silently never does anything. It is re-applied at fire time
+ * as well, so no stored key can reach a Mongo path.
+ *
+ * The one thing a new entry may still need is an editor in the webapp (list_mutation_actions.tsx):
+ * without one, each sub-field gets a plain text box, which is right for a free-text sub-field and
+ * wrong for one backed by a registry the way `programs` is.
+ */
+exports.ENDUSER_LIST_FIELD_CONFIG = {
+    programs: { matchKeys: ['name'], valueKeys: ['status'], label: 'Programs' },
+};
+exports.ENDUSER_LIST_FIELDS = Object.keys(exports.ENDUSER_LIST_FIELD_CONFIG);
+exports.LIST_MUTATION_ACTION_TYPES = ['Add List Item', 'Remove List Item', 'Update List Item'];
+var is_list_mutation_action = function (action) { return (exports.LIST_MUTATION_ACTION_TYPES.includes(action === null || action === void 0 ? void 0 : action.type)); };
+exports.is_list_mutation_action = is_list_mutation_action;
+/**
+ * The blocking error for a list-item mutation action, or '' when it is saveable.
+ *
+ * Shared by the API (as an automation_triggers constraint) and by the trigger editor, so the two
+ * reject the same actions with the same wording. It exists as a separate check because the field and
+ * its sub-fields validate TOGETHER: `objectValidator` sees one key at a time and cannot tell whether
+ * `status` is a sub-field `field` actually has.
+ *
+ * Keeping unrecognized keys out here is also what keeps `$`-prefixed and dotted keys out of the Mongo
+ * paths that handle_actions_for_triggers_inner builds from them.
+ */
+var list_item_mutation_error = function (action) {
+    var _a, _b, _c, _d;
+    if (!(0, exports.is_list_mutation_action)(action))
+        return '';
+    var type = action.type;
+    var field = (_a = action.info) === null || _a === void 0 ? void 0 : _a.field;
+    // hasOwnProperty: a field of "constructor" or "toString" finds a function on the prototype, which a
+    // truthiness check would accept as a configured list field
+    var config = Object.prototype.hasOwnProperty.call(exports.ENDUSER_LIST_FIELD_CONFIG, field)
+        ? exports.ENDUSER_LIST_FIELD_CONFIG[field]
+        : undefined;
+    if (!config) {
+        return "The \"".concat(type, "\" action does not support the field \"").concat(field !== null && field !== void 0 ? field : '', "\"");
+    }
+    var match = (_b = action.info) === null || _b === void 0 ? void 0 : _b.match;
+    if (!match || typeof match !== 'object' || Object.keys(match).length === 0) {
+        return "The \"".concat(type, "\" action must match on ").concat(config.matchKeys.join(' and '));
+    }
+    for (var key in match) {
+        if (!config.matchKeys.includes(key)) {
+            return "The \"".concat(type, "\" action cannot match \"").concat(field, "\" on \"").concat(key, "\"");
+        }
+        // deliberately not trimmed: a value of only spaces is a real (if unwise) one elsewhere in the
+        // product, and matching is exact, so trimming here would match something other than what was saved
+        if (typeof match[key] !== 'string' || match[key] === '') {
+            return "Select a ".concat(field, " ").concat(key, " for the \"").concat(type, "\" action");
+        }
+    }
+    // Remove List Item matches on `match` alone and removes every entry carrying it, whatever else
+    // those entries hold — its type carries no `values` at all
+    if (type === 'Remove List Item')
+        return '';
+    var values = (_d = (_c = action.info) === null || _c === void 0 ? void 0 : _c.values) !== null && _d !== void 0 ? _d : {};
+    if (typeof values !== 'object') {
+        return "The \"".concat(type, "\" action has an invalid value to set");
+    }
+    for (var key in values) {
+        if (!config.valueKeys.includes(key)) {
+            return "The \"".concat(type, "\" action cannot set \"").concat(key, "\" on \"").concat(field, "\"");
+        }
+    }
+    // an Update that sets nothing would match entries and write nothing, every time it fires
+    if (type === 'Update List Item' && Object.keys(values).length === 0) {
+        return "The \"".concat(type, "\" action must set at least one of ").concat(config.valueKeys.join(', '));
+    }
+    return '';
+};
+exports.list_item_mutation_error = list_item_mutation_error;
+// a match value is required and matched exactly; a value may be '' , which CLEARS that sub-field
+var listItemMutationMatchValidator = (0, exports.objectAnyFieldsValidator)(exports.stringValidator100);
+var listItemMutationValuesValidator = (0, exports.objectAnyFieldsValidator)(exports.stringValidator100Optional);
 exports.automationTriggerActionValidator = (0, exports.orValidator)({
     "Add To Journey": (0, exports.objectValidator)({
         type: (0, exports.exactMatchValidator)(['Add To Journey']),
@@ -4806,6 +5144,33 @@ exports.automationTriggerActionValidator = (0, exports.orValidator)({
         type: (0, exports.exactMatchValidator)(['Remove Tags']),
         info: (0, exports.objectValidator)({
             tags: exports.listOfStringsValidator,
+        }),
+    }),
+    // `match` holds match keys, never values to set: there is deliberately no rename action, since a
+    // rename would migrate no condition, saved filter or trigger that matches the old value exactly.
+    // WHICH sub-fields either map may carry is checked by list_item_mutation_error, which sees `field`
+    // and its sub-fields together — an object validator sees one key at a time.
+    "Add List Item": (0, exports.objectValidator)({
+        type: (0, exports.exactMatchValidator)(['Add List Item']),
+        info: (0, exports.objectValidator)({
+            field: (0, exports.exactMatchValidator)(exports.ENDUSER_LIST_FIELDS),
+            match: listItemMutationMatchValidator,
+            values: listItemMutationValuesValidator,
+        }),
+    }),
+    "Remove List Item": (0, exports.objectValidator)({
+        type: (0, exports.exactMatchValidator)(['Remove List Item']),
+        info: (0, exports.objectValidator)({
+            field: (0, exports.exactMatchValidator)(exports.ENDUSER_LIST_FIELDS),
+            match: listItemMutationMatchValidator,
+        }),
+    }),
+    "Update List Item": (0, exports.objectValidator)({
+        type: (0, exports.exactMatchValidator)(['Update List Item']),
+        info: (0, exports.objectValidator)({
+            field: (0, exports.exactMatchValidator)(exports.ENDUSER_LIST_FIELDS),
+            match: listItemMutationMatchValidator,
+            values: listItemMutationValuesValidator,
         }),
     }),
     "Add Access Tags": (0, exports.objectValidator)({

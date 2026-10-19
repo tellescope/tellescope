@@ -1072,6 +1072,187 @@
         }
       }
     },
+    "/v1/ai-conversations/agent-message": {
+      "post": {
+        "summary": "Agent Message",
+        "description": "Sends an Anthropic-shaped transcript to the configured model with native tool use and prompt caching, and records the turn against an ai_conversation. Returns { conversationId, reply }, or a text/event-stream when stream is true.",
+        "tags": [
+          "AiConversations"
+        ],
+        "operationId": "ai_conversations_agent_message",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "conversationId": {
+                      "type": "string",
+                      "example": "60398b0231a295e64f084fd9"
+                    },
+                    "reply": {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  },
+                  "required": [
+                    "conversationId",
+                    "reply"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "messages": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "role": {
+                          "type": "string"
+                        },
+                        "content": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string"
+                              },
+                              "text": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "example": [
+                      {
+                        "role": "user",
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "Hello"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "system": {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  "tools": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "input_schema": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "example": [
+                      {
+                        "name": "get_patient",
+                        "description": "Look up a patient",
+                        "input_schema": {
+                          "type": "object"
+                        }
+                      }
+                    ]
+                  },
+                  "tool_choice": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      }
+                    },
+                    "example": {
+                      "type": "auto"
+                    }
+                  },
+                  "maxTokens": {
+                    "type": "number",
+                    "example": 0
+                  },
+                  "stream": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "conversationId": {
+                    "type": "string",
+                    "example": "60398b0231a295e64f084fd9"
+                  },
+                  "type": {
+                    "type": "string",
+                    "example": "example string"
+                  },
+                  "model": {
+                    "type": "string",
+                    "example": "Claude Sonnet 5.5"
+                  },
+                  "orchestrationId": {
+                    "type": "string",
+                    "example": "example string"
+                  },
+                  "enduserId": {
+                    "type": "string",
+                    "example": "60398b0231a295e64f084fd9"
+                  },
+                  "journeyId": {
+                    "type": "string",
+                    "example": "60398b0231a295e64f084fd9"
+                  },
+                  "automationStepId": {
+                    "type": "string",
+                    "example": "60398b0231a295e64f084fd9"
+                  }
+                },
+                "required": [
+                  "messages"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/ai-conversations/generate-ai-decision": {
       "post": {
         "summary": "Generate AI Decision",
@@ -2630,6 +2811,82 @@
                 }
               }
             }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update api-key",
+        "description": "Updates a api-key by ID",
+        "tags": [
+          "ApiKeys"
+        ],
+        "operationId": "updateApiKeys",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-fA-F]{24}$"
+            },
+            "description": "The unique identifier of the record to update"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "updates": {
+                    "$ref": "#/components/schemas/ApiKeysUpdate"
+                  },
+                  "options": {
+                    "type": "object",
+                    "properties": {
+                      "replaceObjectFields": {
+                        "type": "boolean",
+                        "description": "If true, replace object fields entirely instead of merging"
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "updates"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated api-key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiKeys"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
@@ -10435,7 +10692,8 @@
               "type": "string",
               "format": "date-time",
               "example": "2024-01-01T00:00:00.000Z"
-            }
+            },
+            "description": "Keyset cursor: returns rooms whose most recent message is strictly older than this. Pass the recentMessageSentAt of the last room in the previous page. Defaults to now."
           },
           {
             "name": "limit",
@@ -25219,7 +25477,7 @@
     "/v1/files/confirm-upload": {
       "post": {
         "summary": "Confirm File Upload",
-        "description": "Triggers file create side effects / webhooks to be called after client-side upload is complete. Optionally syncs file to Beluga if syncToBeluga is true and formResponseId is provided, or to MD Integrations if syncToMDI is true and formResponseId is provided.",
+        "description": "Triggers file create side effects / webhooks to be called after client-side upload is complete. Optionally syncs file to Beluga if syncToBeluga is true and formResponseId is provided, or to MD Integrations if syncToMDI is true and formResponseId is provided. For MD Integrations, mdiFileType sets the MDI file type; 'driver-license' links the file to the patient's driver_license_id instead of attaching it to the case.",
         "tags": [
           "Files"
         ],
@@ -25265,6 +25523,10 @@
                   "formResponseId": {
                     "type": "string",
                     "example": "60398b0231a295e64f084fd9"
+                  },
+                  "mdiFileType": {
+                    "type": "string",
+                    "example": "document"
                   }
                 },
                 "required": [
@@ -30807,7 +31069,7 @@
     "/v1/inbox-threads/load": {
       "get": {
         "summary": "Load Threads",
-        "description": "Loads inbox threads with optional filtering",
+        "description": "Loads inbox threads with optional filtering. mdbFilter accepts the careTeamUserIds pseudo-field for composing a care team condition with other clauses; see the mdbFilter parameter",
         "tags": [
           "InboxThreads"
         ],
@@ -30963,7 +31225,8 @@
             "schema": {
               "type": "object",
               "additionalProperties": true
-            }
+            },
+            "description": "A MongoDB filter over inbox threads. May also use the careTeamUserIds pseudo-field anywhere a field clause can appear, including under $and, $or and $nor: a user id, { $eq: id }, { $in: [ids] } or { $all: [ids] }, matching threads with an enduser whose care team (assignedTo) contains that user, any of the users, or all of the users respectively. The server expands each occurrence into an indexed enduserIds clause before querying. Negation ($nin, $ne, $not) and every other operator are rejected with a 400, as are non-id values. At most 5 distinct careTeamUserIds conditions per request; each resolves at most 25,000 endusers, beyond which results are truncated."
           },
           {
             "name": "sortBy",
@@ -35923,6 +36186,56 @@
       }
     },
     "/v1/organization-api-key/:id": {
+      "patch": {
+        "summary": "Update Organization ApiKey",
+        "description": "**Admin only.** Sets the description of an ApiKey in the admin's organization by id, regardless of which user created it. The description is the only editable field on an ApiKey; the key itself is never changed. An omitted description clears the existing one. Returns 404 if no key in the organization has that id.",
+        "tags": [
+          "ApiKeys"
+        ],
+        "operationId": "api_keys_update_organization_api_key",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "example": "60398b0231a295e64f084fd9"
+                  },
+                  "description": {
+                    "type": "string",
+                    "example": "example string"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        }
+      },
       "delete": {
         "summary": "Delete Organization ApiKey",
         "description": "**Admin only.** Deletes an ApiKey in the admin's organization by id, regardless of which user created it.",
@@ -35965,7 +36278,7 @@
     "/v1/organization-api-keys": {
       "get": {
         "summary": "Get Organization ApiKeys",
-        "description": "**Admin only.** Returns metadata (id, creator, businessId, updatedAt) for all ApiKeys in the admin's organization. Never returns the secret key.",
+        "description": "**Admin only.** Returns metadata (id, creator, businessId, updatedAt, scopes, description) for all ApiKeys in the admin's organization. Never returns the secret key.",
         "tags": [
           "ApiKeys"
         ],
@@ -64550,6 +64863,10 @@
             "example": [
               "form-ingestion"
             ]
+          },
+          "description": {
+            "type": "string",
+            "example": "example string"
           }
         }
       },
@@ -64584,6 +64901,10 @@
           "originalId": {
             "type": "string",
             "example": "example string"
+          },
+          "description": {
+            "type": "string",
+            "example": "example string"
           }
         }
       },
@@ -64616,6 +64937,10 @@
             ]
           },
           "originalId": {
+            "type": "string",
+            "example": "example string"
+          },
+          "description": {
             "type": "string",
             "example": "example string"
           }
@@ -69197,6 +69522,11 @@
             "type": "object",
             "additionalProperties": true
           },
+          "preferences": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Not visible to endusers"
+          },
           "notificationEmailsDisabled": {
             "type": "boolean",
             "example": true
@@ -69816,6 +70146,10 @@
             "type": "object",
             "additionalProperties": true
           },
+          "preferences": {
+            "type": "object",
+            "additionalProperties": true
+          },
           "notificationEmailsDisabled": {
             "type": "boolean",
             "example": true
@@ -70420,6 +70754,10 @@
             "additionalProperties": true
           },
           "portalSettings": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "preferences": {
             "type": "object",
             "additionalProperties": true
           },
@@ -78963,6 +79301,31 @@
           "mdiStatus": {
             "type": "string",
             "example": "example string"
+          },
+          "mdiSyncError": {
+            "type": "object",
+            "properties": {
+              "message": {
+                "type": "string"
+              },
+              "missingFields": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "example": {
+              "message": "example string",
+              "missingFields": [
+                "example string"
+              ],
+              "at": "2024-01-01T00:00:00.000Z"
+            }
           },
           "fieldViews": {
             "type": "array",
@@ -138529,6 +138892,69 @@
                     "info": {
                       "type": "object",
                       "properties": {
+                        "field": {
+                          "type": "string"
+                        },
+                        "match": {
+                          "type": "string"
+                        },
+                        "values": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "6": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    },
+                    "info": {
+                      "type": "object",
+                      "properties": {
+                        "field": {
+                          "type": "string"
+                        },
+                        "match": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "7": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    },
+                    "info": {
+                      "type": "object",
+                      "properties": {
+                        "field": {
+                          "type": "string"
+                        },
+                        "match": {
+                          "type": "string"
+                        },
+                        "values": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "8": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    },
+                    "info": {
+                      "type": "object",
+                      "properties": {
                         "tags": {
                           "type": "array",
                           "items": {
@@ -138539,7 +138965,7 @@
                     }
                   }
                 },
-                "6": {
+                "9": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -138575,7 +139001,7 @@
                     }
                   }
                 },
-                "7": {
+                "10": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -138602,7 +139028,7 @@
                     }
                   }
                 },
-                "8": {
+                "11": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -138647,7 +139073,7 @@
                     }
                   }
                 },
-                "9": {
+                "12": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -138658,7 +139084,7 @@
                     }
                   }
                 },
-                "10": {
+                "13": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -138669,7 +139095,7 @@
                     }
                   }
                 },
-                "11": {
+                "14": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -138685,7 +139111,7 @@
                     }
                   }
                 },
-                "12": {
+                "15": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -138704,7 +139130,7 @@
                     }
                   }
                 },
-                "13": {
+                "16": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -138720,7 +139146,7 @@
                     }
                   }
                 },
-                "14": {
+                "17": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -138739,7 +139165,7 @@
                     }
                   }
                 },
-                "15": {
+                "18": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -138755,7 +139181,7 @@
                     }
                   }
                 },
-                "16": {
+                "19": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -138794,7 +139220,7 @@
                     }
                   }
                 },
-                "17": {
+                "20": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -138827,7 +139253,7 @@
                     }
                   }
                 },
-                "18": {
+                "21": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -138839,7 +139265,7 @@
                     }
                   }
                 },
-                "19": {
+                "22": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -140424,6 +140850,69 @@
                     "info": {
                       "type": "object",
                       "properties": {
+                        "field": {
+                          "type": "string"
+                        },
+                        "match": {
+                          "type": "string"
+                        },
+                        "values": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "6": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    },
+                    "info": {
+                      "type": "object",
+                      "properties": {
+                        "field": {
+                          "type": "string"
+                        },
+                        "match": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "7": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    },
+                    "info": {
+                      "type": "object",
+                      "properties": {
+                        "field": {
+                          "type": "string"
+                        },
+                        "match": {
+                          "type": "string"
+                        },
+                        "values": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "8": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    },
+                    "info": {
+                      "type": "object",
+                      "properties": {
                         "tags": {
                           "type": "array",
                           "items": {
@@ -140434,7 +140923,7 @@
                     }
                   }
                 },
-                "6": {
+                "9": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -140470,7 +140959,7 @@
                     }
                   }
                 },
-                "7": {
+                "10": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -140497,7 +140986,7 @@
                     }
                   }
                 },
-                "8": {
+                "11": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -140542,7 +141031,7 @@
                     }
                   }
                 },
-                "9": {
+                "12": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -140553,7 +141042,7 @@
                     }
                   }
                 },
-                "10": {
+                "13": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -140564,7 +141053,7 @@
                     }
                   }
                 },
-                "11": {
+                "14": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -140580,7 +141069,7 @@
                     }
                   }
                 },
-                "12": {
+                "15": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -140599,7 +141088,7 @@
                     }
                   }
                 },
-                "13": {
+                "16": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -140615,7 +141104,7 @@
                     }
                   }
                 },
-                "14": {
+                "17": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -140634,7 +141123,7 @@
                     }
                   }
                 },
-                "15": {
+                "18": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -140650,7 +141139,7 @@
                     }
                   }
                 },
-                "16": {
+                "19": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -140689,7 +141178,7 @@
                     }
                   }
                 },
-                "17": {
+                "20": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -140722,7 +141211,7 @@
                     }
                   }
                 },
-                "18": {
+                "21": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -140734,7 +141223,7 @@
                     }
                   }
                 },
-                "19": {
+                "22": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -142319,6 +142808,69 @@
                     "info": {
                       "type": "object",
                       "properties": {
+                        "field": {
+                          "type": "string"
+                        },
+                        "match": {
+                          "type": "string"
+                        },
+                        "values": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "6": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    },
+                    "info": {
+                      "type": "object",
+                      "properties": {
+                        "field": {
+                          "type": "string"
+                        },
+                        "match": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "7": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    },
+                    "info": {
+                      "type": "object",
+                      "properties": {
+                        "field": {
+                          "type": "string"
+                        },
+                        "match": {
+                          "type": "string"
+                        },
+                        "values": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "8": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    },
+                    "info": {
+                      "type": "object",
+                      "properties": {
                         "tags": {
                           "type": "array",
                           "items": {
@@ -142329,7 +142881,7 @@
                     }
                   }
                 },
-                "6": {
+                "9": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -142365,7 +142917,7 @@
                     }
                   }
                 },
-                "7": {
+                "10": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -142392,7 +142944,7 @@
                     }
                   }
                 },
-                "8": {
+                "11": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -142437,7 +142989,7 @@
                     }
                   }
                 },
-                "9": {
+                "12": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -142448,7 +143000,7 @@
                     }
                   }
                 },
-                "10": {
+                "13": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -142459,7 +143011,7 @@
                     }
                   }
                 },
-                "11": {
+                "14": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -142475,7 +143027,7 @@
                     }
                   }
                 },
-                "12": {
+                "15": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -142494,7 +143046,7 @@
                     }
                   }
                 },
-                "13": {
+                "16": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -142510,7 +143062,7 @@
                     }
                   }
                 },
-                "14": {
+                "17": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -142529,7 +143081,7 @@
                     }
                   }
                 },
-                "15": {
+                "18": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -142545,7 +143097,7 @@
                     }
                   }
                 },
-                "16": {
+                "19": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -142584,7 +143136,7 @@
                     }
                   }
                 },
-                "17": {
+                "20": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -142617,7 +143169,7 @@
                     }
                   }
                 },
-                "18": {
+                "21": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -142629,7 +143181,7 @@
                     }
                   }
                 },
-                "19": {
+                "22": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -154238,6 +154790,25 @@
                       },
                       "text": {
                         "type": "string"
+                      },
+                      "id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "input": {
+                        "type": "string"
+                      },
+                      "tool_use_id": {
+                        "type": "string"
+                      },
+                      "content": {
+                        "type": "string"
+                      },
+                      "is_error": {
+                        "type": "boolean",
+                        "example": true
                       }
                     }
                   }
@@ -154302,7 +154873,13 @@
                 "content": [
                   {
                     "type": "text",
-                    "text": "example string"
+                    "text": "example string",
+                    "id": "example string",
+                    "name": "example string",
+                    "input": "{ \"key\": \"value\" }",
+                    "tool_use_id": "example string",
+                    "content": "example string",
+                    "is_error": true
                   }
                 ],
                 "userId": "60398b0231a295e64f084fd9",
@@ -154424,6 +155001,25 @@
                       },
                       "text": {
                         "type": "string"
+                      },
+                      "id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "input": {
+                        "type": "string"
+                      },
+                      "tool_use_id": {
+                        "type": "string"
+                      },
+                      "content": {
+                        "type": "string"
+                      },
+                      "is_error": {
+                        "type": "boolean",
+                        "example": true
                       }
                     }
                   }
@@ -154488,7 +155084,13 @@
                 "content": [
                   {
                     "type": "text",
-                    "text": "example string"
+                    "text": "example string",
+                    "id": "example string",
+                    "name": "example string",
+                    "input": "{ \"key\": \"value\" }",
+                    "tool_use_id": "example string",
+                    "content": "example string",
+                    "is_error": true
                   }
                 ],
                 "userId": "60398b0231a295e64f084fd9",
@@ -154610,6 +155212,25 @@
                       },
                       "text": {
                         "type": "string"
+                      },
+                      "id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "input": {
+                        "type": "string"
+                      },
+                      "tool_use_id": {
+                        "type": "string"
+                      },
+                      "content": {
+                        "type": "string"
+                      },
+                      "is_error": {
+                        "type": "boolean",
+                        "example": true
                       }
                     }
                   }
@@ -154674,7 +155295,13 @@
                 "content": [
                   {
                     "type": "text",
-                    "text": "example string"
+                    "text": "example string",
+                    "id": "example string",
+                    "name": "example string",
+                    "input": "{ \"key\": \"value\" }",
+                    "tool_use_id": "example string",
+                    "content": "example string",
+                    "is_error": true
                   }
                 ],
                 "userId": "60398b0231a295e64f084fd9",

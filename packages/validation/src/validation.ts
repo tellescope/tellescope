@@ -177,6 +177,8 @@ import {
   AutomationTriggerEvents,
   AutomationTriggerActionType,
   AutomationTriggerActions,
+  EnduserListField,
+  ListItemMutation,
   AutomationTriggerStatus,
   EnduserBuiltInField,
   AnalyticsQueryResultValue,
@@ -374,6 +376,12 @@ import {
   OnErrorEventInfo,
   OnErrorAutomationEvent,
   AIContextSource,
+  AgentCacheControl,
+  AgentContentBlock,
+  AgentMessageInput,
+  AgentToolChoice,
+  AgentToolInput,
+  AgentTextBlock,
   AISummaryConfiguration,
   AISummaryDataSource,
   AISummaryDataSourceConfig,
@@ -3294,6 +3302,291 @@ export const AIMessageInputValidator = objectValidator<{ role: 'user' | 'assista
   text: stringValidator100000,
 }, { emptyOk: false })
 
+/***************************************************************************************************
+ * ai_conversations.agent_message — Anthropic Messages API request shapes.
+ *
+ * Hand-rolled rather than composed from objectValidator / orValidator, for two reasons:
+ *  - orValidator's rejection message JSON-dumps the value it could not match, and objectValidator's
+ *    length check dumps the JSON it rejected. A transcript is PHI: it must never travel back inside
+ *    a 400, so every throw below names the offending block by position and nothing else.
+ *  - objectValidator silently DROPS fields it does not recognise. A `thinking` block whose
+ *    `signature` was dropped is rejected by the model on the NEXT turn, far from the cause. Here
+ *    every field is whitelisted explicitly and an unrecognised one is an error, not a silent strip.
+ *
+ * SHAPE ONLY. The cross-field rules — tool_use/tool_result pairing, the total character cap, the
+ * cache_control marker budget, tools being present when the transcript uses them — live in
+ * validateAgentRequest (packages/private/api/api/modules/bedrock.ts), which is a pure function so
+ * those messages are unit-testable without this framework and without a Bedrock client.
+ ***************************************************************************************************/
+
+/** Per-string ceiling for any single block (text, thinking, a tool_result's text). */
+export const AGENT_MAX_BLOCK_CHARS = 100000
+/** Whole-request ceiling, summed over messages + system + tools. */
+export const AGENT_MAX_REQUEST_CHARS = 1000000
+/** Transcript length ceiling for one request. */
+export const AGENT_MAX_MESSAGES = 1000
+/** Anthropic allows at most 4 prompt-caching breakpoints per request. */
+export const AGENT_MAX_CACHE_CONTROL_MARKERS = 4
+/** `maxTokens` default and flat ceiling. The ceiling is checked BEFORE thinking headroom is added,
+ *  so a 400 never depends on which model the request resolves to. */
+export const AGENT_DEFAULT_MAX_TOKENS = 10000
+export const AGENT_MAX_MAX_TOKENS = 64000
+/** An ai_conversation stops accepting agent_message turns at this many stored entries. */
+export const AI_CONVERSATION_MAX_STORED_MESSAGES = 1000
+
+/** Keys that must never reach a Mongo document (operator/path syntax, prototype pollution). */
+const UNSAFE_JSON_KEYS = ['__proto__', 'constructor', 'prototype']
+
+/** Nesting ceiling for a tool's JSON Schema and for the arguments a model produces. */
+const AGENT_MAX_JSON_DEPTH = 20
+
+const agent_plain_object = (value: any, label: string): Indexable => {
+  if (!is_object(value) || Array.isArray(value)) throw new Error(`${label} must be an object`)
+  return value as Indexable
+}
+
+const agent_string = (value: any, label: string, max=AGENT_MAX_BLOCK_CHARS): string => {
+  if (typeof value !== 'string') throw new Error(`${label} must be a string`)
+  if (value.length > max) throw new Error(`${label} exceeds the ${max} character limit`)
+  return value
+}
+
+const agent_boolean = (value: any, label: string): boolean => {
+  if (typeof value !== 'boolean') throw new Error(`${label} must be a boolean`)
+  return value
+}
+
+const agent_no_unrecognized_fields = (value: Indexable, allowed: string[], label: string) => {
+  const unrecognized = Object.keys(value).filter(k => !allowed.includes(k))
+  if (unrecognized.length) {
+    throw new Error(`${label} has unsupported field(s) [${unrecognized.join(', ')}]`)
+  }
+}
+
+/**
+ * Bounded structural check for free-form JSON (a tool's `input_schema`, a tool_use's `input`).
+ * `restrictKeys` is on only for values that get PERSISTED into the ai_conversations ledger: Mongo
+ * treats `$`-prefixed and dotted keys as operators/paths, and `__proto__` is a pollution vector.
+ * A tool's `input_schema` is never persisted and legitimately uses `$schema` / `$ref` / `$defs`,
+ * so it is checked for depth alone.
+ */
+const agent_json_value = (value: any, label: string, restrictKeys: boolean, depth=0): any => {
+  if (depth > AGENT_MAX_JSON_DEPTH) throw new Error(`${label} is nested more than ${AGENT_MAX_JSON_DEPTH} levels deep`)
+  if (value === null) return null
+  if (Array.isArray(value)) return value.map(v => agent_json_value(v, label, restrictKeys, depth + 1))
+  if (is_object(value)) {
+    const validated = {} as Indexable
+    for (const key in value) {
+      if (restrictKeys && (key.startsWith('$') || key.includes('.') || UNSAFE_JSON_KEYS.includes(key))) {
+        throw new Error(`${label} has an unsupported key "${key}"`)
+      }
+      validated[key] = agent_json_value((value as Indexable)[key], label, restrictKeys, depth + 1)
+    }
+    return validated
+  }
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return value
+  throw new Error(`${label} contains a value that is not valid JSON`)
+}
+
+const agent_cache_control = (value: any, label: string): AgentCacheControl | undefined => {
+  if (value === undefined) return undefined
+  const object = agent_plain_object(value, label)
+  agent_no_unrecognized_fields(object, ['type'], label)
+  // `ttl` is deliberately NOT accepted: the 1h cache is billed at a different write rate than the
+  // 1.25x the credit ledger charges (CACHE_WRITE_PRICE_MULTIPLIER), so accepting it would
+  // under-charge. Adding it needs a pricing decision, not a validator change.
+  if (object.type !== 'ephemeral') throw new Error(`${label}.type must be "ephemeral"`)
+  return { type: 'ephemeral' }
+}
+
+const agent_text_block = (value: any, label: string): AgentTextBlock => {
+  const object = agent_plain_object(value, label)
+  agent_no_unrecognized_fields(object, ['type', 'text', 'cache_control'], label)
+  const cache_control = agent_cache_control(object.cache_control, `${label}.cache_control`)
+  return {
+    type: 'text',
+    text: agent_string(object.text, `${label}.text`),
+    ...(cache_control ? { cache_control } : {}),
+  }
+}
+
+/** The content blocks this proxy forwards. Anything else (image, document, server_tool_use, …) is
+ *  rejected rather than passed through — an unknown block is a shape we neither bill nor audit. */
+const AGENT_SUPPORTED_BLOCK_TYPES = ['text', 'thinking', 'redacted_thinking', 'tool_use', 'tool_result']
+
+const agent_content_block = (value: any, label: string): AgentContentBlock => {
+  const object = agent_plain_object(value, label)
+  const type = object.type
+
+  if (typeof type !== 'string' || !AGENT_SUPPORTED_BLOCK_TYPES.includes(type)) {
+    throw new Error(
+      `${label}.type ${typeof type === 'string' ? `"${type}" is not supported` : 'is missing'}`
+      + ` (supported: ${AGENT_SUPPORTED_BLOCK_TYPES.join(', ')})`
+    )
+  }
+
+  if (type === 'text') return agent_text_block(object, label)
+
+  if (type === 'thinking') {
+    agent_no_unrecognized_fields(object, ['type', 'thinking', 'signature'], label)
+    return {
+      type: 'thinking',
+      thinking: agent_string(object.thinking, `${label}.thinking`),
+      // round-tripped verbatim: the model rejects the next turn if the signature is altered/absent
+      signature: agent_string(object.signature, `${label}.signature`),
+    }
+  }
+
+  if (type === 'redacted_thinking') {
+    agent_no_unrecognized_fields(object, ['type', 'data'], label)
+    return { type: 'redacted_thinking', data: agent_string(object.data, `${label}.data`) }
+  }
+
+  if (type === 'tool_use') {
+    agent_no_unrecognized_fields(object, ['type', 'id', 'name', 'input', 'cache_control'], label)
+    const cache_control = agent_cache_control(object.cache_control, `${label}.cache_control`)
+    return {
+      type: 'tool_use',
+      id: agent_string(object.id, `${label}.id`, 200),
+      name: agent_string(object.name, `${label}.name`, 200),
+      input: agent_json_value(agent_plain_object(object.input, `${label}.input`), `${label}.input`, true),
+      ...(cache_control ? { cache_control } : {}),
+    }
+  }
+
+  // tool_result
+  agent_no_unrecognized_fields(object, ['type', 'tool_use_id', 'content', 'is_error', 'cache_control'], label)
+  const cache_control = agent_cache_control(object.cache_control, `${label}.cache_control`)
+  const content = (
+    object.content === undefined ? undefined
+    : typeof object.content === 'string' ? agent_string(object.content, `${label}.content`)
+    : Array.isArray(object.content)
+      ? object.content.map((block: any, i: number) => agent_text_block(block, `${label}.content[${i}]`))
+      : (() => { throw new Error(`${label}.content must be a string or a list of text blocks`) })()
+  )
+  return {
+    type: 'tool_result',
+    tool_use_id: agent_string(object.tool_use_id, `${label}.tool_use_id`, 200),
+    ...(content !== undefined ? { content } : {}),
+    ...(object.is_error !== undefined ? { is_error: agent_boolean(object.is_error, `${label}.is_error`) } : {}),
+    ...(cache_control ? { cache_control } : {}),
+  }
+}
+
+const agent_messages = (value: any): AgentMessageInput[] => {
+  if (!Array.isArray(value)) throw new Error('messages must be a list of { role, content } objects')
+  if (value.length > AGENT_MAX_MESSAGES) {
+    throw new Error(`messages has ${value.length} entries, more than the ${AGENT_MAX_MESSAGES} allowed in one request`)
+  }
+  // Cheap guard taken BEFORE the per-block walk so a hostile body is not walked at all, and so
+  // build_validator's own length check (which would dump the JSON into the error) is unreachable.
+  if (JSON.stringify(value).length > AGENT_MAX_REQUEST_CHARS) {
+    throw new Error(`messages exceeds the ${AGENT_MAX_REQUEST_CHARS} character limit`)
+  }
+
+  return value.map((message: any, i: number) => {
+    const label = `messages[${i}]`
+    const object = agent_plain_object(message, label)
+    agent_no_unrecognized_fields(object, ['role', 'content'], label)
+    if (object.role !== 'user' && object.role !== 'assistant') {
+      throw new Error(`${label}.role must be "user" or "assistant"`)
+    }
+    if (!Array.isArray(object.content)) throw new Error(`${label}.content must be a list of content blocks`)
+
+    return {
+      role: object.role,
+      content: object.content.map((block: any, j: number) => agent_content_block(block, `${label}.content[${j}]`)),
+    }
+  })
+}
+
+export const agentMessagesValidator: ValidatorDefinition<AgentMessageInput[]> = {
+  // listOf stays false: build_validator's list handling drops falsy entries and reports index-less
+  // errors, and an EMPTY transcript must reach validateAgentRequest, which names it in the 400.
+  validate: (o={}) => build_validator(
+    agent_messages, { ...o, isObject: true, listOf: false, maxLength: AGENT_MAX_REQUEST_CHARS },
+  ),
+  getExample: () => [{ role: 'user', content: [{ type: 'text', text: 'Hello' }] }],
+  getType: () => [{ role: 'user | assistant', content: [{ type: 'text', text: 'string' }] }],
+}
+
+/** `system` is a plain string or a list of text blocks (the list form is what carries cache_control). */
+export const agentSystemValidator: ValidatorDefinition<string | AgentTextBlock[]> = {
+  validate: (o={}) => build_validator(
+    (value: any) => {
+      if (typeof value === 'string') return agent_string(value, 'system', AGENT_MAX_REQUEST_CHARS)
+      if (!Array.isArray(value)) throw new Error('system must be a string or a list of text blocks')
+      if (JSON.stringify(value).length > AGENT_MAX_REQUEST_CHARS) {
+        throw new Error(`system exceeds the ${AGENT_MAX_REQUEST_CHARS} character limit`)
+      }
+      return value.map((block: any, i: number) => agent_text_block(block, `system[${i}]`))
+    },
+    // isObject stays FALSE: build_validator's isObject branch JSON.parses any non-object value,
+    // which turns a plain-string system prompt — the form most callers send — into
+    // "Expecting an object but got ...". A JSON body delivers the list form as a real array, so
+    // nothing needs parsing here.
+    { ...o, isObject: false, listOf: false, isOptional: true, maxLength: AGENT_MAX_REQUEST_CHARS },
+  ),
+  getExample: () => [{ type: 'text', text: 'You are a helpful assistant' }],
+  getType: () => 'string | [{ type: "text", text: string }]',
+}
+
+export const agentToolsValidator: ValidatorDefinition<AgentToolInput[]> = {
+  validate: (o={}) => build_validator(
+    (value: any) => {
+      if (!Array.isArray(value)) throw new Error('tools must be a list of tool definitions')
+      if (JSON.stringify(value).length > AGENT_MAX_REQUEST_CHARS) {
+        throw new Error(`tools exceeds the ${AGENT_MAX_REQUEST_CHARS} character limit`)
+      }
+      return value.map((tool: any, i: number) => {
+        const label = `tools[${i}]`
+        const object = agent_plain_object(tool, label)
+        agent_no_unrecognized_fields(object, ['name', 'description', 'input_schema', 'cache_control'], label)
+        const cache_control = agent_cache_control(object.cache_control, `${label}.cache_control`)
+        return {
+          name: agent_string(object.name, `${label}.name`, 200),
+          ...(object.description !== undefined
+            ? { description: agent_string(object.description, `${label}.description`) }
+            : {}),
+          // not persisted, so `$schema` / `$ref` / `$defs` stay legal — depth-checked only
+          input_schema: agent_json_value(
+            agent_plain_object(object.input_schema, `${label}.input_schema`), `${label}.input_schema`, false,
+          ),
+          ...(cache_control ? { cache_control } : {}),
+        }
+      })
+    },
+    { ...o, isObject: true, listOf: false, isOptional: true, maxLength: AGENT_MAX_REQUEST_CHARS },
+  ),
+  getExample: () => [{ name: 'get_patient', description: 'Look up a patient', input_schema: { type: 'object' } }],
+  getType: () => [{ name: 'string', description: 'string', input_schema: '{ ... }' }],
+}
+
+export const agentToolChoiceValidator: ValidatorDefinition<AgentToolChoice> = {
+  validate: (o={}) => build_validator(
+    (value: any) => {
+      const object = agent_plain_object(value, 'tool_choice')
+      agent_no_unrecognized_fields(object, ['type', 'name', 'disable_parallel_tool_use'], 'tool_choice')
+      if (!['auto', 'any', 'tool', 'none'].includes(object.type)) {
+        throw new Error('tool_choice.type must be one of auto, any, tool, none')
+      }
+      if (object.type === 'tool' && typeof object.name !== 'string') {
+        throw new Error('tool_choice.name is required when tool_choice.type is "tool"')
+      }
+      return {
+        type: object.type,
+        ...(object.name !== undefined ? { name: agent_string(object.name, 'tool_choice.name', 200) } : {}),
+        ...(object.disable_parallel_tool_use !== undefined
+          ? { disable_parallel_tool_use: agent_boolean(object.disable_parallel_tool_use, 'tool_choice.disable_parallel_tool_use') }
+          : {}),
+      } as AgentToolChoice
+    },
+    { ...o, isObject: true, listOf: false, isOptional: true },
+  ),
+  getExample: () => ({ type: 'auto' }),
+  getType: () => ({ type: 'auto | any | tool | none', name: 'string' }),
+}
+
 // capabilities granted to an AI agent (phone tree 'AI Agent' node or 'startAIConversation' journey
 // action) — extensible like phoneTreeActionValidator (one branch per tool type). Defined ABOVE
 // automationActionValidator, which references it (const TDZ — declaration order matters at module load).
@@ -4048,6 +4341,10 @@ export const userPortalSettingsValidator = indexableValidator(
   stringValidator250,
   orValidator({ boolean: booleanValidator, string: stringValidator250 }, { isOptional: true }),
 )
+
+// User.preferences: generic bag for frontend-only per-user settings. Same shape as
+// User.portalSettings, but redacted from endusers (see the users block in schema.ts).
+export const userPreferencesValidator = userPortalSettingsValidator
 
 export const FHIRObservationCategoryValidator = exactMatchValidator<ObservationCategory>(['vital-signs', 'laboratory'])
 
@@ -5710,6 +6007,9 @@ const _AUTOMATION_TRIGGER_ACTION_TYPES: { [K in AutomationTriggerActionType]: an
   "Add Tags": true,
   "Remove Tags": true,
   "Add Access Tags": true,
+  "Add List Item": true,
+  "Remove List Item": true,
+  "Update List Item": true,
   "Assign Care Team": true,
   "Remove Care Team": true,
   "Remove From All Journeys": true,
@@ -5740,6 +6040,119 @@ export const AUTOMATION_TRIGGER_ACTION_EVENT_RESTRICTIONS: {
   "Review Vital Reading": ['Vital Update'],
 }
 
+export type EnduserListFieldConfig = {
+  /** The sub-fields that may appear in a mutation's `match`, in priority order.
+   *
+   *  The FIRST is the entry's identity sub-field: it is the value a `Field Equals` trigger on this
+   *  list field compares against (see handle_field_update_triggers), and the one control the editor
+   *  always renders. */
+  matchKeys: string[],
+  /** The sub-fields `Add List Item` / `Update List Item` may write. May be empty, for a list field
+   *  whose entries carry nothing but their identity. */
+  valueKeys: string[],
+  /** What the field is called in the trigger editor's dropdowns. */
+  label: string,
+}
+
+/**
+ * The enduser list-of-objects fields automations may read and write, and the sub-fields of each that
+ * they may match on and write.
+ *
+ * This is the ONLY place a sub-field of a list entry is named. The action validators, the save-time
+ * check (list_item_mutation_error), the Mongo operations in handle_actions_for_triggers_inner, the
+ * `Field Equals` / `Fields Changed` expansion in handle_field_update_triggers and the trigger editor
+ * are all driven by it, so adding a list field here is a registry entry rather than a change in any
+ * of them.
+ *
+ * Enforced when a trigger is SAVED rather than skipped at fire time: the alternative leaves a trigger
+ * that looks configured in the editor and silently never does anything. It is re-applied at fire time
+ * as well, so no stored key can reach a Mongo path.
+ *
+ * The one thing a new entry may still need is an editor in the webapp (list_mutation_actions.tsx):
+ * without one, each sub-field gets a plain text box, which is right for a free-text sub-field and
+ * wrong for one backed by a registry the way `programs` is.
+ */
+export const ENDUSER_LIST_FIELD_CONFIG: { [K in EnduserListField]: EnduserListFieldConfig } = {
+  programs: { matchKeys: ['name'], valueKeys: ['status'], label: 'Programs' },
+}
+export const ENDUSER_LIST_FIELDS = (
+  Object.keys(ENDUSER_LIST_FIELD_CONFIG) as EnduserListField[]
+)
+
+export const LIST_MUTATION_ACTION_TYPES = ['Add List Item', 'Remove List Item', 'Update List Item'] as const
+export type ListMutationActionType = typeof LIST_MUTATION_ACTION_TYPES[number]
+
+export const is_list_mutation_action = (action?: { type?: string, info?: any }): action is {
+  type: ListMutationActionType, info: Partial<ListItemMutation>,
+} => (
+  LIST_MUTATION_ACTION_TYPES.includes(action?.type as ListMutationActionType)
+)
+
+/**
+ * The blocking error for a list-item mutation action, or '' when it is saveable.
+ *
+ * Shared by the API (as an automation_triggers constraint) and by the trigger editor, so the two
+ * reject the same actions with the same wording. It exists as a separate check because the field and
+ * its sub-fields validate TOGETHER: `objectValidator` sees one key at a time and cannot tell whether
+ * `status` is a sub-field `field` actually has.
+ *
+ * Keeping unrecognized keys out here is also what keeps `$`-prefixed and dotted keys out of the Mongo
+ * paths that handle_actions_for_triggers_inner builds from them.
+ */
+export const list_item_mutation_error = (action?: { type?: string, info?: any }): string => {
+  if (!is_list_mutation_action(action)) return ''
+
+  const { type } = action
+  const field = action.info?.field as EnduserListField
+  // hasOwnProperty: a field of "constructor" or "toString" finds a function on the prototype, which a
+  // truthiness check would accept as a configured list field
+  const config = Object.prototype.hasOwnProperty.call(ENDUSER_LIST_FIELD_CONFIG, field)
+    ? ENDUSER_LIST_FIELD_CONFIG[field]
+    : undefined
+  if (!config) {
+    return `The "${type}" action does not support the field "${field ?? ''}"`
+  }
+
+  const match = action.info?.match
+  if (!match || typeof match !== 'object' || Object.keys(match).length === 0) {
+    return `The "${type}" action must match on ${config.matchKeys.join(' and ')}`
+  }
+  for (const key in match) {
+    if (!config.matchKeys.includes(key)) {
+      return `The "${type}" action cannot match "${field}" on "${key}"`
+    }
+    // deliberately not trimmed: a value of only spaces is a real (if unwise) one elsewhere in the
+    // product, and matching is exact, so trimming here would match something other than what was saved
+    if (typeof match[key] !== 'string' || match[key] === '') {
+      return `Select a ${field} ${key} for the "${type}" action`
+    }
+  }
+
+  // Remove List Item matches on `match` alone and removes every entry carrying it, whatever else
+  // those entries hold — its type carries no `values` at all
+  if (type === 'Remove List Item') return ''
+
+  const values = action.info?.values ?? {}
+  if (typeof values !== 'object') {
+    return `The "${type}" action has an invalid value to set`
+  }
+  for (const key in values) {
+    if (!config.valueKeys.includes(key)) {
+      return `The "${type}" action cannot set "${key}" on "${field}"`
+    }
+  }
+  // an Update that sets nothing would match entries and write nothing, every time it fires
+  if (type === 'Update List Item' && Object.keys(values).length === 0) {
+    return `The "${type}" action must set at least one of ${config.valueKeys.join(', ')}`
+  }
+
+  return ''
+}
+
+// a match value is required and matched exactly; a value may be '' , which CLEARS that sub-field
+const listItemMutationMatchValidator = objectAnyFieldsValidator(stringValidator100)
+const listItemMutationValuesValidator = objectAnyFieldsValidator(stringValidator100Optional)
+
 export const automationTriggerActionValidator = orValidator<{ [K in AutomationTriggerActionType]: AutomationTriggerActions[K] } >({
   "Add To Journey": objectValidator<AutomationTriggerActions["Add To Journey"]>({
     type: exactMatchValidator(['Add To Journey']),
@@ -5769,6 +6182,33 @@ export const automationTriggerActionValidator = orValidator<{ [K in AutomationTr
     type: exactMatchValidator(['Remove Tags']),
     info: objectValidator<AutomationTriggerActions['Remove Tags']['info']>({
       tags: listOfStringsValidator,
+    }),
+  }),
+  // `match` holds match keys, never values to set: there is deliberately no rename action, since a
+  // rename would migrate no condition, saved filter or trigger that matches the old value exactly.
+  // WHICH sub-fields either map may carry is checked by list_item_mutation_error, which sees `field`
+  // and its sub-fields together — an object validator sees one key at a time.
+  "Add List Item": objectValidator<AutomationTriggerActions["Add List Item"]>({
+    type: exactMatchValidator(['Add List Item']),
+    info: objectValidator<AutomationTriggerActions['Add List Item']['info']>({
+      field: exactMatchValidator(ENDUSER_LIST_FIELDS),
+      match: listItemMutationMatchValidator,
+      values: listItemMutationValuesValidator,
+    }),
+  }),
+  "Remove List Item": objectValidator<AutomationTriggerActions["Remove List Item"]>({
+    type: exactMatchValidator(['Remove List Item']),
+    info: objectValidator<AutomationTriggerActions['Remove List Item']['info']>({
+      field: exactMatchValidator(ENDUSER_LIST_FIELDS),
+      match: listItemMutationMatchValidator,
+    }),
+  }),
+  "Update List Item": objectValidator<AutomationTriggerActions["Update List Item"]>({
+    type: exactMatchValidator(['Update List Item']),
+    info: objectValidator<AutomationTriggerActions['Update List Item']['info']>({
+      field: exactMatchValidator(ENDUSER_LIST_FIELDS),
+      match: listItemMutationMatchValidator,
+      values: listItemMutationValuesValidator,
     }),
   }),
   "Add Access Tags": objectValidator<AutomationTriggerActions["Add Access Tags"]>({

@@ -1,10 +1,9 @@
 /// <reference types="node" />
 /// <reference types="node" />
-import { CustomActions, extractFields, PublicActions } from "@tellescope/schema";
+import { CustomActions, extractFields, PublicActions, MDBFilter } from "@tellescope/schema";
 import { UserSession, ReadFilter, WebhookSubscriptionsType, Attendee, SearchOptions, AccessPermissions, OrganizationLimits, SortBy, AnalyticsQuery, UserUIRestrictions, UserFieldRedactions, ModelName, CustomDashboardView, DataSyncRecord } from "@tellescope/types-models";
 import { ClientModelForName, ClientModelForName_readonly, ClientModelForName_required, ClientModelForName_updatesDisabled, ChatRoom, Enduser, Meeting, CreateFields, User } from "@tellescope/types-client";
 import { CustomUpdateOptions, SortOption, UserIdentity, FileDetails, ReactNativeFile, SessionType } from "@tellescope/types-utilities";
-import type { Filter } from "mongodb";
 import { Session as SessionManager, SessionOptions } from "./session";
 export * from "./public";
 export * from "./enduser";
@@ -29,7 +28,7 @@ export interface LoadFunctionArguments<T> {
     search?: SearchOptions;
     ids?: string[];
     returnCount?: boolean;
-    mdbFilter?: Filter<T>;
+    mdbFilter?: MDBFilter<T>;
     mdbSort?: any;
     projection?: {
         [K in keyof T]?: 1;
@@ -50,7 +49,7 @@ export interface APIQuery<N extends keyof ClientModelForName, T = ClientModelFor
         created: T[];
         errors: object[];
     }>;
-    getOne: (argument: string | ReadFilter<T>, mdbFilter?: Filter<T>) => Promise<T>;
+    getOne: (argument: string | ReadFilter<T>, mdbFilter?: MDBFilter<T>) => Promise<T>;
     getSome: LoadFunction<T>;
     getByIds: ({ ids }: {
         ids: string[];
@@ -798,7 +797,7 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
         id: string;
         createdAt: Date;
     };
-}[N]>, mdbFilter?: Filter<{
+}[N]>, mdbFilter?: MDBFilter<{
     inbox_threads: import("@tellescope/types-models").InboxThread & {
         id: string;
         createdAt: Date;
@@ -4147,6 +4146,7 @@ type Queries = {
     api_keys: {
         createOne: (args?: extractFields<CustomActions['api_keys']['create']['parameters']>) => (Promise<extractFields<CustomActions['api_keys']['create']['returns']>>);
         get_organization_api_keys: (args?: extractFields<CustomActions['api_keys']['get_organization_api_keys']['parameters']>) => (Promise<extractFields<CustomActions['api_keys']['get_organization_api_keys']['returns']>>);
+        update_organization_api_key: (args: extractFields<CustomActions['api_keys']['update_organization_api_key']['parameters']>) => (Promise<extractFields<CustomActions['api_keys']['update_organization_api_key']['returns']>>);
         delete_organization_api_key: (args: extractFields<CustomActions['api_keys']['delete_organization_api_key']['parameters']>) => (Promise<extractFields<CustomActions['api_keys']['delete_organization_api_key']['returns']>>);
     };
     enduser_orders: {
@@ -4467,6 +4467,7 @@ type Queries = {
     ai_conversations: {
         send_message: (args: extractFields<CustomActions['ai_conversations']['send_message']['parameters']>) => (Promise<extractFields<CustomActions['ai_conversations']['send_message']['returns']>>);
         generate_ai_decision: (args: extractFields<CustomActions['ai_conversations']['generate_ai_decision']['parameters']>) => (Promise<extractFields<CustomActions['ai_conversations']['generate_ai_decision']['returns']>>);
+        agent_message: (args: extractFields<CustomActions['ai_conversations']['agent_message']['parameters']>) => (Promise<extractFields<CustomActions['ai_conversations']['agent_message']['returns']>>);
     };
     automated_actions: {
         process: (args: extractFields<CustomActions['automated_actions']['process']['parameters']>) => (Promise<extractFields<CustomActions['automated_actions']['process']['returns']>>);

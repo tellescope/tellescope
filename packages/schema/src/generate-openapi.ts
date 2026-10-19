@@ -946,13 +946,15 @@ function generateActionParameters(
 
       try {
         const schema = validatorToOpenAPIType(info.validator)
+        const description = typeof info.description === 'string' && info.description ? { description: info.description } : {}
 
         if (pathParamNames.includes(paramName)) {
           pathParams.push({
             name: paramName,
             in: 'path',
             required: true,
-            schema
+            schema,
+            ...description,
           })
         } else if (method === 'get' || method === 'delete') {
           // GET/DELETE use query parameters
@@ -960,11 +962,12 @@ function generateActionParameters(
             name: paramName,
             in: 'query',
             required: !!info.required,
-            schema
+            schema,
+            ...description,
           })
         } else {
           // POST/PATCH/PUT use request body
-          bodyProperties[paramName] = schema
+          bodyProperties[paramName] = { ...schema, ...description }
           if (info.required) {
             requiredBody.push(paramName)
           }

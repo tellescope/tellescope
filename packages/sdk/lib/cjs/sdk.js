@@ -435,6 +435,10 @@ var Session = /** @class */ (function (_super) {
         queries.journeys.handle_incoming_communication = function (a) { return (_this._POST("/v1".concat(schema_1.schema.journeys.customActions.handle_incoming_communication.path), a)); };
         queries.journeys.get_journey_statistics = function (a) { return _this._GET("/v1".concat(schema_1.schema.journeys.customActions.get_journey_statistics.path), a); };
         queries.api_keys.get_organization_api_keys = function () { return _this._GET("/v1".concat(schema_1.schema.api_keys.customActions.get_organization_api_keys.path)); };
+        queries.api_keys.update_organization_api_key = function (_a) {
+            var id = _a.id, description = _a.description;
+            return _this._PATCH("/v1/organization-api-key/".concat(id), { description: description });
+        };
         queries.api_keys.delete_organization_api_key = function (_a) {
             var id = _a.id;
             return _this._DELETE("/v1/organization-api-key/".concat(id));
@@ -658,6 +662,7 @@ var Session = /** @class */ (function (_super) {
         queries.phone_trees.start_outbound_call = function (args) { return _this._POST("/v1".concat(schema_1.schema.phone_trees.customActions.start_outbound_call.path), args); };
         queries.ai_conversations.send_message = function (args) { return _this._POST("/v1".concat(schema_1.schema.ai_conversations.customActions.send_message.path), args); };
         queries.ai_conversations.generate_ai_decision = function (args) { return _this._POST("/v1".concat(schema_1.schema.ai_conversations.customActions.generate_ai_decision.path), args); };
+        queries.ai_conversations.agent_message = function (args) { return _this._POST("/v1".concat(schema_1.schema.ai_conversations.customActions.agent_message.path), args); };
         queries.automated_actions.process = function (args) { return _this._POST("/v1".concat(schema_1.schema.automated_actions.customActions.process.path), args); };
         _this.api = queries;
         return _this;

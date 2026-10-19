@@ -3,6 +3,7 @@ import {
   schema,
   extractFields,
   PublicActions,
+  MDBFilter,
 } from "@tellescope/schema"
 
 import {
@@ -35,7 +36,6 @@ import {
 } from "@tellescope/types-client"
 import { CustomUpdateOptions, SortOption, UserIdentity, FileDetails, ReactNativeFile, SessionType } from "@tellescope/types-utilities"
 import { url_safe_path } from "@tellescope/utilities"
-import type { Filter } from "mongodb"
 
 import { Session as SessionManager, SessionOptions } from "./session"
 
@@ -80,7 +80,7 @@ export interface LoadFunctionArguments <T> {
   search?: SearchOptions,
   ids?: string[],
   returnCount?: boolean,
-  mdbFilter?: Filter<T>,
+  mdbFilter?: MDBFilter<T>,
   mdbSort?: any,
   projection?: { [K in keyof T]?: 1 },
 }
@@ -96,7 +96,7 @@ export interface APIQuery<
 {
   createOne: (t: CREATE & { sharedWithOrganizations?: string[][], _overrideUnique?: boolean }) => Promise<T>;
   createSome: (ts: CREATE[], o?: { _overrideUnique?: boolean }) => Promise<{ created: T[], errors: object[] }>;
-  getOne: (argument: string | ReadFilter<T>, mdbFilter?: Filter<T>) => Promise<T>;
+  getOne: (argument: string | ReadFilter<T>, mdbFilter?: MDBFilter<T>) => Promise<T>;
   getSome: LoadFunction<T>;
   getByIds: ({ ids } : { ids: string[] }) => Promise<{ matches: T[] }>;
   updateOne: (id: string, updates: UPDATE, options?: CustomUpdateOptions, _overrideUnique?: boolean) => Promise<T>;
@@ -275,6 +275,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     ),
     get_organization_api_keys: (args?: extractFields<CustomActions['api_keys']['get_organization_api_keys']['parameters']>) => (
       Promise<extractFields<CustomActions['api_keys']['get_organization_api_keys']['returns']>>
+    ),
+    update_organization_api_key: (args: extractFields<CustomActions['api_keys']['update_organization_api_key']['parameters']>) => (
+      Promise<extractFields<CustomActions['api_keys']['update_organization_api_key']['returns']>>
     ),
     delete_organization_api_key: (args: extractFields<CustomActions['api_keys']['delete_organization_api_key']['parameters']>) => (
       Promise<extractFields<CustomActions['api_keys']['delete_organization_api_key']['returns']>>
@@ -947,6 +950,12 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     generate_ai_decision: (args: extractFields<CustomActions['ai_conversations']['generate_ai_decision']['parameters']>) => (
       Promise<extractFields<CustomActions['ai_conversations']['generate_ai_decision']['returns']>>
     ),
+    // Buffered JSON only. Set `stream: true` and the server answers text/event-stream, which this
+    // Promise-returning client cannot surface — a streaming caller should use fetch/EventSource
+    // against POST /v1/ai-conversations/agent-message directly.
+    agent_message: (args: extractFields<CustomActions['ai_conversations']['agent_message']['parameters']>) => (
+      Promise<extractFields<CustomActions['ai_conversations']['agent_message']['returns']>>
+    ),
   },
   automated_actions: {
     process: (args: extractFields<CustomActions['automated_actions']['process']['parameters']>) => (
@@ -1000,6 +1009,7 @@ export class Session extends SessionManager {
     queries.journeys.get_journey_statistics = a => this._GET(`/v1${schema.journeys.customActions.get_journey_statistics.path}`, a)
 
     queries.api_keys.get_organization_api_keys = () => this._GET(`/v1${schema.api_keys.customActions.get_organization_api_keys.path}`)
+    queries.api_keys.update_organization_api_key = ({ id, description }) => this._PATCH(`/v1/organization-api-key/${id}`, { description })
     queries.api_keys.delete_organization_api_key = ({ id }) => this._DELETE(`/v1/organization-api-key/${id}`)
 
     queries.user_logs.restore_deleted = a => this._POST(`/v1${schema.user_logs.customActions.restore_deleted.path}`, a)
@@ -1262,6 +1272,7 @@ export class Session extends SessionManager {
 
     queries.ai_conversations.send_message = args => this._POST(`/v1${schema.ai_conversations.customActions.send_message.path}`, args)
     queries.ai_conversations.generate_ai_decision = args => this._POST(`/v1${schema.ai_conversations.customActions.generate_ai_decision.path}`, args)
+    queries.ai_conversations.agent_message = args => this._POST(`/v1${schema.ai_conversations.customActions.agent_message.path}`, args)
 
     queries.automated_actions.process = args => this._POST(`/v1${schema.automated_actions.customActions.process.path}`, args)
 

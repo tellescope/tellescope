@@ -1,7 +1,7 @@
 /// <reference types="validator" />
 import { ObjectId } from "@tellescope/utilities";
 import { CUD as CUDType, CustomUpdateOptions, Indexable, JSONType } from "@tellescope/types-utilities";
-import { FilterType, CustomField, Preference, JourneyState, JourneyStatePriority, EmailEncoding, ChatRoomType, MessageTemplateType, MeetingStatus, SessionType, AttendeeInfo, MeetingInfo, VideoCallParticipantEvent, CUDSubscription, FormField, AutomationEventType, FormResponseAutomationEvent, AutomationForMessage, AutomatedActionStatus, ChatAttachment, FormFieldType, FormResponseValue, MessageTemplateMode, AtJourneyStateAutomationCondition, ChatRoomUserInfo, RelatedRecord, SearchOptions, AfterActionAutomationEvent, OnJourneyStartAutomationEvent, UnitOfTime, FormUnsubmittedEvent, CancelCondition, FormSubmitCancellationConditionInfo, NotificationPreference, ObservationCategory, ObservationStatusCode, ObservationValue, ObservationComponent, TicketCompletedAutomationEvent, FormResponseValueAnswer, PreviousFormFieldAfter, PreviousFormFieldRoot, FormResponseAnswerEmail, FormResponseAnswerFile, FormResponseAnswerMultipleChoice, FormResponseAnswerNumber, FormResponseAnswerPhone, FormResponseAnswerString, FormResponseAnswerSignature, OrganizationTheme, ManagedContentRecordType, FlowchartUI, PreviousFormFieldEquals, IntegrationAuthentication, FormResponseAnswerRating, FormResponseAnswerDate, FormResponseAnswerRanking, FormFieldOptions, BlockType, BlockContentH1, BlockContentHTML, BlockContentRawHTML, BlockContentImage, BlockContentYoutube, BlockContentH2, PortalSettings, BlockContentPDF, OrganizationAccess, CalendarEventReminderNotificationInfo, PortalPage, PortalBlockForType, EnduserTaskForEvent, EnduserFormResponseForEvent, StateCredentialInfo, BaseAvailabilityBlock, CalendarEventLimit, WeeklyAvailability, MonthlyRestriction, FormType, FormResponseAnswerStringLong, ManagedContentRecordAssignmentType, GenericAttachment, CommunicationsChannel, AccessPermissions, AccessForResource, AccessType, BlockContentIFrame, OrganizationLimits, OrganizationSettings, GenericQuantityWithUnit, CustomEnduserFields, FormResponseAnswerDateString, TellescopeGender, AppointmentTerm, PaymentProcessor, FormsUnsubmittedEvent, FormResponsesAutomationEvent, JourneyContext, AnalyticsQueryForType, DateRange, FormResponseAnswerGroup, FormResponseAnswerDescription, FormResponseAnswerTable, TableInputChoices, CalendarEventPortalSettings, IndexUpdate, FormResponseAnswerAddress, ListQueryQualifier, AutomationTriggerEventType, AutomationTriggerEvents, AutomationTriggerActionType, AutomationTriggerActions, AutomationTriggerStatus, EnduserBuiltInField, AnalyticsQueryResultValue, AnalyticsQueryRange, SuperbillPatientInfo, SuperbillLineItem, VideoIntegrationType, VALID_STATES, ScheduledJourney, FormScoring, UserCallRoutingBehavior, UserUIRestrictions, PortalSchemaRestrictions, ExternalChatGPTMessage, FormResponseAnswerTime, CustomDashboardBlock, Insurance, EnduserFieldSetter, PhoneTreeNode, Enduser, FormResponseAnswerStripe, PhoneTreeEnduserCondition, WaitForTriggerAutomationEvent, FormResponseAnswerDropdown, ListOfStringsWithQualifier, FormResponseAnswerFiles, FormResponseAnswerDatabaseSelect, FormResponseAnswerMedications, Language, TableViewColumn, FormFieldCalloutCondition, EnduserReportQuery, FormResponsesReportQuery, TicketSnooze, FormResponseAnswerRelatedContacts, PreviousFormCompoundLogic, GroupMMSMessage, GroupMMSUserState, ImageAttachment, SortingField, TicketReminder, EnduserInsurance, Pharmacy, FormResponseAnswerInsurance, FormResponseAnswerBridgeEligibility, FormResponseAnswerCandidEligibility, FormResponseAnswerStediEligibility, FormResponseAnswerPharmacySearch, Diagnosis, FormResponseAnswerAppointmentBooking, CanvasCoding, VitalConfigurationRange, SenderAssignmentStrategy, SmartMeterOrderLineItem, FormFieldFeedback, FormFieldOptionDetails, CandidProcedureCode, BasicWebhook, SyncDirection, AthenaFieldSync, AthenaSubscription, FormResponseAnswerHeight, FormResponseAnswerRedirect, BlockContentLink, FormResponseAnswerHiddenValue, LabeledField, FieldMapping, AnalyticsFrameGroupingCategory, FormResponseAnswerEmotii, BookingRestrictions, EnduserDiagnosis, EnduserProgram, RecordProgram, OrganizationProgram, FormResponseAnswerAllergies, FormResponseAnswerConditions, FormResponseAnswerRichText, FormResponseAnswerChargebee, FormResponseAnswerBelugaPatientPreference, RecentViewer, OnCallOutcomeAutomationEvent, FormResponseAnswerTimezone, OutOfOfficeBlock, UserOutOfOffice, OnAIDecisionAutomationEvent, OnAIConversationOutcomeAutomationEvent, OnErrorAutomationEvent, AIContextSource, AISummaryConfiguration, AISummaryDataSource, AISummaryDataSourceConfig, LinkedAccountAccessEntry, StripeCheckoutItem } from "@tellescope/types-models";
+import { FilterType, CustomField, Preference, JourneyState, JourneyStatePriority, EmailEncoding, ChatRoomType, MessageTemplateType, MeetingStatus, SessionType, AttendeeInfo, MeetingInfo, VideoCallParticipantEvent, CUDSubscription, FormField, AutomationEventType, FormResponseAutomationEvent, AutomationForMessage, AutomatedActionStatus, ChatAttachment, FormFieldType, FormResponseValue, MessageTemplateMode, AtJourneyStateAutomationCondition, ChatRoomUserInfo, RelatedRecord, SearchOptions, AfterActionAutomationEvent, OnJourneyStartAutomationEvent, UnitOfTime, FormUnsubmittedEvent, CancelCondition, FormSubmitCancellationConditionInfo, NotificationPreference, ObservationCategory, ObservationStatusCode, ObservationValue, ObservationComponent, TicketCompletedAutomationEvent, FormResponseValueAnswer, PreviousFormFieldAfter, PreviousFormFieldRoot, FormResponseAnswerEmail, FormResponseAnswerFile, FormResponseAnswerMultipleChoice, FormResponseAnswerNumber, FormResponseAnswerPhone, FormResponseAnswerString, FormResponseAnswerSignature, OrganizationTheme, ManagedContentRecordType, FlowchartUI, PreviousFormFieldEquals, IntegrationAuthentication, FormResponseAnswerRating, FormResponseAnswerDate, FormResponseAnswerRanking, FormFieldOptions, BlockType, BlockContentH1, BlockContentHTML, BlockContentRawHTML, BlockContentImage, BlockContentYoutube, BlockContentH2, PortalSettings, BlockContentPDF, OrganizationAccess, CalendarEventReminderNotificationInfo, PortalPage, PortalBlockForType, EnduserTaskForEvent, EnduserFormResponseForEvent, StateCredentialInfo, BaseAvailabilityBlock, CalendarEventLimit, WeeklyAvailability, MonthlyRestriction, FormType, FormResponseAnswerStringLong, ManagedContentRecordAssignmentType, GenericAttachment, CommunicationsChannel, AccessPermissions, AccessForResource, AccessType, BlockContentIFrame, OrganizationLimits, OrganizationSettings, GenericQuantityWithUnit, CustomEnduserFields, FormResponseAnswerDateString, TellescopeGender, AppointmentTerm, PaymentProcessor, FormsUnsubmittedEvent, FormResponsesAutomationEvent, JourneyContext, AnalyticsQueryForType, DateRange, FormResponseAnswerGroup, FormResponseAnswerDescription, FormResponseAnswerTable, TableInputChoices, CalendarEventPortalSettings, IndexUpdate, FormResponseAnswerAddress, ListQueryQualifier, AutomationTriggerEventType, AutomationTriggerEvents, AutomationTriggerActionType, AutomationTriggerActions, EnduserListField, ListItemMutation, AutomationTriggerStatus, EnduserBuiltInField, AnalyticsQueryResultValue, AnalyticsQueryRange, SuperbillPatientInfo, SuperbillLineItem, VideoIntegrationType, VALID_STATES, ScheduledJourney, FormScoring, UserCallRoutingBehavior, UserUIRestrictions, PortalSchemaRestrictions, ExternalChatGPTMessage, FormResponseAnswerTime, CustomDashboardBlock, Insurance, EnduserFieldSetter, PhoneTreeNode, Enduser, FormResponseAnswerStripe, PhoneTreeEnduserCondition, WaitForTriggerAutomationEvent, FormResponseAnswerDropdown, ListOfStringsWithQualifier, FormResponseAnswerFiles, FormResponseAnswerDatabaseSelect, FormResponseAnswerMedications, Language, TableViewColumn, FormFieldCalloutCondition, EnduserReportQuery, FormResponsesReportQuery, TicketSnooze, FormResponseAnswerRelatedContacts, PreviousFormCompoundLogic, GroupMMSMessage, GroupMMSUserState, ImageAttachment, SortingField, TicketReminder, EnduserInsurance, Pharmacy, FormResponseAnswerInsurance, FormResponseAnswerBridgeEligibility, FormResponseAnswerCandidEligibility, FormResponseAnswerStediEligibility, FormResponseAnswerPharmacySearch, Diagnosis, FormResponseAnswerAppointmentBooking, CanvasCoding, VitalConfigurationRange, SenderAssignmentStrategy, SmartMeterOrderLineItem, FormFieldFeedback, FormFieldOptionDetails, CandidProcedureCode, BasicWebhook, SyncDirection, AthenaFieldSync, AthenaSubscription, FormResponseAnswerHeight, FormResponseAnswerRedirect, BlockContentLink, FormResponseAnswerHiddenValue, LabeledField, FieldMapping, AnalyticsFrameGroupingCategory, FormResponseAnswerEmotii, BookingRestrictions, EnduserDiagnosis, EnduserProgram, RecordProgram, OrganizationProgram, FormResponseAnswerAllergies, FormResponseAnswerConditions, FormResponseAnswerRichText, FormResponseAnswerChargebee, FormResponseAnswerBelugaPatientPreference, RecentViewer, OnCallOutcomeAutomationEvent, FormResponseAnswerTimezone, OutOfOfficeBlock, UserOutOfOffice, OnAIDecisionAutomationEvent, OnAIConversationOutcomeAutomationEvent, OnErrorAutomationEvent, AIContextSource, AgentMessageInput, AgentToolChoice, AgentToolInput, AgentTextBlock, AISummaryConfiguration, AISummaryDataSource, AISummaryDataSourceConfig, LinkedAccountAccessEntry, StripeCheckoutItem } from "@tellescope/types-models";
 import { UserDisplayInfo } from "@tellescope/types-client";
 export declare const isDate: typeof import("validator").isDate, isEmail: typeof import("validator/lib/isEmail").default, isMobilePhone: typeof import("validator").isMobilePhone, isSlug: typeof import("validator").isSlug, isMongoId: typeof import("validator").isMongoId, isMimeType: typeof import("validator").isMimeType, isURL: typeof import("validator/lib/isURL").default;
 import { ACTIVE_CAMPAIGN_TITLE, ATHENA_TITLE, BRIDGE_TITLE, CANDID_TITLE, CANVAS_TITLE, DEVELOP_HEALTH_TITLE, DOCSUMO_TITLE, DOSESPOT_TITLE, EMOTII_TITLE, FULLSCRIPT_INTEGRATIONS_TITLE, GOGO_MEDS_TITLE, MFAX_TITLE, OUTLOOK_INTEGRATIONS_TITLE, PAGER_DUTY_TITLE, SMART_METER_TITLE, SQUARE_INTEGRATIONS_TITLE, STRIPE_TITLE, ZENDESK_INTEGRATIONS_TITLE, ZOHO_TITLE, ZOOM_TITLE, ZUS_TITLE } from "@tellescope/constants";
@@ -921,6 +921,41 @@ export declare const AIMessageInputValidator: ValidatorDefinition<{
     role: 'user' | 'assistant';
     text: string;
 }>;
+/***************************************************************************************************
+ * ai_conversations.agent_message — Anthropic Messages API request shapes.
+ *
+ * Hand-rolled rather than composed from objectValidator / orValidator, for two reasons:
+ *  - orValidator's rejection message JSON-dumps the value it could not match, and objectValidator's
+ *    length check dumps the JSON it rejected. A transcript is PHI: it must never travel back inside
+ *    a 400, so every throw below names the offending block by position and nothing else.
+ *  - objectValidator silently DROPS fields it does not recognise. A `thinking` block whose
+ *    `signature` was dropped is rejected by the model on the NEXT turn, far from the cause. Here
+ *    every field is whitelisted explicitly and an unrecognised one is an error, not a silent strip.
+ *
+ * SHAPE ONLY. The cross-field rules — tool_use/tool_result pairing, the total character cap, the
+ * cache_control marker budget, tools being present when the transcript uses them — live in
+ * validateAgentRequest (packages/private/api/api/modules/bedrock.ts), which is a pure function so
+ * those messages are unit-testable without this framework and without a Bedrock client.
+ ***************************************************************************************************/
+/** Per-string ceiling for any single block (text, thinking, a tool_result's text). */
+export declare const AGENT_MAX_BLOCK_CHARS = 100000;
+/** Whole-request ceiling, summed over messages + system + tools. */
+export declare const AGENT_MAX_REQUEST_CHARS = 1000000;
+/** Transcript length ceiling for one request. */
+export declare const AGENT_MAX_MESSAGES = 1000;
+/** Anthropic allows at most 4 prompt-caching breakpoints per request. */
+export declare const AGENT_MAX_CACHE_CONTROL_MARKERS = 4;
+/** `maxTokens` default and flat ceiling. The ceiling is checked BEFORE thinking headroom is added,
+ *  so a 400 never depends on which model the request resolves to. */
+export declare const AGENT_DEFAULT_MAX_TOKENS = 10000;
+export declare const AGENT_MAX_MAX_TOKENS = 64000;
+/** An ai_conversation stops accepting agent_message turns at this many stored entries. */
+export declare const AI_CONVERSATION_MAX_STORED_MESSAGES = 1000;
+export declare const agentMessagesValidator: ValidatorDefinition<AgentMessageInput[]>;
+/** `system` is a plain string or a list of text blocks (the list form is what carries cache_control). */
+export declare const agentSystemValidator: ValidatorDefinition<string | AgentTextBlock[]>;
+export declare const agentToolsValidator: ValidatorDefinition<AgentToolInput[]>;
+export declare const agentToolChoiceValidator: ValidatorDefinition<AgentToolChoice>;
 export declare const phoneTreeAgentToolValidator: ValidatorDefinition<import("@tellescope/types-models").PhoneTreeAgentToolBuilder<"Submit Form", {
     formId: string;
     useWhen?: string | undefined;
@@ -938,6 +973,9 @@ export declare const searchOptionsValidator: ValidatorDefinition<SearchOptions>;
 export declare const notificationPreferenceValidator: ValidatorDefinition<NotificationPreference>;
 export declare const notificationPreferencesValidator: ValidatorDefinition<Indexable<NotificationPreference>>;
 export declare const userPortalSettingsValidator: ValidatorDefinition<{
+    [index: string]: string | boolean;
+}>;
+export declare const userPreferencesValidator: ValidatorDefinition<{
     [index: string]: string | boolean;
 }>;
 export declare const FHIRObservationCategoryValidator: ValidatorDefinition<ObservationCategory>;
@@ -1875,6 +1913,65 @@ export declare const AUTOMATION_TRIGGER_ACTION_TYPES: (keyof AutomationTriggerAc
 export declare const AUTOMATION_TRIGGER_ACTION_EVENT_RESTRICTIONS: {
     [K in AutomationTriggerActionType]?: AutomationTriggerEventType[];
 };
+export type EnduserListFieldConfig = {
+    /** The sub-fields that may appear in a mutation's `match`, in priority order.
+     *
+     *  The FIRST is the entry's identity sub-field: it is the value a `Field Equals` trigger on this
+     *  list field compares against (see handle_field_update_triggers), and the one control the editor
+     *  always renders. */
+    matchKeys: string[];
+    /** The sub-fields `Add List Item` / `Update List Item` may write. May be empty, for a list field
+     *  whose entries carry nothing but their identity. */
+    valueKeys: string[];
+    /** What the field is called in the trigger editor's dropdowns. */
+    label: string;
+};
+/**
+ * The enduser list-of-objects fields automations may read and write, and the sub-fields of each that
+ * they may match on and write.
+ *
+ * This is the ONLY place a sub-field of a list entry is named. The action validators, the save-time
+ * check (list_item_mutation_error), the Mongo operations in handle_actions_for_triggers_inner, the
+ * `Field Equals` / `Fields Changed` expansion in handle_field_update_triggers and the trigger editor
+ * are all driven by it, so adding a list field here is a registry entry rather than a change in any
+ * of them.
+ *
+ * Enforced when a trigger is SAVED rather than skipped at fire time: the alternative leaves a trigger
+ * that looks configured in the editor and silently never does anything. It is re-applied at fire time
+ * as well, so no stored key can reach a Mongo path.
+ *
+ * The one thing a new entry may still need is an editor in the webapp (list_mutation_actions.tsx):
+ * without one, each sub-field gets a plain text box, which is right for a free-text sub-field and
+ * wrong for one backed by a registry the way `programs` is.
+ */
+export declare const ENDUSER_LIST_FIELD_CONFIG: {
+    [K in EnduserListField]: EnduserListFieldConfig;
+};
+export declare const ENDUSER_LIST_FIELDS: "programs"[];
+export declare const LIST_MUTATION_ACTION_TYPES: readonly ["Add List Item", "Remove List Item", "Update List Item"];
+export type ListMutationActionType = typeof LIST_MUTATION_ACTION_TYPES[number];
+export declare const is_list_mutation_action: (action?: {
+    type?: string;
+    info?: any;
+}) => action is {
+    type: ListMutationActionType;
+    info: Partial<ListItemMutation>;
+};
+/**
+ * The blocking error for a list-item mutation action, or '' when it is saveable.
+ *
+ * Shared by the API (as an automation_triggers constraint) and by the trigger editor, so the two
+ * reject the same actions with the same wording. It exists as a separate check because the field and
+ * its sub-fields validate TOGETHER: `objectValidator` sees one key at a time and cannot tell whether
+ * `status` is a sub-field `field` actually has.
+ *
+ * Keeping unrecognized keys out here is also what keeps `$`-prefixed and dotted keys out of the Mongo
+ * paths that handle_actions_for_triggers_inner builds from them.
+ */
+export declare const list_item_mutation_error: (action?: {
+    type?: string | undefined;
+    info?: any;
+} | undefined) => string;
 export declare const automationTriggerActionValidator: ValidatorDefinition<import("@tellescope/types-models").AutomationTriggerActionBuilder<"Assign Care Team", {
     tags: ListOfStringsWithQualifier;
     limitToOneUser?: boolean | undefined;
@@ -1892,7 +1989,7 @@ export declare const automationTriggerActionValidator: ValidatorDefinition<impor
     replaceExisting?: boolean | undefined;
 }> | import("@tellescope/types-models").AutomationTriggerActionBuilder<"Remove Tags", {
     tags: string[];
-}> | import("@tellescope/types-models").AutomationTriggerActionBuilder<"Add Access Tags", {
+}> | import("@tellescope/types-models").AutomationTriggerActionBuilder<"Add List Item", ListItemMutation> | import("@tellescope/types-models").AutomationTriggerActionBuilder<"Remove List Item", Omit<ListItemMutation, "values">> | import("@tellescope/types-models").AutomationTriggerActionBuilder<"Update List Item", ListItemMutation> | import("@tellescope/types-models").AutomationTriggerActionBuilder<"Add Access Tags", {
     tags: string[];
 }> | import("@tellescope/types-models").AutomationTriggerActionBuilder<"Set Fields", {
     fields: EnduserFieldSetter[];

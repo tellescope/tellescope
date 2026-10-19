@@ -905,9 +905,17 @@ exports.schema = (0, exports.build_schema)({
             }, scopes: {
                 validator: (0, validation_1.exactMatchListValidator)(__spreadArray([], types_models_1.API_KEY_SCOPES, true)),
                 readonly: true,
+            }, 
+            // The one writable field on this model. hashedKey, approvedBusinessIds and scopes are all
+            // readonly: true, so the update action below can only ever reach description.
+            // Deliberately no `examples`: the generic test harness (sdk tests.ts instanceForModel) builds
+            // its create payload from example values, and the api_keys `create` custom action only accepts
+            // `scopes` — an extra field is a hard 400 from validateInput.
+            description: {
+                validator: validation_1.stringValidator1000Optional,
             } }),
         constraints: { unique: [], relationship: [], access: [{ type: constants_1.CREATOR_ONLY_ACCESS }] },
-        defaultActions: { read: {}, readMany: {}, delete: {} },
+        defaultActions: { read: {}, readMany: {}, update: {}, delete: {} },
         customActions: {
             create: {
                 op: 'create', access: 'create',
@@ -929,11 +937,22 @@ exports.schema = (0, exports.build_schema)({
                 op: 'custom', access: 'read', method: 'get', adminOnly: true,
                 name: 'Get Organization ApiKeys',
                 path: '/organization-api-keys',
-                description: "Returns metadata (id, creator, businessId, updatedAt) for all ApiKeys in the admin's organization. Never returns the secret key.",
+                description: "Returns metadata (id, creator, businessId, updatedAt, scopes, description) for all ApiKeys in the admin's organization. Never returns the secret key.",
                 parameters: {},
                 returns: {
                     apiKeys: { validator: validation_1.listOfObjectAnyFieldsAnyValuesValidator, required: true },
                 },
+            },
+            update_organization_api_key: {
+                op: 'custom', access: 'update', method: 'patch', adminOnly: true,
+                name: 'Update Organization ApiKey',
+                path: '/organization-api-key/:id',
+                description: "Sets the description of an ApiKey in the admin's organization by id, regardless of which user created it. The description is the only editable field on an ApiKey; the key itself is never changed. An omitted description clears the existing one. Returns 404 if no key in the organization has that id.",
+                parameters: {
+                    id: { validator: validation_1.mongoIdStringRequired, required: true },
+                    description: { validator: validation_1.stringValidator1000Optional },
+                },
+                returns: {},
             },
             delete_organization_api_key: {
                 op: 'custom', access: 'delete', method: 'delete', adminOnly: true,
@@ -1857,7 +1876,10 @@ exports.schema = (0, exports.build_schema)({
                 path: '/chat-rooms/load-team-chat',
                 description: "Loads team chat rooms with server-side filtering for rooms where the user is creator, in userIds, or on care team for aboutEnduserId",
                 parameters: {
-                    lastUpdatedAt: { validator: validation_1.dateValidatorOptional },
+                    lastUpdatedAt: {
+                        validator: validation_1.dateValidatorOptional,
+                        description: "Keyset cursor: returns rooms whose most recent message is strictly older than this. Pass the recentMessageSentAt of the last room in the previous page. Defaults to now.",
+                    },
                     limit: { validator: validation_1.nonNegNumberValidator },
                     showClosed: { validator: validation_1.booleanValidatorOptional },
                 },
@@ -2504,6 +2526,9 @@ exports.schema = (0, exports.build_schema)({
                     password: { validator: validation_1.stringValidator100, required: true },
                     termsVersion: { validator: validation_1.stringValidator100, required: true },
                     inviteCode: { validator: validation_1.stringValidator1000 },
+                    // shared code for self-service signup, required unless inviteCode is given - see
+                    // api/modules/registration_code.ts
+                    registrationCode: { validator: validation_1.stringValidator1000 },
                 },
                 returns: {},
             },
@@ -2620,6 +2645,9 @@ exports.schema = (0, exports.build_schema)({
                 redactions: ['enduser'],
             }, portalSettings: {
                 validator: validation_1.userPortalSettingsValidator,
+            }, preferences: {
+                validator: validation_1.userPreferencesValidator,
+                redactions: ['enduser'], // frontend-only settings; endusers have no business reading them
             }, notificationEmailsDisabled: { validator: validation_1.booleanValidator }, avatar: {
                 validator: validation_1.stringValidator1000,
                 // BUG: This dependency is disabled because handleDeletionForDependencies queries
@@ -2837,12 +2865,13 @@ exports.schema = (0, exports.build_schema)({
                 op: "custom", access: 'create', method: "post",
                 name: 'Confirm File Upload',
                 path: '/files/confirm-upload',
-                description: "Triggers file create side effects / webhooks to be called after client-side upload is complete. Optionally syncs file to Beluga if syncToBeluga is true and formResponseId is provided, or to MD Integrations if syncToMDI is true and formResponseId is provided.",
+                description: "Triggers file create side effects / webhooks to be called after client-side upload is complete. Optionally syncs file to Beluga if syncToBeluga is true and formResponseId is provided, or to MD Integrations if syncToMDI is true and formResponseId is provided. For MD Integrations, mdiFileType sets the MDI file type; 'driver-license' links the file to the patient's driver_license_id instead of attaching it to the case.",
                 parameters: {
                     id: { validator: validation_1.mongoIdStringRequired, required: true },
                     syncToBeluga: { validator: validation_1.booleanValidator },
                     syncToMDI: { validator: validation_1.booleanValidator },
                     formResponseId: { validator: validation_1.mongoIdStringRequired },
+                    mdiFileType: { validator: (0, validation_1.exactMatchValidator)(__spreadArray([], constants_1.MDI_FILE_TYPES, true)) },
                 },
                 returns: {},
             },
@@ -3399,7 +3428,15 @@ exports.schema = (0, exports.build_schema)({
                 updatesDisabled: true,
             }, openedAt: {
                 validator: validation_1.dateValidator,
-            }, copiedFrom: { validator: validation_1.mongoIdStringOptional }, copiedFromEnduserId: { validator: validation_1.mongoIdStringOptional }, publicSubmit: { validator: validation_1.booleanValidator }, submittedBy: { validator: validation_1.stringValidator250, enduserUpdatesDisabled: true }, submittedByIsPlaceholder: { validator: validation_1.booleanValidator, enduserUpdatesDisabled: true }, markedAsSubmitted: { validator: validation_1.booleanValidator, enduserUpdatesDisabled: true }, viewedInLanguage: { validator: validation_1.stringValidator100, enduserUpdatesDisabled: true }, accessCode: { validator: validation_1.stringValidator250 }, userEmail: { validator: validation_1.emailValidator, enduserUpdatesDisabled: true }, submittedAt: { validator: validation_1.dateValidator, enduserUpdatesDisabled: true }, formTitle: { validator: validation_1.stringValidator250, enduserUpdatesDisabled: true }, responses: { validator: validation_1.formResponsesValidator }, draftSavedAt: { validator: validation_1.dateValidator }, draftSavedBy: { validator: validation_1.mongoIdStringRequired }, hideFromEnduserPortal: { validator: validation_1.booleanValidator }, sharedVia: { validator: validation_1.communicationsChannelValidator }, isInternalNote: { validator: validation_1.booleanValidator, enduserUpdatesDisabled: true }, pinnedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator, enduserUpdatesDisabled: true }, publicIdentifier: { validator: validation_1.stringValidator250 }, source: { validator: validation_1.stringValidator250 }, externalId: { validator: validation_1.stringValidator250 }, rootResponseId: { validator: validation_1.mongoIdStringRequired }, parentResponseId: { validator: validation_1.mongoIdStringRequired }, tags: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk, enduserUpdatesDisabled: true }, carePlanId: { validator: validation_1.mongoIdStringRequired }, context: { validator: validation_1.stringValidator1000 }, logoURL: { validator: validation_1.stringValidator5000, enduserUpdatesDisabled: true }, logoHeight: { validator: validation_1.numberValidator, enduserUpdatesDisabled: true }, calendarEventId: { validator: validation_1.mongoIdStringRequired }, references: { validator: validation_1.listOfRelatedRecordsValidator, readonly: true }, groupId: { validator: validation_1.mongoIdStringRequired }, groupInstance: { validator: validation_1.stringValidator100 }, groupPosition: { validator: validation_1.nonNegNumberValidator }, hideAfterUnsubmittedInMS: { validator: validation_1.numberValidator }, addenda: {
+            }, 
+            // only staff create copies, and these two are control fields, not data: copiedFrom now gates
+            // whether save_enduser_updates_for_form_response writes the intake answers at all (it returns
+            // early for a copy), and copiedFromEnduserId is what the webapp's "View original patient" link
+            // points at. Endusers may update their own in-progress response, so without this lock a
+            // portal patient could stamp copiedFrom on their own draft to silently suppress the intake
+            // sync of everything they answer, or point the staff-facing link at an arbitrary patient id.
+            // Same reasoning as enduserId above.
+            copiedFrom: { validator: validation_1.mongoIdStringOptional, enduserUpdatesDisabled: true }, copiedFromEnduserId: { validator: validation_1.mongoIdStringOptional, enduserUpdatesDisabled: true }, publicSubmit: { validator: validation_1.booleanValidator }, submittedBy: { validator: validation_1.stringValidator250, enduserUpdatesDisabled: true }, submittedByIsPlaceholder: { validator: validation_1.booleanValidator, enduserUpdatesDisabled: true }, markedAsSubmitted: { validator: validation_1.booleanValidator, enduserUpdatesDisabled: true }, viewedInLanguage: { validator: validation_1.stringValidator100, enduserUpdatesDisabled: true }, accessCode: { validator: validation_1.stringValidator250 }, userEmail: { validator: validation_1.emailValidator, enduserUpdatesDisabled: true }, submittedAt: { validator: validation_1.dateValidator, enduserUpdatesDisabled: true }, formTitle: { validator: validation_1.stringValidator250, enduserUpdatesDisabled: true }, responses: { validator: validation_1.formResponsesValidator }, draftSavedAt: { validator: validation_1.dateValidator }, draftSavedBy: { validator: validation_1.mongoIdStringRequired }, hideFromEnduserPortal: { validator: validation_1.booleanValidator }, sharedVia: { validator: validation_1.communicationsChannelValidator }, isInternalNote: { validator: validation_1.booleanValidator, enduserUpdatesDisabled: true }, pinnedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator, enduserUpdatesDisabled: true }, publicIdentifier: { validator: validation_1.stringValidator250 }, source: { validator: validation_1.stringValidator250 }, externalId: { validator: validation_1.stringValidator250 }, rootResponseId: { validator: validation_1.mongoIdStringRequired }, parentResponseId: { validator: validation_1.mongoIdStringRequired }, tags: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk, enduserUpdatesDisabled: true }, carePlanId: { validator: validation_1.mongoIdStringRequired }, context: { validator: validation_1.stringValidator1000 }, logoURL: { validator: validation_1.stringValidator5000, enduserUpdatesDisabled: true }, logoHeight: { validator: validation_1.numberValidator, enduserUpdatesDisabled: true }, calendarEventId: { validator: validation_1.mongoIdStringRequired }, references: { validator: validation_1.listOfRelatedRecordsValidator, readonly: true }, groupId: { validator: validation_1.mongoIdStringRequired }, groupInstance: { validator: validation_1.stringValidator100 }, groupPosition: { validator: validation_1.nonNegNumberValidator }, hideAfterUnsubmittedInMS: { validator: validation_1.numberValidator }, addenda: {
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     text: validation_1.stringValidator25000EmptyOkay,
                     timestamp: validation_1.dateValidator,
@@ -3412,7 +3449,14 @@ exports.schema = (0, exports.build_schema)({
                     formResponseId: validation_1.mongoIdStringOptional,
                     completedAt: validation_1.dateValidatorOptional,
                 }))
-            }, canvasEncounterId: { validator: validation_1.stringValidator100 }, pushedToPortalAt: { validator: validation_1.dateValidatorOptional }, belugaScheduleLink: { validator: validation_1.stringValidator1000 }, mdiStatus: { validator: validation_1.stringValidator }, fieldViews: {
+            }, canvasEncounterId: { validator: validation_1.stringValidator100 }, pushedToPortalAt: { validator: validation_1.dateValidatorOptional }, belugaScheduleLink: { validator: validation_1.stringValidator1000 }, mdiStatus: { validator: validation_1.stringValidator }, mdiSyncError: {
+                validator: (0, validation_1.objectValidator)({
+                    message: validation_1.stringValidator5000,
+                    missingFields: validation_1.listOfStringsValidatorOptionalOrEmptyOk,
+                    at: validation_1.dateValidator,
+                }),
+                readonly: true,
+            }, fieldViews: {
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     fieldId: validation_1.mongoIdStringRequired,
                     fieldTitle: validation_1.stringValidator250,
@@ -6246,6 +6290,19 @@ exports.schema = (0, exports.build_schema)({
                             return;
                         return "The \"".concat(actionType, "\" action can only be used with the ").concat(allowed.map(function (e) { return "\"".concat(e, "\""); }).join(' or '), " event.");
                     }
+                }, {
+                    explanation: 'A list-item mutation may only touch the sub-fields its list field declares',
+                    evaluate: function (trigger, _deps, _session, _method, options) {
+                        var _a, _b;
+                        // a partial update may carry no action at all, so fall back to the stored one; the two are
+                        // never merged, since an action is always written whole
+                        var action = (_a = trigger.action) !== null && _a !== void 0 ? _a : (_b = options.original) === null || _b === void 0 ? void 0 : _b.action;
+                        if (!action)
+                            return;
+                        // same helper the trigger editor blocks on, so the editor and the server reject the same
+                        // actions with the same wording
+                        return (0, validation_1.list_item_mutation_error)(action) || undefined;
+                    }
                 }],
         },
         defaultActions: constants_1.DEFAULT_OPERATIONS,
@@ -7390,6 +7447,36 @@ exports.schema = (0, exports.build_schema)({
                 },
                 returns: {},
             },
+            // A thin Anthropic Messages proxy: native tool use, client-placed cache_control, optional SSE
+            // streaming. The server never executes a tool and never builds a prompt — it forwards the
+            // caller's transcript, bills the turn and writes the audit record. Shape validation lives in
+            // the agent* validators; the cross-field rules (tool pairing, caps, cache_control budget) are
+            // in validateAgentRequest (api/modules/bedrock.ts) so they produce specific messages.
+            agent_message: {
+                op: "custom", access: 'create', method: "post",
+                name: 'Agent Message',
+                path: '/ai-conversations/agent-message',
+                description: "Sends an Anthropic-shaped transcript to the configured model with native tool use and prompt caching, and records the turn against an ai_conversation. Returns { conversationId, reply }, or a text/event-stream when stream is true.",
+                parameters: {
+                    messages: { validator: validation_1.agentMessagesValidator, required: true },
+                    system: { validator: validation_1.agentSystemValidator },
+                    tools: { validator: validation_1.agentToolsValidator },
+                    tool_choice: { validator: validation_1.agentToolChoiceValidator },
+                    maxTokens: { validator: validation_1.nonNegNumberValidator },
+                    stream: { validator: validation_1.booleanValidatorOptional },
+                    conversationId: { validator: validation_1.mongoIdStringRequired },
+                    type: { validator: validation_1.stringValidator100 },
+                    model: { validator: validation_1.selectableAIModelValidator },
+                    orchestrationId: { validator: validation_1.stringValidatorOptional },
+                    enduserId: { validator: validation_1.mongoIdStringRequired },
+                    journeyId: { validator: validation_1.mongoIdStringRequired },
+                    automationStepId: { validator: validation_1.mongoIdStringRequired },
+                },
+                returns: {
+                    conversationId: { validator: validation_1.mongoIdStringRequired, required: true },
+                    reply: { validator: validation_1.objectAnyFieldsAnyValuesValidator, required: true },
+                },
+            },
         },
         fields: __assign(__assign({}, BuiltInFields), { type: { validator: validation_1.stringValidator, required: true, examples: ['HTML Template Generation'] }, modelName: { validator: validation_1.stringValidator, required: true, examples: ['Claude Sonnet 5.5', 'Claude Opus 5.5', 'Claude Sonnet 5', 'Claude Opus 5', 'Claude Opus 4.8'] }, orchestrationId: { validator: validation_1.stringValidatorOptional, examples: ['workflow-123', 'batch-456'] }, enduserId: {
                 validator: validation_1.mongoIdStringOptional,
@@ -7436,8 +7523,15 @@ exports.schema = (0, exports.build_schema)({
                     timestamp: validation_1.dateValidator,
                     tokens: validation_1.nonNegNumberValidator,
                     content: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
-                        type: (0, validation_1.exactMatchValidator)(['text', 'image', 'file']),
+                        type: (0, validation_1.exactMatchValidator)(['text', 'image', 'file', 'tool_use', 'tool_result']),
                         text: validation_1.stringValidatorOptional,
+                        // agent_message tool-loop blocks; see types-models AICOnversationMessageContent
+                        id: validation_1.stringValidatorOptional,
+                        name: validation_1.stringValidatorOptional,
+                        input: validation_1.objectAnyFieldsAnyValuesValidator,
+                        tool_use_id: validation_1.stringValidatorOptional,
+                        content: validation_1.stringValidator100000OptionalEmptyOkay,
+                        is_error: validation_1.booleanValidatorOptional,
                     })),
                     userId: validation_1.mongoIdStringOptional,
                     systemPrompt: validation_1.stringValidator5000OptionalEmptyOkay,
@@ -7481,7 +7575,7 @@ exports.schema = (0, exports.build_schema)({
                 op: "custom", access: 'read', method: "get",
                 name: 'Load Threads',
                 path: '/inbox-threads/load',
-                description: "Loads inbox threads with optional filtering",
+                description: "Loads inbox threads with optional filtering. mdbFilter accepts the careTeamUserIds pseudo-field for composing a care team condition with other clauses; see the mdbFilter parameter",
                 parameters: {
                     ids: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk },
                     excludeIds: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk },
@@ -7492,7 +7586,10 @@ exports.schema = (0, exports.build_schema)({
                     careTeamUserIds: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk },
                     phoneNumber: { validator: validation_1.phoneValidatorOptional },
                     returnCount: { validator: validation_1.booleanValidatorOptional },
-                    mdbFilter: { validator: validation_1.objectAnyFieldsAnyValuesValidator },
+                    mdbFilter: {
+                        validator: validation_1.objectAnyFieldsAnyValuesValidator,
+                        description: "A MongoDB filter over inbox threads. May also use the careTeamUserIds pseudo-field anywhere a field clause can appear, including under $and, $or and $nor: a user id, { $eq: id }, { $in: [ids] } or { $all: [ids] }, matching threads with an enduser whose care team (assignedTo) contains that user, any of the users, or all of the users respectively. The server expands each occurrence into an indexed enduserIds clause before querying. Negation ($nin, $ne, $not) and every other operator are rejected with a 400, as are non-id values. At most 5 distinct careTeamUserIds conditions per request; each resolves at most 25,000 endusers, beyond which results are truncated.",
+                    },
                     sortBy: { validator: (0, validation_1.exactMatchValidatorOptional)(['timestamp', 'outboundTimestamp']) },
                     autobuild: { validator: validation_1.booleanValidatorOptional },
                     search: { validator: validation_1.stringValidatorOptional },

@@ -908,6 +908,10 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
     [index: string]: NotificationPreference,
   },
   portalSettings?: { [key: string]: string | boolean },
+  // Generic bag for frontend-only per-user settings (e.g. silenceNotificationPopups).
+  // Prefer adding a key here over a new typed User field. Redacted from endusers,
+  // and deny-listed out of the JWT, so it is never present on req.session.
+  preferences?: { [key: string]: string | boolean },
   notificationEmailsDisabled?: boolean,
   disableIncomingPhoneCalls?: boolean,
   disableTicketAutoAssignment?: boolean,
@@ -1397,7 +1401,14 @@ export interface APIKey_readonly extends ClientRecord {
   approvedBusinessIds?: string[], // org IDs this key can target via header
   scopes?: APIKeyScope[], // non-empty ⇒ key ONLY authenticates its scoped endpoints (currently just the form-ingestion webhook)
 }
-export interface APIKey_required {}
+export interface APIKey_required {
+  // Optional, user-supplied label describing what the key is for (e.g. "Billing export script").
+  // Non-PHI free text. Lives in the _required bucket because it is the only mutable field bucket —
+  // _readonly and _updatesDisabled both block writes, and description is the one editable field on
+  // this model. Set after creation via the api_keys update action (or update_organization_api_key
+  // for an admin editing another user's key); the create action deliberately does not accept it.
+  description?: string,
+}
 export interface APIKey_updatesDisabled {}
 export interface APIKey extends APIKey_readonly, APIKey_required, APIKey_updatesDisabled {}
 
@@ -2314,7 +2325,7 @@ export type AISummaryConfiguration = {
   prompt?: string,
   dataSources?: AISummaryDataSourceConfig[],
   maxOutputTokens?: number,
-  includeProfileFields?: boolean, // include the enduser profile block (name/DOB/fields/custom fields) in the AI context
+  includeProfileFields?: boolean, // include the enduser profile block (name/DOB/fields/custom fields/Notes box) in the AI context
   model?: string, // friendly AI model name, see SELECTABLE_AI_MODELS (constants); defaults to DEFAULT_AI_MODEL
 }
 
@@ -2849,6 +2860,11 @@ export type FormResponseFollowup = {
   formResponseId?: string,
   completedAt?: Date,
 }
+export type MDISyncError = {
+  message: string, // e.g. "Patient is missing required fields for MD Integrations: dateOfBirth", or MDI's (truncated) error
+  missingFields?: string[], // set when the patient could not be created for missing required Enduser fields
+  at: Date,
+}
 
 export interface FormResponse_readonly extends ClientRecord {
   openedAt?: Date,
@@ -2941,6 +2957,7 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
   belugaStatus?: string,
   belugaScheduleLink?: string,
   mdiStatus?: string, // MD Integrations case lifecycle status (e.g. "Approved", "Completed"), set by inbound MDI webhooks
+  mdiSyncError?: MDISyncError, // last failed MD Integrations case sync (server-written only; cleared on a successful sync)
   fieldViews?: {
     fieldId: string,
     fieldTitle: string,
@@ -5113,6 +5130,34 @@ export type ListOfStringsWithQualifier = {
   values: string[],
 }
 
+/**
+ * The enduser list-of-objects fields automations may read and write.
+ *
+ * The runtime description of each — which of its sub-fields identify an entry, which may be written,
+ * and what to call it — is ENDUSER_LIST_FIELD_CONFIG (validation.ts). Nothing outside that registry
+ * names a particular sub-field: adding a list field is a registry entry, not a code change in the
+ * trigger actions, the field-change handler or the editors.
+ */
+export type EnduserListField = 'programs'
+/**
+ * The common half of all three list-item mutations: which list field, which entry within it, and
+ * (for Add / Update) what to write on that entry.
+ *
+ * Both maps are keyed by SUB-FIELD name, and both are constrained to the sub-fields
+ * ENDUSER_LIST_FIELD_CONFIG declares for `field` — enforced when the trigger is SAVED, rather than
+ * skipped silently at fire time, and re-applied when it fires so no stored key can reach a Mongo path.
+ */
+export type ListItemMutation = {
+  field: EnduserListField,
+  /** sub-field -> value, compared EXACTLY (case-sensitive, never trimmed). An entry is acted on when
+   *  it matches every pair. These are match keys, never settable: renaming an entry would migrate no
+   *  condition, saved filter or trigger that matches the old value. */
+  match: { [subField: string]: string },
+  /** sub-field -> value written on the entry (Add: on the new entry; Update: on every matched entry).
+   *  An empty string CLEARS the sub-field. Values are strings today; widening the value type is a
+   *  change to the registry and its validator, not to this shape. */
+  values?: { [subField: string]: string },
+}
 export type AutomationTriggerActionBuilder <T, I> = { type: T, info: I }
 export type AutomationTriggerActions = {
   "Add To Journey": AutomationTriggerActionBuilder<'Add To Journey', { journeyId: string, doNotRestart?: boolean }>,
@@ -5120,6 +5165,11 @@ export type AutomationTriggerActions = {
   "Remove From All Journeys": AutomationTriggerActionBuilder<'Remove From All Journeys', { }>,
   "Add Tags": AutomationTriggerActionBuilder<'Add Tags', { tags: string[], replaceExisting?: boolean }>,
   "Remove Tags": AutomationTriggerActionBuilder<'Remove Tags', { tags: string[] }>,
+  /** Mutations of a list-of-objects field on the enduser, matched by sub-field. See EnduserListField. */
+  "Add List Item": AutomationTriggerActionBuilder<'Add List Item', ListItemMutation>,
+  // no `values`: the action removes EVERY entry matching `match`, whatever else those entries carry
+  "Remove List Item": AutomationTriggerActionBuilder<'Remove List Item', Omit<ListItemMutation, 'values'>>,
+  "Update List Item": AutomationTriggerActionBuilder<'Update List Item', ListItemMutation>,
   "Add Access Tags": AutomationTriggerActionBuilder<'Add Access Tags', { tags: string[] }>,
   "Set Fields": AutomationTriggerActionBuilder<'Set Fields', { fields: EnduserFieldSetter[] }>,
   "Move To Step": AutomationTriggerActionBuilder<'Move To Step', { }>, // journeyId and automationStepId stored as part of trigger for better dependency deletion
@@ -6065,8 +6115,87 @@ export interface Waitlist extends Waitlist_readonly, Waitlist_required, Waitlist
 }
 
 export type AICOnversationMessageContent = {
-  type: 'text' | 'image' | 'file',
+  // 'text' | 'image' | 'file' are the pre-existing chat shapes; 'tool_use' / 'tool_result' are
+  // written by ai_conversations.agent_message so a native tool loop is auditable from the ledger.
+  type: 'text' | 'image' | 'file' | 'tool_use' | 'tool_result',
   text?: string,
+  // agent_message (tool_use): the model-minted call id, the tool it chose, and the arguments it
+  // produced. `thinking` blocks are deliberately NEVER stored here — the reply returned to the
+  // client keeps them (the next turn must echo them back with their signatures), but the ledger
+  // entry is the audit record of what was asked and done, not of the model's internal reasoning.
+  id?: string,
+  name?: string,
+  input?: Indexable,
+  // agent_message (tool_result): the call this answers, and the client's result rendered as text
+  tool_use_id?: string,
+  content?: string,
+  is_error?: boolean,
+}
+
+/***************************************************************************************************
+ * ai_conversations.agent_message — Anthropic Messages API request/response shapes.
+ *
+ * These mirror the Messages API rather than Tellescope's own chat shapes on purpose: the endpoint
+ * is a thin proxy, so the caller sends (and receives) what Anthropic documents, and the server
+ * never builds a prompt or executes a tool. Only the block types below are proxied; anything else
+ * (images, documents, server_tool_use, …) is rejected with a 400 rather than forwarded blindly.
+ ***************************************************************************************************/
+
+/** A client-placed prompt-caching breakpoint. At most AGENT_MAX_CACHE_CONTROL_MARKERS per request. */
+export type AgentCacheControl = { type: 'ephemeral' }
+
+export type AgentTextBlock = { type: 'text', text: string, cache_control?: AgentCacheControl }
+/** Returned by adaptive-thinking models; must be echoed back VERBATIM (signature included). */
+export type AgentThinkingBlock = { type: 'thinking', thinking: string, signature: string }
+export type AgentRedactedThinkingBlock = { type: 'redacted_thinking', data: string }
+export type AgentToolUseBlock = {
+  type: 'tool_use', id: string, name: string, input: Indexable, cache_control?: AgentCacheControl,
+}
+export type AgentToolResultBlock = {
+  type: 'tool_result',
+  tool_use_id: string,
+  content?: string | AgentTextBlock[],
+  is_error?: boolean,
+  cache_control?: AgentCacheControl,
+}
+export type AgentContentBlock = (
+  AgentTextBlock | AgentThinkingBlock | AgentRedactedThinkingBlock | AgentToolUseBlock | AgentToolResultBlock
+)
+
+export type AgentMessageInput = { role: 'user' | 'assistant', content: AgentContentBlock[] }
+
+export type AgentToolInput = {
+  name: string,
+  description?: string,
+  input_schema: Indexable, // a JSON Schema object, passed to the model verbatim
+  cache_control?: AgentCacheControl,
+}
+
+export type AgentToolChoice = {
+  type: 'auto' | 'any' | 'tool' | 'none',
+  name?: string, // required when type is 'tool'
+  disable_parallel_tool_use?: boolean,
+}
+
+/** The usage block returned to the caller — Anthropic's, plus what the turn actually cost. */
+export type AgentReplyUsage = {
+  input_tokens: number,
+  output_tokens: number,
+  cache_creation_input_tokens: number,
+  cache_read_input_tokens: number,
+  credits_charged: number,
+}
+
+/** The model's reply, returned verbatim apart from Bedrock-specific noise being stripped. */
+export type AgentReply = {
+  id: string,
+  type: 'message',
+  role: 'assistant',
+  model: string,
+  content: AgentContentBlock[],
+  stop_reason: string | null,
+  stop_sequence: string | null,
+  usage: AgentReplyUsage,
 }
 // Status of a metered (voice agent) Bedrock invocation. A pair of messages that stays
 // 'pending' permanently is the durable record of a crashed invocation (never rated/charged).

@@ -852,26 +852,17 @@ function generateActionParameters(action, method, actionPath) {
             var info = paramInfo;
             try {
                 var schema_2 = validatorToOpenAPIType(info.validator);
+                var description = typeof info.description === 'string' && info.description ? { description: info.description } : {};
                 if (pathParamNames.includes(paramName)) {
-                    pathParams.push({
-                        name: paramName,
-                        in: 'path',
-                        required: true,
-                        schema: schema_2
-                    });
+                    pathParams.push(__assign({ name: paramName, in: 'path', required: true, schema: schema_2 }, description));
                 }
                 else if (method === 'get' || method === 'delete') {
                     // GET/DELETE use query parameters
-                    queryParams.push({
-                        name: paramName,
-                        in: 'query',
-                        required: !!info.required,
-                        schema: schema_2
-                    });
+                    queryParams.push(__assign({ name: paramName, in: 'query', required: !!info.required, schema: schema_2 }, description));
                 }
                 else {
                     // POST/PATCH/PUT use request body
-                    bodyProperties[paramName] = schema_2;
+                    bodyProperties[paramName] = __assign(__assign({}, schema_2), description);
                     if (info.required) {
                         requiredBody.push(paramName);
                     }

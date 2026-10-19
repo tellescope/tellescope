@@ -173,6 +173,13 @@ export var VITL_TITLE = "VITL";
 // sentinel value for FormField.mdiImportantValues / mdiCriticalValues: when present in a list,
 // the MDI case question is flagged (important / is_critical) for any non-empty answer
 export var MDI_FLAG_ALL_ANSWERS = "*";
+// MDI file types accepted by POST /v1/partner/files (the `type` field)
+export var MDI_FILE_TYPES = [
+    'document', 'review', 'other', 'insurance-policy', 'contract',
+    'driver-license', 'lab-result', 'photo', 'av-video',
+    'full-body-photo', 'back-photo', 'face-photo', 'avatar-photo',
+    'ipledge-document', 'auth-form',
+];
 // stored in Organization.hasIntegrations
 // must also be in ORGANIZATION_WIDE_INTEGRATIONS
 export var GENERIC_INTEGRATIONS = [PUPPETEER_TITLE];

@@ -329,6 +329,13 @@ export const enduserProfileToText = (e: Enduser): string => {
       }
     }
   }
+  // Last, and as two lines: the note is free text that may itself be multi-line, so inlining it
+  // after its label (the way Tags: does) would run its first line into the label and leave the
+  // rest dangling. Placed after the custom-fields list so it can never split that list.
+  if (e.note?.trim()) {
+    lines.push('Notes:')
+    lines.push(e.note)
+  }
   return lines.join('\n')
 }
 
@@ -510,7 +517,7 @@ export const loadAISummaryContext = async ({
   // and never `aboutEnduserId`: internal care-team rooms ABOUT a patient stay out of AI prompts.
   // Left out, `chats` loads nothing rather than falling back to an unscoped query.
   loadChatRooms?: (enduserId: string) => Promise<any[]>,
-  // include the enduser profile block (name/DOB/fields/custom fields) in the context. Defaults to
+  // include the enduser profile block (name/DOB/fields/custom fields/Notes box) in the context. Defaults to
   // true for the summary use case; the AI Decision step passes false to avoid prompt clutter.
   includeProfile?: boolean,
 }): Promise<AISummaryContext> => {

@@ -19,8 +19,8 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 import { WEBHOOK_MODELS, API_KEY_SCOPES, } from "@tellescope/types-models";
-import { booleanValidator, dateValidator, emailValidator, fieldsValidator, journeysValidator, journeyStatesValidator, phoneValidator, nameValidator, nonNegNumberValidator, nonNegNumberValidatorOptional, minimumShouldMatchValidatorOptional, mongoIdValidator, mongoIdStringRequired as mongoIdStringValidator, listOfMongoIdStringValidator, listOfMongoIdStringValidatorOptional, listOfStripeCheckoutItemsValidatorOptional, preferenceValidator, objectAnyFieldsAnyValuesValidator, stringValidator, stringValidator100, stringValidator105, listOfStringsValidator, emailEncodingValidator, numberToDateValidator, SMSMessageValidator, chatRoomTypeValidator, idStringToDateValidator, translationsValidator, subdomainValidator, messageTemplateTypeValidator, stringValidator210, stringValidator250, stringValidator5000, listOfDisplayNameInfo, fileTypeValidator, fileSizeValidator, meetingStatusValidator, listOfAttendeesValidator, listOfVideoCallParticipantEventsValidator, meetingInfoValidator, listOfUserIndentitiesValidator, meetingsListValidator, urlValidator, WebhookSubscriptionValidator, attendeeValidator, meetingDisplayInfoValidator, intakePhoneValidator, formResponsesValidator, stringValidator25000, automationActionValidator, automationEventValidator, automatedActionStatusValidator, listOfStringsValidatorEmptyOk, listOfChatAttachmentsValidator, listOfCalendarEventRemindersValidator, messageTemplateModeValidator, listOfAutomationConditionsValidator, chatRoomUserInfoValidator, CUDStringValidator, listOfRelatedRecordsValidator, cancelConditionsValidator, notificationPreferencesValidator, userPortalSettingsValidator, FHIRObservationCategoryValidator, FHIRObservationStatusCodeValidator, FHIRObservationValueValidator, observationComponentsValidator, userIdentityValidator, formFieldTypeValidator, previousFormFieldsValidator, numberValidator, organizationThemeValidator, managedContentRecordTypeValidator, passwordValidator, flowchartUIValidator, integrationAuthenticationsValidator, listOfMongoIdStringValidatorEmptyOk, formFieldOptionsValidator, blocksValidator, sessionTypeValidator, portalSettingsValidator, emailValidatorEmptyOkay, phoneValidatorOptional, stringValidator1000, databaseFieldsValidator, databaseRecordValuesValidator, automationEventsValidator, portalBlocksValidator, enduserFormResponsesForEventValidator, enduserTasksForEventValidator, stateCredentialsValidator, stateValidator, weeklyAvailabilitiesValidator, calendarEventLimitsValidator, timezoneValidator, formTypeValidator, managedContentRecordAssignmentTypeValidator, listOfGenericAttachmentsValidator, accessPermissionsValidator, organizationLimitsValidator, organizationSettingsValidator, communicationsChannelValidator, genericUnitWithQuantityValidator, stringValidator25000EmptyOkay, slugValidator, stringValidator5000EmptyOkay, loginFlowResultValidator, sharedWithOrganizationIdsValidator, stringValidator1000Optional, tellescopeGenderValidator, appointmentTermsValidator, paymentProcessorValidator, purchaseCreditValueValidator, costValidator, integrationTitleValidator, journeyContextValidator, stringValidator100000, stringValidator100000EmptyOkay, analyticsQueryValidator, dateRangeValidator, calendarEventPortalSettingsValidator, dateOptionalOrEmptyStringValidator, baseAvailabilityBlocksValidator, availabilityEntitiesValidator, indexUpdatesValidator, dateRangeOptionalValidator, booleanValidatorOptional, coldTransfersValidator, automationTriggerActionValidator, automationTriggerEventValidator, automatioNTriggerStatusValidator, exactMatchValidator, exactMatchValidatorOptional, exactMatchListValidator, listOfMongoIdStringValidatorOptionalOrEmptyOk, listOfListsOfMongoIdStringsValidatorOptionalOrEmptyOk, linkedAccountAccessValidator, listOfStringsValidatorOptionalOrEmptyOk, stringValidatorOptionalEmptyOkay, analyticsQueryResultsValidator, stringValidatorOptional, addressValidator, superbillPatientInfoValidator, superbillProviderInfoValidator, superbillLineItemsValidator, billingCodeValidatorOptional, analyticsFrameTypeValidator, videoIntegrationTypesValidator, scheduledJourneysValidator, formScoringValidator, embeddingTypeValidator, listValidator, userCallRoutingBehaviorValidator, userUIRestrictionsValidator, userFieldRedactionsValidator, portalSchemaRestrictionsValidator, externalChatGPTMessagesValidator, enduserProfileViewBlocksValidator, customDashboardBlocksValidator, intakeDateOfBirthValidator, objectValidator, mongoIdStringRequired, objectAnyFieldsValidator, phoneTreeNodesValidator, phoneTreeEnduserConditionValidator, orValidator, optionalAnyObjectValidator, listValidatorOptionalOrEmptyOk, formCustomizationValidator, aiSummaryConfigurationValidator, selectableAIModelValidator, buildInFieldsValidator, customEnduserFieldsValidatorOptionalOrEmpty, ticketActionsValidator, formResponseValidator, numberValidatorOptional, languageValidator, relatedRecordValidator, mongoIdStringOptional, tableViewColumnsValidator, formFieldCalloutConditionsValidator, endusersReportQueriesValidator, formResponsesReportQueriesValidator, phoneCallsReportQueriesValidator, listValidatorEmptyOk, phonePlaybackValidatorOptional, ticketSnoozesValidator, listOfStringsWithQualifierValidator, listOfStringsWithQualifierValidatorOptional, stringValidator100000OptionalEmptyOkay, mmsMessagesValidator, groupMMSUserStatesValidator, sortingFieldsValidator, listOfUniqueStringsValidatorEmptyOk, ticketReminderValidator, insuranceOptionalValidator, pharmacyValidator, listOfStringsValidatorUniqueOptionalOrEmptyOkay, diagnosesValidator, stateValidatorOptional, canvasCodingValidator, vitalConfigurationRangesValidator, smartMeterLinesValidator, formFieldFeedbackValidator, phonePlaybackValidator, enduserProfileWebhooksValidator, fieldsSyncValidator, athenaSubscriptionTypeValidator, dateValidatorOptional, listQueryQualifiersValidator, stringValidator5000OptionalEmptyOkay, labeledFieldsValidator, fieldMappingsValidator, analyticsFrameGroupingCategoriesValidator, customDashboardViewValidator, bookingRestrictionsByTemplateValidator, listOfNumbersValidatorUniqueOptionalOrEmptyOkay, enduserDiagnosisValidator, enduserProgramsValidator, organizationProgramsValidator, recordProgramsValidator, canvasCodingValidatorOptional, calendarEventAttendeesValidator, developHealthDrugsValidator, developHealthDiagnosesValidator, developHealthMockResultValidator, positiveNumberValidator, listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay, recentViewersValidator, stringValidator100000OptionalEmptyOkayEscapeHTML, customPoliciesValidator, stringValidator100EscapeHTML, outOfOfficeBlocksValidator, userOutOfOfficesValidator, AIDecisionSourceValidator, AIMessageInputValidator, listOfObjectAnyFieldsAnyValuesValidator, listOfEmailCCsValidator, externalIdNumberValidatorOptional, DEPRECATED_AUTOMATION_TRIGGER_EVENT_TYPES, AUTOMATION_TRIGGER_ACTION_EVENT_RESTRICTIONS, compoundFilterValidator, } from "@tellescope/validation";
-import { CREATOR_ONLY_ACCESS, DEFAULT_OPERATIONS, PLACEHOLDER_ID, ENDUSER_SESSION_TYPE, USER_SESSION_TYPE, CANDID_TITLE, DEVELOP_HEALTH_TITLE, } from "@tellescope/constants";
+import { booleanValidator, dateValidator, emailValidator, fieldsValidator, journeysValidator, journeyStatesValidator, phoneValidator, nameValidator, nonNegNumberValidator, agentMessagesValidator, agentSystemValidator, agentToolsValidator, agentToolChoiceValidator, nonNegNumberValidatorOptional, minimumShouldMatchValidatorOptional, mongoIdValidator, mongoIdStringRequired as mongoIdStringValidator, listOfMongoIdStringValidator, listOfMongoIdStringValidatorOptional, listOfStripeCheckoutItemsValidatorOptional, preferenceValidator, objectAnyFieldsAnyValuesValidator, stringValidator, stringValidator100, stringValidator105, listOfStringsValidator, emailEncodingValidator, numberToDateValidator, SMSMessageValidator, chatRoomTypeValidator, idStringToDateValidator, translationsValidator, subdomainValidator, messageTemplateTypeValidator, stringValidator210, stringValidator250, stringValidator5000, listOfDisplayNameInfo, fileTypeValidator, fileSizeValidator, meetingStatusValidator, listOfAttendeesValidator, listOfVideoCallParticipantEventsValidator, meetingInfoValidator, listOfUserIndentitiesValidator, meetingsListValidator, urlValidator, WebhookSubscriptionValidator, attendeeValidator, meetingDisplayInfoValidator, intakePhoneValidator, formResponsesValidator, stringValidator25000, automationActionValidator, automationEventValidator, automatedActionStatusValidator, listOfStringsValidatorEmptyOk, listOfChatAttachmentsValidator, listOfCalendarEventRemindersValidator, messageTemplateModeValidator, listOfAutomationConditionsValidator, chatRoomUserInfoValidator, CUDStringValidator, listOfRelatedRecordsValidator, cancelConditionsValidator, notificationPreferencesValidator, userPortalSettingsValidator, userPreferencesValidator, FHIRObservationCategoryValidator, FHIRObservationStatusCodeValidator, FHIRObservationValueValidator, observationComponentsValidator, userIdentityValidator, formFieldTypeValidator, previousFormFieldsValidator, numberValidator, organizationThemeValidator, managedContentRecordTypeValidator, passwordValidator, flowchartUIValidator, integrationAuthenticationsValidator, listOfMongoIdStringValidatorEmptyOk, formFieldOptionsValidator, blocksValidator, sessionTypeValidator, portalSettingsValidator, emailValidatorEmptyOkay, phoneValidatorOptional, stringValidator1000, databaseFieldsValidator, databaseRecordValuesValidator, automationEventsValidator, portalBlocksValidator, enduserFormResponsesForEventValidator, enduserTasksForEventValidator, stateCredentialsValidator, stateValidator, weeklyAvailabilitiesValidator, calendarEventLimitsValidator, timezoneValidator, formTypeValidator, managedContentRecordAssignmentTypeValidator, listOfGenericAttachmentsValidator, accessPermissionsValidator, organizationLimitsValidator, organizationSettingsValidator, communicationsChannelValidator, genericUnitWithQuantityValidator, stringValidator25000EmptyOkay, slugValidator, stringValidator5000EmptyOkay, loginFlowResultValidator, sharedWithOrganizationIdsValidator, stringValidator1000Optional, tellescopeGenderValidator, appointmentTermsValidator, paymentProcessorValidator, purchaseCreditValueValidator, costValidator, integrationTitleValidator, journeyContextValidator, stringValidator100000, stringValidator100000EmptyOkay, analyticsQueryValidator, dateRangeValidator, calendarEventPortalSettingsValidator, dateOptionalOrEmptyStringValidator, baseAvailabilityBlocksValidator, availabilityEntitiesValidator, indexUpdatesValidator, dateRangeOptionalValidator, booleanValidatorOptional, coldTransfersValidator, automationTriggerActionValidator, automationTriggerEventValidator, automatioNTriggerStatusValidator, exactMatchValidator, exactMatchValidatorOptional, exactMatchListValidator, listOfMongoIdStringValidatorOptionalOrEmptyOk, listOfListsOfMongoIdStringsValidatorOptionalOrEmptyOk, linkedAccountAccessValidator, listOfStringsValidatorOptionalOrEmptyOk, stringValidatorOptionalEmptyOkay, analyticsQueryResultsValidator, stringValidatorOptional, addressValidator, superbillPatientInfoValidator, superbillProviderInfoValidator, superbillLineItemsValidator, billingCodeValidatorOptional, analyticsFrameTypeValidator, videoIntegrationTypesValidator, scheduledJourneysValidator, formScoringValidator, embeddingTypeValidator, listValidator, userCallRoutingBehaviorValidator, userUIRestrictionsValidator, userFieldRedactionsValidator, portalSchemaRestrictionsValidator, externalChatGPTMessagesValidator, enduserProfileViewBlocksValidator, customDashboardBlocksValidator, intakeDateOfBirthValidator, objectValidator, mongoIdStringRequired, objectAnyFieldsValidator, phoneTreeNodesValidator, phoneTreeEnduserConditionValidator, orValidator, optionalAnyObjectValidator, listValidatorOptionalOrEmptyOk, formCustomizationValidator, aiSummaryConfigurationValidator, selectableAIModelValidator, buildInFieldsValidator, customEnduserFieldsValidatorOptionalOrEmpty, ticketActionsValidator, formResponseValidator, numberValidatorOptional, languageValidator, relatedRecordValidator, mongoIdStringOptional, tableViewColumnsValidator, formFieldCalloutConditionsValidator, endusersReportQueriesValidator, formResponsesReportQueriesValidator, phoneCallsReportQueriesValidator, listValidatorEmptyOk, phonePlaybackValidatorOptional, ticketSnoozesValidator, listOfStringsWithQualifierValidator, listOfStringsWithQualifierValidatorOptional, stringValidator100000OptionalEmptyOkay, mmsMessagesValidator, groupMMSUserStatesValidator, sortingFieldsValidator, listOfUniqueStringsValidatorEmptyOk, ticketReminderValidator, insuranceOptionalValidator, pharmacyValidator, listOfStringsValidatorUniqueOptionalOrEmptyOkay, diagnosesValidator, stateValidatorOptional, canvasCodingValidator, vitalConfigurationRangesValidator, smartMeterLinesValidator, formFieldFeedbackValidator, phonePlaybackValidator, enduserProfileWebhooksValidator, fieldsSyncValidator, athenaSubscriptionTypeValidator, dateValidatorOptional, listQueryQualifiersValidator, stringValidator5000OptionalEmptyOkay, labeledFieldsValidator, fieldMappingsValidator, analyticsFrameGroupingCategoriesValidator, customDashboardViewValidator, bookingRestrictionsByTemplateValidator, listOfNumbersValidatorUniqueOptionalOrEmptyOkay, enduserDiagnosisValidator, enduserProgramsValidator, organizationProgramsValidator, recordProgramsValidator, canvasCodingValidatorOptional, calendarEventAttendeesValidator, developHealthDrugsValidator, developHealthDiagnosesValidator, developHealthMockResultValidator, positiveNumberValidator, listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay, recentViewersValidator, stringValidator100000OptionalEmptyOkayEscapeHTML, customPoliciesValidator, stringValidator100EscapeHTML, outOfOfficeBlocksValidator, userOutOfOfficesValidator, AIDecisionSourceValidator, AIMessageInputValidator, listOfObjectAnyFieldsAnyValuesValidator, listOfEmailCCsValidator, externalIdNumberValidatorOptional, DEPRECATED_AUTOMATION_TRIGGER_EVENT_TYPES, AUTOMATION_TRIGGER_ACTION_EVENT_RESTRICTIONS, list_item_mutation_error, compoundFilterValidator, } from "@tellescope/validation";
+import { CREATOR_ONLY_ACCESS, DEFAULT_OPERATIONS, PLACEHOLDER_ID, ENDUSER_SESSION_TYPE, USER_SESSION_TYPE, CANDID_TITLE, DEVELOP_HEALTH_TITLE, MDI_FILE_TYPES, } from "@tellescope/constants";
 export var get_next_reminder_timestamp_for_ticket = function (_a) {
     var dueDateInMS = _a.dueDateInMS, reminders = _a.reminders, closedAt = _a.closedAt;
     if (!dueDateInMS)
@@ -900,9 +900,17 @@ export var schema = build_schema({
             }, scopes: {
                 validator: exactMatchListValidator(__spreadArray([], API_KEY_SCOPES, true)),
                 readonly: true,
+            }, 
+            // The one writable field on this model. hashedKey, approvedBusinessIds and scopes are all
+            // readonly: true, so the update action below can only ever reach description.
+            // Deliberately no `examples`: the generic test harness (sdk tests.ts instanceForModel) builds
+            // its create payload from example values, and the api_keys `create` custom action only accepts
+            // `scopes` — an extra field is a hard 400 from validateInput.
+            description: {
+                validator: stringValidator1000Optional,
             } }),
         constraints: { unique: [], relationship: [], access: [{ type: CREATOR_ONLY_ACCESS }] },
-        defaultActions: { read: {}, readMany: {}, delete: {} },
+        defaultActions: { read: {}, readMany: {}, update: {}, delete: {} },
         customActions: {
             create: {
                 op: 'create', access: 'create',
@@ -924,11 +932,22 @@ export var schema = build_schema({
                 op: 'custom', access: 'read', method: 'get', adminOnly: true,
                 name: 'Get Organization ApiKeys',
                 path: '/organization-api-keys',
-                description: "Returns metadata (id, creator, businessId, updatedAt) for all ApiKeys in the admin's organization. Never returns the secret key.",
+                description: "Returns metadata (id, creator, businessId, updatedAt, scopes, description) for all ApiKeys in the admin's organization. Never returns the secret key.",
                 parameters: {},
                 returns: {
                     apiKeys: { validator: listOfObjectAnyFieldsAnyValuesValidator, required: true },
                 },
+            },
+            update_organization_api_key: {
+                op: 'custom', access: 'update', method: 'patch', adminOnly: true,
+                name: 'Update Organization ApiKey',
+                path: '/organization-api-key/:id',
+                description: "Sets the description of an ApiKey in the admin's organization by id, regardless of which user created it. The description is the only editable field on an ApiKey; the key itself is never changed. An omitted description clears the existing one. Returns 404 if no key in the organization has that id.",
+                parameters: {
+                    id: { validator: mongoIdStringValidator, required: true },
+                    description: { validator: stringValidator1000Optional },
+                },
+                returns: {},
             },
             delete_organization_api_key: {
                 op: 'custom', access: 'delete', method: 'delete', adminOnly: true,
@@ -1852,7 +1871,10 @@ export var schema = build_schema({
                 path: '/chat-rooms/load-team-chat',
                 description: "Loads team chat rooms with server-side filtering for rooms where the user is creator, in userIds, or on care team for aboutEnduserId",
                 parameters: {
-                    lastUpdatedAt: { validator: dateValidatorOptional },
+                    lastUpdatedAt: {
+                        validator: dateValidatorOptional,
+                        description: "Keyset cursor: returns rooms whose most recent message is strictly older than this. Pass the recentMessageSentAt of the last room in the previous page. Defaults to now.",
+                    },
                     limit: { validator: nonNegNumberValidator },
                     showClosed: { validator: booleanValidatorOptional },
                 },
@@ -2499,6 +2521,9 @@ export var schema = build_schema({
                     password: { validator: stringValidator100, required: true },
                     termsVersion: { validator: stringValidator100, required: true },
                     inviteCode: { validator: stringValidator1000 },
+                    // shared code for self-service signup, required unless inviteCode is given - see
+                    // api/modules/registration_code.ts
+                    registrationCode: { validator: stringValidator1000 },
                 },
                 returns: {},
             },
@@ -2615,6 +2640,9 @@ export var schema = build_schema({
                 redactions: ['enduser'],
             }, portalSettings: {
                 validator: userPortalSettingsValidator,
+            }, preferences: {
+                validator: userPreferencesValidator,
+                redactions: ['enduser'], // frontend-only settings; endusers have no business reading them
             }, notificationEmailsDisabled: { validator: booleanValidator }, avatar: {
                 validator: stringValidator1000,
                 // BUG: This dependency is disabled because handleDeletionForDependencies queries
@@ -2832,12 +2860,13 @@ export var schema = build_schema({
                 op: "custom", access: 'create', method: "post",
                 name: 'Confirm File Upload',
                 path: '/files/confirm-upload',
-                description: "Triggers file create side effects / webhooks to be called after client-side upload is complete. Optionally syncs file to Beluga if syncToBeluga is true and formResponseId is provided, or to MD Integrations if syncToMDI is true and formResponseId is provided.",
+                description: "Triggers file create side effects / webhooks to be called after client-side upload is complete. Optionally syncs file to Beluga if syncToBeluga is true and formResponseId is provided, or to MD Integrations if syncToMDI is true and formResponseId is provided. For MD Integrations, mdiFileType sets the MDI file type; 'driver-license' links the file to the patient's driver_license_id instead of attaching it to the case.",
                 parameters: {
                     id: { validator: mongoIdStringRequired, required: true },
                     syncToBeluga: { validator: booleanValidator },
                     syncToMDI: { validator: booleanValidator },
                     formResponseId: { validator: mongoIdStringValidator },
+                    mdiFileType: { validator: exactMatchValidator(__spreadArray([], MDI_FILE_TYPES, true)) },
                 },
                 returns: {},
             },
@@ -3394,7 +3423,15 @@ export var schema = build_schema({
                 updatesDisabled: true,
             }, openedAt: {
                 validator: dateValidator,
-            }, copiedFrom: { validator: mongoIdStringOptional }, copiedFromEnduserId: { validator: mongoIdStringOptional }, publicSubmit: { validator: booleanValidator }, submittedBy: { validator: stringValidator250, enduserUpdatesDisabled: true }, submittedByIsPlaceholder: { validator: booleanValidator, enduserUpdatesDisabled: true }, markedAsSubmitted: { validator: booleanValidator, enduserUpdatesDisabled: true }, viewedInLanguage: { validator: stringValidator100, enduserUpdatesDisabled: true }, accessCode: { validator: stringValidator250 }, userEmail: { validator: emailValidator, enduserUpdatesDisabled: true }, submittedAt: { validator: dateValidator, enduserUpdatesDisabled: true }, formTitle: { validator: stringValidator250, enduserUpdatesDisabled: true }, responses: { validator: formResponsesValidator }, draftSavedAt: { validator: dateValidator }, draftSavedBy: { validator: mongoIdStringValidator }, hideFromEnduserPortal: { validator: booleanValidator }, sharedVia: { validator: communicationsChannelValidator }, isInternalNote: { validator: booleanValidator, enduserUpdatesDisabled: true }, pinnedAt: { validator: dateOptionalOrEmptyStringValidator, enduserUpdatesDisabled: true }, publicIdentifier: { validator: stringValidator250 }, source: { validator: stringValidator250 }, externalId: { validator: stringValidator250 }, rootResponseId: { validator: mongoIdStringValidator }, parentResponseId: { validator: mongoIdStringValidator }, tags: { validator: listOfStringsValidatorOptionalOrEmptyOk, enduserUpdatesDisabled: true }, carePlanId: { validator: mongoIdStringValidator }, context: { validator: stringValidator1000 }, logoURL: { validator: stringValidator5000, enduserUpdatesDisabled: true }, logoHeight: { validator: numberValidator, enduserUpdatesDisabled: true }, calendarEventId: { validator: mongoIdStringValidator }, references: { validator: listOfRelatedRecordsValidator, readonly: true }, groupId: { validator: mongoIdStringValidator }, groupInstance: { validator: stringValidator100 }, groupPosition: { validator: nonNegNumberValidator }, hideAfterUnsubmittedInMS: { validator: numberValidator }, addenda: {
+            }, 
+            // only staff create copies, and these two are control fields, not data: copiedFrom now gates
+            // whether save_enduser_updates_for_form_response writes the intake answers at all (it returns
+            // early for a copy), and copiedFromEnduserId is what the webapp's "View original patient" link
+            // points at. Endusers may update their own in-progress response, so without this lock a
+            // portal patient could stamp copiedFrom on their own draft to silently suppress the intake
+            // sync of everything they answer, or point the staff-facing link at an arbitrary patient id.
+            // Same reasoning as enduserId above.
+            copiedFrom: { validator: mongoIdStringOptional, enduserUpdatesDisabled: true }, copiedFromEnduserId: { validator: mongoIdStringOptional, enduserUpdatesDisabled: true }, publicSubmit: { validator: booleanValidator }, submittedBy: { validator: stringValidator250, enduserUpdatesDisabled: true }, submittedByIsPlaceholder: { validator: booleanValidator, enduserUpdatesDisabled: true }, markedAsSubmitted: { validator: booleanValidator, enduserUpdatesDisabled: true }, viewedInLanguage: { validator: stringValidator100, enduserUpdatesDisabled: true }, accessCode: { validator: stringValidator250 }, userEmail: { validator: emailValidator, enduserUpdatesDisabled: true }, submittedAt: { validator: dateValidator, enduserUpdatesDisabled: true }, formTitle: { validator: stringValidator250, enduserUpdatesDisabled: true }, responses: { validator: formResponsesValidator }, draftSavedAt: { validator: dateValidator }, draftSavedBy: { validator: mongoIdStringValidator }, hideFromEnduserPortal: { validator: booleanValidator }, sharedVia: { validator: communicationsChannelValidator }, isInternalNote: { validator: booleanValidator, enduserUpdatesDisabled: true }, pinnedAt: { validator: dateOptionalOrEmptyStringValidator, enduserUpdatesDisabled: true }, publicIdentifier: { validator: stringValidator250 }, source: { validator: stringValidator250 }, externalId: { validator: stringValidator250 }, rootResponseId: { validator: mongoIdStringValidator }, parentResponseId: { validator: mongoIdStringValidator }, tags: { validator: listOfStringsValidatorOptionalOrEmptyOk, enduserUpdatesDisabled: true }, carePlanId: { validator: mongoIdStringValidator }, context: { validator: stringValidator1000 }, logoURL: { validator: stringValidator5000, enduserUpdatesDisabled: true }, logoHeight: { validator: numberValidator, enduserUpdatesDisabled: true }, calendarEventId: { validator: mongoIdStringValidator }, references: { validator: listOfRelatedRecordsValidator, readonly: true }, groupId: { validator: mongoIdStringValidator }, groupInstance: { validator: stringValidator100 }, groupPosition: { validator: nonNegNumberValidator }, hideAfterUnsubmittedInMS: { validator: numberValidator }, addenda: {
                 validator: listValidatorOptionalOrEmptyOk(objectValidator({
                     text: stringValidator25000EmptyOkay,
                     timestamp: dateValidator,
@@ -3407,7 +3444,14 @@ export var schema = build_schema({
                     formResponseId: mongoIdStringOptional,
                     completedAt: dateValidatorOptional,
                 }))
-            }, canvasEncounterId: { validator: stringValidator100 }, pushedToPortalAt: { validator: dateValidatorOptional }, belugaScheduleLink: { validator: stringValidator1000 }, mdiStatus: { validator: stringValidator }, fieldViews: {
+            }, canvasEncounterId: { validator: stringValidator100 }, pushedToPortalAt: { validator: dateValidatorOptional }, belugaScheduleLink: { validator: stringValidator1000 }, mdiStatus: { validator: stringValidator }, mdiSyncError: {
+                validator: objectValidator({
+                    message: stringValidator5000,
+                    missingFields: listOfStringsValidatorOptionalOrEmptyOk,
+                    at: dateValidator,
+                }),
+                readonly: true,
+            }, fieldViews: {
                 validator: listValidatorOptionalOrEmptyOk(objectValidator({
                     fieldId: mongoIdStringRequired,
                     fieldTitle: stringValidator250,
@@ -6241,6 +6285,19 @@ export var schema = build_schema({
                             return;
                         return "The \"".concat(actionType, "\" action can only be used with the ").concat(allowed.map(function (e) { return "\"".concat(e, "\""); }).join(' or '), " event.");
                     }
+                }, {
+                    explanation: 'A list-item mutation may only touch the sub-fields its list field declares',
+                    evaluate: function (trigger, _deps, _session, _method, options) {
+                        var _a, _b;
+                        // a partial update may carry no action at all, so fall back to the stored one; the two are
+                        // never merged, since an action is always written whole
+                        var action = (_a = trigger.action) !== null && _a !== void 0 ? _a : (_b = options.original) === null || _b === void 0 ? void 0 : _b.action;
+                        if (!action)
+                            return;
+                        // same helper the trigger editor blocks on, so the editor and the server reject the same
+                        // actions with the same wording
+                        return list_item_mutation_error(action) || undefined;
+                    }
                 }],
         },
         defaultActions: DEFAULT_OPERATIONS,
@@ -7385,6 +7442,36 @@ export var schema = build_schema({
                 },
                 returns: {},
             },
+            // A thin Anthropic Messages proxy: native tool use, client-placed cache_control, optional SSE
+            // streaming. The server never executes a tool and never builds a prompt — it forwards the
+            // caller's transcript, bills the turn and writes the audit record. Shape validation lives in
+            // the agent* validators; the cross-field rules (tool pairing, caps, cache_control budget) are
+            // in validateAgentRequest (api/modules/bedrock.ts) so they produce specific messages.
+            agent_message: {
+                op: "custom", access: 'create', method: "post",
+                name: 'Agent Message',
+                path: '/ai-conversations/agent-message',
+                description: "Sends an Anthropic-shaped transcript to the configured model with native tool use and prompt caching, and records the turn against an ai_conversation. Returns { conversationId, reply }, or a text/event-stream when stream is true.",
+                parameters: {
+                    messages: { validator: agentMessagesValidator, required: true },
+                    system: { validator: agentSystemValidator },
+                    tools: { validator: agentToolsValidator },
+                    tool_choice: { validator: agentToolChoiceValidator },
+                    maxTokens: { validator: nonNegNumberValidator },
+                    stream: { validator: booleanValidatorOptional },
+                    conversationId: { validator: mongoIdStringValidator },
+                    type: { validator: stringValidator100 },
+                    model: { validator: selectableAIModelValidator },
+                    orchestrationId: { validator: stringValidatorOptional },
+                    enduserId: { validator: mongoIdStringValidator },
+                    journeyId: { validator: mongoIdStringValidator },
+                    automationStepId: { validator: mongoIdStringValidator },
+                },
+                returns: {
+                    conversationId: { validator: mongoIdStringRequired, required: true },
+                    reply: { validator: objectAnyFieldsAnyValuesValidator, required: true },
+                },
+            },
         },
         fields: __assign(__assign({}, BuiltInFields), { type: { validator: stringValidator, required: true, examples: ['HTML Template Generation'] }, modelName: { validator: stringValidator, required: true, examples: ['Claude Sonnet 5.5', 'Claude Opus 5.5', 'Claude Sonnet 5', 'Claude Opus 5', 'Claude Opus 4.8'] }, orchestrationId: { validator: stringValidatorOptional, examples: ['workflow-123', 'batch-456'] }, enduserId: {
                 validator: mongoIdStringOptional,
@@ -7431,8 +7518,15 @@ export var schema = build_schema({
                     timestamp: dateValidator,
                     tokens: nonNegNumberValidator,
                     content: listValidatorOptionalOrEmptyOk(objectValidator({
-                        type: exactMatchValidator(['text', 'image', 'file']),
+                        type: exactMatchValidator(['text', 'image', 'file', 'tool_use', 'tool_result']),
                         text: stringValidatorOptional,
+                        // agent_message tool-loop blocks; see types-models AICOnversationMessageContent
+                        id: stringValidatorOptional,
+                        name: stringValidatorOptional,
+                        input: objectAnyFieldsAnyValuesValidator,
+                        tool_use_id: stringValidatorOptional,
+                        content: stringValidator100000OptionalEmptyOkay,
+                        is_error: booleanValidatorOptional,
                     })),
                     userId: mongoIdStringOptional,
                     systemPrompt: stringValidator5000OptionalEmptyOkay,
@@ -7476,7 +7570,7 @@ export var schema = build_schema({
                 op: "custom", access: 'read', method: "get",
                 name: 'Load Threads',
                 path: '/inbox-threads/load',
-                description: "Loads inbox threads with optional filtering",
+                description: "Loads inbox threads with optional filtering. mdbFilter accepts the careTeamUserIds pseudo-field for composing a care team condition with other clauses; see the mdbFilter parameter",
                 parameters: {
                     ids: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
                     excludeIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
@@ -7487,7 +7581,10 @@ export var schema = build_schema({
                     careTeamUserIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
                     phoneNumber: { validator: phoneValidatorOptional },
                     returnCount: { validator: booleanValidatorOptional },
-                    mdbFilter: { validator: objectAnyFieldsAnyValuesValidator },
+                    mdbFilter: {
+                        validator: objectAnyFieldsAnyValuesValidator,
+                        description: "A MongoDB filter over inbox threads. May also use the careTeamUserIds pseudo-field anywhere a field clause can appear, including under $and, $or and $nor: a user id, { $eq: id }, { $in: [ids] } or { $all: [ids] }, matching threads with an enduser whose care team (assignedTo) contains that user, any of the users, or all of the users respectively. The server expands each occurrence into an indexed enduserIds clause before querying. Negation ($nin, $ne, $not) and every other operator are rejected with a 400, as are non-id values. At most 5 distinct careTeamUserIds conditions per request; each resolves at most 25,000 endusers, beyond which results are truncated.",
+                    },
                     sortBy: { validator: exactMatchValidatorOptional(['timestamp', 'outboundTimestamp']) },
                     autobuild: { validator: booleanValidatorOptional },
                     search: { validator: stringValidatorOptional },

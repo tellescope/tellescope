@@ -332,7 +332,7 @@ exports.DATA_SOURCE_MAP = {
     },
 };
 var enduserProfileToText = function (e) {
-    var _a, _b, _c;
+    var _a, _b, _c, _d;
     var lines = [];
     lines.push('## enduser');
     if (e.fname || e.lname)
@@ -357,10 +357,17 @@ var enduserProfileToText = function (e) {
         if (entries.length) {
             lines.push('Custom fields:');
             for (var _i = 0, entries_1 = entries; _i < entries_1.length; _i++) {
-                var _d = entries_1[_i], k = _d[0], v = _d[1];
+                var _e = entries_1[_i], k = _e[0], v = _e[1];
                 lines.push("  - ".concat(k, ": ").concat(typeof v === 'object' ? JSON.stringify(v) : String(v)));
             }
         }
+    }
+    // Last, and as two lines: the note is free text that may itself be multi-line, so inlining it
+    // after its label (the way Tags: does) would run its first line into the label and leave the
+    // rest dangling. Placed after the custom-fields list so it can never split that list.
+    if ((_d = e.note) === null || _d === void 0 ? void 0 : _d.trim()) {
+        lines.push('Notes:');
+        lines.push(e.note);
     }
     return lines.join('\n');
 };
