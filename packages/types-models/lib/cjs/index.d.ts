@@ -249,6 +249,26 @@ export type OrganizationSettings = {
         matchEmailAndNames?: boolean;
         /** Public form intake matches an existing contact even when fname/lname differ in capitalization. Off by default. */
         caseInsensitiveMatching?: boolean;
+        /** Blocks enduser self-registration in the patient portal (POST /v1/register-as-enduser).
+         *  Off by default for existing and new organizations. Independent of disablePublicFormStarts
+         *  and disablePublicBookingStarts: an organization commonly keeps sharing booking links while
+         *  closing registration. Read from the ROOT business organization, so a root admin's toggle
+         *  also closes a sub-organization's portal. Login, password reset and magic links are
+         *  unaffected — only the creation of a new account is blocked. */
+        disablePublicRegistration?: boolean;
+        /** Blocks the public (hosted-URL) form link entirely: both the page-load endpoint
+         *  (GET /v1/forms/public-details) and the session-start endpoint
+         *  (POST /v1/session-for-public-form). Off by default. A session minted before the flag went on
+         *  can still submit — only new starts are blocked — and staff-assigned forms inside the portal
+         *  are untouched. */
+        disablePublicFormStarts?: boolean;
+        /** Blocks the public appointment booking page entirely: both the page-load endpoint
+         *  (GET /v1/details-for-appointment-booking-page) and the session-start endpoint
+         *  (POST /v1/session-for-public-appointment-booking). Off by default. An AUTHENTICATED caller
+         *  still loads the booking page, so in-portal booking by a signed-in patient keeps working.
+         *  Accepted regression while on: a staff-generated `?token=` booking link is blocked too — the
+         *  token is validated by a different endpoint and is never passed to the two gated ones. */
+        disablePublicBookingStarts?: boolean;
         hideNotesFromComposeForm?: boolean;
         showSalesforceId?: boolean;
         loopQueueCallSound?: boolean;
@@ -602,6 +622,7 @@ export interface Organization extends Organization_readonly, Organization_requir
     }[];
     externalFormIdsToSync?: string[];
     healthieImportLockedNotesFromTellescope?: boolean;
+    healthieMatchAcrossIntegrations?: boolean;
     enforceMFA?: boolean;
     accountSwitchingEnabled?: boolean;
     analyticsIframes?: {
@@ -624,6 +645,7 @@ export interface Organization extends Organization_readonly, Organization_requir
     scriptSureEmail?: string;
     groups?: string[];
     observationInvalidationReasons?: string[];
+    observationFlagOptions?: string[];
     chargebeeEnvironments?: string[];
     chargebeeBusinessEntities?: ChargebeeBusinessEntity[];
     customNotificationTypes?: string[];
@@ -670,6 +692,11 @@ export type OrganizationTheme = {
     hasConnectedVital?: boolean;
     brandId?: string;
     portalV2SchemaURL?: string;
+    /** Mirrors organization.settings.endusers.disablePublicRegistration, so the portal can hide the
+     *  Register surface instead of only failing the API call. Reports the MATCHED organization, which
+     *  on a sub-organization portal may differ from the root the server gate reads — accepted: the
+     *  Register option stays visible there and the API answers 403. */
+    disablePublicRegistration?: boolean;
 };
 export interface RecordInfo {
     businessId: string;
@@ -811,7 +838,7 @@ export interface LinkedAccountAccessEntry {
     orgName?: string;
     status: LinkedAccountAccessStatus;
     createdAt: Date;
-    requestExpiresAt: Date;
+    requestExpiresAt?: Date;
 }
 export type LabeledField = {
     field: string;
@@ -861,6 +888,8 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
     preferences?: {
         [key: string]: string | boolean;
     };
+    creditCount?: number;
+    disableOrganizationCreditFallback?: boolean;
     notificationEmailsDisabled?: boolean;
     disableIncomingPhoneCalls?: boolean;
     disableTicketAutoAssignment?: boolean;
@@ -897,6 +926,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
     skills?: string[];
     careTeamRole?: string;
     lockedOutUntil?: number;
+    invalidateSessionsBefore?: Date;
     failedLoginAttempts?: number;
     elationUserId?: number;
     iOSBadgeCount?: number;
@@ -909,6 +939,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
     dashboardView?: CustomDashboardView;
     hideFromCalendarView?: boolean;
     requireSSO?: string[];
+    switchOnly?: boolean;
     allowedMFAMethods?: MFAMethod[];
     linkedAccountAccess?: LinkedAccountAccessEntry[];
 }
@@ -1596,6 +1627,12 @@ export interface ChatRoom extends ChatRoom_readonly, ChatRoom_required, ChatRoom
     };
     aboutEnduserId: string;
     pinnedAt?: Date | '';
+    /**
+     * Per-user mute state for team chats, keyed by the muting user's id: a Date when muted, '' when
+     * un-muted (an un-mute writes '' rather than deleting the key, so a per-key $set can never
+     * clobber another member's concurrent mute). A user may only write their own key.
+     */
+    mutedBy?: Indexable<Date | ''>;
     fields?: Indexable<string | CustomField>;
     suggestedReply?: string;
     suggestedReplyIsAIGenerated?: boolean;
@@ -2173,7 +2210,7 @@ export type FormScoring = {
     score: (string | number);
 };
 export type FormType = 'note' | 'enduserFacing';
-export type AISummaryDataSource = 'enduser_observations' | 'form_responses' | 'chats' | 'phone_calls' | 'calendar_events' | 'tickets' | 'sms_messages' | 'emails' | 'enduser_orders' | 'enduser_medications' | 'purchases' | 'managed_content_records' | 'templates';
+export type AISummaryDataSource = 'enduser_observations' | 'form_responses' | 'chats' | 'phone_calls' | 'calendar_events' | 'tickets' | 'sms_messages' | 'group_mms_conversations' | 'emails' | 'enduser_orders' | 'enduser_medications' | 'purchases' | 'managed_content_records' | 'templates';
 export type AISummaryDataSourceConfig = {
     type: AISummaryDataSource;
     limit?: number;
@@ -2684,6 +2721,7 @@ export interface FormResponse_readonly extends ClientRecord {
     openedAt?: Date;
     references?: RelatedRecord[];
     triggerIds?: string[];
+    releasedAfterPaymentAt?: Date;
 }
 export interface FormResponse_required {
     formId: string;
@@ -3026,6 +3064,7 @@ export type StripeCheckoutItem = {
     quantity: number;
 };
 export interface Purchase_readonly extends ClientRecord {
+    formResponseIds?: string[];
 }
 export interface Purchase_required {
     title: string;
@@ -3548,6 +3587,19 @@ export type AddEnduserTagsAutomationAction = AutomationActionBuilder<'addEnduser
 export type RemoveEnduserTagsAutomationAction = AutomationActionBuilder<'removeEnduserTags', {
     tags: string[];
 }>;
+/**
+ * The journey-step halves of the `Add / Remove / Update List Item` TRIGGER actions, carrying the same
+ * `ListItemMutation` info and applied by the same helper (apply_list_item_mutation, api/modules/
+ * automation_triggers.ts) — so a list field added to ENDUSER_LIST_FIELD_CONFIG reaches journeys and
+ * triggers together.
+ *
+ * They differ from the trigger actions in exactly two ways, both deliberate: the resulting write DOES
+ * fire enduser automations (journey -> trigger chaining is the point of having them in a journey), and
+ * it writes a user_log so the change appears in the patient's Logs tab.
+ */
+export type AddListItemAutomationAction = AutomationActionBuilder<'addListItem', ListItemMutation>;
+export type RemoveListItemAutomationAction = AutomationActionBuilder<'removeListItem', Omit<ListItemMutation, 'values'>>;
+export type UpdateListItemAutomationAction = AutomationActionBuilder<'updateListItem', ListItemMutation>;
 export type AddToJourneyAutomationAction = AutomationActionBuilder<'addToJourney', {
     journeyId: string;
 }>;
@@ -3842,6 +3894,9 @@ export type AutomationActionForType = {
     'notifyTeam': NotifyTeamAutomationAction;
     'addEnduserTags': AddEnduserTagsAutomationAction;
     'removeEnduserTags': RemoveEnduserTagsAutomationAction;
+    addListItem: AddListItemAutomationAction;
+    removeListItem: RemoveListItemAutomationAction;
+    updateListItem: UpdateListItemAutomationAction;
     'addAccessTags': AddAccessTagsAutomationAction;
     'removeAccessTags': RemoveAccessTagsAutomationAction;
     'addToJourney': AddToJourneyAutomationAction;
@@ -3978,6 +4033,7 @@ export interface EnduserObservation extends EnduserObservation_readonly, Enduser
     }[];
     beforeMeal?: boolean;
     medStatus?: string;
+    flags?: string[];
     timestampIsEstimated?: boolean;
     irregularHeartbeat?: boolean;
     dontTrigger?: boolean;
@@ -6108,7 +6164,7 @@ export interface Waitlist extends Waitlist_readonly, Waitlist_required, Waitlist
     tags?: string[];
 }
 export type AICOnversationMessageContent = {
-    type: 'text' | 'image' | 'file' | 'tool_use' | 'tool_result';
+    type: 'text' | 'image' | 'file' | 'tool_use' | 'tool_result' | 'document';
     text?: string;
     id?: string;
     name?: string;
@@ -6116,6 +6172,7 @@ export type AICOnversationMessageContent = {
     tool_use_id?: string;
     content?: string;
     is_error?: boolean;
+    fileId?: string;
 };
 /***************************************************************************************************
  * ai_conversations.agent_message — Anthropic Messages API request/response shapes.
@@ -6123,7 +6180,10 @@ export type AICOnversationMessageContent = {
  * These mirror the Messages API rather than Tellescope's own chat shapes on purpose: the endpoint
  * is a thin proxy, so the caller sends (and receives) what Anthropic documents, and the server
  * never builds a prompt or executes a tool. Only the block types below are proxied; anything else
- * (images, documents, server_tool_use, …) is rejected with a 400 rather than forwarded blindly.
+ * (server_tool_use, web_search_tool_result, …) is rejected with a 400 rather than forwarded
+ * blindly. `document` / `image` are the one deliberate divergence from Anthropic's wire shape: the
+ * caller sends a Tellescope file id and the server substitutes the base64 source — see
+ * AgentAttachmentBlock.
  ***************************************************************************************************/
 /** A client-placed prompt-caching breakpoint. At most AGENT_MAX_CACHE_CONTROL_MARKERS per request. */
 export type AgentCacheControl = {
@@ -6158,10 +6218,46 @@ export type AgentToolResultBlock = {
     is_error?: boolean;
     cache_control?: AgentCacheControl;
 };
-export type AgentContentBlock = (AgentTextBlock | AgentThinkingBlock | AgentRedactedThinkingBlock | AgentToolUseBlock | AgentToolResultBlock);
+/**
+ * An attachment the CALLER sends: a reference to a Tellescope `files` record, never inline bytes.
+ *
+ * The server resolves the record through the session-scoped queries (so tenancy and access tags
+ * apply unchanged), reads the object from S3 and substitutes AgentResolvedAttachmentBlock
+ * immediately before the model call. Referencing by id rather than accepting base64 keeps file
+ * bytes out of the request-size ceilings and out of the ai_conversations ledger.
+ *
+ * Allowed in `user` messages only — never in an assistant message, and never inside a
+ * tool_result's content, which stays text-only.
+ */
+export type AgentAttachmentBlock = {
+    type: 'document' | 'image';
+    fileId: string;
+    cache_control?: AgentCacheControl;
+};
+/**
+ * What the server substitutes for an AgentAttachmentBlock immediately before InvokeModel. Never
+ * client-supplied and never stored: on Bedrock's Messages API (`bedrock-2023-05-31`) base64 is the
+ * only source type, so this is the shape the model actually receives.
+ */
+export type AgentResolvedAttachmentBlock = {
+    type: 'document' | 'image';
+    source: {
+        type: 'base64';
+        media_type: string;
+        data: string;
+    };
+    cache_control?: AgentCacheControl;
+};
+export type AgentContentBlock = (AgentTextBlock | AgentThinkingBlock | AgentRedactedThinkingBlock | AgentToolUseBlock | AgentToolResultBlock | AgentAttachmentBlock);
 export type AgentMessageInput = {
     role: 'user' | 'assistant';
     content: AgentContentBlock[];
+};
+/** The transcript as it is handed to Bedrock: every attachment reference already substituted. */
+export type AgentInvokeContentBlock = AgentContentBlock | AgentResolvedAttachmentBlock;
+export type AgentInvokeMessageInput = {
+    role: 'user' | 'assistant';
+    content: AgentInvokeContentBlock[];
 };
 export type AgentToolInput = {
     name: string;

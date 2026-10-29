@@ -279,6 +279,26 @@ export type OrganizationSettings = {
     matchEmailAndNames?: boolean,
     /** Public form intake matches an existing contact even when fname/lname differ in capitalization. Off by default. */
     caseInsensitiveMatching?: boolean,
+    /** Blocks enduser self-registration in the patient portal (POST /v1/register-as-enduser).
+     *  Off by default for existing and new organizations. Independent of disablePublicFormStarts
+     *  and disablePublicBookingStarts: an organization commonly keeps sharing booking links while
+     *  closing registration. Read from the ROOT business organization, so a root admin's toggle
+     *  also closes a sub-organization's portal. Login, password reset and magic links are
+     *  unaffected — only the creation of a new account is blocked. */
+    disablePublicRegistration?: boolean,
+    /** Blocks the public (hosted-URL) form link entirely: both the page-load endpoint
+     *  (GET /v1/forms/public-details) and the session-start endpoint
+     *  (POST /v1/session-for-public-form). Off by default. A session minted before the flag went on
+     *  can still submit — only new starts are blocked — and staff-assigned forms inside the portal
+     *  are untouched. */
+    disablePublicFormStarts?: boolean,
+    /** Blocks the public appointment booking page entirely: both the page-load endpoint
+     *  (GET /v1/details-for-appointment-booking-page) and the session-start endpoint
+     *  (POST /v1/session-for-public-appointment-booking). Off by default. An AUTHENTICATED caller
+     *  still loads the booking page, so in-portal booking by a signed-in patient keeps working.
+     *  Accepted regression while on: a staff-generated `?token=` booking link is blocked too — the
+     *  token is validated by a different endpoint and is never passed to the two gated ones. */
+    disablePublicBookingStarts?: boolean,
     hideNotesFromComposeForm?: boolean,
     showSalesforceId?: boolean,
     loopQueueCallSound?: boolean,
@@ -629,6 +649,11 @@ export interface Organization extends Organization_readonly, Organization_requir
   // import the locked version as a net-new Healthie form response (capturing answers the provider
   // added in Healthie) instead of skipping it as a duplicate
   healthieImportLockedNotesFromTellescope?: boolean,
+  // opt-in: remove the per-Healthie-instance scope from inbound enduser matching, so one patient who
+  // exists in two connected Healthie organizations resolves to a single enduser holding one Healthie
+  // reference per instance (RelatedRecord.environment = Integration.tenantId; primary stays untagged).
+  // Trade-off: Healthie patient ids are per-account, so colliding ids across accounts can cross-match.
+  healthieMatchAcrossIntegrations?: boolean,
   enforceMFA?: boolean,
   accountSwitchingEnabled?: boolean, // opt-in: must be true for users in this org to participate in linked-account access (as either requester or target)
   analyticsIframes?: {
@@ -645,6 +670,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   scriptSureEmail?: string,
   groups?: string[],
   observationInvalidationReasons?: string[],
+  observationFlagOptions?: string[], // when non-empty, staff may flag a vital reading with one of these values
   chargebeeEnvironments?: string[],
   chargebeeBusinessEntities?: ChargebeeBusinessEntity[],
   customNotificationTypes?: string[],
@@ -694,6 +720,11 @@ export type OrganizationTheme = {
   hasConnectedVital?: boolean,
   brandId?: string,
   portalV2SchemaURL?: string,
+  /** Mirrors organization.settings.endusers.disablePublicRegistration, so the portal can hide the
+   *  Register surface instead of only failing the API call. Reports the MATCHED organization, which
+   *  on a sub-organization portal may differ from the root the server gate reads — accepted: the
+   *  Register option stays visible there and the API answers 403. */
+  disablePublicRegistration?: boolean,
 }
 
 
@@ -864,7 +895,11 @@ export interface LinkedAccountAccessEntry {
   // Governs only the pending-request TTL. Once status flips to 'accepted',
   // this field is preserved for audit but no longer gates anything; switching
   // is permitted indefinitely until the owner revokes.
-  requestExpiresAt: Date,
+  // Optional: entries pre-granted by an admin at user creation (invite_user's
+  // linkedAccountAccessFor) are written straight to 'accepted' and never pend, so they
+  // carry no expiry at all. Every entry created by request_linked_account_access still
+  // sets it.
+  requestExpiresAt?: Date,
 }
 
 export type LabeledField = { field: string, value: string }
@@ -912,6 +947,25 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
   // Prefer adding a key here over a new typed User field. Redacted from endusers,
   // and deny-listed out of the JWT, so it is never present on req.session.
   preferences?: { [key: string]: string | boolean },
+  // Per-user AI credit balance, in the SAME unit as Organization.creditCount
+  // (1,000 credits = $0.001 — see TELLESCOPE_COST_PER_1000_CREDITS). When set, the two Bedrock
+  // chat paths (send_message and agent_message) spend it BEFORE the organization's balance; a
+  // charge larger than the remaining balance drains it and bills the remainder to the
+  // organization. Super-admin-only to write (users relationship constraint in schema.ts), never
+  // included in the JWT (it changes on every call — always read it from the database).
+  // Other spend paths (voice/SMS agent, transcription, Stedi eligibility) ignore it entirely.
+  creditCount?: number,
+  // Forbids the organization fallback above: when true, a charge this user's own `creditCount`
+  // cannot cover is rejected (or, mid-charge, absorbed) rather than billed to the organization.
+  // Auto-set, with a one-time $25 grant, on the first login of a VERIFIED sub-addressed
+  // @tellescope.com account (`sebass+customername@tellescope.com`; the bare address is excluded)
+  // INTO AN ORGANIZATION THAT HAS AI ENABLED (`bedrockAIAllowed`) — see
+  // grantTellescopeStaffCredits in api/modules/authentication.ts. That way support staff
+  // debugging inside an AI-enabled customer tenant do not spend the customer's paid balance.
+  // (In a tenant with AI switched OFF nothing is granted, and the chat paths do not check that
+  // flag, so a staff call there still bills the customer — carve-out documented in
+  // api/modules/ai_credits.ts.)
+  disableOrganizationCreditFallback?: boolean,
   notificationEmailsDisabled?: boolean,
   disableIncomingPhoneCalls?: boolean,
   disableTicketAutoAssignment?: boolean,
@@ -948,6 +1002,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
   skills?: string[];
   careTeamRole?: string, // Role displayed in care team (e.g., Canvas), falls back to roles[0]
   lockedOutUntil?: number, // -1 => not locked out, 0 => locked out indefinitely, > 0 => locked out until unix time in MS
+  invalidateSessionsBefore?: Date, // user JWTs issued at or before this time are rejected by is_logged_in (mirrors Enduser.invalidateSessionsBefore)
   failedLoginAttempts?: number, // track failed login attempts for automatic lockout
   elationUserId?: number,
   iOSBadgeCount?: number,
@@ -960,6 +1015,10 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
   dashboardView?: CustomDashboardView,
   hideFromCalendarView?: boolean,
   requireSSO?: string[],
+  // Account is reachable only by account-switching from a linked account: password login,
+  // registration and password reset are all refused for it. Set by invite_user when an admin
+  // provisions a user with no invite email; adminOnly to update thereafter (like requireSSO).
+  switchOnly?: boolean,
   allowedMFAMethods?: MFAMethod[],
   linkedAccountAccess?: LinkedAccountAccessEntry[],
 }
@@ -1734,6 +1793,12 @@ export interface ChatRoom extends ChatRoom_readonly, ChatRoom_required, ChatRoom
   },
   aboutEnduserId: string,
   pinnedAt?: Date | '',
+  /**
+   * Per-user mute state for team chats, keyed by the muting user's id: a Date when muted, '' when
+   * un-muted (an un-mute writes '' rather than deleting the key, so a per-key $set can never
+   * clobber another member's concurrent mute). A user may only write their own key.
+   */
+  mutedBy?: Indexable<Date | ''>,
   fields?: Indexable<string | CustomField>,
   suggestedReply?: string,
   suggestedReplyIsAIGenerated?: boolean, // see Email.suggestedReplyIsAIGenerated
@@ -2299,6 +2364,7 @@ export type AISummaryDataSource =
   | 'calendar_events'
   | 'tickets'
   | 'sms_messages'
+  | 'group_mms_conversations' // Group MMS threads; one record is one thread, rendered message by message
   | 'emails'
   | 'enduser_orders'
   | 'enduser_medications'
@@ -2870,6 +2936,9 @@ export interface FormResponse_readonly extends ClientRecord {
   openedAt?: Date,
   references?: RelatedRecord[]
   triggerIds?: string[],
+  // set by the Stripe Custom webhook when a paid shop checkout releases this response to Healthie /
+  // OpenLoop; doubles as the claim that keeps a redelivered webhook from pushing it twice
+  releasedAfterPaymentAt?: Date,
 }
 export interface FormResponse_required {
   formId: string,
@@ -3210,7 +3279,10 @@ export type StripeCheckoutItem = {
   quantity: number,
 }
 
-export interface Purchase_readonly extends ClientRecord {}
+export interface Purchase_readonly extends ClientRecord {
+  // intake responses the shop checkout behind this purchase was paid for (set by the Stripe Custom webhook)
+  formResponseIds?: string[],
+}
 export interface Purchase_required {
   title: string,
   cost: {
@@ -3705,6 +3777,21 @@ export type ShareContentAutomationAction = AutomationActionBuilder<'shareContent
 }>
 export type AddEnduserTagsAutomationAction = AutomationActionBuilder<'addEnduserTags', { tags: string[], replaceExisting?: boolean }>
 export type RemoveEnduserTagsAutomationAction = AutomationActionBuilder<'removeEnduserTags', { tags: string[] }>
+
+/**
+ * The journey-step halves of the `Add / Remove / Update List Item` TRIGGER actions, carrying the same
+ * `ListItemMutation` info and applied by the same helper (apply_list_item_mutation, api/modules/
+ * automation_triggers.ts) — so a list field added to ENDUSER_LIST_FIELD_CONFIG reaches journeys and
+ * triggers together.
+ *
+ * They differ from the trigger actions in exactly two ways, both deliberate: the resulting write DOES
+ * fire enduser automations (journey -> trigger chaining is the point of having them in a journey), and
+ * it writes a user_log so the change appears in the patient's Logs tab.
+ */
+export type AddListItemAutomationAction = AutomationActionBuilder<'addListItem', ListItemMutation>
+// no `values`: the action removes EVERY entry matching `match`, whatever else those entries carry
+export type RemoveListItemAutomationAction = AutomationActionBuilder<'removeListItem', Omit<ListItemMutation, 'values'>>
+export type UpdateListItemAutomationAction = AutomationActionBuilder<'updateListItem', ListItemMutation>
 export type AddToJourneyAutomationAction = AutomationActionBuilder<'addToJourney', { journeyId: string }>
 export type RemoveFromJourneyAutomationAction = AutomationActionBuilder<'removeFromJourney', { journeyId: string }>
 export type RemoveFromAllJourneysAutomationAction = AutomationActionBuilder<'removeFromAllJourneys', { }>
@@ -3983,6 +4070,9 @@ export type AutomationActionForType = {
   'notifyTeam': NotifyTeamAutomationAction,
   'addEnduserTags': AddEnduserTagsAutomationAction,
   'removeEnduserTags': RemoveEnduserTagsAutomationAction,
+  addListItem: AddListItemAutomationAction,
+  removeListItem: RemoveListItemAutomationAction,
+  updateListItem: UpdateListItemAutomationAction,
   'addAccessTags': AddAccessTagsAutomationAction,
   'removeAccessTags': RemoveAccessTagsAutomationAction,
   'addToJourney': AddToJourneyAutomationAction,
@@ -4116,6 +4206,7 @@ export interface EnduserObservation extends EnduserObservation_readonly, Enduser
   classifications?: { configurationId: string, classification: string }[]
   beforeMeal?: boolean,
   medStatus?: string,
+  flags?: string[], // org-configurable classification values, from Organization.observationFlagOptions
   timestampIsEstimated?: boolean,
   irregularHeartbeat?: boolean,
   dontTrigger?: boolean,
@@ -6116,8 +6207,9 @@ export interface Waitlist extends Waitlist_readonly, Waitlist_required, Waitlist
 
 export type AICOnversationMessageContent = {
   // 'text' | 'image' | 'file' are the pre-existing chat shapes; 'tool_use' / 'tool_result' are
-  // written by ai_conversations.agent_message so a native tool loop is auditable from the ledger.
-  type: 'text' | 'image' | 'file' | 'tool_use' | 'tool_result',
+  // written by ai_conversations.agent_message so a native tool loop is auditable from the ledger,
+  // and 'document' / 'image' additionally carry an attachment the caller referenced by file id.
+  type: 'text' | 'image' | 'file' | 'tool_use' | 'tool_result' | 'document',
   text?: string,
   // agent_message (tool_use): the model-minted call id, the tool it chose, and the arguments it
   // produced. `thinking` blocks are deliberately NEVER stored here — the reply returned to the
@@ -6130,6 +6222,10 @@ export type AICOnversationMessageContent = {
   tool_use_id?: string,
   content?: string,
   is_error?: boolean,
+  // agent_message (document / image attachment): the files record the caller referenced. The
+  // ledger stores the REFERENCE only — never the base64 bytes the server substituted for the
+  // model call, which would bloat the record and duplicate PHI that already lives in S3.
+  fileId?: string,
 }
 
 /***************************************************************************************************
@@ -6138,7 +6234,10 @@ export type AICOnversationMessageContent = {
  * These mirror the Messages API rather than Tellescope's own chat shapes on purpose: the endpoint
  * is a thin proxy, so the caller sends (and receives) what Anthropic documents, and the server
  * never builds a prompt or executes a tool. Only the block types below are proxied; anything else
- * (images, documents, server_tool_use, …) is rejected with a 400 rather than forwarded blindly.
+ * (server_tool_use, web_search_tool_result, …) is rejected with a 400 rather than forwarded
+ * blindly. `document` / `image` are the one deliberate divergence from Anthropic's wire shape: the
+ * caller sends a Tellescope file id and the server substitutes the base64 source — see
+ * AgentAttachmentBlock.
  ***************************************************************************************************/
 
 /** A client-placed prompt-caching breakpoint. At most AGENT_MAX_CACHE_CONTROL_MARKERS per request. */
@@ -6158,11 +6257,44 @@ export type AgentToolResultBlock = {
   is_error?: boolean,
   cache_control?: AgentCacheControl,
 }
+/**
+ * An attachment the CALLER sends: a reference to a Tellescope `files` record, never inline bytes.
+ *
+ * The server resolves the record through the session-scoped queries (so tenancy and access tags
+ * apply unchanged), reads the object from S3 and substitutes AgentResolvedAttachmentBlock
+ * immediately before the model call. Referencing by id rather than accepting base64 keeps file
+ * bytes out of the request-size ceilings and out of the ai_conversations ledger.
+ *
+ * Allowed in `user` messages only — never in an assistant message, and never inside a
+ * tool_result's content, which stays text-only.
+ */
+export type AgentAttachmentBlock = {
+  type: 'document' | 'image',
+  fileId: string,
+  cache_control?: AgentCacheControl,
+}
+
+/**
+ * What the server substitutes for an AgentAttachmentBlock immediately before InvokeModel. Never
+ * client-supplied and never stored: on Bedrock's Messages API (`bedrock-2023-05-31`) base64 is the
+ * only source type, so this is the shape the model actually receives.
+ */
+export type AgentResolvedAttachmentBlock = {
+  type: 'document' | 'image',
+  source: { type: 'base64', media_type: string, data: string },
+  cache_control?: AgentCacheControl,
+}
+
 export type AgentContentBlock = (
-  AgentTextBlock | AgentThinkingBlock | AgentRedactedThinkingBlock | AgentToolUseBlock | AgentToolResultBlock
+  AgentTextBlock | AgentThinkingBlock | AgentRedactedThinkingBlock | AgentToolUseBlock
+  | AgentToolResultBlock | AgentAttachmentBlock
 )
 
 export type AgentMessageInput = { role: 'user' | 'assistant', content: AgentContentBlock[] }
+
+/** The transcript as it is handed to Bedrock: every attachment reference already substituted. */
+export type AgentInvokeContentBlock = AgentContentBlock | AgentResolvedAttachmentBlock
+export type AgentInvokeMessageInput = { role: 'user' | 'assistant', content: AgentInvokeContentBlock[] }
 
 export type AgentToolInput = {
   name: string,

@@ -364,6 +364,7 @@ import {
   insuranceOptionalValidator,
   pharmacyValidator,
   listOfStringsValidatorUniqueOptionalOrEmptyOkay,
+  listOfEmailsValidatorUniqueOptionalOrEmptyOkay,
   diagnosesValidator,
   stateValidatorOptional,
   canvasCodingValidator,
@@ -590,6 +591,14 @@ const SUPER_ADMIN_ONLY_ORGANIZATION_FIELDS = [
   'bedrockAIAllowed', 'stediAllowed', 'subscriptionExpiresAt', 'subscriptionPeriod',
   'allowCreateSuborganizations', 'customPortalURLs', 'subdomains', 'plan',
 ] as const
+
+// Per-user AI credit fields. Credits a user holds are minted, not transferred from the
+// organization's balance, so letting an organization admin write either of these would let them
+// grant themselves unlimited AI spend at Tellescope's expense. Enforced by the 'AI credit fields
+// on a user are Tellescope super admin only' relationship constraint in the users block below.
+// They stay readable by a user session (the AI settings page shows the signed-in user's balance).
+const SUPER_ADMIN_ONLY_USER_CREDIT_FIELDS = ['creditCount', 'disableOrganizationCreditFallback'] as const
+const SUPER_ADMIN_ONLY_USER_CREDIT_FIELDS_MESSAGE = 'Only a Tellescope super admin can update user AI credits'
 
 const sideEffects = {
   handleJourneyStateChange: {
@@ -1044,7 +1053,12 @@ export type CustomActions = {
     }>,
     send_invitation_to_existing: CustomAction<{ userId: string }, { }>,
     invite_user: CustomAction<
-      { email: string, fname: string, lname: string, internalDisplayName?: string, organizationId: string, role?: string, tags?: string[] }, 
+      { 
+        email: string, fname: string, lname: string, internalDisplayName?: string, organizationId: string, role?: string, tags?: string[], 
+        // Admin-only (enforced in the handler, since invite_user itself is not adminOnly)
+        skipInviteEmail?: boolean, 
+        linkedAccountAccessFor?: string[],
+      }, 
       { created: UserClient }
     >
     configure_inbox: CustomAction<{ username: string, fname: string, lname: string }, { user: User, authToken: string }>,
@@ -1066,7 +1080,7 @@ export type CustomActions = {
     display_info: CustomAction<{ id: string }, { id: string, display_info: { [index: string]: UserDisplayInfo } }>,
     mark_read: CustomAction<{ id: string }, { updated: ChatRoom }>,
     send_healthie_chat: CustomAction<HealthieSendChatAutomationAction['info'] & { enduserId: string, journeyId?: string }, { room: ChatRoom }>,
-    load_team_chat: CustomAction<{ lastUpdatedAt?: Date, limit?: number, showClosed?: boolean }, { chat_rooms: ChatRoom[], endusers: Enduser[] }>,
+    load_team_chat: CustomAction<{ lastUpdatedAt?: Date, limit?: number, showClosed?: boolean, showMuted?: boolean }, { chat_rooms: ChatRoom[], endusers: Enduser[] }>,
   },
   meetings: {
     start_meeting: CustomAction<{ attendees?: UserIdentity[], publicRead?: boolean }, { id: string, meeting: { Meeting: MeetingInfo }, host: Attendee }>, 
@@ -1313,7 +1327,7 @@ export type CustomActions = {
   },
   products: {
     prepare_stripe_checkout: CustomAction<
-      { productIds?: string[], items?: StripeCheckoutItem[], stripeKey?: string },
+      { productIds?: string[], items?: StripeCheckoutItem[], stripeKey?: string, formResponseIds?: string[] },
       { customerId: string, clientSecret: string, publishableKey: string, stripeAccount?: string, isCheckout?: boolean, businessName: string }
     >,
     get_stripe_portal_session: CustomAction<{ 
@@ -3443,6 +3457,25 @@ export const schema: SchemaV1 = build_schema({
               return "enduserIds may only contain your own id for enduser session"
           }
         },
+        {
+          // Mute is per-user: one member's entry must never be writable by another, or by a
+          // whole-map replace that would erase everybody else's.
+          explanation: 'mutedBy may only contain the authenticated session\'s own id, and cannot be replaced wholesale',
+          evaluate: (doc, _, session, method, options) => {
+            // the merged first argument always carries the existing map, so an update has to be
+            // judged on the raw updates; on create no updates are passed and the document IS the write
+            const mutedBy = method === 'update' ? options?.updates?.mutedBy : doc.mutedBy
+            if (mutedBy === undefined) return
+
+            if (options?.replaceObjectFields) {
+              return "mutedBy cannot be updated with replaceObjectFields, which would erase other users' mute state"
+            }
+
+            for (const id in mutedBy) {
+              if (id !== session.id) return "mutedBy may only contain your own id"
+            }
+          }
+        },
       ],
       access: [
         { type: 'filter', field: 'userIds' },
@@ -3525,6 +3558,11 @@ export const schema: SchemaV1 = build_schema({
         }]
       },
       pinnedAt: { validator: dateOptionalOrEmptyStringValidator },
+      // Per-user mute for team chats: { [userId]: Date } when muted, '' when un-muted. An un-mute
+      // writes '' instead of deleting the key so that the per-key $set a PATCH produces can never
+      // clobber another member's concurrent mute. A session may only write its OWN key (see the
+      // relationship constraint above), and the map is redacted from endusers.
+      mutedBy: { validator: idStringToDateValidator, redactions: ['enduser'], enduserUpdatesDisabled: true },
       fields: { validator: fieldsValidator },
       // chat_rooms is enduser-readable (see enduserActions + the enduserIds access filter below), so
       // this staff-facing draft must be redacted — a patient should never see an unsent reply.
@@ -3601,6 +3639,10 @@ export const schema: SchemaV1 = build_schema({
           },
           limit: { validator: nonNegNumberValidator },
           showClosed: { validator: booleanValidatorOptional },
+          showMuted: {
+            validator: booleanValidatorOptional,
+            description: "When true, also returns rooms the authenticated user has muted. Muted rooms are excluded by default.",
+          },
         },
         returns: {
           chat_rooms: { validator: 'chat_rooms' as any },
@@ -3792,6 +3834,45 @@ export const schema: SchemaV1 = build_schema({
           }
         },
         {
+          explanation: "Only admin users can expire user sessions",
+          evaluate: ({ }, _, session, method, { updates }) => {
+            if ((session as UserSession)?.roles?.includes('Admin')) return // admin can do this
+            if (method === 'create') return // create already admin restricted
+            if (updates?.invalidateSessionsBefore === undefined) return // not provided
+
+            return "Only admin users can expire user sessions"
+          }
+        },
+        {
+          // an expiry that could move backwards would un-expire tokens an admin had already revoked
+          explanation: 'invalidateSessionsBefore can only be set forward in time, never backwards',
+          evaluate: (_v, _deps, _session, method, { updates, original }) => {
+            // Deliberately `=== undefined` and NOT a truthiness check. Fields are validated with
+            // isOptional (modules/routing.ts createDefaultEndpoints), and build_validator returns ''
+            // unchanged for an empty string before any date coercion — so
+            // `invalidateSessionsBefore: ""` would otherwise store a falsy value that passes a
+            // truthiness guard here AND makes the is_logged_in comparison skip entirely, silently
+            // restoring every token the admin had just revoked. dateValidator likewise lets an
+            // unparseable string through as an Invalid Date, which is truthy but compares false
+            // against everything — the same bypass by another route.
+            // Scope: UPDATES only. modules/routing.ts passes no `updates` on create (it calls
+            // validateRelationshipConstraints with `'create', {}`), so this returns on the line
+            // below for a create and an invalid value there is not caught here. That is tolerable —
+            // it is admin-only, affects a brand-new account with no tokens, and the next valid
+            // update overwrites it — but it is not a guarantee this constraint makes.
+            // Regression: sdk/src/tests/api_tests/user_session_invalidation.test.ts check 4b.
+            if (updates?.invalidateSessionsBefore === undefined) return
+            const next = new Date(updates.invalidateSessionsBefore as any)
+            if (isNaN(next.getTime())) return "invalidateSessionsBefore must be a valid date"
+            if (method === 'create') return // nothing to compare against
+            const orig = original as any
+            if (!orig?.invalidateSessionsBefore) return
+            if (next < new Date(orig.invalidateSessionsBefore)) {
+              return "invalidateSessionsBefore can only be set forward in time"
+            }
+          }
+        },
+        {
           explanation: "Only admin users can update failed login attempts",
           evaluate: ({ _id }, _, session, method, { updates }) => {
             if (updates?.failedLoginAttempts !== undefined && session.id === _id?.toString()) {
@@ -3842,6 +3923,19 @@ export const schema: SchemaV1 = build_schema({
             if (!updates?.requireSSO) return // requireSSO not provided
 
             return "Only admin users can update requireSSO"
+          }
+        },
+        {
+          explanation: "Only admin users can update switchOnly",
+          evaluate: ({ roles }, _, session, method, { updates }) => {
+            if ((session as UserSession)?.roles?.includes('Admin')) return // admin can do this
+            if (method === 'create') return // create already admin restricted
+            // `=== undefined` rather than a truthiness check: switchOnly is a boolean, so
+            // `switchOnly: false` (the value that unlocks password login on a switch-only
+            // account) must be caught too.
+            if (updates?.switchOnly === undefined) return // switchOnly not provided
+
+            return "Only admin users can update switchOnly"
           }
         },
         {
@@ -3902,7 +3996,13 @@ export const schema: SchemaV1 = build_schema({
               if ((newEntry.lname ?? null) !== (oldMatch.lname ?? null)) return "linkedAccountAccess entry lname is immutable"
               if ((newEntry.orgName ?? null) !== (oldMatch.orgName ?? null)) return "linkedAccountAccess entry orgName is immutable"
               if (new Date(newEntry.createdAt).getTime() !== new Date(oldMatch.createdAt).getTime()) return "linkedAccountAccess entry createdAt is immutable"
-              if (new Date(newEntry.requestExpiresAt).getTime() !== new Date(oldMatch.requestExpiresAt).getTime()) return "linkedAccountAccess entry requestExpiresAt is immutable"
+              // requestExpiresAt is absent on admin pre-granted entries (invite_user). Compare
+              // through null rather than through `new Date(undefined)`, whose NaN !== NaN would
+              // report every untouched pre-granted entry as mutated — which would block the owner
+              // from accepting any later pending request, since that PATCH re-sends the whole array.
+              const newExpires = newEntry.requestExpiresAt ? new Date(newEntry.requestExpiresAt).getTime() : null
+              const oldExpires = oldMatch.requestExpiresAt ? new Date(oldMatch.requestExpiresAt).getTime() : null
+              if (newExpires !== oldExpires) return "linkedAccountAccess entry requestExpiresAt is immutable"
 
               if (newEntry.status !== oldMatch.status) {
                 if (!(oldMatch.status === 'pending' && newEntry.status === 'accepted')) {
@@ -3911,7 +4011,7 @@ export const schema: SchemaV1 = build_schema({
                 // Reject approval of an expired pending request — owner must wait for the requester
                 // to re-issue. requestExpiresAt is immutable per the rule above; the only way for a
                 // pending entry to refresh is request_linked_account_access replacing the expired entry.
-                if (new Date(oldMatch.requestExpiresAt).getTime() < Date.now()) {
+                if (oldExpires !== null && oldExpires < Date.now()) {
                   return "linkedAccountAccess request has expired and cannot be approved; requester must re-request"
                 }
               }
@@ -3927,6 +4027,30 @@ export const schema: SchemaV1 = build_schema({
               return "accountAccessGrantedTo has been replaced by linkedAccountAccess"
             }
             return
+          }
+        },
+        {
+          explanation: "AI credit fields on a user are Tellescope super admin only",
+          // Modeled on the organizations 'Subscription date, period, and feature enablement cannot
+          // be updated' constraint: key on PRESENCE, never truthiness. An update field validates
+          // with isOptional, so `creditCount: 0` / `disableOrganizationCreditFallback: false`
+          // reach here as falsy values — a truthiness check would let an org admin zero a balance
+          // or switch the no-fallback flag off, which is exactly the escalation this guards.
+          //
+          // `create` is covered too (unlike most users constraints, which return early on it):
+          // users.create is admin-only, not super-admin-only, so without this an org admin could
+          // mint credits on a brand new user. On create `options.updates` is not populated
+          // (routing.ts passes `{}`), so the built document is what has to be inspected.
+          evaluate: (document, _, session, method, { updates }) => {
+            const touched = (
+              method === 'create'
+                ? SUPER_ADMIN_ONLY_USER_CREDIT_FIELDS.some(f => (document as any)?.[f] !== undefined)
+                : SUPER_ADMIN_ONLY_USER_CREDIT_FIELDS.some(f => f in (updates ?? {}))
+            )
+            if (!touched) return // not changing
+
+            if (session.type === 'enduser') return SUPER_ADMIN_ONLY_USER_CREDIT_FIELDS_MESSAGE
+            if (!(session as UserSession).isa) return SUPER_ADMIN_ONLY_USER_CREDIT_FIELDS_MESSAGE
           }
         },
       ],
@@ -3950,6 +4074,14 @@ export const schema: SchemaV1 = build_schema({
           organizationId: { validator: mongoIdStringValidator, required: true },
           role: { validator: stringValidator },
           tags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+          // Admin-only options (both enforced inside the handler — invite_user is deliberately
+          // not adminOnly, so that anyone with users.create access can still send a plain invite).
+          // skipInviteEmail creates the account with no invite email, no invite code, and
+          // switchOnly: true — it is only accepted alongside a non-empty linkedAccountAccessFor,
+          // which pre-grants linked-account (switch-in) access to the named, already-registered
+          // users. Emails that don't resolve to an eligible grantee are dropped silently.
+          skipInviteEmail: { validator: booleanValidatorOptional },
+          linkedAccountAccessFor: { validator: listOfEmailsValidatorUniqueOptionalOrEmptyOkay },
         },
         returns: { 
           created: { validator: 'user' as any, required: true },
@@ -4359,6 +4491,19 @@ export const schema: SchemaV1 = build_schema({
         redactions: ['enduser'], // frontend-only settings; endusers have no business reading them
       },
       notificationEmailsDisabled: { validator: booleanValidator },
+      // Per-user AI credit balance, same unit as organizations.creditCount. Deliberately NOT
+      // `readonly: true` (which organizations.creditCount uses): a super admin has to be able to
+      // top it up and zero it repeatedly, and readonly would lock them out too. Writes are gated
+      // by the 'AI credit fields on a user are Tellescope super admin only' relationship
+      // constraint above instead.
+      creditCount: {
+        validator: numberValidator,
+        redactions: ['enduser'],
+      },
+      disableOrganizationCreditFallback: {
+        validator: booleanValidator,
+        redactions: ['enduser'],
+      },
       avatar: {
         validator: stringValidator1000,
         // BUG: This dependency is disabled because handleDeletionForDependencies queries
@@ -4396,6 +4541,7 @@ export const schema: SchemaV1 = build_schema({
       DEA: { validator: stringValidatorOptionalEmptyOkay },
       voicemailPlayback: { validator: phonePlaybackValidatorOptional },
       lockedOutUntil: { validator: numberValidator },
+      invalidateSessionsBefore: { validator: dateValidator },
       failedLoginAttempts: { validator: nonNegNumberValidator },
       elationUserId: { validator: numberValidator },
       iOSBadgeCount: { validator: nonNegNumberValidator },
@@ -4417,6 +4563,7 @@ export const schema: SchemaV1 = build_schema({
       dashboardView: { validator: customDashboardViewValidator },
       hideFromCalendarView: { validator: booleanValidator },
       requireSSO: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
+      switchOnly: { validator: booleanValidatorOptional },
       allowedMFAMethods: { validator: listValidatorOptionalOrEmptyOk(exactMatchValidator<MFAMethod>(['email', 'authenticator'])) },
       linkedAccountAccess: { validator: linkedAccountAccessValidator },
     }
@@ -5454,6 +5601,7 @@ export const schema: SchemaV1 = build_schema({
       logoHeight: { validator: numberValidator, enduserUpdatesDisabled: true },
       calendarEventId: { validator: mongoIdStringValidator },
       references: { validator: listOfRelatedRecordsValidator, readonly: true },
+      releasedAfterPaymentAt: { validator: dateValidator, readonly: true },
       groupId: { validator: mongoIdStringValidator },
       groupInstance: { validator: stringValidator100 },
       groupPosition: { validator: nonNegNumberValidator },
@@ -6626,6 +6774,19 @@ export const schema: SchemaV1 = build_schema({
           explanation: 'Event, action, and conditions cannot all be shared by an existing event automation (no duplicates)',
           evaluate: () => {} // implemented in routing.ts
         },
+        {
+          explanation: 'A list-item mutation may only touch the sub-fields its list field declares',
+          evaluate: (step, _deps, _session, _method, options) => {
+            // a partial update may carry no action at all, so fall back to the stored one; the two are
+            // never merged, since an action is always written whole
+            const action = step.action ?? (options.original as any)?.action
+            if (!action) return
+
+            // the same helper the Journey Editor blocks on (and the same one automation_triggers uses),
+            // so the editor and the server reject the same actions with the same wording
+            return list_item_mutation_error(action) || undefined
+          }
+        },
       ],
       access: []
     },
@@ -6998,6 +7159,7 @@ export const schema: SchemaV1 = build_schema({
       statusChangedBy: { validator: mongoIdStringValidator },
       beforeMeal: { validator: booleanValidator },
       medStatus: { validator: stringValidator },
+      flags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay, enduserUpdatesDisabled: true },
       irregularHeartbeat: { validator: booleanValidator },
       dontTrigger: { validator: booleanValidator },
       references: { validator: listOfRelatedRecordsValidator, readonly: true },
@@ -7825,6 +7987,7 @@ export const schema: SchemaV1 = build_schema({
       },
       externalFormIdsToSync: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       healthieImportLockedNotesFromTellescope: { validator: booleanValidator },
+      healthieMatchAcrossIntegrations: { validator: booleanValidator },
       analyticsIframes: { 
         validator: listValidatorOptionalOrEmptyOk(objectValidator<{ iframeURL: string, title: string }>({
           title: stringValidator1000,
@@ -7841,6 +8004,7 @@ export const schema: SchemaV1 = build_schema({
       canvasURL: { validator: stringValidator },
       healthiePortalURL: { validator: stringValidator },
       observationInvalidationReasons: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
+      observationFlagOptions: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       customNotificationTypes: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       customerIOFields: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       customerIOIdField: { validator: stringValidator },
@@ -8284,6 +8448,9 @@ export const schema: SchemaV1 = build_schema({
           productIds: { validator: listOfMongoIdStringValidatorOptional },
           items: { validator: listOfStripeCheckoutItemsValidatorOptional },
           stripeKey: { validator: stringValidator250 },
+          // submitted intake responses released to Healthie / OpenLoop once Stripe confirms payment
+          // (enduser sessions and Stripe Custom only - see the handler)
+          formResponseIds: { validator: listOfMongoIdStringValidatorOptional },
         },
         returns: {
           clientSecret: { validator: stringValidator, required: true },
@@ -8436,6 +8603,7 @@ export const schema: SchemaV1 = build_schema({
       notes: { validator: stringValidator5000EmptyOkay },
       stripeProductName: { validator: stringValidator5000EmptyOkay },
       couponCodes: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+      formResponseIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk, readonly: true },
     }
   },
   purchase_credits: {
@@ -10564,7 +10732,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
         op: "custom", access: 'create', method: "post",
         name: 'Agent Message',
         path: '/ai-conversations/agent-message',
-        description: "Sends an Anthropic-shaped transcript to the configured model with native tool use and prompt caching, and records the turn against an ai_conversation. Returns { conversationId, reply }, or a text/event-stream when stream is true.",
+        description: "Sends an Anthropic-shaped transcript to the configured model with native tool use and prompt caching, and records the turn against an ai_conversation. A user message may include { type: 'document' | 'image', fileId } blocks referencing Tellescope files, which the server resolves and attaches (requires files read access). Returns { conversationId, reply }, or a text/event-stream when stream is true.",
         parameters: {
           messages: { validator: agentMessagesValidator, required: true },
           system: { validator: agentSystemValidator },
@@ -10642,7 +10810,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           timestamp: dateValidator,
           tokens: nonNegNumberValidator,
           content: listValidatorOptionalOrEmptyOk(objectValidator<AICOnversationMessageContent>({
-            type: exactMatchValidator(['text', 'image', 'file', 'tool_use', 'tool_result']),
+            type: exactMatchValidator(['text', 'image', 'file', 'tool_use', 'tool_result', 'document']),
             text: stringValidatorOptional,
             // agent_message tool-loop blocks; see types-models AICOnversationMessageContent
             id: stringValidatorOptional,
@@ -10651,6 +10819,9 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
             tool_use_id: stringValidatorOptional,
             content: stringValidator100000OptionalEmptyOkay,
             is_error: booleanValidatorOptional,
+            // agent_message attachment ('document' / 'image'): the files record the caller
+            // referenced. The base64 the server substituted for the model call is never stored.
+            fileId: mongoIdStringOptional,
           })),
           userId: mongoIdStringOptional,
           systemPrompt: stringValidator5000OptionalEmptyOkay,

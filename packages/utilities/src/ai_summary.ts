@@ -32,14 +32,86 @@ export const stripHtml = (s: string) => s
   .replace(/\s+/g, ' ')
   .trim()
 
-export const fmt = (d: any) => {
+/* ---------------------------------- timestamps ---------------------------------- */
+
+// Record timestamps are rendered in the organization's timezone with the zone abbreviation shown
+// ("2026-10-21 19:46 EDT"), so the clock time the model reads matches the one a user reads on the
+// patient timeline. An unset — or unrecognised — timezone falls back to UTC and says so, rather
+// than to a US default that would be silently wrong for a west-coast practice.
+export const AI_SUMMARY_FALLBACK_TIMEZONE = 'UTC'
+
+const buildAISummaryDateFormatter = (timeZone: string) => new Intl.DateTimeFormat('en-CA', {
+  timeZone,
+  year: 'numeric', month: '2-digit', day: '2-digit',
+  hour: '2-digit', minute: '2-digit',
+  hour12: false,
+  timeZoneName: 'short',
+})
+
+// timezone -> formatter, or null for a zone this runtime's ICU does not know. Intl.DateTimeFormat
+// throws RangeError on an unknown timeZone, and constructing one per record would be wasteful, so
+// the outcome (formatter *or* rejection) is memoized.
+const aiSummaryDateFormatters = new Map<string, Intl.DateTimeFormat | null>()
+
+const aiSummaryDateFormatter = (timezone: string): Intl.DateTimeFormat | null => {
+  const cached = aiSummaryDateFormatters.get(timezone)
+  if (cached !== undefined) return cached
+
+  let formatter: Intl.DateTimeFormat | null = null
+  try { formatter = buildAISummaryDateFormatter(timezone) } catch { formatter = null }
+  aiSummaryDateFormatters.set(timezone, formatter)
+  return formatter
+}
+
+let utcAISummaryDateFormatter: Intl.DateTimeFormat | undefined
+const fallbackAISummaryDateFormatter = () => {
+  if (!utcAISummaryDateFormatter) utcAISummaryDateFormatter = buildAISummaryDateFormatter(AI_SUMMARY_FALLBACK_TIMEZONE)
+  return utcAISummaryDateFormatter
+}
+
+// The zone name written into the context header. Must agree with what the formatters actually did,
+// so an unrecognised organization timezone reports UTC rather than echoing a zone nothing used.
+export const aiSummaryTimezoneLabel = (timezone?: string): string => (
+  (timezone && aiSummaryDateFormatter(timezone)) ? timezone : AI_SUMMARY_FALLBACK_TIMEZONE
+)
+
+const formatAISummaryDate = (date: Date, timezone?: string): string => {
+  if (isNaN(date.getTime())) return ''
+  const formatter = (timezone ? aiSummaryDateFormatter(timezone) : null) ?? fallbackAISummaryDateFormatter()
+  // en-CA emits "2026-10-21, 19:46 EDT"; the comma is noise inside a bracketed record label.
+  // Only the date/time separator is replaced — a GMT+5:30-style zone name carries no comma.
+  try { return formatter.format(date).replace(', ', ' ') } catch { return '' }
+}
+
+export const fmt = (d: any, timezone?: string) => {
   if (!d) return ''
-  try { return new Date(d).toISOString().slice(0, 16).replace('T', ' ') } catch { return '' }
+  try { return formatAISummaryDate(new Date(d), timezone) } catch { return '' }
 }
-export const fmtFromMS = (ms: any) => {
+export const fmtFromMS = (ms: any, timezone?: string) => {
   if (typeof ms !== 'number') return ''
-  try { return new Date(ms).toISOString().slice(0, 16).replace('T', ' ') } catch { return '' }
+  try { return formatAISummaryDate(new Date(ms), timezone) } catch { return '' }
 }
+
+// `createdAt` is never stored on a record. The REST layer synthesizes it from `_id` in
+// convert_id_name, so records reaching the SDK loader carry one and records read straight from the
+// DB do not — which made every formatter's `?? record.createdAt` fallback dead on the server and
+// blanked the date on tickets, phone calls, orders, medications and purchases, and on any chat,
+// SMS or email whose `timestamp` was never stamped. Filling it once here, in the loader, fixes
+// every source at once. Deliberately NOT done inside the formatters: the SDK path already supplies
+// `createdAt`, and only the server has an ObjectId to derive one from.
+export const withDerivedCreatedAt = <T,>(records: T[]): T[] => (
+  (Array.isArray(records) ? records : []).map(record => {
+    // duck-typed on getTimestamp(): server-side `_id` is the Mongo driver's ObjectId
+    if (typeof (record as any)?._id?.getTimestamp !== 'function') return record
+    try {
+      // spread last so a stored `createdAt` still wins
+      return { createdAt: (record as any)._id.getTimestamp(), ...record }
+    } catch {
+      return record
+    }
+  })
+)
+
 export const fmtResponses = (responses: any) => {
   if (!Array.isArray(responses)) return ''
   return responses
@@ -123,7 +195,7 @@ export const formatFormResponseAnswersForSummary = (responses: any): string => {
     .join('\n')
 }
 
-export const fmtObservation = (o: any) => {
+export const fmtObservation = (o: any, _enduser?: Enduser | null, context?: AISummaryFormatContext) => {
   const m = o.measurement
   // numeric value + unit when present; fall back to qualitative result ("positive", etc.)
   const reading =
@@ -139,7 +211,91 @@ export const fmtObservation = (o: any) => {
 
   const label = name ? `${name}: ` : ''
   const tail = extras ? ` (${extras})` : ''
-  return `[Observation ${fmt(o.timestamp ?? o.recordedAt ?? o.createdAt)}] ${label}${reading}${tail}`.trim()
+  return `[Observation ${fmt(o.timestamp ?? o.recordedAt ?? o.createdAt, context?.timezone)}] ${label}${reading}${tail}`.trim()
+}
+
+/* ---------------------------------- group MMS threads ---------------------------------- */
+
+// One group MMS thread is ONE record, rendered as a header line plus one line per message — the
+// messages live inside the conversation document, so there is nothing else to render them from.
+//
+// Sender labelling copies what staff already see on the patient timeline
+// (GroupMMSTimelineItemExpanded): `sender` is an id, and an id in the thread's `enduserIds` is a
+// patient. Anything else — a staff user, an unknown id, a missing one — is 'staff', the same
+// fail-towards-staff rule `chats` uses, so an automated outbound message can never read to the
+// model as the patient speaking.
+//
+// `logOnly` messages render like any other: they were logged against the thread deliberately and
+// are part of the conversation a summary should read (which is why this source sets no
+// excludeUnsentRecords — nothing here is a draft or a future-dated send).
+//
+// A multi-patient thread is rendered in full for every member patient, matching the timeline.
+export const fmtGroupMMSConversation = (
+  c: any,
+  _enduser?: Enduser | null,
+  context?: AISummaryFormatContext,
+): string => {
+  const enduserIds: string[] = Array.isArray(c?.enduserIds) ? c.enduserIds : []
+  const messages: any[] = Array.isArray(c?.messages) ? c.messages : []
+
+  // The thread matched the lookback on `updatedAt` — the time of its most recent message — so an
+  // active long-running thread arrives carrying history far outside the window. Each message is
+  // windowed again on its own `timestamp` here, which is why the loader threads lookbackMS
+  // through the format context. No lookback configured means the whole thread.
+  const since = context?.lookbackMS ? Date.now() - context.lookbackMS : undefined
+  const inWindow = (
+    since === undefined
+      ? messages
+      : messages.filter(m => typeof m?.timestamp === 'number' && m.timestamp >= since)
+  )
+    // Both the header's "last" stamp and the keep-the-most-recent truncation below read position,
+    // so chronological order is load-bearing. Every writer $pushes (so it holds today), but
+    // nothing enforces it — sorting here makes the invariant the formatter's own.
+    .slice()
+    .sort((a: any, b: any) => (Number(a?.timestamp) || 0) - (Number(b?.timestamp) || 0))
+  // Nothing recent enough to render. Reported as 'outside-lookback' rather than
+  // 'no-readable-text': the thread is perfectly readable, it is just older than the window.
+  if (inWindow.length === 0) return ''
+
+  const lines = inWindow.map(m => {
+    const sender = (m?.sender && enduserIds.includes(m.sender)) ? 'patient' : 'staff'
+    // GroupMMSMessage.timestamp is epoch milliseconds (updatedAt, the sortField, is a Date)
+    const stamp = fmtFromMS(m?.timestamp, context?.timezone)
+    const images = Array.isArray(m?.images) ? m.images.length : 0
+    // An MMS is often an image with no text at all, which would otherwise render as a blank line
+    const attachments = images > 0 ? `(${images} image attachment${images === 1 ? '' : 's'})` : ''
+    const message = typeof m?.message === 'string' ? m.message.trim() : ''
+    // joined rather than concatenated: an image with no caption must not leave a double space
+    return `  [${[stamp, sender].filter(Boolean).join(' ')}] ${[message, attachments].filter(Boolean).join(' ')}`.trimEnd()
+  })
+
+  const title = c?.title ?? ''
+  const lastStamp = fmtFromMS(inWindow[inWindow.length - 1]?.timestamp, context?.timezone)
+  const header = (omitted: number) => (
+    `[Group MMS "${title}" ${lines.length} message${lines.length === 1 ? '' : 's'}`
+    + `${lastStamp ? `, last ${lastStamp}` : ''}`
+    + `${omitted > 0 ? `, oldest ${omitted} omitted for length` : ''}]`
+  )
+
+  // Truncation drops the OLDEST messages, unlike the leading `.slice(0, N)` articles and templates
+  // use: an article reads from the top, while a thread over the budget is one with a long history
+  // whose recent end is what the summary is about. Budgeted against the longest the header can
+  // get (every message omitted) so the final string is always within MAX_AI_SUMMARY_RECORD_CHARS.
+  const kept: string[] = []
+  let used = header(lines.length).length
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const cost = lines[i].length + 1 // + the newline that joins it on
+    if (used + cost > MAX_AI_SUMMARY_RECORD_CHARS) break
+    used += cost
+    kept.unshift(lines[i])
+  }
+  // A single message longer than the whole budget would otherwise leave the record header-only
+  if (kept.length === 0) {
+    const truncated = lines[lines.length - 1].slice(0, Math.max(0, MAX_AI_SUMMARY_RECORD_CHARS - used - 1))
+    if (truncated) kept.push(truncated)
+  }
+
+  return [header(lines.length - kept.length), ...kept].join('\n')
 }
 
 /* ---------------------------------- data source metadata ---------------------------------- */
@@ -152,6 +308,7 @@ export const DATA_SOURCE_LABELS: Record<AISummaryDataSource, string> = {
   calendar_events: 'Calendar Events',
   tickets: 'Tickets',
   sms_messages: 'SMS Messages',
+  group_mms_conversations: 'Group MMS',
   emails: 'Emails',
   enduser_orders: 'Orders',
   enduser_medications: 'Medications',
@@ -160,13 +317,26 @@ export const DATA_SOURCE_LABELS: Record<AISummaryDataSource, string> = {
   templates: 'Message Templates',
 }
 
-// Extra, source-specific context threaded into `format` by the loader. Only `chats` reads it
-// today — it needs the room's member list to tell the patient's message from a staff reply — and
-// every other entry ignores the argument.
+// Extra, source-specific context threaded into `format` by the loader. `chats` needs the room's
+// member list to tell the patient's message from a staff reply; every source reads `timezone`,
+// which is why it is threaded here rather than added as a fourth formatter argument.
+//
+// Built per source inside the loader's data-source loop, because `lookbackMS` is a property of the
+// configured source rather than of the request.
 export type AISummaryFormatContext = {
   // roomId -> that room's enduserIds
   enduserIdsByRoomId?: Record<string, string[]>,
+  // the organization's IANA timezone. Unset or unrecognised renders in UTC (see fmt).
+  timezone?: string,
+  // This source's configured lookback. Only a formatter whose record CONTAINS a timeline of its
+  // own needs it: a group MMS thread matches the window on its most recent message and then has
+  // to drop the history that falls outside it. Unset means "no window" (All time).
+  lookbackMS?: number,
 }
+
+// Why a loaded record produced no line. Surfaced per record in the sources drawer, so each value
+// needs its own copy there — a group MMS thread with nothing recent is not a PDF nobody can read.
+export type AISummarySkippedReason = 'no-readable-text' | 'outside-lookback'
 
 export type DataSourceMapEntry = {
   // collection key equals the source key for every entry; callers map this to their own
@@ -196,6 +366,9 @@ export type DataSourceMapEntry = {
   baseFilter?: object,
   // true when `format` needs the enduser loaded even if the profile block is excluded
   formatNeedsEnduser?: boolean,
+  // why a record of this source formats to '' — reported in the section's `skipped` list.
+  // Defaults to 'no-readable-text', which is true of every source whose body is a blob of text.
+  emptyFormatReason?: AISummarySkippedReason,
 }
 
 export const DATA_SOURCE_MAP: Record<AISummaryDataSource, DataSourceMapEntry> = {
@@ -207,7 +380,7 @@ export const DATA_SOURCE_MAP: Record<AISummaryDataSource, DataSourceMapEntry> = 
   form_responses: {
     collection: 'form_responses',
     sortField: 'submittedAt',
-    format: fr => `[Form "${fr.formTitle ?? ''}" ${fmt(fr.submittedAt ?? fr.createdAt)}] ${fmtResponses(fr.responses)}`,
+    format: (fr, _enduser, context) => `[Form "${fr.formTitle ?? ''}" ${fmt(fr.submittedAt ?? fr.createdAt, context?.timezone)}] ${fmtResponses(fr.responses)}`,
   },
   chats: {
     collection: 'chats',
@@ -224,55 +397,81 @@ export const DATA_SOURCE_MAP: Record<AISummaryDataSource, DataSourceMapEntry> = 
       // staff. Erring towards 'staff' keeps an automated outbound chat from reading to the model
       // as the patient speaking.
       const sender = (m.senderId && members?.includes(m.senderId)) ? 'patient' : 'staff'
-      return `[Chat ${fmt(m.timestamp ?? m.createdAt)} ${sender}] ${m.message ?? ''}`
+      return `[Chat ${fmt(m.timestamp ?? m.createdAt, context?.timezone)} ${sender}] ${m.message ?? ''}`
     },
   },
   phone_calls: {
     collection: 'phone_calls',
     sortField: 'createdAt',
-    format: c => `[Call ${fmt(c.createdAt)} ${c.direction ?? ''} ${c.durationInSeconds ?? 0}s] ${c.aiSummary ?? c.summary ?? ''}`,
+    format: (c, _enduser, context) => `[Call ${fmt(c.createdAt, context?.timezone)} ${c.direction ?? ''} ${c.durationInSeconds ?? 0}s] ${c.aiSummary ?? c.summary ?? ''}`,
   },
   calendar_events: {
     collection: 'calendar_events',
     sortField: 'startTimeInMS',
     // startTimeInMS holds epoch milliseconds, so the lookback must compare numbers
     lookbackIsNumeric: true,
-    format: e => `[Appt ${fmtFromMS(e.startTimeInMS)}] ${e.title ?? ''} (${e.type ?? ''})`,
+    format: (e, _enduser, context) => `[Appt ${fmtFromMS(e.startTimeInMS, context?.timezone)}] ${e.title ?? ''} (${e.type ?? ''})`,
     enduserMatchClause: enduserId => ({ 'attendees.id': enduserId }),
   },
   tickets: {
     collection: 'tickets',
     sortField: 'createdAt',
-    format: t => `[Ticket ${fmt(t.createdAt)} ${t.closedAt ? 'closed' : 'open'}] ${t.title ?? ''}`,
+    // "How long has this been unresolved?" needs both ends of the ticket's life, so the closed
+    // date is rendered rather than just the word "closed".
+    format: (t, _enduser, context) => {
+      const closedAt = t.closedAt ? fmt(t.closedAt, context?.timezone) : ''
+      const status = t.closedAt ? `closed${closedAt ? ` ${closedAt}` : ''}` : 'open'
+      return `[Ticket created ${fmt(t.createdAt, context?.timezone)}, ${status}] ${t.title ?? ''}`
+    },
   },
   sms_messages: {
     collection: 'sms_messages',
     sortField: 'timestamp',
     lookbackIncludesUnstampedRecords: true,
-    format: s => `[SMS ${fmt(s.timestamp ?? s.createdAt)} ${s.inbound ? 'in' : 'out'}] ${s.message ?? ''}`,
+    format: (s, _enduser, context) => `[SMS ${fmt(s.timestamp ?? s.createdAt, context?.timezone)} ${s.inbound ? 'in' : 'out'}] ${s.message ?? ''}`,
+  },
+  group_mms_conversations: {
+    collection: 'group_mms_conversations',
+    // `updatedAt` is the time of the thread's last WRITE, which is at least as recent as its last
+    // message: every message is $pushed through an update, and the DB layer stamps updatedAt on
+    // every update. It is deliberately NOT only the last message — marking a thread read,
+    // archiving, tagging or assigning bumps it too, so the window is over-inclusive at the thread
+    // level and each message is re-windowed on its own timestamp in the formatter. `createdAt`
+    // would window on when the thread STARTED, so a long-running active conversation never matches.
+    sortField: 'updatedAt',
+    lookbackIncludesUnstampedRecords: true,
+    // The model has no `enduserId` — a thread carries a list of member patients — so without this
+    // the map's default `{ enduserId }` clause would silently match nothing at all.
+    enduserMatchClause: enduserId => ({ enduserIds: enduserId }),
+    // Trashed threads are deleted by another name and stay out. `archivedAt`, `hiddenBy` and
+    // `hiddenForAll` deliberately do NOT: staff set those as routine inbox triage on everything
+    // they have dealt with, so excluding them would empty this source for most organizations.
+    baseFilter: { $or: [{ trashedAt: { $in: [null, ''] } }, { trashedAt: { $exists: false } }] },
+    emptyFormatReason: 'outside-lookback',
+    format: fmtGroupMMSConversation,
   },
   emails: {
     collection: 'emails',
     sortField: 'timestamp',
-    format: e => {
+    format: (e, _enduser, context) => {
       const body = e.textContent || stripHtml(e.HTMLContent || '')
-      return `[Email ${fmt(e.timestamp ?? e.createdAt)}] ${e.subject ?? ''}\n${body.slice(0, 2000)}`
+      return `[Email ${fmt(e.timestamp ?? e.createdAt, context?.timezone)}] ${e.subject ?? ''}\n${body.slice(0, 2000)}`
     },
   },
   enduser_orders: {
     collection: 'enduser_orders',
     sortField: 'createdAt',
-    format: o => `[Order ${fmt(o.createdAt)}] ${o.status ?? ''} — ${(o.items ?? []).map((i: any) => i.title ?? i.sku ?? '').filter(Boolean).join(', ')}`,
+    format: (o, _enduser, context) => `[Order ${fmt(o.createdAt, context?.timezone)}] ${o.status ?? ''} — ${(o.items ?? []).map((i: any) => i.title ?? i.sku ?? '').filter(Boolean).join(', ')}`,
   },
   enduser_medications: {
     collection: 'enduser_medications',
     sortField: 'createdAt',
-    format: m => `[Medication ${fmt(m.createdAt)}] ${m.title ?? ''} ${m.dosage ?? ''} ${m.status ?? ''}`.trim(),
+    format: (m, _enduser, context) => `[Medication ${fmt(m.createdAt, context?.timezone)}] ${m.title ?? ''} ${m.dosage ?? ''} ${m.status ?? ''}`.trim(),
   },
   purchases: {
     collection: 'purchases',
     sortField: 'createdAt',
-    format: p => `[Purchase ${fmt(p.createdAt)}] ${p.title ?? ''} ${typeof p.amount === 'number' ? `$${p.amount}` : ''}`.trim(),
+    format: (p, _enduser, context) => `[Purchase ${fmt(p.createdAt, context?.timezone)}] ${p.title ?? ''} ${typeof p.amount === 'number' ? `$${p.amount}` : ''}`.trim(),
   },
   // Org-wide reference sources below: approved material the AI is grounded in, rather than
   // records describing the patient. Selected by `ids`, so no enduser clause and no lookback.
@@ -366,7 +565,7 @@ export type AISummarySourceSection = {
   formattedLines: string[],
   // records that loaded but produced no usable text (e.g. a PDF selected before the Articles-only
   // filter, or an empty article). Surfaced in the sources drawer so exclusions are visible.
-  skipped: { id: string, title?: string, reason: 'no-readable-text' }[],
+  skipped: { id: string, title?: string, reason: AISummarySkippedReason }[],
   // heading used for this section's block in the context text
   heading: string,
 }
@@ -474,16 +673,29 @@ export const normalizeAISummaryChatRooms = (rooms: any): AISummaryChatRooms => {
   return { roomIds, enduserIdsByRoomId }
 }
 
-// Join the profile block + per-source blocks, estimate tokens, and enforce the input budget.
-export const assembleAISummaryContext = ({ profileBlock, sources } : {
+// "Two days ago" is unanswerable without knowing what today is, and every record timestamp below
+// is rendered in one zone, so both facts are stated once at the top of the context. Emitted
+// unconditionally — even when no source produced a line — so the model never has to guess either.
+export const aiSummaryCurrentDateBlock = (timezone?: string, now: Date = new Date()): string => (
+  `Current date and time: ${fmt(now, timezone)} (${aiSummaryTimezoneLabel(timezone)}). `
+  + `All timestamps in this context are in this timezone.`
+)
+
+// Join the current-date header + profile block + per-source blocks, estimate tokens, and enforce
+// the input budget.
+export const assembleAISummaryContext = ({ profileBlock, sources, timezone, now } : {
   profileBlock: string,
   sources: AISummarySourceSection[],
+  // the organization's IANA timezone; unset or unrecognised renders in UTC
+  timezone?: string,
+  // injectable for tests; production always uses the real clock
+  now?: Date,
 }): AISummaryContext => {
   const blocks = sources
     .filter(s => s.formattedLines.length > 0)
     .map(s => `## ${s.heading}\n${s.formattedLines.join('\n')}`)
 
-  const contextText = [profileBlock, ...blocks].filter(Boolean).join('\n\n')
+  const contextText = [aiSummaryCurrentDateBlock(timezone, now), profileBlock, ...blocks].filter(Boolean).join('\n\n')
   const estimatedTokens = Math.ceil(contextText.length / 4)
   if (estimatedTokens > MAX_AI_SUMMARY_INPUT_TOKENS) {
     throw aiSummaryError(413, 'AI summary input exceeds token budget — reduce limits, shorten lookback, or remove data sources.')
@@ -507,7 +719,7 @@ export type LoadAISummaryRecordsArgs = {
 // the DB (api). Per-source failures degrade to an empty section so one broken collection doesn't
 // sink the whole summary; filter-sanitization (400) and the token-budget (413) errors still throw.
 export const loadAISummaryContext = async ({
-  enduserId, configuration, loadProfile, loadRecords, loadChatRooms, includeProfile = true,
+  enduserId, configuration, loadProfile, loadRecords, loadChatRooms, includeProfile = true, timezone,
 } : {
   enduserId: string,
   configuration: AISummaryConfiguration,
@@ -520,6 +732,9 @@ export const loadAISummaryContext = async ({
   // include the enduser profile block (name/DOB/fields/custom fields/Notes box) in the context. Defaults to
   // true for the summary use case; the AI Decision step passes false to avoid prompt clutter.
   includeProfile?: boolean,
+  // The organization's IANA timezone (resolved by the caller — sub-organization wins). Every
+  // record timestamp and the current-date header render in it. Unset or unrecognised => UTC.
+  timezone?: string,
 }): Promise<AISummaryContext> => {
   const dataSources = configuration.dataSources ?? []
   // some formatters (message templates) need the patient to resolve merge fields, so load the
@@ -540,13 +755,17 @@ export const loadAISummaryContext = async ({
       console.error('Failed to load chat rooms for AI summary', err)
     }
   }
-  const formatContext: AISummaryFormatContext = { enduserIdsByRoomId: chatRooms.enduserIdsByRoomId }
+  // Everything that is the same for every source. `lookbackMS` is added per source below.
+  const sharedFormatContext: AISummaryFormatContext = { enduserIdsByRoomId: chatRooms.enduserIdsByRoomId, timezone }
 
   const sections = await Promise.all(dataSources.map(async (ds: AISummaryDataSourceConfig): Promise<AISummarySourceSection | null> => {
     const m = DATA_SOURCE_MAP[ds.type]
     if (!m) return null
 
     const { mdbFilter, effectiveLimit, ids } = buildAISummarySourceFilter({ ds, enduserId, mapEntry: m, roomIds: chatRooms.roomIds })
+    // Two sources of the same type may be configured with different windows, so the lookback is
+    // per source and the context has to be built here rather than once for the whole request.
+    const formatContext: AISummaryFormatContext = { ...sharedFormatContext, lookbackMS: ds.lookbackMS }
     const base = {
       type: ds.type,
       label: DATA_SOURCE_LABELS[ds.type] ?? ds.type,
@@ -568,7 +787,11 @@ export const loadAISummaryContext = async ({
       for (const record of list) {
         const line = m.format(record, enduser, formatContext)
         if (line) formattedLines.push(line)
-        else skipped.push({ id: record?.id ?? record?._id?.toString?.() ?? '', title: record?.title, reason: 'no-readable-text' })
+        else skipped.push({
+          id: record?.id ?? record?._id?.toString?.() ?? '',
+          title: record?.title,
+          reason: m.emptyFormatReason ?? 'no-readable-text',
+        })
       }
 
       return { ...base, records: list, formattedLines, skipped }
@@ -579,5 +802,5 @@ export const loadAISummaryContext = async ({
   }))
 
   const sources = sections.filter((s): s is AISummarySourceSection => s !== null)
-  return assembleAISummaryContext({ profileBlock, sources })
+  return assembleAISummaryContext({ profileBlock, sources, timezone })
 }

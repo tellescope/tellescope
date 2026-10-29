@@ -526,7 +526,7 @@ export const EmailInput = ({ field, value, onChange, form, ...props }: FormInput
 
 export const NumberInput = ({ field, value, onChange, form, isSinglePage, autoFocus, ...props }: FormInputProps<'number'>) => {
   // Prevent the default scroll behavior when focused on this input
-  const inputRef = useRef<HTMLInputElement>(null); 
+  const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     const handleWheel = (e: any) => {
       e?.preventDefault?.();
@@ -549,8 +549,17 @@ export const NumberInput = ({ field, value, onChange, form, isSinglePage, autoFo
     // autoFocus only in the one-question-at-a-time wizard: on a single-page form this input can mount below
     // the caret (conditional logic revealing it mid-edit) and steal focus, scrolling itself into view.
     // Callers that pass neither isSinglePage nor autoFocus keep today's behavior.
-    <TextField ref={inputRef} autoFocus={autoFocus ?? !isSinglePage} InputProps={defaultInputProps} {...props} required={!field.isOptional} fullWidth type="number" value={value} 
-      onChange={e => onChange(parseInt(e.target.value), field.id)}  
+    <TextField ref={inputRef} autoFocus={autoFocus ?? !isSinglePage} InputProps={defaultInputProps} {...props} required={!field.isOptional} fullWidth type="number"
+      // fully controlled: React only writes a number input's DOM value when it differs numerically (a loose
+      // `node.value != value`), so an in-progress "12." or "12.50" is never overwritten by the parsed answer.
+      // Pass the answer through as a number -- stringifying it ("12.5") would make that a strict string compare.
+      value={value ?? ''}
+      inputProps={{ ...props.inputProps, step: 'any' }} // step="any" allows decimals; merged with any caller's inputProps
+      onChange={e => {
+        const parsed = parseFloat(e.target.value)
+        // never emit NaN: it survives the `typeof value === 'number'` answer check and serializes to null
+        onChange((isNaN(parsed) ? undefined : parsed) as number, field.id)
+      }}
       label={(!field.title && field.placeholder) ? field.placeholder : props.label}
       placeholder={field.placeholder || form_display_text_for_language(form, "Enter a number...", '')}
       onScroll={e => e.preventDefault()} // prevent scroll on number input
@@ -571,57 +580,184 @@ export const NumberInput = ({ field, value, onChange, form, isSinglePage, autoFo
   )
 }
 
-export const InsuranceInput = ({ field, onDatabaseSelect, value, onChange, form, responses, enduser, inputProps, ...props }: FormInputProps<'Insurance'> & {
-  inputProps?: { sx: SxProps },
-}) => {
-  const session = useResolvedSession()
+type InsurancePayerRecord = Pick<DatabaseRecord, 'id' | 'values' | 'databaseId'>
+type InsurancePayer = {
+  id: string,
+  name: string,
+  databaseRecord?: InsurancePayerRecord,
+  type?: string,
+  state?: string,
+}
 
-  const [payers, setPayers] = useState<{ id: string, name: string, databaseRecord?: DatabaseRecord, type?: string, state?: string }[]>([])
+const insurance_record_column = (record: Pick<DatabaseRecord, 'values'>, label: string) => (
+  record.values.find(v => v.label?.trim()?.toLowerCase() === label)?.value?.toString() || ''
+)
+
+const payer_for_insurance_record = (record: InsurancePayerRecord): InsurancePayer => ({
+  id: insurance_record_column(record, 'id'),
+  name: insurance_record_column(record, 'name'),
+  state: insurance_record_column(record, 'state'),
+  type: insurance_record_column(record, 'type'),
+  databaseRecord: record,
+})
+
+// a payer is offered when its record has no state, when the patient has no state, or when they match
+const payer_matches_state = (payer: InsurancePayer, state?: string) => (
+  !payer.state || !state || payer.state === state
+)
+
+const insurance_uses_proxy_lookup = (field: FormField) => (
+  field?.options?.dataSource === CANVAS_TITLE
+  || field?.options?.dataSource === BRIDGE_TITLE
+  || field?.options?.dataSource === STEDI_TITLE
+)
+
+type InsurancePayerInputProps = (
+  Pick<FormInputProps<'Insurance'>, 'field' | 'form' | 'value' | 'onChange' | 'onDatabaseSelect'> & {
+    inputProps?: { sx: SxProps },
+  }
+)
+
+// The Insurer field itself. The list of payers and how it is searched differ by data source, so the
+// two sources mount as separate children (below) and share this presentation.
+const InsurancePayerAutocomplete = ({ field, form, value, onChange, onDatabaseSelect, inputProps, payers, onQueryChange, isSearching, helperText }: InsurancePayerInputProps & {
+  payers: InsurancePayer[],
+  onQueryChange: (v: string, reason: string) => void,
+  isSearching?: boolean,
+  helperText?: string,
+}) => (
+  <Autocomplete freeSolo={!field.options?.requirePredefinedInsurer} options={payers.map(p => p.name)}
+    value={value?.payerName || ''}
+    loading={isSearching}
+    onChange={(e, v) => {
+      const matched = payers.find(p => p.name === v)
+      if (matched?.databaseRecord) {
+        onDatabaseSelect?.([matched.databaseRecord])
+      }
+      onChange({
+        ...value,
+        payerName: v || '',
+        payerId: matched?.id || '',
+        payerType: matched?.type || '',
+      }, field.id)
+    }}
+    onInputChange={
+      field.options?.requirePredefinedInsurer
+        ? (e, v, reason) => { onQueryChange(v, reason) }
+        : (e, v, reason) => {
+          onQueryChange(v, reason)
+
+          const databaseRecord = payers.find(p => p.name === v)?.databaseRecord
+          if (databaseRecord) {
+            onDatabaseSelect?.([databaseRecord])
+          }
+
+          // don't lose existing payerId on back-and-forth navigation
+          onChange({
+            ...value,
+            payerName: v || '',
+            payerId: (value?.payerName === v && value?.payerId ? value.payerId : '') || payers.find(p => p.name === v)?.id || '',
+            payerType: payers.find(p => p.name === v)?.type || '',
+          }, field.id)
+        }
+      }
+    renderInput={(params) => (
+      <TextField {...params}
+        InputProps={{
+          ...params.InputProps,
+          sx: (inputProps || defaultInputProps).sx,
+          endAdornment: (
+            <>
+              {isSearching ? <CircularProgress color="inherit" size={20} /> : null}
+              {params.InputProps.endAdornment}
+            </>
+          ),
+        }}
+        required={!field.isOptional} size="small" label={form_display_text_for_language(form, "Insurer")}
+        placeholder={insurance_uses_proxy_lookup(field) ? form_display_text_for_language(form, "Search insurer...") : form_display_text_for_language(form, "Insurer")}
+        helperText={helperText}
+      />
+    )}
+  />
+)
+
+// Tellescope Database payers. Loads one page up-front and runs the same debounced server-side search
+// as the Database question (useDatabaseChoices) from MIN_SEARCH_CHARS on, so a payer database of any
+// size never downloads in full. Mounted only on this branch: the hook has no skip flag, so calling it
+// for a Canvas/Bridge/Stedi field would issue a request and write a shared empty-databaseId cache entry.
+const InsuranceDatabasePayerInput = ({ state, ...props }: InsurancePayerInputProps & {
+  state?: string,
+}) => {
+  const { field, form, value } = props
+  const [typing, setTyping] = useState('')
+  // The hook sorts what it caches by label_for_database_record, which reads options.databaseLabel --
+  // unset on an Insurance field, so what this writes to the shared choicesForDatabase entry stays in
+  // server order. A Database Select question pointed at the SAME database and mounted after this one
+  // in the same page load therefore reads an unsorted cache. Accepted: setting databaseLabel here
+  // would change which column this question's own lookups read.
+  const { choices, isSearching, minSearchChars } = useDatabaseChoices({
+    databaseId: field.options?.databaseId,
+    field,
+    searchQuery: typing,
+  })
+
+  // The selected payer has to survive the result set changing under it (a new search, or the search
+  // being cleared), or its id/type and its database record are lost on the next keystroke.
+  const selectedPayerCache = useRef<Map<string, InsurancePayer>>(new Map())
+  const selectedName = value?.payerName || ''
+
+  useEffect(() => {
+    if (!selectedName) return
+
+    const selected = choices.find(c => insurance_record_column(c, 'name') === selectedName)
+    if (selected) {
+      selectedPayerCache.current.set(selectedName, payer_for_insurance_record(selected as InsurancePayerRecord))
+    }
+  }, [choices, selectedName])
+
+  const payers = useMemo(() => {
+    // the state rule is applied here, over the current choices, so that answering an Address question
+    // after the payers have loaded re-filters the list
+    const filtered = (
+      choices
+      .map(c => payer_for_insurance_record(c as InsurancePayerRecord))
+      .filter(p => payer_matches_state(p, state))
+    )
+
+    const selected = selectedName ? selectedPayerCache.current.get(selectedName) : undefined
+    return (selected && !filtered.some(p => p.name === selectedName))
+      ? [...filtered, selected]
+      : filtered
+  }, [choices, state, selectedName])
+
+  const typed = typing.trim().length
+
+  return (
+    <InsurancePayerAutocomplete {...props} payers={payers} isSearching={isSearching}
+      onQueryChange={(v, reason) => {
+        // MUI resets the input to the selected option's label on selection (and on a value change
+        // while unfocused). Searching for it would replace the results the patient was looking at.
+        if (reason === 'reset') return
+        setTyping(v)
+      }}
+      helperText={
+        (typed > 0 && typed < minSearchChars)
+          ? form_display_text_for_language(form, "Type 3 characters to search")
+          : undefined
+      }
+    />
+  )
+}
+
+// Canvas, Bridge and Stedi payers, looked up against the integration while typing. Unchanged.
+const InsuranceProxyPayerInput = (props: InsurancePayerInputProps) => {
+  const { field } = props
+  const session = useResolvedSession()
+  const [payers, setPayers] = useState<InsurancePayer[]>([])
   const [query, setQuery] = useState('')
 
-  const addressQuestion = useMemo(() => responses?.find(r => {
-    if (r.answer.type !== 'Address') return false
-    if (r.field.intakeField !== 'Address') return false
-
-    // make sure state is actually defined (in case of multiple address questions, where 1+ are blank)
-    if (!r.answer.value?.state) return false
-
-    return true
-  }), [responses])
-
-  const state = useMemo(() => (
-    (addressQuestion?.answer?.type === 'Address' ? addressQuestion?.answer?.value?.state : undefined) || enduser?.state
-  ), [enduser?.state, addressQuestion])
-
-  // load from database
-  const loadRef = useRef(false) // so session changes don't cause
-  useEffect(() => {
-    if (field?.options?.dataSource === CANVAS_TITLE) return // instead, look-up while typing against Canvas Search API
-    if (field?.options?.dataSource === BRIDGE_TITLE) return // instead, look-up while typing against Bridge Search API
-    if (field?.options?.dataSource === STEDI_TITLE) return // instead, look-up while typing against Stedi Payer Network
-    if (loadRef.current) return
-    loadRef.current = true
-
-    // just load all at once, should be reasonably performant compared to paging
-    session.api.form_fields.load_choices_from_database({ fieldId: field.id, limit: 10000 })
-    .then(({ choices }) => setPayers(
-      choices
-      .map(c => ({
-        id: c.values.find(v => v.label?.trim()?.toLowerCase() === 'id')?.value?.toString() || '',
-        name: c.values.find(v => v.label?.trim()?.toLowerCase() === 'name')?.value?.toString() || '',
-        state: c.values.find(v => v.label?.trim()?.toLowerCase() === 'state')?.value?.toString() || '',
-        type: c.values.find(v => v.label?.trim()?.toLowerCase() === 'type')?.value?.toString() || '',
-        databaseRecord: c,
-      }))
-      .filter(c => !c.state || !state || (c.state === state))
-    ))
-    .catch(console.error)
-  }, [session, state, field?.options?.dataSource])
-
-  // load from 3rd-party on search only
   const searchRef = useRef(query)
   useEffect(() => {
-    if (field?.options?.dataSource !== CANVAS_TITLE && field?.options?.dataSource !== BRIDGE_TITLE && field?.options?.dataSource !== STEDI_TITLE) { return }
     if (!query) return
     if (searchRef.current === query) return
     searchRef.current = query
@@ -654,49 +790,38 @@ export const InsuranceInput = ({ field, onDatabaseSelect, value, onChange, form,
   }, [session, field?.options?.dataSource, query])
 
   return (
+    <InsurancePayerAutocomplete {...props} payers={payers}
+      onQueryChange={v => { if (v) { setQuery(v) } }}
+    />
+  )
+}
+
+export const InsuranceInput = ({ field, onDatabaseSelect, value, onChange, form, responses, enduser, inputProps, ...props }: FormInputProps<'Insurance'> & {
+  inputProps?: { sx: SxProps },
+}) => {
+  const addressQuestion = useMemo(() => responses?.find(r => {
+    if (r.answer.type !== 'Address') return false
+    if (r.field.intakeField !== 'Address') return false
+
+    // make sure state is actually defined (in case of multiple address questions, where 1+ are blank)
+    if (!r.answer.value?.state) return false
+
+    return true
+  }), [responses])
+
+  const state = useMemo(() => (
+    (addressQuestion?.answer?.type === 'Address' ? addressQuestion?.answer?.value?.state : undefined) || enduser?.state
+  ), [enduser?.state, addressQuestion])
+
+  const payerInputProps = { field, form, value, onChange, onDatabaseSelect, inputProps }
+
+  return (
     <Grid container spacing={2} sx={{ mt: '0' }}>
       <Grid item xs={12} sm={6}>
-      <Autocomplete freeSolo={!field.options?.requirePredefinedInsurer} options={payers.map(p => p.name)}
-        value={value?.payerName || ''}
-        onChange={(e, v) => {
-          const matched = payers.find(p => p.name === v)
-          if (matched?.databaseRecord) {
-            onDatabaseSelect?.([matched.databaseRecord])
-          }
-          onChange({
-            ...value,
-            payerName: v || '',
-            payerId: matched?.id || '',
-            payerType: matched?.type || '',
-          }, field.id)
-        }}
-        onInputChange={
-          field.options?.requirePredefinedInsurer 
-            ? (e, v) => { if (v) { setQuery(v) } }
-            : (e, v) => {
-              if (v) { setQuery(v) }
-
-              const databaseRecord = payers.find(p => p.name === v)?.databaseRecord
-              if (databaseRecord) {
-                onDatabaseSelect?.([databaseRecord])
-              }
-
-              // don't lose existing payerId on back-and-forth navigation
-              onChange({ 
-                ...value, 
-                payerName: v || '',
-                payerId: (value?.payerName === v && value?.payerId ? value.payerId : '') || payers.find(p => p.name === v)?.id || '',
-                payerType: payers.find(p => p.name === v)?.type || '',
-              }, field.id)
-            }
-          }
-        renderInput={(params) => (
-          <TextField {...params} InputProps={{ ...params.InputProps, sx: (inputProps || defaultInputProps).sx }}
-            required={!field.isOptional} size="small" label={form_display_text_for_language(form, "Insurer")}
-            placeholder={(field.options?.dataSource === CANVAS_TITLE || field.options?.dataSource === BRIDGE_TITLE || field.options?.dataSource === STEDI_TITLE) ? form_display_text_for_language(form, "Search insurer...") : form_display_text_for_language(form, "Insurer")}
-          />
-        )}
-      />
+      {insurance_uses_proxy_lookup(field)
+        ? <InsuranceProxyPayerInput {...payerInputProps} />
+        : <InsuranceDatabasePayerInput {...payerInputProps} state={state} />
+      }
       </Grid>
       <Grid item xs={12} sm={6}>
       <TextField InputProps={inputProps || defaultInputProps} required={!field.isOptional} fullWidth value={value?.memberId ?? ''} 

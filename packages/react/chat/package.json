@@ -1,6 +1,6 @@
 {
   "name": "@tellescope/chat",
-  "version": "2.0.0-beta.3",
+  "version": "2.0.0-beta.4",
   "description": "",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",
@@ -40,13 +40,13 @@
     "@fontsource/roboto": "4.5.8",
     "@mui/icons-material": "5.15.0",
     "@mui/material": "5.15.0",
-    "@tellescope/constants": "2.0.0-beta.3",
-    "@tellescope/react-components": "2.0.0-beta.3",
-    "@tellescope/sdk": "2.0.0-beta.3",
-    "@tellescope/types-client": "2.0.0-beta.3",
-    "@tellescope/types-models": "2.0.0-beta.3",
-    "@tellescope/types-utilities": "2.0.0-beta.3",
-    "@tellescope/utilities": "2.0.0-beta.3"
+    "@tellescope/constants": "2.0.0-beta.4",
+    "@tellescope/react-components": "2.0.0-beta.4",
+    "@tellescope/sdk": "2.0.0-beta.4",
+    "@tellescope/types-client": "2.0.0-beta.4",
+    "@tellescope/types-models": "2.0.0-beta.4",
+    "@tellescope/types-utilities": "2.0.0-beta.4",
+    "@tellescope/utilities": "2.0.0-beta.4"
   },
   "peerDependencies": {
     "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0",

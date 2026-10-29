@@ -72,26 +72,100 @@ export var stripHtml = function (s) { return s
     .replace(/&nbsp;/gi, ' ')
     .replace(/\s+/g, ' ')
     .trim(); };
-export var fmt = function (d) {
+/* ---------------------------------- timestamps ---------------------------------- */
+// Record timestamps are rendered in the organization's timezone with the zone abbreviation shown
+// ("2026-10-21 19:46 EDT"), so the clock time the model reads matches the one a user reads on the
+// patient timeline. An unset — or unrecognised — timezone falls back to UTC and says so, rather
+// than to a US default that would be silently wrong for a west-coast practice.
+export var AI_SUMMARY_FALLBACK_TIMEZONE = 'UTC';
+var buildAISummaryDateFormatter = function (timeZone) { return new Intl.DateTimeFormat('en-CA', {
+    timeZone: timeZone,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit',
+    hour12: false,
+    timeZoneName: 'short',
+}); };
+// timezone -> formatter, or null for a zone this runtime's ICU does not know. Intl.DateTimeFormat
+// throws RangeError on an unknown timeZone, and constructing one per record would be wasteful, so
+// the outcome (formatter *or* rejection) is memoized.
+var aiSummaryDateFormatters = new Map();
+var aiSummaryDateFormatter = function (timezone) {
+    var cached = aiSummaryDateFormatters.get(timezone);
+    if (cached !== undefined)
+        return cached;
+    var formatter = null;
+    try {
+        formatter = buildAISummaryDateFormatter(timezone);
+    }
+    catch (_a) {
+        formatter = null;
+    }
+    aiSummaryDateFormatters.set(timezone, formatter);
+    return formatter;
+};
+var utcAISummaryDateFormatter;
+var fallbackAISummaryDateFormatter = function () {
+    if (!utcAISummaryDateFormatter)
+        utcAISummaryDateFormatter = buildAISummaryDateFormatter(AI_SUMMARY_FALLBACK_TIMEZONE);
+    return utcAISummaryDateFormatter;
+};
+// The zone name written into the context header. Must agree with what the formatters actually did,
+// so an unrecognised organization timezone reports UTC rather than echoing a zone nothing used.
+export var aiSummaryTimezoneLabel = function (timezone) { return ((timezone && aiSummaryDateFormatter(timezone)) ? timezone : AI_SUMMARY_FALLBACK_TIMEZONE); };
+var formatAISummaryDate = function (date, timezone) {
+    var _a;
+    if (isNaN(date.getTime()))
+        return '';
+    var formatter = (_a = (timezone ? aiSummaryDateFormatter(timezone) : null)) !== null && _a !== void 0 ? _a : fallbackAISummaryDateFormatter();
+    // en-CA emits "2026-10-21, 19:46 EDT"; the comma is noise inside a bracketed record label.
+    // Only the date/time separator is replaced — a GMT+5:30-style zone name carries no comma.
+    try {
+        return formatter.format(date).replace(', ', ' ');
+    }
+    catch (_b) {
+        return '';
+    }
+};
+export var fmt = function (d, timezone) {
     if (!d)
         return '';
     try {
-        return new Date(d).toISOString().slice(0, 16).replace('T', ' ');
+        return formatAISummaryDate(new Date(d), timezone);
     }
     catch (_a) {
         return '';
     }
 };
-export var fmtFromMS = function (ms) {
+export var fmtFromMS = function (ms, timezone) {
     if (typeof ms !== 'number')
         return '';
     try {
-        return new Date(ms).toISOString().slice(0, 16).replace('T', ' ');
+        return formatAISummaryDate(new Date(ms), timezone);
     }
     catch (_a) {
         return '';
     }
 };
+// `createdAt` is never stored on a record. The REST layer synthesizes it from `_id` in
+// convert_id_name, so records reaching the SDK loader carry one and records read straight from the
+// DB do not — which made every formatter's `?? record.createdAt` fallback dead on the server and
+// blanked the date on tickets, phone calls, orders, medications and purchases, and on any chat,
+// SMS or email whose `timestamp` was never stamped. Filling it once here, in the loader, fixes
+// every source at once. Deliberately NOT done inside the formatters: the SDK path already supplies
+// `createdAt`, and only the server has an ObjectId to derive one from.
+export var withDerivedCreatedAt = function (records) { return ((Array.isArray(records) ? records : []).map(function (record) {
+    var _a;
+    // duck-typed on getTimestamp(): server-side `_id` is the Mongo driver's ObjectId
+    if (typeof ((_a = record === null || record === void 0 ? void 0 : record._id) === null || _a === void 0 ? void 0 : _a.getTimestamp) !== 'function')
+        return record;
+    try {
+        // spread last so a stored `createdAt` still wins
+        return __assign({ createdAt: record._id.getTimestamp() }, record);
+    }
+    catch (_b) {
+        return record;
+    }
+})); };
 export var fmtResponses = function (responses) {
     if (!Array.isArray(responses))
         return '';
@@ -173,7 +247,7 @@ export var formatFormResponseAnswersForSummary = function (responses) {
         .filter(Boolean)
         .join('\n');
 };
-export var fmtObservation = function (o) {
+export var fmtObservation = function (o, _enduser, context) {
     var _a, _b, _c, _d;
     var m = o.measurement;
     // numeric value + unit when present; fall back to qualitative result ("positive", etc.)
@@ -187,7 +261,80 @@ export var fmtObservation = function (o) {
     ].filter(Boolean).join(', ');
     var label = name ? "".concat(name, ": ") : '';
     var tail = extras ? " (".concat(extras, ")") : '';
-    return "[Observation ".concat(fmt((_d = (_c = o.timestamp) !== null && _c !== void 0 ? _c : o.recordedAt) !== null && _d !== void 0 ? _d : o.createdAt), "] ").concat(label).concat(reading).concat(tail).trim();
+    return "[Observation ".concat(fmt((_d = (_c = o.timestamp) !== null && _c !== void 0 ? _c : o.recordedAt) !== null && _d !== void 0 ? _d : o.createdAt, context === null || context === void 0 ? void 0 : context.timezone), "] ").concat(label).concat(reading).concat(tail).trim();
+};
+/* ---------------------------------- group MMS threads ---------------------------------- */
+// One group MMS thread is ONE record, rendered as a header line plus one line per message — the
+// messages live inside the conversation document, so there is nothing else to render them from.
+//
+// Sender labelling copies what staff already see on the patient timeline
+// (GroupMMSTimelineItemExpanded): `sender` is an id, and an id in the thread's `enduserIds` is a
+// patient. Anything else — a staff user, an unknown id, a missing one — is 'staff', the same
+// fail-towards-staff rule `chats` uses, so an automated outbound message can never read to the
+// model as the patient speaking.
+//
+// `logOnly` messages render like any other: they were logged against the thread deliberately and
+// are part of the conversation a summary should read (which is why this source sets no
+// excludeUnsentRecords — nothing here is a draft or a future-dated send).
+//
+// A multi-patient thread is rendered in full for every member patient, matching the timeline.
+export var fmtGroupMMSConversation = function (c, _enduser, context) {
+    var _a, _b;
+    var enduserIds = Array.isArray(c === null || c === void 0 ? void 0 : c.enduserIds) ? c.enduserIds : [];
+    var messages = Array.isArray(c === null || c === void 0 ? void 0 : c.messages) ? c.messages : [];
+    // The thread matched the lookback on `updatedAt` — the time of its most recent message — so an
+    // active long-running thread arrives carrying history far outside the window. Each message is
+    // windowed again on its own `timestamp` here, which is why the loader threads lookbackMS
+    // through the format context. No lookback configured means the whole thread.
+    var since = (context === null || context === void 0 ? void 0 : context.lookbackMS) ? Date.now() - context.lookbackMS : undefined;
+    var inWindow = (since === undefined
+        ? messages
+        : messages.filter(function (m) { return typeof (m === null || m === void 0 ? void 0 : m.timestamp) === 'number' && m.timestamp >= since; }))
+        // Both the header's "last" stamp and the keep-the-most-recent truncation below read position,
+        // so chronological order is load-bearing. Every writer $pushes (so it holds today), but
+        // nothing enforces it — sorting here makes the invariant the formatter's own.
+        .slice()
+        .sort(function (a, b) { return (Number(a === null || a === void 0 ? void 0 : a.timestamp) || 0) - (Number(b === null || b === void 0 ? void 0 : b.timestamp) || 0); });
+    // Nothing recent enough to render. Reported as 'outside-lookback' rather than
+    // 'no-readable-text': the thread is perfectly readable, it is just older than the window.
+    if (inWindow.length === 0)
+        return '';
+    var lines = inWindow.map(function (m) {
+        var sender = ((m === null || m === void 0 ? void 0 : m.sender) && enduserIds.includes(m.sender)) ? 'patient' : 'staff';
+        // GroupMMSMessage.timestamp is epoch milliseconds (updatedAt, the sortField, is a Date)
+        var stamp = fmtFromMS(m === null || m === void 0 ? void 0 : m.timestamp, context === null || context === void 0 ? void 0 : context.timezone);
+        var images = Array.isArray(m === null || m === void 0 ? void 0 : m.images) ? m.images.length : 0;
+        // An MMS is often an image with no text at all, which would otherwise render as a blank line
+        var attachments = images > 0 ? "(".concat(images, " image attachment").concat(images === 1 ? '' : 's', ")") : '';
+        var message = typeof (m === null || m === void 0 ? void 0 : m.message) === 'string' ? m.message.trim() : '';
+        // joined rather than concatenated: an image with no caption must not leave a double space
+        return "  [".concat([stamp, sender].filter(Boolean).join(' '), "] ").concat([message, attachments].filter(Boolean).join(' ')).trimEnd();
+    });
+    var title = (_a = c === null || c === void 0 ? void 0 : c.title) !== null && _a !== void 0 ? _a : '';
+    var lastStamp = fmtFromMS((_b = inWindow[inWindow.length - 1]) === null || _b === void 0 ? void 0 : _b.timestamp, context === null || context === void 0 ? void 0 : context.timezone);
+    var header = function (omitted) { return ("[Group MMS \"".concat(title, "\" ").concat(lines.length, " message").concat(lines.length === 1 ? '' : 's')
+        + "".concat(lastStamp ? ", last ".concat(lastStamp) : '')
+        + "".concat(omitted > 0 ? ", oldest ".concat(omitted, " omitted for length") : '', "]")); };
+    // Truncation drops the OLDEST messages, unlike the leading `.slice(0, N)` articles and templates
+    // use: an article reads from the top, while a thread over the budget is one with a long history
+    // whose recent end is what the summary is about. Budgeted against the longest the header can
+    // get (every message omitted) so the final string is always within MAX_AI_SUMMARY_RECORD_CHARS.
+    var kept = [];
+    var used = header(lines.length).length;
+    for (var i = lines.length - 1; i >= 0; i--) {
+        var cost = lines[i].length + 1; // + the newline that joins it on
+        if (used + cost > MAX_AI_SUMMARY_RECORD_CHARS)
+            break;
+        used += cost;
+        kept.unshift(lines[i]);
+    }
+    // A single message longer than the whole budget would otherwise leave the record header-only
+    if (kept.length === 0) {
+        var truncated = lines[lines.length - 1].slice(0, Math.max(0, MAX_AI_SUMMARY_RECORD_CHARS - used - 1));
+        if (truncated)
+            kept.push(truncated);
+    }
+    return __spreadArray([header(lines.length - kept.length)], kept, true).join('\n');
 };
 /* ---------------------------------- data source metadata ---------------------------------- */
 export var DATA_SOURCE_LABELS = {
@@ -198,6 +345,7 @@ export var DATA_SOURCE_LABELS = {
     calendar_events: 'Calendar Events',
     tickets: 'Tickets',
     sms_messages: 'SMS Messages',
+    group_mms_conversations: 'Group MMS',
     emails: 'Emails',
     enduser_orders: 'Orders',
     enduser_medications: 'Medications',
@@ -214,7 +362,7 @@ export var DATA_SOURCE_MAP = {
     form_responses: {
         collection: 'form_responses',
         sortField: 'submittedAt',
-        format: function (fr) { var _a, _b; return "[Form \"".concat((_a = fr.formTitle) !== null && _a !== void 0 ? _a : '', "\" ").concat(fmt((_b = fr.submittedAt) !== null && _b !== void 0 ? _b : fr.createdAt), "] ").concat(fmtResponses(fr.responses)); },
+        format: function (fr, _enduser, context) { var _a, _b; return "[Form \"".concat((_a = fr.formTitle) !== null && _a !== void 0 ? _a : '', "\" ").concat(fmt((_b = fr.submittedAt) !== null && _b !== void 0 ? _b : fr.createdAt, context === null || context === void 0 ? void 0 : context.timezone), "] ").concat(fmtResponses(fr.responses)); },
     },
     chats: {
         collection: 'chats',
@@ -232,56 +380,83 @@ export var DATA_SOURCE_MAP = {
             // staff. Erring towards 'staff' keeps an automated outbound chat from reading to the model
             // as the patient speaking.
             var sender = (m.senderId && (members === null || members === void 0 ? void 0 : members.includes(m.senderId))) ? 'patient' : 'staff';
-            return "[Chat ".concat(fmt((_b = m.timestamp) !== null && _b !== void 0 ? _b : m.createdAt), " ").concat(sender, "] ").concat((_c = m.message) !== null && _c !== void 0 ? _c : '');
+            return "[Chat ".concat(fmt((_b = m.timestamp) !== null && _b !== void 0 ? _b : m.createdAt, context === null || context === void 0 ? void 0 : context.timezone), " ").concat(sender, "] ").concat((_c = m.message) !== null && _c !== void 0 ? _c : '');
         },
     },
     phone_calls: {
         collection: 'phone_calls',
         sortField: 'createdAt',
-        format: function (c) { var _a, _b, _c, _d; return "[Call ".concat(fmt(c.createdAt), " ").concat((_a = c.direction) !== null && _a !== void 0 ? _a : '', " ").concat((_b = c.durationInSeconds) !== null && _b !== void 0 ? _b : 0, "s] ").concat((_d = (_c = c.aiSummary) !== null && _c !== void 0 ? _c : c.summary) !== null && _d !== void 0 ? _d : ''); },
+        format: function (c, _enduser, context) { var _a, _b, _c, _d; return "[Call ".concat(fmt(c.createdAt, context === null || context === void 0 ? void 0 : context.timezone), " ").concat((_a = c.direction) !== null && _a !== void 0 ? _a : '', " ").concat((_b = c.durationInSeconds) !== null && _b !== void 0 ? _b : 0, "s] ").concat((_d = (_c = c.aiSummary) !== null && _c !== void 0 ? _c : c.summary) !== null && _d !== void 0 ? _d : ''); },
     },
     calendar_events: {
         collection: 'calendar_events',
         sortField: 'startTimeInMS',
         // startTimeInMS holds epoch milliseconds, so the lookback must compare numbers
         lookbackIsNumeric: true,
-        format: function (e) { var _a, _b; return "[Appt ".concat(fmtFromMS(e.startTimeInMS), "] ").concat((_a = e.title) !== null && _a !== void 0 ? _a : '', " (").concat((_b = e.type) !== null && _b !== void 0 ? _b : '', ")"); },
+        format: function (e, _enduser, context) { var _a, _b; return "[Appt ".concat(fmtFromMS(e.startTimeInMS, context === null || context === void 0 ? void 0 : context.timezone), "] ").concat((_a = e.title) !== null && _a !== void 0 ? _a : '', " (").concat((_b = e.type) !== null && _b !== void 0 ? _b : '', ")"); },
         enduserMatchClause: function (enduserId) { return ({ 'attendees.id': enduserId }); },
     },
     tickets: {
         collection: 'tickets',
         sortField: 'createdAt',
-        format: function (t) { var _a; return "[Ticket ".concat(fmt(t.createdAt), " ").concat(t.closedAt ? 'closed' : 'open', "] ").concat((_a = t.title) !== null && _a !== void 0 ? _a : ''); },
+        // "How long has this been unresolved?" needs both ends of the ticket's life, so the closed
+        // date is rendered rather than just the word "closed".
+        format: function (t, _enduser, context) {
+            var _a;
+            var closedAt = t.closedAt ? fmt(t.closedAt, context === null || context === void 0 ? void 0 : context.timezone) : '';
+            var status = t.closedAt ? "closed".concat(closedAt ? " ".concat(closedAt) : '') : 'open';
+            return "[Ticket created ".concat(fmt(t.createdAt, context === null || context === void 0 ? void 0 : context.timezone), ", ").concat(status, "] ").concat((_a = t.title) !== null && _a !== void 0 ? _a : '');
+        },
     },
     sms_messages: {
         collection: 'sms_messages',
         sortField: 'timestamp',
         lookbackIncludesUnstampedRecords: true,
-        format: function (s) { var _a, _b; return "[SMS ".concat(fmt((_a = s.timestamp) !== null && _a !== void 0 ? _a : s.createdAt), " ").concat(s.inbound ? 'in' : 'out', "] ").concat((_b = s.message) !== null && _b !== void 0 ? _b : ''); },
+        format: function (s, _enduser, context) { var _a, _b; return "[SMS ".concat(fmt((_a = s.timestamp) !== null && _a !== void 0 ? _a : s.createdAt, context === null || context === void 0 ? void 0 : context.timezone), " ").concat(s.inbound ? 'in' : 'out', "] ").concat((_b = s.message) !== null && _b !== void 0 ? _b : ''); },
+    },
+    group_mms_conversations: {
+        collection: 'group_mms_conversations',
+        // `updatedAt` is the time of the thread's last WRITE, which is at least as recent as its last
+        // message: every message is $pushed through an update, and the DB layer stamps updatedAt on
+        // every update. It is deliberately NOT only the last message — marking a thread read,
+        // archiving, tagging or assigning bumps it too, so the window is over-inclusive at the thread
+        // level and each message is re-windowed on its own timestamp in the formatter. `createdAt`
+        // would window on when the thread STARTED, so a long-running active conversation never matches.
+        sortField: 'updatedAt',
+        lookbackIncludesUnstampedRecords: true,
+        // The model has no `enduserId` — a thread carries a list of member patients — so without this
+        // the map's default `{ enduserId }` clause would silently match nothing at all.
+        enduserMatchClause: function (enduserId) { return ({ enduserIds: enduserId }); },
+        // Trashed threads are deleted by another name and stay out. `archivedAt`, `hiddenBy` and
+        // `hiddenForAll` deliberately do NOT: staff set those as routine inbox triage on everything
+        // they have dealt with, so excluding them would empty this source for most organizations.
+        baseFilter: { $or: [{ trashedAt: { $in: [null, ''] } }, { trashedAt: { $exists: false } }] },
+        emptyFormatReason: 'outside-lookback',
+        format: fmtGroupMMSConversation,
     },
     emails: {
         collection: 'emails',
         sortField: 'timestamp',
-        format: function (e) {
+        format: function (e, _enduser, context) {
             var _a, _b;
             var body = e.textContent || stripHtml(e.HTMLContent || '');
-            return "[Email ".concat(fmt((_a = e.timestamp) !== null && _a !== void 0 ? _a : e.createdAt), "] ").concat((_b = e.subject) !== null && _b !== void 0 ? _b : '', "\n").concat(body.slice(0, 2000));
+            return "[Email ".concat(fmt((_a = e.timestamp) !== null && _a !== void 0 ? _a : e.createdAt, context === null || context === void 0 ? void 0 : context.timezone), "] ").concat((_b = e.subject) !== null && _b !== void 0 ? _b : '', "\n").concat(body.slice(0, 2000));
         },
     },
     enduser_orders: {
         collection: 'enduser_orders',
         sortField: 'createdAt',
-        format: function (o) { var _a, _b; return "[Order ".concat(fmt(o.createdAt), "] ").concat((_a = o.status) !== null && _a !== void 0 ? _a : '', " \u2014 ").concat(((_b = o.items) !== null && _b !== void 0 ? _b : []).map(function (i) { var _a, _b; return (_b = (_a = i.title) !== null && _a !== void 0 ? _a : i.sku) !== null && _b !== void 0 ? _b : ''; }).filter(Boolean).join(', ')); },
+        format: function (o, _enduser, context) { var _a, _b; return "[Order ".concat(fmt(o.createdAt, context === null || context === void 0 ? void 0 : context.timezone), "] ").concat((_a = o.status) !== null && _a !== void 0 ? _a : '', " \u2014 ").concat(((_b = o.items) !== null && _b !== void 0 ? _b : []).map(function (i) { var _a, _b; return (_b = (_a = i.title) !== null && _a !== void 0 ? _a : i.sku) !== null && _b !== void 0 ? _b : ''; }).filter(Boolean).join(', ')); },
     },
     enduser_medications: {
         collection: 'enduser_medications',
         sortField: 'createdAt',
-        format: function (m) { var _a, _b, _c; return "[Medication ".concat(fmt(m.createdAt), "] ").concat((_a = m.title) !== null && _a !== void 0 ? _a : '', " ").concat((_b = m.dosage) !== null && _b !== void 0 ? _b : '', " ").concat((_c = m.status) !== null && _c !== void 0 ? _c : '').trim(); },
+        format: function (m, _enduser, context) { var _a, _b, _c; return "[Medication ".concat(fmt(m.createdAt, context === null || context === void 0 ? void 0 : context.timezone), "] ").concat((_a = m.title) !== null && _a !== void 0 ? _a : '', " ").concat((_b = m.dosage) !== null && _b !== void 0 ? _b : '', " ").concat((_c = m.status) !== null && _c !== void 0 ? _c : '').trim(); },
     },
     purchases: {
         collection: 'purchases',
         sortField: 'createdAt',
-        format: function (p) { var _a; return "[Purchase ".concat(fmt(p.createdAt), "] ").concat((_a = p.title) !== null && _a !== void 0 ? _a : '', " ").concat(typeof p.amount === 'number' ? "$".concat(p.amount) : '').trim(); },
+        format: function (p, _enduser, context) { var _a; return "[Purchase ".concat(fmt(p.createdAt, context === null || context === void 0 ? void 0 : context.timezone), "] ").concat((_a = p.title) !== null && _a !== void 0 ? _a : '', " ").concat(typeof p.amount === 'number' ? "$".concat(p.amount) : '').trim(); },
     },
     // Org-wide reference sources below: approved material the AI is grounded in, rather than
     // records describing the patient. Selected by `ids`, so no enduser clause and no lookback.
@@ -454,13 +629,22 @@ export var normalizeAISummaryChatRooms = function (rooms) {
     }
     return { roomIds: roomIds, enduserIdsByRoomId: enduserIdsByRoomId };
 };
-// Join the profile block + per-source blocks, estimate tokens, and enforce the input budget.
+// "Two days ago" is unanswerable without knowing what today is, and every record timestamp below
+// is rendered in one zone, so both facts are stated once at the top of the context. Emitted
+// unconditionally — even when no source produced a line — so the model never has to guess either.
+export var aiSummaryCurrentDateBlock = function (timezone, now) {
+    if (now === void 0) { now = new Date(); }
+    return ("Current date and time: ".concat(fmt(now, timezone), " (").concat(aiSummaryTimezoneLabel(timezone), "). ")
+        + "All timestamps in this context are in this timezone.");
+};
+// Join the current-date header + profile block + per-source blocks, estimate tokens, and enforce
+// the input budget.
 export var assembleAISummaryContext = function (_a) {
-    var profileBlock = _a.profileBlock, sources = _a.sources;
+    var profileBlock = _a.profileBlock, sources = _a.sources, timezone = _a.timezone, now = _a.now;
     var blocks = sources
         .filter(function (s) { return s.formattedLines.length > 0; })
         .map(function (s) { return "## ".concat(s.heading, "\n").concat(s.formattedLines.join('\n')); });
-    var contextText = __spreadArray([profileBlock], blocks, true).filter(Boolean).join('\n\n');
+    var contextText = __spreadArray([aiSummaryCurrentDateBlock(timezone, now), profileBlock], blocks, true).filter(Boolean).join('\n\n');
     var estimatedTokens = Math.ceil(contextText.length / 4);
     if (estimatedTokens > MAX_AI_SUMMARY_INPUT_TOKENS) {
         throw aiSummaryError(413, 'AI summary input exceeds token budget — reduce limits, shorten lookback, or remove data sources.');
@@ -471,9 +655,9 @@ export var assembleAISummaryContext = function (_a) {
 // the DB (api). Per-source failures degrade to an empty section so one broken collection doesn't
 // sink the whole summary; filter-sanitization (400) and the token-budget (413) errors still throw.
 export var loadAISummaryContext = function (_a) {
-    var enduserId = _a.enduserId, configuration = _a.configuration, loadProfile = _a.loadProfile, loadRecords = _a.loadRecords, loadChatRooms = _a.loadChatRooms, _b = _a.includeProfile, includeProfile = _b === void 0 ? true : _b;
+    var enduserId = _a.enduserId, configuration = _a.configuration, loadProfile = _a.loadProfile, loadRecords = _a.loadRecords, loadChatRooms = _a.loadChatRooms, _b = _a.includeProfile, includeProfile = _b === void 0 ? true : _b, timezone = _a.timezone;
     return __awaiter(void 0, void 0, void 0, function () {
-        var dataSources, needsEnduserForFormat, enduser, _c, profileBlock, chatRooms, _d, err_1, formatContext, sections, sources;
+        var dataSources, needsEnduserForFormat, enduser, _c, profileBlock, chatRooms, _d, err_1, sharedFormatContext, sections, sources;
         var _e;
         return __generator(this, function (_f) {
             switch (_f.label) {
@@ -506,17 +690,18 @@ export var loadAISummaryContext = function (_a) {
                     console.error('Failed to load chat rooms for AI summary', err_1);
                     return [3 /*break*/, 7];
                 case 7:
-                    formatContext = { enduserIdsByRoomId: chatRooms.enduserIdsByRoomId };
+                    sharedFormatContext = { enduserIdsByRoomId: chatRooms.enduserIdsByRoomId, timezone: timezone };
                     return [4 /*yield*/, Promise.all(dataSources.map(function (ds) { return __awaiter(void 0, void 0, void 0, function () {
-                            var m, _a, mdbFilter, effectiveLimit, ids, base, records, list, formattedLines, skipped, _i, list_1, record, line, err_2;
-                            var _b, _c, _d, _e, _f;
-                            return __generator(this, function (_g) {
-                                switch (_g.label) {
+                            var m, _a, mdbFilter, effectiveLimit, ids, formatContext, base, records, list, formattedLines, skipped, _i, list_1, record, line, err_2;
+                            var _b, _c, _d, _e, _f, _g;
+                            return __generator(this, function (_h) {
+                                switch (_h.label) {
                                     case 0:
                                         m = DATA_SOURCE_MAP[ds.type];
                                         if (!m)
                                             return [2 /*return*/, null];
                                         _a = buildAISummarySourceFilter({ ds: ds, enduserId: enduserId, mapEntry: m, roomIds: chatRooms.roomIds }), mdbFilter = _a.mdbFilter, effectiveLimit = _a.effectiveLimit, ids = _a.ids;
+                                        formatContext = __assign(__assign({}, sharedFormatContext), { lookbackMS: ds.lookbackMS });
                                         base = {
                                             type: ds.type,
                                             label: (_b = DATA_SOURCE_LABELS[ds.type]) !== null && _b !== void 0 ? _b : ds.type,
@@ -528,12 +713,12 @@ export var loadAISummaryContext = function (_a) {
                                         // nothing", never "no id restriction" (which would pull the newest org-wide records into the prompt)
                                         if (m.enduserScoped === false && !ids)
                                             return [2 /*return*/, __assign(__assign({}, base), { records: [], formattedLines: [], skipped: [] })];
-                                        _g.label = 1;
+                                        _h.label = 1;
                                     case 1:
-                                        _g.trys.push([1, 3, , 4]);
+                                        _h.trys.push([1, 3, , 4]);
                                         return [4 /*yield*/, loadRecords({ type: ds.type, collection: m.collection, mdbFilter: mdbFilter, limit: effectiveLimit, sortField: m.sortField, ids: ids })];
                                     case 2:
-                                        records = _g.sent();
+                                        records = _h.sent();
                                         list = Array.isArray(records) ? records : [];
                                         formattedLines = [];
                                         skipped = [];
@@ -543,11 +728,15 @@ export var loadAISummaryContext = function (_a) {
                                             if (line)
                                                 formattedLines.push(line);
                                             else
-                                                skipped.push({ id: (_f = (_c = record === null || record === void 0 ? void 0 : record.id) !== null && _c !== void 0 ? _c : (_e = (_d = record === null || record === void 0 ? void 0 : record._id) === null || _d === void 0 ? void 0 : _d.toString) === null || _e === void 0 ? void 0 : _e.call(_d)) !== null && _f !== void 0 ? _f : '', title: record === null || record === void 0 ? void 0 : record.title, reason: 'no-readable-text' });
+                                                skipped.push({
+                                                    id: (_f = (_c = record === null || record === void 0 ? void 0 : record.id) !== null && _c !== void 0 ? _c : (_e = (_d = record === null || record === void 0 ? void 0 : record._id) === null || _d === void 0 ? void 0 : _d.toString) === null || _e === void 0 ? void 0 : _e.call(_d)) !== null && _f !== void 0 ? _f : '',
+                                                    title: record === null || record === void 0 ? void 0 : record.title,
+                                                    reason: (_g = m.emptyFormatReason) !== null && _g !== void 0 ? _g : 'no-readable-text',
+                                                });
                                         }
                                         return [2 /*return*/, __assign(__assign({}, base), { records: list, formattedLines: formattedLines, skipped: skipped })];
                                     case 3:
-                                        err_2 = _g.sent();
+                                        err_2 = _h.sent();
                                         console.error("Failed to load ".concat(ds.type, " for AI summary"), err_2);
                                         return [2 /*return*/, __assign(__assign({}, base), { records: [], formattedLines: [], skipped: [] })];
                                     case 4: return [2 /*return*/];
@@ -557,7 +746,7 @@ export var loadAISummaryContext = function (_a) {
                 case 8:
                     sections = _f.sent();
                     sources = sections.filter(function (s) { return s !== null; });
-                    return [2 /*return*/, assembleAISummaryContext({ profileBlock: profileBlock, sources: sources })];
+                    return [2 /*return*/, assembleAISummaryContext({ profileBlock: profileBlock, sources: sources, timezone: timezone })];
             }
         });
     });

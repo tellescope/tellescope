@@ -381,7 +381,15 @@ var NumberInput = function (_a) {
     // autoFocus only in the one-question-at-a-time wizard: on a single-page form this input can mount below
     // the caret (conditional logic revealing it mid-edit) and steal focus, scrolling itself into view.
     // Callers that pass neither isSinglePage nor autoFocus keep today's behavior.
-    (0, jsx_runtime_1.jsx)(material_1.TextField, __assign({ ref: inputRef, autoFocus: autoFocus !== null && autoFocus !== void 0 ? autoFocus : !isSinglePage, InputProps: exports.defaultInputProps }, props, { required: !field.isOptional, fullWidth: true, type: "number", value: value, onChange: function (e) { return onChange(parseInt(e.target.value), field.id); }, label: (!field.title && field.placeholder) ? field.placeholder : props.label, placeholder: field.placeholder || (0, __1.form_display_text_for_language)(form, "Enter a number...", ''), onScroll: function (e) { return e.preventDefault(); }, sx: {
+    (0, jsx_runtime_1.jsx)(material_1.TextField, __assign({ ref: inputRef, autoFocus: autoFocus !== null && autoFocus !== void 0 ? autoFocus : !isSinglePage, InputProps: exports.defaultInputProps }, props, { required: !field.isOptional, fullWidth: true, type: "number", 
+        // fully controlled: React only writes a number input's DOM value when it differs numerically (a loose
+        // `node.value != value`), so an in-progress "12." or "12.50" is never overwritten by the parsed answer.
+        // Pass the answer through as a number -- stringifying it ("12.5") would make that a strict string compare.
+        value: value !== null && value !== void 0 ? value : '', inputProps: __assign(__assign({}, props.inputProps), { step: 'any' }), onChange: function (e) {
+            var parsed = parseFloat(e.target.value);
+            // never emit NaN: it survives the `typeof value === 'number'` answer check and serializes to null
+            onChange((isNaN(parsed) ? undefined : parsed), field.id);
+        }, label: (!field.title && field.placeholder) ? field.placeholder : props.label, placeholder: field.placeholder || (0, __1.form_display_text_for_language)(form, "Enter a number...", ''), onScroll: function (e) { return e.preventDefault(); }, sx: {
             '& input[type=number]': {
                 '-moz-appearance': 'textfield'
             },
@@ -396,75 +404,120 @@ var NumberInput = function (_a) {
         } })));
 };
 exports.NumberInput = NumberInput;
-var InsuranceInput = function (_a) {
-    var _b, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s;
-    var field = _a.field, onDatabaseSelect = _a.onDatabaseSelect, value = _a.value, onChange = _a.onChange, form = _a.form, responses = _a.responses, enduser = _a.enduser, inputProps = _a.inputProps, props = __rest(_a, ["field", "onDatabaseSelect", "value", "onChange", "form", "responses", "enduser", "inputProps"]);
-    var session = (0, __1.useResolvedSession)();
-    var _t = (0, react_2.useState)([]), payers = _t[0], setPayers = _t[1];
-    var _u = (0, react_2.useState)(''), query = _u[0], setQuery = _u[1];
-    var addressQuestion = (0, react_2.useMemo)(function () { return responses === null || responses === void 0 ? void 0 : responses.find(function (r) {
-        var _a;
-        if (r.answer.type !== 'Address')
-            return false;
-        if (r.field.intakeField !== 'Address')
-            return false;
-        // make sure state is actually defined (in case of multiple address questions, where 1+ are blank)
-        if (!((_a = r.answer.value) === null || _a === void 0 ? void 0 : _a.state))
-            return false;
-        return true;
-    }); }, [responses]);
-    var state = (0, react_2.useMemo)(function () {
-        var _a, _b, _d;
-        return ((((_a = addressQuestion === null || addressQuestion === void 0 ? void 0 : addressQuestion.answer) === null || _a === void 0 ? void 0 : _a.type) === 'Address' ? (_d = (_b = addressQuestion === null || addressQuestion === void 0 ? void 0 : addressQuestion.answer) === null || _b === void 0 ? void 0 : _b.value) === null || _d === void 0 ? void 0 : _d.state : undefined) || (enduser === null || enduser === void 0 ? void 0 : enduser.state));
-    }, [enduser === null || enduser === void 0 ? void 0 : enduser.state, addressQuestion]);
-    // load from database
-    var loadRef = (0, react_2.useRef)(false); // so session changes don't cause
+var insurance_record_column = function (record, label) {
+    var _a, _b;
+    return (((_b = (_a = record.values.find(function (v) { var _a, _b; return ((_b = (_a = v.label) === null || _a === void 0 ? void 0 : _a.trim()) === null || _b === void 0 ? void 0 : _b.toLowerCase()) === label; })) === null || _a === void 0 ? void 0 : _a.value) === null || _b === void 0 ? void 0 : _b.toString()) || '');
+};
+var payer_for_insurance_record = function (record) { return ({
+    id: insurance_record_column(record, 'id'),
+    name: insurance_record_column(record, 'name'),
+    state: insurance_record_column(record, 'state'),
+    type: insurance_record_column(record, 'type'),
+    databaseRecord: record,
+}); };
+// a payer is offered when its record has no state, when the patient has no state, or when they match
+var payer_matches_state = function (payer, state) { return (!payer.state || !state || payer.state === state); };
+var insurance_uses_proxy_lookup = function (field) {
+    var _a, _b, _d;
+    return (((_a = field === null || field === void 0 ? void 0 : field.options) === null || _a === void 0 ? void 0 : _a.dataSource) === constants_1.CANVAS_TITLE
+        || ((_b = field === null || field === void 0 ? void 0 : field.options) === null || _b === void 0 ? void 0 : _b.dataSource) === constants_1.BRIDGE_TITLE
+        || ((_d = field === null || field === void 0 ? void 0 : field.options) === null || _d === void 0 ? void 0 : _d.dataSource) === constants_1.STEDI_TITLE);
+};
+// The Insurer field itself. The list of payers and how it is searched differ by data source, so the
+// two sources mount as separate children (below) and share this presentation.
+var InsurancePayerAutocomplete = function (_a) {
+    var _b, _d;
+    var field = _a.field, form = _a.form, value = _a.value, onChange = _a.onChange, onDatabaseSelect = _a.onDatabaseSelect, inputProps = _a.inputProps, payers = _a.payers, onQueryChange = _a.onQueryChange, isSearching = _a.isSearching, helperText = _a.helperText;
+    return ((0, jsx_runtime_1.jsx)(material_1.Autocomplete, { freeSolo: !((_b = field.options) === null || _b === void 0 ? void 0 : _b.requirePredefinedInsurer), options: payers.map(function (p) { return p.name; }), value: (value === null || value === void 0 ? void 0 : value.payerName) || '', loading: isSearching, onChange: function (e, v) {
+            var matched = payers.find(function (p) { return p.name === v; });
+            if (matched === null || matched === void 0 ? void 0 : matched.databaseRecord) {
+                onDatabaseSelect === null || onDatabaseSelect === void 0 ? void 0 : onDatabaseSelect([matched.databaseRecord]);
+            }
+            onChange(__assign(__assign({}, value), { payerName: v || '', payerId: (matched === null || matched === void 0 ? void 0 : matched.id) || '', payerType: (matched === null || matched === void 0 ? void 0 : matched.type) || '' }), field.id);
+        }, onInputChange: ((_d = field.options) === null || _d === void 0 ? void 0 : _d.requirePredefinedInsurer)
+            ? function (e, v, reason) { onQueryChange(v, reason); }
+            : function (e, v, reason) {
+                var _a, _b, _d;
+                onQueryChange(v, reason);
+                var databaseRecord = (_a = payers.find(function (p) { return p.name === v; })) === null || _a === void 0 ? void 0 : _a.databaseRecord;
+                if (databaseRecord) {
+                    onDatabaseSelect === null || onDatabaseSelect === void 0 ? void 0 : onDatabaseSelect([databaseRecord]);
+                }
+                // don't lose existing payerId on back-and-forth navigation
+                onChange(__assign(__assign({}, value), { payerName: v || '', payerId: ((value === null || value === void 0 ? void 0 : value.payerName) === v && (value === null || value === void 0 ? void 0 : value.payerId) ? value.payerId : '') || ((_b = payers.find(function (p) { return p.name === v; })) === null || _b === void 0 ? void 0 : _b.id) || '', payerType: ((_d = payers.find(function (p) { return p.name === v; })) === null || _d === void 0 ? void 0 : _d.type) || '' }), field.id);
+            }, renderInput: function (params) { return ((0, jsx_runtime_1.jsx)(material_1.TextField, __assign({}, params, { InputProps: __assign(__assign({}, params.InputProps), { sx: (inputProps || exports.defaultInputProps).sx, endAdornment: ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [isSearching ? (0, jsx_runtime_1.jsx)(material_1.CircularProgress, { color: "inherit", size: 20 }) : null, params.InputProps.endAdornment] })) }), required: !field.isOptional, size: "small", label: (0, __1.form_display_text_for_language)(form, "Insurer"), placeholder: insurance_uses_proxy_lookup(field) ? (0, __1.form_display_text_for_language)(form, "Search insurer...") : (0, __1.form_display_text_for_language)(form, "Insurer"), helperText: helperText }))); } }));
+};
+// Tellescope Database payers. Loads one page up-front and runs the same debounced server-side search
+// as the Database question (useDatabaseChoices) from MIN_SEARCH_CHARS on, so a payer database of any
+// size never downloads in full. Mounted only on this branch: the hook has no skip flag, so calling it
+// for a Canvas/Bridge/Stedi field would issue a request and write a shared empty-databaseId cache entry.
+var InsuranceDatabasePayerInput = function (_a) {
+    var _b;
+    var state = _a.state, props = __rest(_a, ["state"]);
+    var field = props.field, form = props.form, value = props.value;
+    var _d = (0, react_2.useState)(''), typing = _d[0], setTyping = _d[1];
+    // The hook sorts what it caches by label_for_database_record, which reads options.databaseLabel --
+    // unset on an Insurance field, so what this writes to the shared choicesForDatabase entry stays in
+    // server order. A Database Select question pointed at the SAME database and mounted after this one
+    // in the same page load therefore reads an unsorted cache. Accepted: setting databaseLabel here
+    // would change which column this question's own lookups read.
+    var _e = useDatabaseChoices({
+        databaseId: (_b = field.options) === null || _b === void 0 ? void 0 : _b.databaseId,
+        field: field,
+        searchQuery: typing,
+    }), choices = _e.choices, isSearching = _e.isSearching, minSearchChars = _e.minSearchChars;
+    // The selected payer has to survive the result set changing under it (a new search, or the search
+    // being cleared), or its id/type and its database record are lost on the next keystroke.
+    var selectedPayerCache = (0, react_2.useRef)(new Map());
+    var selectedName = (value === null || value === void 0 ? void 0 : value.payerName) || '';
     (0, react_2.useEffect)(function () {
-        var _a, _b, _d;
-        if (((_a = field === null || field === void 0 ? void 0 : field.options) === null || _a === void 0 ? void 0 : _a.dataSource) === constants_1.CANVAS_TITLE)
-            return; // instead, look-up while typing against Canvas Search API
-        if (((_b = field === null || field === void 0 ? void 0 : field.options) === null || _b === void 0 ? void 0 : _b.dataSource) === constants_1.BRIDGE_TITLE)
-            return; // instead, look-up while typing against Bridge Search API
-        if (((_d = field === null || field === void 0 ? void 0 : field.options) === null || _d === void 0 ? void 0 : _d.dataSource) === constants_1.STEDI_TITLE)
-            return; // instead, look-up while typing against Stedi Payer Network
-        if (loadRef.current)
+        if (!selectedName)
             return;
-        loadRef.current = true;
-        // just load all at once, should be reasonably performant compared to paging
-        session.api.form_fields.load_choices_from_database({ fieldId: field.id, limit: 10000 })
-            .then(function (_a) {
-            var choices = _a.choices;
-            return setPayers(choices
-                .map(function (c) {
-                var _a, _b, _d, _e, _f, _g, _h, _j;
-                return ({
-                    id: ((_b = (_a = c.values.find(function (v) { var _a, _b; return ((_b = (_a = v.label) === null || _a === void 0 ? void 0 : _a.trim()) === null || _b === void 0 ? void 0 : _b.toLowerCase()) === 'id'; })) === null || _a === void 0 ? void 0 : _a.value) === null || _b === void 0 ? void 0 : _b.toString()) || '',
-                    name: ((_e = (_d = c.values.find(function (v) { var _a, _b; return ((_b = (_a = v.label) === null || _a === void 0 ? void 0 : _a.trim()) === null || _b === void 0 ? void 0 : _b.toLowerCase()) === 'name'; })) === null || _d === void 0 ? void 0 : _d.value) === null || _e === void 0 ? void 0 : _e.toString()) || '',
-                    state: ((_g = (_f = c.values.find(function (v) { var _a, _b; return ((_b = (_a = v.label) === null || _a === void 0 ? void 0 : _a.trim()) === null || _b === void 0 ? void 0 : _b.toLowerCase()) === 'state'; })) === null || _f === void 0 ? void 0 : _f.value) === null || _g === void 0 ? void 0 : _g.toString()) || '',
-                    type: ((_j = (_h = c.values.find(function (v) { var _a, _b; return ((_b = (_a = v.label) === null || _a === void 0 ? void 0 : _a.trim()) === null || _b === void 0 ? void 0 : _b.toLowerCase()) === 'type'; })) === null || _h === void 0 ? void 0 : _h.value) === null || _j === void 0 ? void 0 : _j.toString()) || '',
-                    databaseRecord: c,
-                });
-            })
-                .filter(function (c) { return !c.state || !state || (c.state === state); }));
-        })
-            .catch(console.error);
-    }, [session, state, (_b = field === null || field === void 0 ? void 0 : field.options) === null || _b === void 0 ? void 0 : _b.dataSource]);
-    // load from 3rd-party on search only
+        var selected = choices.find(function (c) { return insurance_record_column(c, 'name') === selectedName; });
+        if (selected) {
+            selectedPayerCache.current.set(selectedName, payer_for_insurance_record(selected));
+        }
+    }, [choices, selectedName]);
+    var payers = (0, react_2.useMemo)(function () {
+        // the state rule is applied here, over the current choices, so that answering an Address question
+        // after the payers have loaded re-filters the list
+        var filtered = (choices
+            .map(function (c) { return payer_for_insurance_record(c); })
+            .filter(function (p) { return payer_matches_state(p, state); }));
+        var selected = selectedName ? selectedPayerCache.current.get(selectedName) : undefined;
+        return (selected && !filtered.some(function (p) { return p.name === selectedName; }))
+            ? __spreadArray(__spreadArray([], filtered, true), [selected], false) : filtered;
+    }, [choices, state, selectedName]);
+    var typed = typing.trim().length;
+    return ((0, jsx_runtime_1.jsx)(InsurancePayerAutocomplete, __assign({}, props, { payers: payers, isSearching: isSearching, onQueryChange: function (v, reason) {
+            // MUI resets the input to the selected option's label on selection (and on a value change
+            // while unfocused). Searching for it would replace the results the patient was looking at.
+            if (reason === 'reset')
+                return;
+            setTyping(v);
+        }, helperText: (typed > 0 && typed < minSearchChars)
+            ? (0, __1.form_display_text_for_language)(form, "Type 3 characters to search")
+            : undefined })));
+};
+// Canvas, Bridge and Stedi payers, looked up against the integration while typing. Unchanged.
+var InsuranceProxyPayerInput = function (props) {
+    var _a;
+    var field = props.field;
+    var session = (0, __1.useResolvedSession)();
+    var _b = (0, react_2.useState)([]), payers = _b[0], setPayers = _b[1];
+    var _d = (0, react_2.useState)(''), query = _d[0], setQuery = _d[1];
     var searchRef = (0, react_2.useRef)(query);
     (0, react_2.useEffect)(function () {
-        var _a, _b, _d, _e, _f, _g;
-        if (((_a = field === null || field === void 0 ? void 0 : field.options) === null || _a === void 0 ? void 0 : _a.dataSource) !== constants_1.CANVAS_TITLE && ((_b = field === null || field === void 0 ? void 0 : field.options) === null || _b === void 0 ? void 0 : _b.dataSource) !== constants_1.BRIDGE_TITLE && ((_d = field === null || field === void 0 ? void 0 : field.options) === null || _d === void 0 ? void 0 : _d.dataSource) !== constants_1.STEDI_TITLE) {
-            return;
-        }
+        var _a, _b, _d;
         if (!query)
             return;
         if (searchRef.current === query)
             return;
         searchRef.current = query;
-        var integration = (((_e = field === null || field === void 0 ? void 0 : field.options) === null || _e === void 0 ? void 0 : _e.dataSource) === constants_1.CANVAS_TITLE ? constants_1.CANVAS_TITLE
-            : ((_f = field === null || field === void 0 ? void 0 : field.options) === null || _f === void 0 ? void 0 : _f.dataSource) === constants_1.STEDI_TITLE ? constants_1.STEDI_TITLE
+        var integration = (((_a = field === null || field === void 0 ? void 0 : field.options) === null || _a === void 0 ? void 0 : _a.dataSource) === constants_1.CANVAS_TITLE ? constants_1.CANVAS_TITLE
+            : ((_b = field === null || field === void 0 ? void 0 : field.options) === null || _b === void 0 ? void 0 : _b.dataSource) === constants_1.STEDI_TITLE ? constants_1.STEDI_TITLE
                 : constants_1.BRIDGE_TITLE);
-        var type = ((_g = field === null || field === void 0 ? void 0 : field.options) === null || _g === void 0 ? void 0 : _g.dataSource) === constants_1.CANVAS_TITLE ? 'organizations' : 'payers';
+        var type = ((_d = field === null || field === void 0 ? void 0 : field.options) === null || _d === void 0 ? void 0 : _d.dataSource) === constants_1.CANVAS_TITLE ? 'organizations' : 'payers';
         var t = setTimeout(function () { return (session.api.integrations.proxy_read({
             integration: integration,
             query: query,
@@ -487,47 +540,48 @@ var InsuranceInput = function (_a) {
         })
             .catch(console.error)); }, 300);
         return function () { clearTimeout(t); };
-    }, [session, (_d = field === null || field === void 0 ? void 0 : field.options) === null || _d === void 0 ? void 0 : _d.dataSource, query]);
-    return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, spacing: 2, sx: { mt: '0' } }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, xs: 12, sm: 6 }, { children: (0, jsx_runtime_1.jsx)(material_1.Autocomplete, { freeSolo: !((_e = field.options) === null || _e === void 0 ? void 0 : _e.requirePredefinedInsurer), options: payers.map(function (p) { return p.name; }), value: (value === null || value === void 0 ? void 0 : value.payerName) || '', onChange: function (e, v) {
-                        var matched = payers.find(function (p) { return p.name === v; });
-                        if (matched === null || matched === void 0 ? void 0 : matched.databaseRecord) {
-                            onDatabaseSelect === null || onDatabaseSelect === void 0 ? void 0 : onDatabaseSelect([matched.databaseRecord]);
-                        }
-                        onChange(__assign(__assign({}, value), { payerName: v || '', payerId: (matched === null || matched === void 0 ? void 0 : matched.id) || '', payerType: (matched === null || matched === void 0 ? void 0 : matched.type) || '' }), field.id);
-                    }, onInputChange: ((_f = field.options) === null || _f === void 0 ? void 0 : _f.requirePredefinedInsurer)
-                        ? function (e, v) { if (v) {
-                            setQuery(v);
-                        } }
-                        : function (e, v) {
-                            var _a, _b, _d;
-                            if (v) {
-                                setQuery(v);
-                            }
-                            var databaseRecord = (_a = payers.find(function (p) { return p.name === v; })) === null || _a === void 0 ? void 0 : _a.databaseRecord;
-                            if (databaseRecord) {
-                                onDatabaseSelect === null || onDatabaseSelect === void 0 ? void 0 : onDatabaseSelect([databaseRecord]);
-                            }
-                            // don't lose existing payerId on back-and-forth navigation
-                            onChange(__assign(__assign({}, value), { payerName: v || '', payerId: ((value === null || value === void 0 ? void 0 : value.payerName) === v && (value === null || value === void 0 ? void 0 : value.payerId) ? value.payerId : '') || ((_b = payers.find(function (p) { return p.name === v; })) === null || _b === void 0 ? void 0 : _b.id) || '', payerType: ((_d = payers.find(function (p) { return p.name === v; })) === null || _d === void 0 ? void 0 : _d.type) || '' }), field.id);
-                        }, renderInput: function (params) {
-                        var _a, _b, _d;
-                        return ((0, jsx_runtime_1.jsx)(material_1.TextField, __assign({}, params, { InputProps: __assign(__assign({}, params.InputProps), { sx: (inputProps || exports.defaultInputProps).sx }), required: !field.isOptional, size: "small", label: (0, __1.form_display_text_for_language)(form, "Insurer"), placeholder: (((_a = field.options) === null || _a === void 0 ? void 0 : _a.dataSource) === constants_1.CANVAS_TITLE || ((_b = field.options) === null || _b === void 0 ? void 0 : _b.dataSource) === constants_1.BRIDGE_TITLE || ((_d = field.options) === null || _d === void 0 ? void 0 : _d.dataSource) === constants_1.STEDI_TITLE) ? (0, __1.form_display_text_for_language)(form, "Search insurer...") : (0, __1.form_display_text_for_language)(form, "Insurer") })));
-                    } }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, xs: 12, sm: 6 }, { children: (0, jsx_runtime_1.jsx)(material_1.TextField, { InputProps: inputProps || exports.defaultInputProps, required: !field.isOptional, fullWidth: true, value: (_g = value === null || value === void 0 ? void 0 : value.memberId) !== null && _g !== void 0 ? _g : '', onChange: function (e) { return onChange(__assign(__assign({}, value), { memberId: e.target.value }), field.id); }, label: (0, __1.form_display_text_for_language)(form, "Member ID", ''), size: "small" }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, xs: 12, sm: 6 }, { children: (0, jsx_runtime_1.jsx)(material_1.TextField, { InputProps: inputProps || exports.defaultInputProps, required: false, fullWidth: true, value: (_h = value === null || value === void 0 ? void 0 : value.planName) !== null && _h !== void 0 ? _h : '', onChange: function (e) { return onChange(__assign(__assign({}, value), { planName: e.target.value }), field.id); }, label: (0, __1.form_display_text_for_language)(form, "Plan Name", ''), size: "small" }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, xs: 12, sm: 6 }, { children: (0, jsx_runtime_1.jsx)(exports.DateStringInput, { size: "small", label: (0, __1.form_display_text_for_language)(form, "Plan Start Date"), inputProps: inputProps, field: __assign(__assign({}, field), { isOptional: true }), value: (value === null || value === void 0 ? void 0 : value.startDate) || '', onChange: function (startDate) {
+    }, [session, (_a = field === null || field === void 0 ? void 0 : field.options) === null || _a === void 0 ? void 0 : _a.dataSource, query]);
+    return ((0, jsx_runtime_1.jsx)(InsurancePayerAutocomplete, __assign({}, props, { payers: payers, onQueryChange: function (v) { if (v) {
+            setQuery(v);
+        } } })));
+};
+var InsuranceInput = function (_a) {
+    var _b, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
+    var field = _a.field, onDatabaseSelect = _a.onDatabaseSelect, value = _a.value, onChange = _a.onChange, form = _a.form, responses = _a.responses, enduser = _a.enduser, inputProps = _a.inputProps, props = __rest(_a, ["field", "onDatabaseSelect", "value", "onChange", "form", "responses", "enduser", "inputProps"]);
+    var addressQuestion = (0, react_2.useMemo)(function () { return responses === null || responses === void 0 ? void 0 : responses.find(function (r) {
+        var _a;
+        if (r.answer.type !== 'Address')
+            return false;
+        if (r.field.intakeField !== 'Address')
+            return false;
+        // make sure state is actually defined (in case of multiple address questions, where 1+ are blank)
+        if (!((_a = r.answer.value) === null || _a === void 0 ? void 0 : _a.state))
+            return false;
+        return true;
+    }); }, [responses]);
+    var state = (0, react_2.useMemo)(function () {
+        var _a, _b, _d;
+        return ((((_a = addressQuestion === null || addressQuestion === void 0 ? void 0 : addressQuestion.answer) === null || _a === void 0 ? void 0 : _a.type) === 'Address' ? (_d = (_b = addressQuestion === null || addressQuestion === void 0 ? void 0 : addressQuestion.answer) === null || _b === void 0 ? void 0 : _b.value) === null || _d === void 0 ? void 0 : _d.state : undefined) || (enduser === null || enduser === void 0 ? void 0 : enduser.state));
+    }, [enduser === null || enduser === void 0 ? void 0 : enduser.state, addressQuestion]);
+    var payerInputProps = { field: field, form: form, value: value, onChange: onChange, onDatabaseSelect: onDatabaseSelect, inputProps: inputProps };
+    return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, spacing: 2, sx: { mt: '0' } }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, xs: 12, sm: 6 }, { children: insurance_uses_proxy_lookup(field)
+                    ? (0, jsx_runtime_1.jsx)(InsuranceProxyPayerInput, __assign({}, payerInputProps))
+                    : (0, jsx_runtime_1.jsx)(InsuranceDatabasePayerInput, __assign({}, payerInputProps, { state: state })) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, xs: 12, sm: 6 }, { children: (0, jsx_runtime_1.jsx)(material_1.TextField, { InputProps: inputProps || exports.defaultInputProps, required: !field.isOptional, fullWidth: true, value: (_b = value === null || value === void 0 ? void 0 : value.memberId) !== null && _b !== void 0 ? _b : '', onChange: function (e) { return onChange(__assign(__assign({}, value), { memberId: e.target.value }), field.id); }, label: (0, __1.form_display_text_for_language)(form, "Member ID", ''), size: "small" }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, xs: 12, sm: 6 }, { children: (0, jsx_runtime_1.jsx)(material_1.TextField, { InputProps: inputProps || exports.defaultInputProps, required: false, fullWidth: true, value: (_d = value === null || value === void 0 ? void 0 : value.planName) !== null && _d !== void 0 ? _d : '', onChange: function (e) { return onChange(__assign(__assign({}, value), { planName: e.target.value }), field.id); }, label: (0, __1.form_display_text_for_language)(form, "Plan Name", ''), size: "small" }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, xs: 12, sm: 6 }, { children: (0, jsx_runtime_1.jsx)(exports.DateStringInput, { size: "small", label: (0, __1.form_display_text_for_language)(form, "Plan Start Date"), inputProps: inputProps, field: __assign(__assign({}, field), { isOptional: true }), value: (value === null || value === void 0 ? void 0 : value.startDate) || '', onChange: function (startDate) {
                         return onChange(__assign(__assign({}, value), { startDate: startDate }), field.id);
-                    } }) })), ((_j = field.options) === null || _j === void 0 ? void 0 : _j.includeGroupNumber) &&
-                (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, xs: 12 }, { children: (0, jsx_runtime_1.jsx)(material_1.TextField, { InputProps: inputProps || exports.defaultInputProps, fullWidth: true, value: (_k = value === null || value === void 0 ? void 0 : value.groupNumber) !== null && _k !== void 0 ? _k : '', onChange: function (e) { return onChange(__assign(__assign({}, value), { groupNumber: e.target.value }), field.id); }, label: (0, __1.form_display_text_for_language)(form, "Group Number", ''), size: "small" }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, xs: 12 }, { children: (0, jsx_runtime_1.jsx)(StringSelector, { size: "small", label: (0, __1.form_display_text_for_language)(form, "Relationship to Policy Owner"), inputProps: inputProps, options: ((((_l = field.options) === null || _l === void 0 ? void 0 : _l.billingProvider) === constants_1.CANVAS_TITLE || ((_m = field.options) === null || _m === void 0 ? void 0 : _m.dataSource) === constants_1.CANVAS_TITLE)
+                    } }) })), ((_e = field.options) === null || _e === void 0 ? void 0 : _e.includeGroupNumber) &&
+                (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, xs: 12 }, { children: (0, jsx_runtime_1.jsx)(material_1.TextField, { InputProps: inputProps || exports.defaultInputProps, fullWidth: true, value: (_f = value === null || value === void 0 ? void 0 : value.groupNumber) !== null && _f !== void 0 ? _f : '', onChange: function (e) { return onChange(__assign(__assign({}, value), { groupNumber: e.target.value }), field.id); }, label: (0, __1.form_display_text_for_language)(form, "Group Number", ''), size: "small" }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, xs: 12 }, { children: (0, jsx_runtime_1.jsx)(StringSelector, { size: "small", label: (0, __1.form_display_text_for_language)(form, "Relationship to Policy Owner"), inputProps: inputProps, options: ((((_g = field.options) === null || _g === void 0 ? void 0 : _g.billingProvider) === constants_1.CANVAS_TITLE || ((_h = field.options) === null || _h === void 0 ? void 0 : _h.dataSource) === constants_1.CANVAS_TITLE)
                         ? constants_1.INSURANCE_RELATIONSHIPS_CANVAS
                         : constants_1.INSURANCE_RELATIONSHIPS)
                         .sort(function (x, y) { return x.localeCompare(y); }), value: (value === null || value === void 0 ? void 0 : value.relationship) || 'Self', onChange: function (relationship) {
                         return onChange(__assign(__assign({}, value), { relationship: relationship || 'Self' }), field.id);
                     } }) })), ((value === null || value === void 0 ? void 0 : value.relationship) || 'Self') !== 'Self' &&
-                (0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, xs: 12 }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ sx: { fontWeight: 'bold' } }, { children: (0, __1.form_display_text_for_language)(form, "Policy Owner Details") })) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, xs: 6 }, { children: (0, jsx_runtime_1.jsx)(material_1.TextField, { label: (0, __1.form_display_text_for_language)(form, "First Name"), size: "small", InputProps: inputProps || exports.defaultInputProps, fullWidth: true, value: ((_o = value === null || value === void 0 ? void 0 : value.relationshipDetails) === null || _o === void 0 ? void 0 : _o.fname) || '', required: !field.isOptional, onChange: function (e) {
+                (0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, xs: 12 }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ sx: { fontWeight: 'bold' } }, { children: (0, __1.form_display_text_for_language)(form, "Policy Owner Details") })) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, xs: 6 }, { children: (0, jsx_runtime_1.jsx)(material_1.TextField, { label: (0, __1.form_display_text_for_language)(form, "First Name"), size: "small", InputProps: inputProps || exports.defaultInputProps, fullWidth: true, value: ((_j = value === null || value === void 0 ? void 0 : value.relationshipDetails) === null || _j === void 0 ? void 0 : _j.fname) || '', required: !field.isOptional, onChange: function (e) {
                                     return onChange(__assign(__assign({}, value), { relationshipDetails: __assign(__assign({}, value === null || value === void 0 ? void 0 : value.relationshipDetails), { fname: e.target.value }) }), field.id);
-                                } }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, xs: 6 }, { children: (0, jsx_runtime_1.jsx)(material_1.TextField, { label: (0, __1.form_display_text_for_language)(form, "Last Name"), size: "small", InputProps: inputProps || exports.defaultInputProps, fullWidth: true, value: ((_p = value === null || value === void 0 ? void 0 : value.relationshipDetails) === null || _p === void 0 ? void 0 : _p.lname) || '', required: !field.isOptional, onChange: function (e) {
+                                } }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, xs: 6 }, { children: (0, jsx_runtime_1.jsx)(material_1.TextField, { label: (0, __1.form_display_text_for_language)(form, "Last Name"), size: "small", InputProps: inputProps || exports.defaultInputProps, fullWidth: true, value: ((_k = value === null || value === void 0 ? void 0 : value.relationshipDetails) === null || _k === void 0 ? void 0 : _k.lname) || '', required: !field.isOptional, onChange: function (e) {
                                     return onChange(__assign(__assign({}, value), { relationshipDetails: __assign(__assign({}, value === null || value === void 0 ? void 0 : value.relationshipDetails), { lname: e.target.value }) }), field.id);
-                                } }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, xs: 6 }, { children: (0, jsx_runtime_1.jsx)(StringSelector, { options: constants_1.TELLESCOPE_GENDERS, size: "small", label: (0, __1.form_display_text_for_language)(form, "Gender"), inputProps: inputProps, value: ((_q = value === null || value === void 0 ? void 0 : value.relationshipDetails) === null || _q === void 0 ? void 0 : _q.gender) || '', required: !field.isOptional, onChange: function (v) {
+                                } }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, xs: 6 }, { children: (0, jsx_runtime_1.jsx)(StringSelector, { options: constants_1.TELLESCOPE_GENDERS, size: "small", label: (0, __1.form_display_text_for_language)(form, "Gender"), inputProps: inputProps, value: ((_l = value === null || value === void 0 ? void 0 : value.relationshipDetails) === null || _l === void 0 ? void 0 : _l.gender) || '', required: !field.isOptional, onChange: function (v) {
                                     return onChange(__assign(__assign({}, value), { relationshipDetails: __assign(__assign({}, value === null || value === void 0 ? void 0 : value.relationshipDetails), { gender: v }) }), field.id);
-                                } }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, xs: 6 }, { children: (0, jsx_runtime_1.jsx)(exports.DateStringInput, { size: "small", label: (0, __1.form_display_text_for_language)(form, "Date of Birth"), inputProps: inputProps, field: __assign(__assign({}, field), { isOptional: field.isOptional || ((_r = field.options) === null || _r === void 0 ? void 0 : _r.billingProvider) === 'Candid' }), value: ((_s = value === null || value === void 0 ? void 0 : value.relationshipDetails) === null || _s === void 0 ? void 0 : _s.dateOfBirth) || '', onChange: function (dateOfBirth) {
+                                } }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, xs: 6 }, { children: (0, jsx_runtime_1.jsx)(exports.DateStringInput, { size: "small", label: (0, __1.form_display_text_for_language)(form, "Date of Birth"), inputProps: inputProps, field: __assign(__assign({}, field), { isOptional: field.isOptional || ((_m = field.options) === null || _m === void 0 ? void 0 : _m.billingProvider) === 'Candid' }), value: ((_o = value === null || value === void 0 ? void 0 : value.relationshipDetails) === null || _o === void 0 ? void 0 : _o.dateOfBirth) || '', onChange: function (dateOfBirth) {
                                     return onChange(__assign(__assign({}, value), { relationshipDetails: __assign(__assign({}, value === null || value === void 0 ? void 0 : value.relationshipDetails), { dateOfBirth: dateOfBirth }) }), field.id);
                                 } }) }))] })] })));
 };

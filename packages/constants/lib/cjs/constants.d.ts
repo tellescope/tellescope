@@ -284,6 +284,7 @@ export declare const DEFAULT_AI_SUMMARY_MAX_OUTPUT_TOKENS = 600;
 export declare const MAX_AI_SUMMARY_DATA_SOURCES = 25;
 export declare const MAX_AI_SUMMARY_RECORD_CHARS = 8000;
 export declare const MAX_AI_SUMMARY_CHAT_ROOMS = 100;
+export declare const AI_SUMMARY_DATE_FIDELITY_INSTRUCTION: string;
 export declare const DEFAULT_HISTORICAL_DATA_SOURCE_LIMIT = 100;
 export declare const SELECTABLE_AI_MODELS: readonly ["Claude Sonnet 5.5", "Claude Opus 5.5", "Claude Sonnet 5", "Claude Opus 5", "Claude Opus 4.8"];
 export type SelectableAIModel = (typeof SELECTABLE_AI_MODELS)[number];

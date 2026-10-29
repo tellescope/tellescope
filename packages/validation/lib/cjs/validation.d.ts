@@ -266,6 +266,7 @@ export declare const escape_name: (namestring: string) => string;
 export declare const nameValidator: ValidatorDefinition<string>;
 export declare const emailValidator: ValidatorDefinition<string>;
 export declare const emailValidatorOptional: ValidatorDefinition<string>;
+export declare const listOfEmailsValidatorUniqueOptionalOrEmptyOkay: ValidatorDefinition<string[]>;
 export declare const emailValidatorEmptyOkay: ValidatorDefinition<string>;
 export declare const numberValidatorBuilder: ValidatorBuilder<number, {
     lower: number;
@@ -951,6 +952,37 @@ export declare const AGENT_DEFAULT_MAX_TOKENS = 10000;
 export declare const AGENT_MAX_MAX_TOKENS = 64000;
 /** An ai_conversation stops accepting agent_message turns at this many stored entries. */
 export declare const AI_CONVERSATION_MAX_STORED_MESSAGES = 1000;
+/***************************************************************************************************
+ * agent_message attachments (document / image blocks)
+ *
+ * A caller references a Tellescope `files` record by id; the server resolves it, reads the object
+ * from S3 and substitutes the base64 source immediately before InvokeModel. These are the limits
+ * that bound that work — the SHAPE of the block is checked here, the per-record rules (the file
+ * exists in this tenant, is confirmed, is of a supported media type, fits the byte and page caps)
+ * are enforced in bedrock.ts where the record and the object are available.
+ ***************************************************************************************************/
+/** Block types that carry a file reference rather than text. */
+export declare const AGENT_ATTACHMENT_BLOCK_TYPES: string[];
+/** At most this many attachment blocks in one request, across the whole transcript. */
+export declare const AGENT_MAX_ATTACHMENTS = 5;
+/** Per-file ceiling, enforced from S3's ContentLength before any bytes are buffered. */
+export declare const AGENT_MAX_ATTACHMENT_BYTES: number;
+/** A PDF with more pages than this is refused rather than sent (it would blow the context window). */
+export declare const AGENT_MAX_PDF_PAGES = 100;
+/** The media types each block type accepts. A `files` record whose `type` is absent — which an
+ *  integration-synced file can be — matches neither and is refused. */
+export declare const AGENT_DOCUMENT_MEDIA_TYPES: string[];
+export declare const AGENT_IMAGE_MEDIA_TYPES: string[];
+/** Deliberate OVER-estimates, used only for the pre-call write-ahead ceiling (never for billing,
+ *  which always uses the usage metadata Bedrock returns). A page of PDF is in practice well under
+ *  3000 tokens and an image well under 2000; erring high keeps the fail-closed ledger honest. */
+export declare const ATTACHMENT_TOKENS_PER_PDF_PAGE = 3000;
+export declare const ATTACHMENT_TOKENS_PER_IMAGE = 2000;
+/** The content blocks this proxy forwards. Anything else (server_tool_use, web_search_tool_result,
+ *  …) is rejected rather than passed through — an unknown block is a shape we neither bill nor
+ *  audit. `document` / `image` are accepted as a FILE REFERENCE only (agent_attachment_block); an
+ *  inline `source` is not accepted, so file bytes never travel in a request body. */
+export declare const AGENT_SUPPORTED_BLOCK_TYPES: string[];
 export declare const agentMessagesValidator: ValidatorDefinition<AgentMessageInput[]>;
 /** `system` is a plain string or a list of text blocks (the list form is what carries cache_control). */
 export declare const agentSystemValidator: ValidatorDefinition<string | AgentTextBlock[]>;
@@ -963,6 +995,88 @@ export declare const phoneTreeAgentToolValidator: ValidatorDefinition<import("@t
     appointmentBookingPageId: string;
     useWhen?: string | undefined;
 }>>;
+export type EnduserListFieldConfig = {
+    /** The sub-fields that may appear in a mutation's `match`, in priority order.
+     *
+     *  The FIRST is the entry's identity sub-field: it is the value a `Field Equals` trigger on this
+     *  list field compares against (see handle_field_update_triggers), and the one control the editor
+     *  always renders. */
+    matchKeys: string[];
+    /** The sub-fields `Add List Item` / `Update List Item` may write. May be empty, for a list field
+     *  whose entries carry nothing but their identity. */
+    valueKeys: string[];
+    /** What the field is called in the trigger editor's dropdowns. */
+    label: string;
+};
+/**
+ * The enduser list-of-objects fields automations may read and write, and the sub-fields of each that
+ * they may match on and write.
+ *
+ * This is the ONLY place a sub-field of a list entry is named. The action validators, the save-time
+ * check (list_item_mutation_error), the Mongo operations in handle_actions_for_triggers_inner, the
+ * `Field Equals` / `Fields Changed` expansion in handle_field_update_triggers and the trigger editor
+ * are all driven by it, so adding a list field here is a registry entry rather than a change in any
+ * of them.
+ *
+ * Enforced when a trigger is SAVED rather than skipped at fire time: the alternative leaves a trigger
+ * that looks configured in the editor and silently never does anything. It is re-applied at fire time
+ * as well, so no stored key can reach a Mongo path.
+ *
+ * The one thing a new entry may still need is an editor in the webapp (list_mutation_actions.tsx):
+ * without one, each sub-field gets a plain text box, which is right for a free-text sub-field and
+ * wrong for one backed by a registry the way `programs` is.
+ */
+export declare const ENDUSER_LIST_FIELD_CONFIG: {
+    [K in EnduserListField]: EnduserListFieldConfig;
+};
+export declare const ENDUSER_LIST_FIELDS: "programs"[];
+/**
+ * Every action type that carries a ListItemMutation: the three TRIGGER actions (the spaced,
+ * title-cased keys) and their three JOURNEY STEP twins (the camelCase keys).
+ *
+ * The two families differ only in where they run and what the resulting write cascades into — the
+ * info they carry, what makes them saveable and the Mongo work they do are shared, so everything
+ * keyed off this list treats them alike.
+ */
+export declare const LIST_MUTATION_ACTION_TYPES: readonly ["Add List Item", "Remove List Item", "Update List Item", "addListItem", "removeListItem", "updateListItem"];
+export type ListMutationActionType = typeof LIST_MUTATION_ACTION_TYPES[number];
+/**
+ * What to call each action in a message a PERSON reads.
+ *
+ * A journey step's action type is a camelCase key, which is an implementation detail: the editor's
+ * dropdown says "Add List Item", so its blocking error must too. Mapping here (rather than printing
+ * `type`) is what keeps the trigger and journey versions of a rejection identically worded.
+ */
+export declare const LIST_MUTATION_ACTION_DISPLAY_NAMES: {
+    [K in ListMutationActionType]: string;
+};
+/** The behaviour a type asks for, shared by a trigger action and its journey twin. */
+export type ListMutationKind = 'add' | 'remove' | 'update';
+export declare const LIST_MUTATION_ACTION_KINDS: {
+    [K in ListMutationActionType]: ListMutationKind;
+};
+export declare const is_list_mutation_action: (action?: {
+    type?: string;
+    info?: any;
+}) => action is {
+    type: ListMutationActionType;
+    info: Partial<ListItemMutation>;
+};
+/**
+ * The blocking error for a list-item mutation action, or '' when it is saveable.
+ *
+ * Shared by the API (as an automation_triggers constraint) and by the trigger editor, so the two
+ * reject the same actions with the same wording. It exists as a separate check because the field and
+ * its sub-fields validate TOGETHER: `objectValidator` sees one key at a time and cannot tell whether
+ * `status` is a sub-field `field` actually has.
+ *
+ * Keeping unrecognized keys out here is also what keeps `$`-prefixed and dotted keys out of the Mongo
+ * paths that handle_actions_for_triggers_inner builds from them.
+ */
+export declare const list_item_mutation_error: (action?: {
+    type?: string | undefined;
+    info?: any;
+} | undefined) => string;
 export declare const automationActionValidator: ValidatorDefinition<never>;
 export declare const journeyContextValidator: ValidatorDefinition<JourneyContext>;
 export declare const relatedRecordValidator: ValidatorDefinition<RelatedRecord>;
@@ -1913,65 +2027,6 @@ export declare const AUTOMATION_TRIGGER_ACTION_TYPES: (keyof AutomationTriggerAc
 export declare const AUTOMATION_TRIGGER_ACTION_EVENT_RESTRICTIONS: {
     [K in AutomationTriggerActionType]?: AutomationTriggerEventType[];
 };
-export type EnduserListFieldConfig = {
-    /** The sub-fields that may appear in a mutation's `match`, in priority order.
-     *
-     *  The FIRST is the entry's identity sub-field: it is the value a `Field Equals` trigger on this
-     *  list field compares against (see handle_field_update_triggers), and the one control the editor
-     *  always renders. */
-    matchKeys: string[];
-    /** The sub-fields `Add List Item` / `Update List Item` may write. May be empty, for a list field
-     *  whose entries carry nothing but their identity. */
-    valueKeys: string[];
-    /** What the field is called in the trigger editor's dropdowns. */
-    label: string;
-};
-/**
- * The enduser list-of-objects fields automations may read and write, and the sub-fields of each that
- * they may match on and write.
- *
- * This is the ONLY place a sub-field of a list entry is named. The action validators, the save-time
- * check (list_item_mutation_error), the Mongo operations in handle_actions_for_triggers_inner, the
- * `Field Equals` / `Fields Changed` expansion in handle_field_update_triggers and the trigger editor
- * are all driven by it, so adding a list field here is a registry entry rather than a change in any
- * of them.
- *
- * Enforced when a trigger is SAVED rather than skipped at fire time: the alternative leaves a trigger
- * that looks configured in the editor and silently never does anything. It is re-applied at fire time
- * as well, so no stored key can reach a Mongo path.
- *
- * The one thing a new entry may still need is an editor in the webapp (list_mutation_actions.tsx):
- * without one, each sub-field gets a plain text box, which is right for a free-text sub-field and
- * wrong for one backed by a registry the way `programs` is.
- */
-export declare const ENDUSER_LIST_FIELD_CONFIG: {
-    [K in EnduserListField]: EnduserListFieldConfig;
-};
-export declare const ENDUSER_LIST_FIELDS: "programs"[];
-export declare const LIST_MUTATION_ACTION_TYPES: readonly ["Add List Item", "Remove List Item", "Update List Item"];
-export type ListMutationActionType = typeof LIST_MUTATION_ACTION_TYPES[number];
-export declare const is_list_mutation_action: (action?: {
-    type?: string;
-    info?: any;
-}) => action is {
-    type: ListMutationActionType;
-    info: Partial<ListItemMutation>;
-};
-/**
- * The blocking error for a list-item mutation action, or '' when it is saveable.
- *
- * Shared by the API (as an automation_triggers constraint) and by the trigger editor, so the two
- * reject the same actions with the same wording. It exists as a separate check because the field and
- * its sub-fields validate TOGETHER: `objectValidator` sees one key at a time and cannot tell whether
- * `status` is a sub-field `field` actually has.
- *
- * Keeping unrecognized keys out here is also what keeps `$`-prefixed and dotted keys out of the Mongo
- * paths that handle_actions_for_triggers_inner builds from them.
- */
-export declare const list_item_mutation_error: (action?: {
-    type?: string | undefined;
-    info?: any;
-} | undefined) => string;
 export declare const automationTriggerActionValidator: ValidatorDefinition<import("@tellescope/types-models").AutomationTriggerActionBuilder<"Assign Care Team", {
     tags: ListOfStringsWithQualifier;
     limitToOneUser?: boolean | undefined;

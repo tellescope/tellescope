@@ -2617,7 +2617,10 @@ export const responses_satisfy_conditions = (responses: FormResponseValue[], con
           }
         }
 
-        const number = parseInt(conditionValue)
+        // parseFloat, not parseInt: a Number question can be answered with a decimal, so a decimal threshold
+        // ("10.5") must compare as written. The age, BMI and upcoming-event evaluators above deliberately keep
+        // parseInt - those values are whole numbers by definition.
+        const number = parseFloat(conditionValue)
         const answerNumber = (
           (answer.type === 'date' && answer.value)
             ? new Date(answer.value).getTime()

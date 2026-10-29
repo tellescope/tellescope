@@ -1314,6 +1314,14 @@ export const MAX_AI_SUMMARY_RECORD_CHARS = 8_000
 // Cap on the chat rooms resolved for the `chats` data source, so a patient who belongs to an
 // unusual number of rooms can't turn one summary into an unbounded read (and a huge `$in`).
 export const MAX_AI_SUMMARY_CHAT_ROOMS = 100
+// Appended to the two patient-summary system prompts (the generateEnduserSummary journey action
+// and the form-header summary). The context now carries a date on every record and a current-date
+// header, so the model has no reason to approximate one — and a date it invented would read as
+// authoritative next to the timeline the user is comparing it against.
+export const AI_SUMMARY_DATE_FIDELITY_INSTRUCTION = (
+  'When you reference an event, give the date shown for it in the context; '
+  + 'never state a date that is not in the context.'
+)
 
 export const DEFAULT_HISTORICAL_DATA_SOURCE_LIMIT = 100 // matches backend DEFAULT_LIMIT — non-breaking
 

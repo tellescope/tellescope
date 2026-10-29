@@ -932,6 +932,9 @@ export var emailValidatorOptional = {
     getExample: function () { return "example@tellescope.com"; },
     getType: getTypeString,
 };
+// Unique, optional list of emails (empty list accepted). Each entry runs the same isEmail
+// check and lowercasing as emailValidator, so callers get normalized addresses.
+export var listOfEmailsValidatorUniqueOptionalOrEmptyOkay = listValidatorUniqueOptionalEmptyOkay(emailValidator);
 export var emailValidatorEmptyOkay = {
     validate: function (options) {
         if (options === void 0) { options = {}; }
@@ -1322,7 +1325,9 @@ export var linkedAccountAccessEntryValidator = objectValidator({
     orgName: stringValidatorOptional,
     status: exactMatchValidator(['pending', 'accepted']),
     createdAt: dateValidator,
-    requestExpiresAt: dateValidator,
+    // Optional: admin pre-granted entries (invite_user's linkedAccountAccessFor) are created
+    // already-accepted and have no pending window to expire.
+    requestExpiresAt: dateValidatorOptional,
 });
 export var linkedAccountAccessValidator = listValidatorOptionalOrEmptyOk(linkedAccountAccessEntryValidator);
 // Quantity for one products/prepare-stripe-checkout line. Deliberately only "is a number": the
@@ -2265,6 +2270,9 @@ var _AUTOMATION_ACTIONS = {
     notifyTeam: '',
     addEnduserTags: '',
     removeEnduserTags: '',
+    addListItem: '',
+    removeListItem: '',
+    updateListItem: '',
     addToJourney: '',
     removeFromJourney: '',
     removeFromAllJourneys: '',
@@ -2618,7 +2626,7 @@ var sendWebhookInfoValidator = objectValidator({
 }, { emptyOk: false });
 export var AI_SUMMARY_DATA_SOURCES = [
     'enduser_observations', 'form_responses', 'chats', 'phone_calls',
-    'calendar_events', 'tickets', 'sms_messages', 'emails',
+    'calendar_events', 'tickets', 'sms_messages', 'group_mms_conversations', 'emails',
     'enduser_orders', 'enduser_medications', 'purchases',
     'managed_content_records', 'templates', // org-wide reference sources, selected by ids
 ];
@@ -2678,6 +2686,32 @@ export var AGENT_DEFAULT_MAX_TOKENS = 10000;
 export var AGENT_MAX_MAX_TOKENS = 64000;
 /** An ai_conversation stops accepting agent_message turns at this many stored entries. */
 export var AI_CONVERSATION_MAX_STORED_MESSAGES = 1000;
+/***************************************************************************************************
+ * agent_message attachments (document / image blocks)
+ *
+ * A caller references a Tellescope `files` record by id; the server resolves it, reads the object
+ * from S3 and substitutes the base64 source immediately before InvokeModel. These are the limits
+ * that bound that work — the SHAPE of the block is checked here, the per-record rules (the file
+ * exists in this tenant, is confirmed, is of a supported media type, fits the byte and page caps)
+ * are enforced in bedrock.ts where the record and the object are available.
+ ***************************************************************************************************/
+/** Block types that carry a file reference rather than text. */
+export var AGENT_ATTACHMENT_BLOCK_TYPES = ['document', 'image'];
+/** At most this many attachment blocks in one request, across the whole transcript. */
+export var AGENT_MAX_ATTACHMENTS = 5;
+/** Per-file ceiling, enforced from S3's ContentLength before any bytes are buffered. */
+export var AGENT_MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024;
+/** A PDF with more pages than this is refused rather than sent (it would blow the context window). */
+export var AGENT_MAX_PDF_PAGES = 100;
+/** The media types each block type accepts. A `files` record whose `type` is absent — which an
+ *  integration-synced file can be — matches neither and is refused. */
+export var AGENT_DOCUMENT_MEDIA_TYPES = ['application/pdf'];
+export var AGENT_IMAGE_MEDIA_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+/** Deliberate OVER-estimates, used only for the pre-call write-ahead ceiling (never for billing,
+ *  which always uses the usage metadata Bedrock returns). A page of PDF is in practice well under
+ *  3000 tokens and an image well under 2000; erring high keeps the fail-closed ledger honest. */
+export var ATTACHMENT_TOKENS_PER_PDF_PAGE = 3000;
+export var ATTACHMENT_TOKENS_PER_IMAGE = 2000;
 /** Keys that must never reach a Mongo document (operator/path syntax, prototype pollution). */
 var UNSAFE_JSON_KEYS = ['__proto__', 'constructor', 'prototype'];
 /** Nesting ceiling for a tool's JSON Schema and for the arguments a model produces. */
@@ -2753,9 +2787,41 @@ var agent_text_block = function (value, label) {
     var cache_control = agent_cache_control(object.cache_control, "".concat(label, ".cache_control"));
     return __assign({ type: 'text', text: agent_string(object.text, "".concat(label, ".text")) }, (cache_control ? { cache_control: cache_control } : {}));
 };
-/** The content blocks this proxy forwards. Anything else (image, document, server_tool_use, …) is
- *  rejected rather than passed through — an unknown block is a shape we neither bill nor audit. */
-var AGENT_SUPPORTED_BLOCK_TYPES = ['text', 'thinking', 'redacted_thinking', 'tool_use', 'tool_result'];
+/** The content blocks this proxy forwards. Anything else (server_tool_use, web_search_tool_result,
+ *  …) is rejected rather than passed through — an unknown block is a shape we neither bill nor
+ *  audit. `document` / `image` are accepted as a FILE REFERENCE only (agent_attachment_block); an
+ *  inline `source` is not accepted, so file bytes never travel in a request body. */
+export var AGENT_SUPPORTED_BLOCK_TYPES = __spreadArray([
+    'text', 'thinking', 'redacted_thinking', 'tool_use', 'tool_result'
+], AGENT_ATTACHMENT_BLOCK_TYPES, true);
+/**
+ * `{ type: 'document' | 'image', fileId, cache_control? }` and nothing else.
+ *
+ * `source` is deliberately NOT accepted: accepting inline base64 would put file bytes inside
+ * AGENT_MAX_REQUEST_CHARS and inside the ai_conversations ledger, which is exactly what
+ * referencing by id avoids. Rejecting it by the unrecognised-field rule also means a client that
+ * copied an Anthropic example gets a message naming the field rather than a silent strip.
+ */
+var agent_attachment_block = function (value, label) {
+    agent_no_unrecognized_fields(value, ['type', 'fileId', 'cache_control'], label);
+    var cache_control = agent_cache_control(value.cache_control, "".concat(label, ".cache_control"));
+    if (typeof value.fileId !== 'string' || !isMongoId(value.fileId)) {
+        throw new Error("".concat(label, ".fileId must be the id of a Tellescope file"));
+    }
+    return __assign({ type: value.type, fileId: value.fileId }, (cache_control ? { cache_control: cache_control } : {}));
+};
+/**
+ * A block inside a `tool_result`'s content list. Text only — an attachment is answered for by the
+ * client, so it belongs in the user's own message, not inside a tool's result. Named explicitly
+ * rather than falling through agent_text_block's unrecognised-field rule so the 400 says why.
+ */
+var agent_tool_result_block = function (value, label) {
+    if (is_object(value) && AGENT_ATTACHMENT_BLOCK_TYPES.includes(value.type)) {
+        throw new Error("".concat(label, " is a ").concat(value.type, " attachment;")
+            + " attachments are only allowed as blocks of a user message, not inside a tool_result");
+    }
+    return agent_text_block(value, label);
+};
 var agent_content_block = function (value, label) {
     var object = agent_plain_object(value, label);
     var type = object.type;
@@ -2765,6 +2831,8 @@ var agent_content_block = function (value, label) {
     }
     if (type === 'text')
         return agent_text_block(object, label);
+    if (AGENT_ATTACHMENT_BLOCK_TYPES.includes(type))
+        return agent_attachment_block(object, label);
     if (type === 'thinking') {
         agent_no_unrecognized_fields(object, ['type', 'thinking', 'signature'], label);
         return {
@@ -2789,7 +2857,7 @@ var agent_content_block = function (value, label) {
     var content = (object.content === undefined ? undefined
         : typeof object.content === 'string' ? agent_string(object.content, "".concat(label, ".content"))
             : Array.isArray(object.content)
-                ? object.content.map(function (block, i) { return agent_text_block(block, "".concat(label, ".content[").concat(i, "]")); })
+                ? object.content.map(function (block, i) { return agent_tool_result_block(block, "".concat(label, ".content[").concat(i, "]")); })
                 : (function () { throw new Error("".concat(label, ".content must be a string or a list of text blocks")); })());
     return __assign(__assign(__assign({ type: 'tool_result', tool_use_id: agent_string(object.tool_use_id, "".concat(label, ".tool_use_id"), 200) }, (content !== undefined ? { content: content } : {})), (object.is_error !== undefined ? { is_error: agent_boolean(object.is_error, "".concat(label, ".is_error")) } : {})), (cache_control ? { cache_control: cache_control } : {}));
 };
@@ -2911,6 +2979,128 @@ export var phoneTreeAgentToolValidator = orValidator({
         }),
     }),
 });
+/**
+ * The enduser list-of-objects fields automations may read and write, and the sub-fields of each that
+ * they may match on and write.
+ *
+ * This is the ONLY place a sub-field of a list entry is named. The action validators, the save-time
+ * check (list_item_mutation_error), the Mongo operations in handle_actions_for_triggers_inner, the
+ * `Field Equals` / `Fields Changed` expansion in handle_field_update_triggers and the trigger editor
+ * are all driven by it, so adding a list field here is a registry entry rather than a change in any
+ * of them.
+ *
+ * Enforced when a trigger is SAVED rather than skipped at fire time: the alternative leaves a trigger
+ * that looks configured in the editor and silently never does anything. It is re-applied at fire time
+ * as well, so no stored key can reach a Mongo path.
+ *
+ * The one thing a new entry may still need is an editor in the webapp (list_mutation_actions.tsx):
+ * without one, each sub-field gets a plain text box, which is right for a free-text sub-field and
+ * wrong for one backed by a registry the way `programs` is.
+ */
+export var ENDUSER_LIST_FIELD_CONFIG = {
+    programs: { matchKeys: ['name'], valueKeys: ['status'], label: 'Programs' },
+};
+export var ENDUSER_LIST_FIELDS = Object.keys(ENDUSER_LIST_FIELD_CONFIG);
+/**
+ * Every action type that carries a ListItemMutation: the three TRIGGER actions (the spaced,
+ * title-cased keys) and their three JOURNEY STEP twins (the camelCase keys).
+ *
+ * The two families differ only in where they run and what the resulting write cascades into — the
+ * info they carry, what makes them saveable and the Mongo work they do are shared, so everything
+ * keyed off this list treats them alike.
+ */
+export var LIST_MUTATION_ACTION_TYPES = [
+    'Add List Item', 'Remove List Item', 'Update List Item',
+    'addListItem', 'removeListItem', 'updateListItem',
+];
+/**
+ * What to call each action in a message a PERSON reads.
+ *
+ * A journey step's action type is a camelCase key, which is an implementation detail: the editor's
+ * dropdown says "Add List Item", so its blocking error must too. Mapping here (rather than printing
+ * `type`) is what keeps the trigger and journey versions of a rejection identically worded.
+ */
+export var LIST_MUTATION_ACTION_DISPLAY_NAMES = {
+    'Add List Item': 'Add List Item',
+    'Remove List Item': 'Remove List Item',
+    'Update List Item': 'Update List Item',
+    addListItem: 'Add List Item',
+    removeListItem: 'Remove List Item',
+    updateListItem: 'Update List Item',
+};
+export var LIST_MUTATION_ACTION_KINDS = {
+    'Add List Item': 'add',
+    'Remove List Item': 'remove',
+    'Update List Item': 'update',
+    addListItem: 'add',
+    removeListItem: 'remove',
+    updateListItem: 'update',
+};
+export var is_list_mutation_action = function (action) { return (LIST_MUTATION_ACTION_TYPES.includes(action === null || action === void 0 ? void 0 : action.type)); };
+/**
+ * The blocking error for a list-item mutation action, or '' when it is saveable.
+ *
+ * Shared by the API (as an automation_triggers constraint) and by the trigger editor, so the two
+ * reject the same actions with the same wording. It exists as a separate check because the field and
+ * its sub-fields validate TOGETHER: `objectValidator` sees one key at a time and cannot tell whether
+ * `status` is a sub-field `field` actually has.
+ *
+ * Keeping unrecognized keys out here is also what keeps `$`-prefixed and dotted keys out of the Mongo
+ * paths that handle_actions_for_triggers_inner builds from them.
+ */
+export var list_item_mutation_error = function (action) {
+    var _a, _b, _c, _d;
+    if (!is_list_mutation_action(action))
+        return '';
+    // the action is named to the person as the editor's dropdown names it, never by its raw `type`:
+    // a journey step's type is the camelCase `addListItem`, which means nothing to whoever is reading
+    var type = LIST_MUTATION_ACTION_DISPLAY_NAMES[action.type];
+    var kind = LIST_MUTATION_ACTION_KINDS[action.type];
+    var field = (_a = action.info) === null || _a === void 0 ? void 0 : _a.field;
+    // hasOwnProperty: a field of "constructor" or "toString" finds a function on the prototype, which a
+    // truthiness check would accept as a configured list field
+    var config = Object.prototype.hasOwnProperty.call(ENDUSER_LIST_FIELD_CONFIG, field)
+        ? ENDUSER_LIST_FIELD_CONFIG[field]
+        : undefined;
+    if (!config) {
+        return "The \"".concat(type, "\" action does not support the field \"").concat(field !== null && field !== void 0 ? field : '', "\"");
+    }
+    var match = (_b = action.info) === null || _b === void 0 ? void 0 : _b.match;
+    if (!match || typeof match !== 'object' || Object.keys(match).length === 0) {
+        return "The \"".concat(type, "\" action must match on ").concat(config.matchKeys.join(' and '));
+    }
+    for (var key in match) {
+        if (!config.matchKeys.includes(key)) {
+            return "The \"".concat(type, "\" action cannot match \"").concat(field, "\" on \"").concat(key, "\"");
+        }
+        // deliberately not trimmed: a value of only spaces is a real (if unwise) one elsewhere in the
+        // product, and matching is exact, so trimming here would match something other than what was saved
+        if (typeof match[key] !== 'string' || match[key] === '') {
+            return "Select a ".concat(field, " ").concat(key, " for the \"").concat(type, "\" action");
+        }
+    }
+    // Remove List Item matches on `match` alone and removes every entry carrying it, whatever else
+    // those entries hold — its type carries no `values` at all
+    if (kind === 'remove')
+        return '';
+    var values = (_d = (_c = action.info) === null || _c === void 0 ? void 0 : _c.values) !== null && _d !== void 0 ? _d : {};
+    if (typeof values !== 'object') {
+        return "The \"".concat(type, "\" action has an invalid value to set");
+    }
+    for (var key in values) {
+        if (!config.valueKeys.includes(key)) {
+            return "The \"".concat(type, "\" action cannot set \"").concat(key, "\" on \"").concat(field, "\"");
+        }
+    }
+    // an Update that sets nothing would match entries and write nothing, every time it fires
+    if (kind === 'update' && Object.keys(values).length === 0) {
+        return "The \"".concat(type, "\" action must set at least one of ").concat(config.valueKeys.join(', '));
+    }
+    return '';
+};
+// a match value is required and matched exactly; a value may be '' , which CLEARS that sub-field
+var listItemMutationMatchValidator = objectAnyFieldsValidator(stringValidator100);
+var listItemMutationValuesValidator = objectAnyFieldsValidator(stringValidator100Optional);
 export var automationActionValidator = orValidator({
     developHealthMedEligibility: objectValidator(__assign({ type: exactMatchValidator(['developHealthMedEligibility']), info: objectValidator({
             drugs: developHealthDrugsValidator,
@@ -3036,6 +3226,25 @@ export var automationActionValidator = orValidator({
         }, { emptyOk: false }) })),
     removeEnduserTags: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['removeEnduserTags']), info: objectValidator({
             tags: listOfStringsValidator,
+        }, { emptyOk: false }) })),
+    // The journey-step twins of the Add / Remove / Update List Item TRIGGER actions: same info shape,
+    // same save-time check (list_item_mutation_error, applied as an automation_steps relationship
+    // constraint), same Mongo work (apply_list_item_mutation). Unlike the trigger validators these
+    // spread sharedAutomationActionValidators, which every journey action carries.
+    addListItem: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['addListItem']), info: objectValidator({
+            field: exactMatchValidator(ENDUSER_LIST_FIELDS),
+            match: listItemMutationMatchValidator,
+            values: listItemMutationValuesValidator,
+        }, { emptyOk: false }) })),
+    // no `values`: the action removes EVERY entry matching, whatever else those entries hold
+    removeListItem: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['removeListItem']), info: objectValidator({
+            field: exactMatchValidator(ENDUSER_LIST_FIELDS),
+            match: listItemMutationMatchValidator,
+        }, { emptyOk: false }) })),
+    updateListItem: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['updateListItem']), info: objectValidator({
+            field: exactMatchValidator(ENDUSER_LIST_FIELDS),
+            match: listItemMutationMatchValidator,
+            values: listItemMutationValuesValidator,
         }, { emptyOk: false }) })),
     addAccessTags: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['addAccessTags']), info: objectValidator({
             tags: listOfStringsValidator,
@@ -3471,6 +3680,7 @@ export var organizationThemeValidator = objectValidator({
     hasConnectedVital: booleanValidatorOptional,
     brandId: mongoIdStringOptional,
     portalV2SchemaURL: stringValidatorOptional,
+    disablePublicRegistration: booleanValidatorOptional,
 });
 var _MANAGED_CONTENT_RECORD_TYPES = {
     Article: '',
@@ -4386,6 +4596,9 @@ export var organizationSettingsValidator = objectValidator({
         dontMarkReadForAssigned: booleanValidatorOptional,
         matchEmailAndNames: booleanValidatorOptional,
         caseInsensitiveMatching: booleanValidatorOptional,
+        disablePublicRegistration: booleanValidatorOptional,
+        disablePublicFormStarts: booleanValidatorOptional,
+        disablePublicBookingStarts: booleanValidatorOptional,
         hideNotesFromComposeForm: booleanValidatorOptional,
         showSalesforceId: booleanValidatorOptional,
         loopQueueCallSound: booleanValidatorOptional,
@@ -4973,91 +5186,6 @@ export var AUTOMATION_TRIGGER_ACTION_EVENT_RESTRICTIONS = {
     // needs journeyContext.observationId, which only the Vital Update event supplies
     "Review Vital Reading": ['Vital Update'],
 };
-/**
- * The enduser list-of-objects fields automations may read and write, and the sub-fields of each that
- * they may match on and write.
- *
- * This is the ONLY place a sub-field of a list entry is named. The action validators, the save-time
- * check (list_item_mutation_error), the Mongo operations in handle_actions_for_triggers_inner, the
- * `Field Equals` / `Fields Changed` expansion in handle_field_update_triggers and the trigger editor
- * are all driven by it, so adding a list field here is a registry entry rather than a change in any
- * of them.
- *
- * Enforced when a trigger is SAVED rather than skipped at fire time: the alternative leaves a trigger
- * that looks configured in the editor and silently never does anything. It is re-applied at fire time
- * as well, so no stored key can reach a Mongo path.
- *
- * The one thing a new entry may still need is an editor in the webapp (list_mutation_actions.tsx):
- * without one, each sub-field gets a plain text box, which is right for a free-text sub-field and
- * wrong for one backed by a registry the way `programs` is.
- */
-export var ENDUSER_LIST_FIELD_CONFIG = {
-    programs: { matchKeys: ['name'], valueKeys: ['status'], label: 'Programs' },
-};
-export var ENDUSER_LIST_FIELDS = Object.keys(ENDUSER_LIST_FIELD_CONFIG);
-export var LIST_MUTATION_ACTION_TYPES = ['Add List Item', 'Remove List Item', 'Update List Item'];
-export var is_list_mutation_action = function (action) { return (LIST_MUTATION_ACTION_TYPES.includes(action === null || action === void 0 ? void 0 : action.type)); };
-/**
- * The blocking error for a list-item mutation action, or '' when it is saveable.
- *
- * Shared by the API (as an automation_triggers constraint) and by the trigger editor, so the two
- * reject the same actions with the same wording. It exists as a separate check because the field and
- * its sub-fields validate TOGETHER: `objectValidator` sees one key at a time and cannot tell whether
- * `status` is a sub-field `field` actually has.
- *
- * Keeping unrecognized keys out here is also what keeps `$`-prefixed and dotted keys out of the Mongo
- * paths that handle_actions_for_triggers_inner builds from them.
- */
-export var list_item_mutation_error = function (action) {
-    var _a, _b, _c, _d;
-    if (!is_list_mutation_action(action))
-        return '';
-    var type = action.type;
-    var field = (_a = action.info) === null || _a === void 0 ? void 0 : _a.field;
-    // hasOwnProperty: a field of "constructor" or "toString" finds a function on the prototype, which a
-    // truthiness check would accept as a configured list field
-    var config = Object.prototype.hasOwnProperty.call(ENDUSER_LIST_FIELD_CONFIG, field)
-        ? ENDUSER_LIST_FIELD_CONFIG[field]
-        : undefined;
-    if (!config) {
-        return "The \"".concat(type, "\" action does not support the field \"").concat(field !== null && field !== void 0 ? field : '', "\"");
-    }
-    var match = (_b = action.info) === null || _b === void 0 ? void 0 : _b.match;
-    if (!match || typeof match !== 'object' || Object.keys(match).length === 0) {
-        return "The \"".concat(type, "\" action must match on ").concat(config.matchKeys.join(' and '));
-    }
-    for (var key in match) {
-        if (!config.matchKeys.includes(key)) {
-            return "The \"".concat(type, "\" action cannot match \"").concat(field, "\" on \"").concat(key, "\"");
-        }
-        // deliberately not trimmed: a value of only spaces is a real (if unwise) one elsewhere in the
-        // product, and matching is exact, so trimming here would match something other than what was saved
-        if (typeof match[key] !== 'string' || match[key] === '') {
-            return "Select a ".concat(field, " ").concat(key, " for the \"").concat(type, "\" action");
-        }
-    }
-    // Remove List Item matches on `match` alone and removes every entry carrying it, whatever else
-    // those entries hold — its type carries no `values` at all
-    if (type === 'Remove List Item')
-        return '';
-    var values = (_d = (_c = action.info) === null || _c === void 0 ? void 0 : _c.values) !== null && _d !== void 0 ? _d : {};
-    if (typeof values !== 'object') {
-        return "The \"".concat(type, "\" action has an invalid value to set");
-    }
-    for (var key in values) {
-        if (!config.valueKeys.includes(key)) {
-            return "The \"".concat(type, "\" action cannot set \"").concat(key, "\" on \"").concat(field, "\"");
-        }
-    }
-    // an Update that sets nothing would match entries and write nothing, every time it fires
-    if (type === 'Update List Item' && Object.keys(values).length === 0) {
-        return "The \"".concat(type, "\" action must set at least one of ").concat(config.valueKeys.join(', '));
-    }
-    return '';
-};
-// a match value is required and matched exactly; a value may be '' , which CLEARS that sub-field
-var listItemMutationMatchValidator = objectAnyFieldsValidator(stringValidator100);
-var listItemMutationValuesValidator = objectAnyFieldsValidator(stringValidator100Optional);
 export var automationTriggerActionValidator = orValidator({
     "Add To Journey": objectValidator({
         type: exactMatchValidator(['Add To Journey']),

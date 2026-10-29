@@ -323,7 +323,11 @@ export var NumberInput = function (_a) {
             };
         }
     }, []);
-    return (_jsx(TextField, __assign({ ref: inputRef, autoFocus: true, InputProps: defaultInputProps }, props, { required: !field.isOptional, fullWidth: true, type: "number", value: value, onChange: function (e) { return onChange(parseInt(e.target.value), field.id); }, label: (!field.title && field.placeholder) ? form_display_text_for_language(form, field.placeholder) : props.label, placeholder: field.placeholder ? form_display_text_for_language(form, field.placeholder) : form_display_text_for_language(form, "Enter a number...", ''), onScroll: function (e) { return e.preventDefault(); }, sx: {
+    return (_jsx(TextField, __assign({ ref: inputRef, autoFocus: true, InputProps: defaultInputProps }, props, { required: !field.isOptional, fullWidth: true, type: "number", value: value !== null && value !== void 0 ? value : '', inputProps: __assign(__assign({}, props.inputProps), { step: 'any' }), onChange: function (e) {
+            var parsed = parseFloat(e.target.value);
+            // never emit NaN: it survives the `typeof value === 'number'` answer check and serializes to null
+            onChange((isNaN(parsed) ? undefined : parsed), field.id);
+        }, label: (!field.title && field.placeholder) ? form_display_text_for_language(form, field.placeholder) : props.label, placeholder: field.placeholder ? form_display_text_for_language(form, field.placeholder) : form_display_text_for_language(form, "Enter a number...", ''), onScroll: function (e) { return e.preventDefault(); }, sx: {
             '& input[type=number]': {
                 '-moz-appearance': 'textfield'
             },

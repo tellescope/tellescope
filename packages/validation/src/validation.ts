@@ -179,6 +179,9 @@ import {
   AutomationTriggerActions,
   EnduserListField,
   ListItemMutation,
+  AddListItemAutomationAction,
+  RemoveListItemAutomationAction,
+  UpdateListItemAutomationAction,
   AutomationTriggerStatus,
   EnduserBuiltInField,
   AnalyticsQueryResultValue,
@@ -376,6 +379,7 @@ import {
   OnErrorEventInfo,
   OnErrorAutomationEvent,
   AIContextSource,
+  AgentAttachmentBlock,
   AgentCacheControl,
   AgentContentBlock,
   AgentMessageInput,
@@ -1391,6 +1395,10 @@ export const emailValidatorOptional: ValidatorDefinition<string> = {
   getType: getTypeString,
 }
 
+// Unique, optional list of emails (empty list accepted). Each entry runs the same isEmail
+// check and lowercasing as emailValidator, so callers get normalized addresses.
+export const listOfEmailsValidatorUniqueOptionalOrEmptyOkay = listValidatorUniqueOptionalEmptyOkay(emailValidator)
+
 export const emailValidatorEmptyOkay: ValidatorDefinition<string> = {
   validate: (options={}) => build_validator(
     (email) => {
@@ -1806,7 +1814,9 @@ export const linkedAccountAccessEntryValidator = objectValidator<LinkedAccountAc
   orgName: stringValidatorOptional,
   status: exactMatchValidator<'pending' | 'accepted'>(['pending', 'accepted']),
   createdAt: dateValidator,
-  requestExpiresAt: dateValidator,
+  // Optional: admin pre-granted entries (invite_user's linkedAccountAccessFor) are created
+  // already-accepted and have no pending window to expire.
+  requestExpiresAt: dateValidatorOptional,
 })
 export const linkedAccountAccessValidator = listValidatorOptionalOrEmptyOk(linkedAccountAccessEntryValidator)
 
@@ -2852,6 +2862,9 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   notifyTeam: '',
   addEnduserTags: '',
   removeEnduserTags: '',
+  addListItem: '',
+  removeListItem: '',
+  updateListItem: '',
   addToJourney: '',
   removeFromJourney: '',
   removeFromAllJourneys: '',
@@ -3265,7 +3278,7 @@ const sendWebhookInfoValidator = objectValidator<AutomationForWebhook>({
 
 export const AI_SUMMARY_DATA_SOURCES: AISummaryDataSource[] = [
   'enduser_observations','form_responses','chats','phone_calls',
-  'calendar_events','tickets','sms_messages','emails',
+  'calendar_events','tickets','sms_messages','group_mms_conversations','emails',
   'enduser_orders','enduser_medications','purchases',
   'managed_content_records','templates', // org-wide reference sources, selected by ids
 ]
@@ -3333,6 +3346,35 @@ export const AGENT_DEFAULT_MAX_TOKENS = 10000
 export const AGENT_MAX_MAX_TOKENS = 64000
 /** An ai_conversation stops accepting agent_message turns at this many stored entries. */
 export const AI_CONVERSATION_MAX_STORED_MESSAGES = 1000
+
+/***************************************************************************************************
+ * agent_message attachments (document / image blocks)
+ *
+ * A caller references a Tellescope `files` record by id; the server resolves it, reads the object
+ * from S3 and substitutes the base64 source immediately before InvokeModel. These are the limits
+ * that bound that work — the SHAPE of the block is checked here, the per-record rules (the file
+ * exists in this tenant, is confirmed, is of a supported media type, fits the byte and page caps)
+ * are enforced in bedrock.ts where the record and the object are available.
+ ***************************************************************************************************/
+
+/** Block types that carry a file reference rather than text. */
+export const AGENT_ATTACHMENT_BLOCK_TYPES = ['document', 'image']
+/** At most this many attachment blocks in one request, across the whole transcript. */
+export const AGENT_MAX_ATTACHMENTS = 5
+/** Per-file ceiling, enforced from S3's ContentLength before any bytes are buffered. */
+export const AGENT_MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024
+/** A PDF with more pages than this is refused rather than sent (it would blow the context window). */
+export const AGENT_MAX_PDF_PAGES = 100
+/** The media types each block type accepts. A `files` record whose `type` is absent — which an
+ *  integration-synced file can be — matches neither and is refused. */
+export const AGENT_DOCUMENT_MEDIA_TYPES = ['application/pdf']
+export const AGENT_IMAGE_MEDIA_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+
+/** Deliberate OVER-estimates, used only for the pre-call write-ahead ceiling (never for billing,
+ *  which always uses the usage metadata Bedrock returns). A page of PDF is in practice well under
+ *  3000 tokens and an image well under 2000; erring high keeps the fail-closed ledger honest. */
+export const ATTACHMENT_TOKENS_PER_PDF_PAGE = 3000
+export const ATTACHMENT_TOKENS_PER_IMAGE = 2000
 
 /** Keys that must never reach a Mongo document (operator/path syntax, prototype pollution). */
 const UNSAFE_JSON_KEYS = ['__proto__', 'constructor', 'prototype']
@@ -3410,9 +3452,49 @@ const agent_text_block = (value: any, label: string): AgentTextBlock => {
   }
 }
 
-/** The content blocks this proxy forwards. Anything else (image, document, server_tool_use, …) is
- *  rejected rather than passed through — an unknown block is a shape we neither bill nor audit. */
-const AGENT_SUPPORTED_BLOCK_TYPES = ['text', 'thinking', 'redacted_thinking', 'tool_use', 'tool_result']
+/** The content blocks this proxy forwards. Anything else (server_tool_use, web_search_tool_result,
+ *  …) is rejected rather than passed through — an unknown block is a shape we neither bill nor
+ *  audit. `document` / `image` are accepted as a FILE REFERENCE only (agent_attachment_block); an
+ *  inline `source` is not accepted, so file bytes never travel in a request body. */
+export const AGENT_SUPPORTED_BLOCK_TYPES = [
+  'text', 'thinking', 'redacted_thinking', 'tool_use', 'tool_result', ...AGENT_ATTACHMENT_BLOCK_TYPES,
+]
+
+/**
+ * `{ type: 'document' | 'image', fileId, cache_control? }` and nothing else.
+ *
+ * `source` is deliberately NOT accepted: accepting inline base64 would put file bytes inside
+ * AGENT_MAX_REQUEST_CHARS and inside the ai_conversations ledger, which is exactly what
+ * referencing by id avoids. Rejecting it by the unrecognised-field rule also means a client that
+ * copied an Anthropic example gets a message naming the field rather than a silent strip.
+ */
+const agent_attachment_block = (value: Indexable, label: string): AgentAttachmentBlock => {
+  agent_no_unrecognized_fields(value, ['type', 'fileId', 'cache_control'], label)
+  const cache_control = agent_cache_control(value.cache_control, `${label}.cache_control`)
+  if (typeof value.fileId !== 'string' || !isMongoId(value.fileId)) {
+    throw new Error(`${label}.fileId must be the id of a Tellescope file`)
+  }
+  return {
+    type: value.type as 'document' | 'image',
+    fileId: value.fileId,
+    ...(cache_control ? { cache_control } : {}),
+  }
+}
+
+/**
+ * A block inside a `tool_result`'s content list. Text only — an attachment is answered for by the
+ * client, so it belongs in the user's own message, not inside a tool's result. Named explicitly
+ * rather than falling through agent_text_block's unrecognised-field rule so the 400 says why.
+ */
+const agent_tool_result_block = (value: any, label: string): AgentTextBlock => {
+  if (is_object(value) && AGENT_ATTACHMENT_BLOCK_TYPES.includes((value as Indexable).type as string)) {
+    throw new Error(
+      `${label} is a ${(value as Indexable).type} attachment;`
+      + ` attachments are only allowed as blocks of a user message, not inside a tool_result`
+    )
+  }
+  return agent_text_block(value, label)
+}
 
 const agent_content_block = (value: any, label: string): AgentContentBlock => {
   const object = agent_plain_object(value, label)
@@ -3426,6 +3508,8 @@ const agent_content_block = (value: any, label: string): AgentContentBlock => {
   }
 
   if (type === 'text') return agent_text_block(object, label)
+
+  if (AGENT_ATTACHMENT_BLOCK_TYPES.includes(type)) return agent_attachment_block(object, label)
 
   if (type === 'thinking') {
     agent_no_unrecognized_fields(object, ['type', 'thinking', 'signature'], label)
@@ -3461,7 +3545,7 @@ const agent_content_block = (value: any, label: string): AgentContentBlock => {
     object.content === undefined ? undefined
     : typeof object.content === 'string' ? agent_string(object.content, `${label}.content`)
     : Array.isArray(object.content)
-      ? object.content.map((block: any, i: number) => agent_text_block(block, `${label}.content[${i}]`))
+      ? object.content.map((block: any, i: number) => agent_tool_result_block(block, `${label}.content[${i}]`))
       : (() => { throw new Error(`${label}.content must be a string or a list of text blocks`) })()
   )
   return {
@@ -3606,6 +3690,167 @@ export const phoneTreeAgentToolValidator = orValidator<{ [K in PhoneTreeAgentToo
     }),
   }),
 })
+
+/* ======================= enduser list-of-objects fields =======================
+ *
+ * Declared ABOVE automationActionValidator deliberately: the journey-step list-item validators
+ * below reference ENDUSER_LIST_FIELDS and the two mutation validators at module-eval time, so a
+ * definition further down the file would be a temporal-dead-zone ReferenceError on import rather
+ * than a compile error. automationTriggerActionValidator uses the same declarations later on.
+ */
+export type EnduserListFieldConfig = {
+  /** The sub-fields that may appear in a mutation's `match`, in priority order.
+   *
+   *  The FIRST is the entry's identity sub-field: it is the value a `Field Equals` trigger on this
+   *  list field compares against (see handle_field_update_triggers), and the one control the editor
+   *  always renders. */
+  matchKeys: string[],
+  /** The sub-fields `Add List Item` / `Update List Item` may write. May be empty, for a list field
+   *  whose entries carry nothing but their identity. */
+  valueKeys: string[],
+  /** What the field is called in the trigger editor's dropdowns. */
+  label: string,
+}
+
+/**
+ * The enduser list-of-objects fields automations may read and write, and the sub-fields of each that
+ * they may match on and write.
+ *
+ * This is the ONLY place a sub-field of a list entry is named. The action validators, the save-time
+ * check (list_item_mutation_error), the Mongo operations in handle_actions_for_triggers_inner, the
+ * `Field Equals` / `Fields Changed` expansion in handle_field_update_triggers and the trigger editor
+ * are all driven by it, so adding a list field here is a registry entry rather than a change in any
+ * of them.
+ *
+ * Enforced when a trigger is SAVED rather than skipped at fire time: the alternative leaves a trigger
+ * that looks configured in the editor and silently never does anything. It is re-applied at fire time
+ * as well, so no stored key can reach a Mongo path.
+ *
+ * The one thing a new entry may still need is an editor in the webapp (list_mutation_actions.tsx):
+ * without one, each sub-field gets a plain text box, which is right for a free-text sub-field and
+ * wrong for one backed by a registry the way `programs` is.
+ */
+export const ENDUSER_LIST_FIELD_CONFIG: { [K in EnduserListField]: EnduserListFieldConfig } = {
+  programs: { matchKeys: ['name'], valueKeys: ['status'], label: 'Programs' },
+}
+export const ENDUSER_LIST_FIELDS = (
+  Object.keys(ENDUSER_LIST_FIELD_CONFIG) as EnduserListField[]
+)
+
+/**
+ * Every action type that carries a ListItemMutation: the three TRIGGER actions (the spaced,
+ * title-cased keys) and their three JOURNEY STEP twins (the camelCase keys).
+ *
+ * The two families differ only in where they run and what the resulting write cascades into — the
+ * info they carry, what makes them saveable and the Mongo work they do are shared, so everything
+ * keyed off this list treats them alike.
+ */
+export const LIST_MUTATION_ACTION_TYPES = [
+  'Add List Item', 'Remove List Item', 'Update List Item',
+  'addListItem', 'removeListItem', 'updateListItem',
+] as const
+export type ListMutationActionType = typeof LIST_MUTATION_ACTION_TYPES[number]
+
+/**
+ * What to call each action in a message a PERSON reads.
+ *
+ * A journey step's action type is a camelCase key, which is an implementation detail: the editor's
+ * dropdown says "Add List Item", so its blocking error must too. Mapping here (rather than printing
+ * `type`) is what keeps the trigger and journey versions of a rejection identically worded.
+ */
+export const LIST_MUTATION_ACTION_DISPLAY_NAMES: { [K in ListMutationActionType]: string } = {
+  'Add List Item': 'Add List Item',
+  'Remove List Item': 'Remove List Item',
+  'Update List Item': 'Update List Item',
+  addListItem: 'Add List Item',
+  removeListItem: 'Remove List Item',
+  updateListItem: 'Update List Item',
+}
+
+/** The behaviour a type asks for, shared by a trigger action and its journey twin. */
+export type ListMutationKind = 'add' | 'remove' | 'update'
+export const LIST_MUTATION_ACTION_KINDS: { [K in ListMutationActionType]: ListMutationKind } = {
+  'Add List Item': 'add',
+  'Remove List Item': 'remove',
+  'Update List Item': 'update',
+  addListItem: 'add',
+  removeListItem: 'remove',
+  updateListItem: 'update',
+}
+
+export const is_list_mutation_action = (action?: { type?: string, info?: any }): action is {
+  type: ListMutationActionType, info: Partial<ListItemMutation>,
+} => (
+  LIST_MUTATION_ACTION_TYPES.includes(action?.type as ListMutationActionType)
+)
+
+/**
+ * The blocking error for a list-item mutation action, or '' when it is saveable.
+ *
+ * Shared by the API (as an automation_triggers constraint) and by the trigger editor, so the two
+ * reject the same actions with the same wording. It exists as a separate check because the field and
+ * its sub-fields validate TOGETHER: `objectValidator` sees one key at a time and cannot tell whether
+ * `status` is a sub-field `field` actually has.
+ *
+ * Keeping unrecognized keys out here is also what keeps `$`-prefixed and dotted keys out of the Mongo
+ * paths that handle_actions_for_triggers_inner builds from them.
+ */
+export const list_item_mutation_error = (action?: { type?: string, info?: any }): string => {
+  if (!is_list_mutation_action(action)) return ''
+
+  // the action is named to the person as the editor's dropdown names it, never by its raw `type`:
+  // a journey step's type is the camelCase `addListItem`, which means nothing to whoever is reading
+  const type = LIST_MUTATION_ACTION_DISPLAY_NAMES[action.type]
+  const kind = LIST_MUTATION_ACTION_KINDS[action.type]
+  const field = action.info?.field as EnduserListField
+  // hasOwnProperty: a field of "constructor" or "toString" finds a function on the prototype, which a
+  // truthiness check would accept as a configured list field
+  const config = Object.prototype.hasOwnProperty.call(ENDUSER_LIST_FIELD_CONFIG, field)
+    ? ENDUSER_LIST_FIELD_CONFIG[field]
+    : undefined
+  if (!config) {
+    return `The "${type}" action does not support the field "${field ?? ''}"`
+  }
+
+  const match = action.info?.match
+  if (!match || typeof match !== 'object' || Object.keys(match).length === 0) {
+    return `The "${type}" action must match on ${config.matchKeys.join(' and ')}`
+  }
+  for (const key in match) {
+    if (!config.matchKeys.includes(key)) {
+      return `The "${type}" action cannot match "${field}" on "${key}"`
+    }
+    // deliberately not trimmed: a value of only spaces is a real (if unwise) one elsewhere in the
+    // product, and matching is exact, so trimming here would match something other than what was saved
+    if (typeof match[key] !== 'string' || match[key] === '') {
+      return `Select a ${field} ${key} for the "${type}" action`
+    }
+  }
+
+  // Remove List Item matches on `match` alone and removes every entry carrying it, whatever else
+  // those entries hold — its type carries no `values` at all
+  if (kind === 'remove') return ''
+
+  const values = action.info?.values ?? {}
+  if (typeof values !== 'object') {
+    return `The "${type}" action has an invalid value to set`
+  }
+  for (const key in values) {
+    if (!config.valueKeys.includes(key)) {
+      return `The "${type}" action cannot set "${key}" on "${field}"`
+    }
+  }
+  // an Update that sets nothing would match entries and write nothing, every time it fires
+  if (kind === 'update' && Object.keys(values).length === 0) {
+    return `The "${type}" action must set at least one of ${config.valueKeys.join(', ')}`
+  }
+
+  return ''
+}
+
+// a match value is required and matched exactly; a value may be '' , which CLEARS that sub-field
+const listItemMutationMatchValidator = objectAnyFieldsValidator(stringValidator100)
+const listItemMutationValuesValidator = objectAnyFieldsValidator(stringValidator100Optional)
 
 export const automationActionValidator = orValidator<{ [K in AutomationActionType]: AutomationAction & { type: K } } | { [K in BrandedWebhookActions]: SendWebhookAutomationAction } >({
   developHealthMedEligibility: objectValidator<DevelopHealthMedicationEligibilityAutomationAction>({
@@ -3782,6 +4027,38 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     type: exactMatchValidator(['removeEnduserTags']),
     info: objectValidator<RemoveEnduserTagsAutomationAction['info']>({ 
       tags: listOfStringsValidator, 
+    }, { emptyOk: false }),
+  }),
+
+  // The journey-step twins of the Add / Remove / Update List Item TRIGGER actions: same info shape,
+  // same save-time check (list_item_mutation_error, applied as an automation_steps relationship
+  // constraint), same Mongo work (apply_list_item_mutation). Unlike the trigger validators these
+  // spread sharedAutomationActionValidators, which every journey action carries.
+  addListItem: objectValidator<AddListItemAutomationAction>({
+    ...sharedAutomationActionValidators,
+    type: exactMatchValidator(['addListItem']),
+    info: objectValidator<AddListItemAutomationAction['info']>({
+      field: exactMatchValidator(ENDUSER_LIST_FIELDS),
+      match: listItemMutationMatchValidator,
+      values: listItemMutationValuesValidator,
+    }, { emptyOk: false }),
+  }),
+  // no `values`: the action removes EVERY entry matching, whatever else those entries hold
+  removeListItem: objectValidator<RemoveListItemAutomationAction>({
+    ...sharedAutomationActionValidators,
+    type: exactMatchValidator(['removeListItem']),
+    info: objectValidator<RemoveListItemAutomationAction['info']>({
+      field: exactMatchValidator(ENDUSER_LIST_FIELDS),
+      match: listItemMutationMatchValidator,
+    }, { emptyOk: false }),
+  }),
+  updateListItem: objectValidator<UpdateListItemAutomationAction>({
+    ...sharedAutomationActionValidators,
+    type: exactMatchValidator(['updateListItem']),
+    info: objectValidator<UpdateListItemAutomationAction['info']>({
+      field: exactMatchValidator(ENDUSER_LIST_FIELDS),
+      match: listItemMutationMatchValidator,
+      values: listItemMutationValuesValidator,
     }, { emptyOk: false }),
   }),
   addAccessTags: objectValidator<AddAccessTagsAutomationAction>({
@@ -4470,6 +4747,7 @@ export const organizationThemeValidator = objectValidator<OrganizationTheme>({
   hasConnectedVital: booleanValidatorOptional,
   brandId: mongoIdStringOptional,
   portalV2SchemaURL: stringValidatorOptional,
+  disablePublicRegistration: booleanValidatorOptional,
 })
 
 const _MANAGED_CONTENT_RECORD_TYPES: { [K in ManagedContentRecordType]: any } = {
@@ -5439,6 +5717,9 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     dontMarkReadForAssigned: booleanValidatorOptional,
     matchEmailAndNames: booleanValidatorOptional,
     caseInsensitiveMatching: booleanValidatorOptional,
+    disablePublicRegistration: booleanValidatorOptional,
+    disablePublicFormStarts: booleanValidatorOptional,
+    disablePublicBookingStarts: booleanValidatorOptional,
     hideNotesFromComposeForm: booleanValidatorOptional,
     showSalesforceId: booleanValidatorOptional,
     loopQueueCallSound: booleanValidatorOptional,
@@ -6040,118 +6321,6 @@ export const AUTOMATION_TRIGGER_ACTION_EVENT_RESTRICTIONS: {
   "Review Vital Reading": ['Vital Update'],
 }
 
-export type EnduserListFieldConfig = {
-  /** The sub-fields that may appear in a mutation's `match`, in priority order.
-   *
-   *  The FIRST is the entry's identity sub-field: it is the value a `Field Equals` trigger on this
-   *  list field compares against (see handle_field_update_triggers), and the one control the editor
-   *  always renders. */
-  matchKeys: string[],
-  /** The sub-fields `Add List Item` / `Update List Item` may write. May be empty, for a list field
-   *  whose entries carry nothing but their identity. */
-  valueKeys: string[],
-  /** What the field is called in the trigger editor's dropdowns. */
-  label: string,
-}
-
-/**
- * The enduser list-of-objects fields automations may read and write, and the sub-fields of each that
- * they may match on and write.
- *
- * This is the ONLY place a sub-field of a list entry is named. The action validators, the save-time
- * check (list_item_mutation_error), the Mongo operations in handle_actions_for_triggers_inner, the
- * `Field Equals` / `Fields Changed` expansion in handle_field_update_triggers and the trigger editor
- * are all driven by it, so adding a list field here is a registry entry rather than a change in any
- * of them.
- *
- * Enforced when a trigger is SAVED rather than skipped at fire time: the alternative leaves a trigger
- * that looks configured in the editor and silently never does anything. It is re-applied at fire time
- * as well, so no stored key can reach a Mongo path.
- *
- * The one thing a new entry may still need is an editor in the webapp (list_mutation_actions.tsx):
- * without one, each sub-field gets a plain text box, which is right for a free-text sub-field and
- * wrong for one backed by a registry the way `programs` is.
- */
-export const ENDUSER_LIST_FIELD_CONFIG: { [K in EnduserListField]: EnduserListFieldConfig } = {
-  programs: { matchKeys: ['name'], valueKeys: ['status'], label: 'Programs' },
-}
-export const ENDUSER_LIST_FIELDS = (
-  Object.keys(ENDUSER_LIST_FIELD_CONFIG) as EnduserListField[]
-)
-
-export const LIST_MUTATION_ACTION_TYPES = ['Add List Item', 'Remove List Item', 'Update List Item'] as const
-export type ListMutationActionType = typeof LIST_MUTATION_ACTION_TYPES[number]
-
-export const is_list_mutation_action = (action?: { type?: string, info?: any }): action is {
-  type: ListMutationActionType, info: Partial<ListItemMutation>,
-} => (
-  LIST_MUTATION_ACTION_TYPES.includes(action?.type as ListMutationActionType)
-)
-
-/**
- * The blocking error for a list-item mutation action, or '' when it is saveable.
- *
- * Shared by the API (as an automation_triggers constraint) and by the trigger editor, so the two
- * reject the same actions with the same wording. It exists as a separate check because the field and
- * its sub-fields validate TOGETHER: `objectValidator` sees one key at a time and cannot tell whether
- * `status` is a sub-field `field` actually has.
- *
- * Keeping unrecognized keys out here is also what keeps `$`-prefixed and dotted keys out of the Mongo
- * paths that handle_actions_for_triggers_inner builds from them.
- */
-export const list_item_mutation_error = (action?: { type?: string, info?: any }): string => {
-  if (!is_list_mutation_action(action)) return ''
-
-  const { type } = action
-  const field = action.info?.field as EnduserListField
-  // hasOwnProperty: a field of "constructor" or "toString" finds a function on the prototype, which a
-  // truthiness check would accept as a configured list field
-  const config = Object.prototype.hasOwnProperty.call(ENDUSER_LIST_FIELD_CONFIG, field)
-    ? ENDUSER_LIST_FIELD_CONFIG[field]
-    : undefined
-  if (!config) {
-    return `The "${type}" action does not support the field "${field ?? ''}"`
-  }
-
-  const match = action.info?.match
-  if (!match || typeof match !== 'object' || Object.keys(match).length === 0) {
-    return `The "${type}" action must match on ${config.matchKeys.join(' and ')}`
-  }
-  for (const key in match) {
-    if (!config.matchKeys.includes(key)) {
-      return `The "${type}" action cannot match "${field}" on "${key}"`
-    }
-    // deliberately not trimmed: a value of only spaces is a real (if unwise) one elsewhere in the
-    // product, and matching is exact, so trimming here would match something other than what was saved
-    if (typeof match[key] !== 'string' || match[key] === '') {
-      return `Select a ${field} ${key} for the "${type}" action`
-    }
-  }
-
-  // Remove List Item matches on `match` alone and removes every entry carrying it, whatever else
-  // those entries hold — its type carries no `values` at all
-  if (type === 'Remove List Item') return ''
-
-  const values = action.info?.values ?? {}
-  if (typeof values !== 'object') {
-    return `The "${type}" action has an invalid value to set`
-  }
-  for (const key in values) {
-    if (!config.valueKeys.includes(key)) {
-      return `The "${type}" action cannot set "${key}" on "${field}"`
-    }
-  }
-  // an Update that sets nothing would match entries and write nothing, every time it fires
-  if (type === 'Update List Item' && Object.keys(values).length === 0) {
-    return `The "${type}" action must set at least one of ${config.valueKeys.join(', ')}`
-  }
-
-  return ''
-}
-
-// a match value is required and matched exactly; a value may be '' , which CLEARS that sub-field
-const listItemMutationMatchValidator = objectAnyFieldsValidator(stringValidator100)
-const listItemMutationValuesValidator = objectAnyFieldsValidator(stringValidator100Optional)
 
 export const automationTriggerActionValidator = orValidator<{ [K in AutomationTriggerActionType]: AutomationTriggerActions[K] } >({
   "Add To Journey": objectValidator<AutomationTriggerActions["Add To Journey"]>({

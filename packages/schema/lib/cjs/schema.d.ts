@@ -893,6 +893,8 @@ export type CustomActions = {
             organizationId: string;
             role?: string;
             tags?: string[];
+            skipInviteEmail?: boolean;
+            linkedAccountAccessFor?: string[];
         }, {
             created: UserClient;
         }>;
@@ -997,6 +999,7 @@ export type CustomActions = {
             lastUpdatedAt?: Date;
             limit?: number;
             showClosed?: boolean;
+            showMuted?: boolean;
         }, {
             chat_rooms: ChatRoom[];
             endusers: Enduser[];
@@ -1694,6 +1697,7 @@ export type CustomActions = {
             productIds?: string[];
             items?: StripeCheckoutItem[];
             stripeKey?: string;
+            formResponseIds?: string[];
         }, {
             customerId: string;
             clientSecret: string;

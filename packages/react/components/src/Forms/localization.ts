@@ -90,6 +90,7 @@ const SPANISH_TRANSLATIONS: Record<string, string> = {
   // Insurance Input
   'Insurer': 'Aseguradora',
   'Search insurer...': 'Buscar aseguradora...',
+  'Type 3 characters to search': 'Escriba 3 caracteres para buscar',
   'Member ID': 'Número de Miembro',
   'Plan Name': 'Nombre del Plan',
   'Group Number': 'Número de Grupo',

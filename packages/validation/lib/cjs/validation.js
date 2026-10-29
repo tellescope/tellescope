@@ -35,15 +35,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.stringValidator25000EmptyOkay = exports.stringValidator30000RichTextHTML = exports.stringValidator25000OptionalEmptyOkay = exports.stringValidator100000OptionalEmptyOkayEscapeHTML = exports.stringValidator100000OptionalEmptyOkay = exports.stringValidator100000EmptyOkay = exports.stringValidator100000 = exports.stringValidator25000 = exports.stringValidator5000Optional = exports.stringValidator5000EmptyOkay = exports.stringValidator20000ptional = exports.stringValidator5000 = exports.stringValidator1000Optional = exports.stringValidator1000 = exports.stringValidator250 = exports.stringValidator210 = exports.stringValidator105 = exports.stringValidator100EscapeHTML = exports.stringValidator100Optional = exports.stringValidator100 = exports.stringValidator5000OptionalEmptyOkay = exports.stringValidatorOptionalEmptyOkay = exports.stringValidatorOptional = exports.stringValidator = exports.escapeString = exports.optionalAnyObjectValidator = exports.optionalEmptyObjectValidator = exports.compoundFilterValidator = exports.basicFilterValidator = exports.objectAnyFieldsAnyValuesValidator = exports.objectAnyFieldsValidator = exports.listOfObjectsValidator = exports.objectValidator = exports.listValidatorOld = exports.objectValidatorOld = exports.convertCommands = exports.convertCommand = exports.filterCommandsValidator = exports.orValidator = exports.binaryOrValidator = exports.fieldsToValidationOld = exports.build_validator = exports.MAX_FILE_SIZE = exports.isURL = exports.isMimeType = exports.isMongoId = exports.isSlug = exports.isMobilePhone = exports.isEmail = exports.isDate = void 0;
-exports.numberValidatorMin0Max23Optional = exports.numberValidatorMin1Max31 = exports.inclusionProjectionValidator = exports.listOfNumbersValidatorUniqueOptionalOrEmptyOkay = exports.numberValidatorOptional = exports.numberValidator = exports.positiveNumberValidator = exports.nonNegNumberValidatorOptional = exports.nonNegNumberValidator = exports.numberValidatorBuilder = exports.emailValidatorEmptyOkay = exports.emailValidatorOptional = exports.emailValidator = exports.nameValidator = exports.escape_name = exports.first_letter_capitalized = exports.slugValidator = exports.SUBDOMAIN_SLUG_REGEX = exports.listOfListsOfMongoIdStringsValidatorOptionalOrEmptyOk = exports.sharedWithOrganizationIdsValidator = exports.listOfMongoIdStringValidatorOptionalOrEmptyOk = exports.listOfMongoIdStringValidatorEmptyOk = exports.listOfMongoIdStringValidatorOptional = exports.listOfMongoIdStringValidator = exports.mongoIdStringOptional = exports.mongoIdStringRequired = exports.listOfMongoIdValidator = exports.mongoIdOptional = exports.mongoIdRequired = exports.stringReadonlyValidator = exports.nullValidator = exports.buildMongoIdStringValidator = exports.mongoIdValidator = exports.escapeMongoId = exports.booleanValidatorOptional = exports.booleanValidator = exports.booleanValidatorBuilder = exports.listOfUniqueStringsValidatorEmptyOk = exports.listOfObjectAnyFieldsAnyValuesValidator = exports.listOfStringsValidatorUniqueOptionalOrEmptyOkay = exports.listOfStringsValidatorEmptyOk = exports.listOfStringsValidatorOptionalOrEmptyOk = exports.listOfStringsValidator = exports.listValidatorUniqueOptionalEmptyOkay = exports.listValidatorUniqueEmptyOkay = exports.listValidatorUnique = exports.listValidatorOptionalOrEmptyOk = exports.listValidatorEmptyOk = exports.listValidator = exports.SMSMessageValidator = void 0;
-exports.indexableNumberValidator = exports.indexableValidator = exports.validateIndexable = exports.emailEncodingValidator = exports.journeyStatesValidator = exports.journeyStateValidator = exports.journeyStatePriorityValidator = exports.updateOptionsValidator = exports.preferenceValidator = exports.fieldsValidator = exports.FORM_FIELD_VALIDATORS_BY_TYPE = exports.formFieldTypeValidator = exports.FORM_FIELD_TYPES = exports.listOfStripeCheckoutItemsValidatorOptional = exports.stripeCheckoutItemValidator = exports.stripeCheckoutQuantityValidator = exports.linkedAccountAccessValidator = exports.linkedAccountAccessEntryValidator = exports.labeledFieldsValidator = exports.signatureResponseValidator = exports.fileResponseValidator = exports.subdomainValidator = exports.safeBase64Validator = exports.sipUrlValidatorOptional = exports.sipUrlValidator = exports.urlValidator = exports.fileTypeValidator = exports.parse_phone_number = exports.phoneValidatorOptional = exports.phoneValidator = exports.escape_phone_number = exports.journeysValidator = exports.stateValidatorOptional = exports.stateValidator = exports.VALID_STATES = exports.exactMatchListValidator = exports.exactMatchValidatorOptional = exports.exactMatchValidator = exports.dateRangeOptionalValidator = exports.dateRangeValidator = exports.dateValidatorOptional = exports.dateOptionalOrEmptyStringValidator = exports.dateValidator = exports.numberOrStringValidatorOptional = exports.numberOrStringValidatorEmptyOkay = exports.numberValidatorMin1Max100Optional = exports.fileSizeValidator = exports.externalIdNumberValidatorOptional = exports.externalIdNumberValidator = exports.numberValidatorMin0Max59Optional = void 0;
-exports.calendarEventAttendeeValidator = exports.listOfUserIndentitiesValidator = exports.userIdentityValidator = exports.meetingInfoValidator = exports.listOfVideoCallParticipantEventsValidator = exports.videoCallParticipantEventValidator = exports.listOfAttendeesValidator = exports.attendeeValidator = exports.attendeeInfoValidator = exports.listOfDisplayNameInfo = exports.sessionTypeOrAnyoneValidatorOptional = exports.sessionTypeValidator = exports.WebhookSubscriptionValidator = exports.UnitOfTimeValidator = exports.UNITS_OF_TIME = exports.CUDValidator = exports.CUDStringValidator = exports.CUD = exports.meetingStatusValidator = exports.MEETING_STATUSES = exports.messageTemplateTypeValidator = exports.MESSAGE_TEMPLATE_TYPES = exports.accountTypeValidator = exports.ACCOUNT_TYPES = exports.chatRoomTypeValidator = exports.CHAT_ROOM_TYPES = exports.listOfFormFieldsValidator = exports.formFieldValidator = exports.intakeDateOfBirthValidator = exports.intakePhoneValidator = exports.formResponsesValidator = exports.formResponseValidator = exports.fullscriptDisabledForEnduser = exports.photonDisabledForEnduser = exports.mmddyyyyRegex = exports.formResponseAnswerValidator = exports.pharmacyValidator = exports.insuranceOptionalValidator = exports.tellescopeGenderOptionalValidator = exports.tellescopeGenderValidator = exports.TELLESCOPE_GENDER = exports.addressOptionalValidator = exports.addressValidator = exports.INTERNAL_NAME_TO_DISPLAY_FIELD = exports.RESERVED_INTAKE_FIELDS = exports.translationsValidator = exports.fieldTranslationsValidator = exports.idStringToDateValidator = exports.numberToDateValidator = exports.rejectionWithMessage = void 0;
-exports.selectableAIModelValidator = exports.aiSummaryDataSourceConfigValidator = exports.aiSummaryDataSourceTypeValidator = exports.AI_SUMMARY_DATA_SOURCES = exports.canvasCodingValidatorOptional = exports.canvasCodingValidator = exports.developHealthMockResultValidator = exports.developHealthDiagnosesValidator = exports.developHealthDrugsValidator = exports.automationForMessageValidator = exports.smartMeterLinesValidator = exports.senderAssignmentStrategyValidatorOptional = exports.ticketActionsValidator = exports.ticketActionValidator = exports.ticketReminderValidator = exports.listOfAutomationConditionsValidator = exports.automationConditionValidator = exports.automationEventsValidator = exports.automationEventValidator = exports.coldTransfersValidator = exports.cancelConditionsValidatorOptional = exports.cancelConditionsValidator = exports.cancelConditionValidator = exports.listOfCalendarEventRemindersValidator = exports.calendarEventReminderValidator = exports.messageTemplateModeValidator = exports.MESSAGE_TEMPLATE_MODES = exports.communicationsChannelValidatorOptional = exports.communicationsChannelValidator = exports.COMMUNICATIONS_CHANNELS = exports.automationActionTypeValidator = exports.AUTOMATION_ACTIONS = exports.automationEventTypeValidator = exports.AUTOMATION_EVENTS = exports.automatedActionStatusValidator = exports.AUTOMATION_ENDUSER_STATUS = exports.listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay = exports.listOfStringsWithQualifierValidatorOptional = exports.listOfStringsWithQualifierValidator = exports.listQueryQualifiersValidator = exports.LIST_QUERY_QUALIFIERS = exports.chatRoomUserInfoValidator = exports.meetingDisplayInfoValidator = exports.userDisplayInfoValidator = exports.meetingsListValidator = exports.listOfGenericAttachmentsValidator = exports.genericAttachmentValidator = exports.listOfChatAttachmentsValidator = exports.chatAttachmentValidator = exports.calendarEventAttendeesValidator = void 0;
-exports.blockStyleValidator = exports.formFieldOptionsValidator = exports.formFieldOptionDetailsValidator = exports.formFieldFeedbackValidator = exports.tableInputChoiceValidator = exports.tableInputTypesValidator = exports.TABLE_INPUT_TYPES = exports.integrationAuthenticationsValidator = exports.flowchartUIValidator = exports.passwordValidator = exports.managedContentRecordAssignmentTypeValidator = exports.MANAGED_CONTENT_RECORD_ASSIGNMENT_TYPES = exports.managedContentRecordTypeValidator = exports.MANAGED_CONTENT_RECORD_TYPES = exports.organizationThemeValidator = exports.customPoliciesValidator = exports.portalSettingsValidator = exports.previousFormFieldsValidator = exports.previousFormFieldValidator = exports.observationComponentsValidator = exports.FHIRObservationValueValidator = exports.FHIRObservationStatusCodeValidator = exports.FHIR_OBSERVATION_STATUS_CODES = exports.FHIRObservationCategoryValidator = exports.userPreferencesValidator = exports.userPortalSettingsValidator = exports.notificationPreferencesValidator = exports.notificationPreferenceValidator = exports.searchOptionsValidator = exports.minimumShouldMatchValidatorOptional = exports.relatedRecordsValidatorOptional = exports.listOfRelatedRecordsValidator = exports.relatedRecordValidator = exports.journeyContextValidator = exports.automationActionValidator = exports.phoneTreeAgentToolValidator = exports.agentToolChoiceValidator = exports.agentToolsValidator = exports.agentSystemValidator = exports.agentMessagesValidator = exports.AI_CONVERSATION_MAX_STORED_MESSAGES = exports.AGENT_MAX_MAX_TOKENS = exports.AGENT_DEFAULT_MAX_TOKENS = exports.AGENT_MAX_CACHE_CONTROL_MARKERS = exports.AGENT_MAX_MESSAGES = exports.AGENT_MAX_REQUEST_CHARS = exports.AGENT_MAX_BLOCK_CHARS = exports.AIMessageInputValidator = exports.AIDecisionSourceValidator = exports.aiSummaryConfigurationValidator = void 0;
-exports.organizationSettingsValidator = exports.customDashboardViewValidator = exports.buildInFieldsValidator = exports.customEnduserFieldsValidatorOptionalOrEmpty = exports.customEnduserFieldValidator = exports.indexUpdatesValidator = exports.indexUpdateValidator = exports.availabilityEntitiesValidator = exports.AVAILABILITY_BLOCK_ENTITIES = exports.customEnduserFieldTypeValidator = exports.CUSTOM_ENDUSER_FIELD_TYPES = exports.accessValidator = exports.timezoneValidatorOptional = exports.timezoneValidator = exports.calendarEventLimitsValidator = exports.calendarEventLimitValidator = exports.weeklyAvailabilitiesValidator = exports.weeklyAvailabilityValidator = exports.monthlyRestrictionOptionalValidator = exports.monthlyRestrictionValidator = exports.baseAvailabilityBlocksValidator = exports.baseAvailabilityBlockValidator = exports.stateCredentialsValidator = exports.stateCredentialValidator = exports.genericUnitWithQuantityValidator = exports.enduserFormResponsesForEventValidator = exports.enduserFormResponseForEventValidator = exports.enduserTasksForEventValidator = exports.enduserTaskForEventValidator = exports.portalTypeValidator = exports.PORTAL_BLOCK_TYPES = exports.portalBlocksValidator = exports.portalBlockValidator = exports.formTypeValidator = exports.FORM_TYPES = exports.portalPageValidator = exports.PORTAL_PAGES = exports.organizationAccessValidator = exports.databaseRecordValuesValidator = exports.databaseRecordValueValidator = exports.databaseFieldsValidator = exports.databaseFieldValidator = exports.is_database_record_field_type = exports.databaseRecordFieldTypeValidator = exports.DATABASE_RECORD_FIELD_TYPES = exports.blocksValidator = exports.is_block_type = exports.blockTypeValidator = exports.BLOCK_TYPES = exports.blockValidator = void 0;
-exports.analyticsQueryTypeValidator = exports.ANALYTICS_QUERY_TYPES = exports.analyticsFrameTypeValidator = exports.ANALYTICS_FRAME_TYPES = exports.analyticsQueriesValidatorOptional = exports.analyticsQueryValidator = exports.formScoringValidator = exports.scheduledJourneysValidator = exports.analyticsQueryResultsValidator = exports.videoIntegrationTypesValidator = exports.VIDEO_INTEGRATION_TYPES = exports.integrationTitleValidator = exports.purchaseCreditValueValidator = exports.costValidator = exports.paymentProcessorValidator = exports.PAYMENT_PROCESSORS = exports.currencyValidator = exports.CURRENCIES = exports.appointmentTermsValidator = exports.loginFlowResultValidator = exports.LOGIN_FLOW_RESULTS = exports.organizationLimitsValidator = exports.accessPermissionsValidator = exports.accessPermissionValidator = exports.ticketSnoozesValidator = exports.superbillLineItemsValidator = exports.billingCodeValidatorOptional = exports.billingCodeValidator = exports.superbillProviderInfoValidator = exports.superbillPatientInfoValidator = exports.embeddingTypeValidator = exports.EMBEDDING_TYPES = exports.automatioNTriggerStatusValidator = exports.AUTOMATION_TRIGGER_STATUSES = exports.automationTriggerActionValidator = exports.list_item_mutation_error = exports.is_list_mutation_action = exports.LIST_MUTATION_ACTION_TYPES = exports.ENDUSER_LIST_FIELDS = exports.ENDUSER_LIST_FIELD_CONFIG = exports.AUTOMATION_TRIGGER_ACTION_EVENT_RESTRICTIONS = exports.AUTOMATION_TRIGGER_ACTION_TYPES = exports.automationTriggerEventValidator = exports.ACTIVE_AUTOMATION_TRIGGER_EVENT_TYPES = exports.DEPRECATED_AUTOMATION_TRIGGER_EVENT_TYPES = exports.AUTOMATION_TRIGGER_EVENT_TYPES = exports.vitalConfigurationRangesValidator = exports.vitalConfigurationRangeValidator = exports.vitalComparisonValidator = exports.calendarEventPortalSettingsValidator = void 0;
-exports.fieldMappingsValidator = exports.fieldMappingValidator = exports.athenaSubscriptionsValidator = exports.athenaSubscriptionValidator = exports.athenaSubscriptionTypeValidator = exports.fieldsSyncValidator = exports.fieldSyncValidator = exports.syncDirectionValidator = exports.enduserProfileWebhooksValidator = exports.diagnosesValidator = exports.diagnosisValidator = exports.candidProcedureCodeValidator = exports.diagnosisTypeValidator = exports.DIAGNOSIS_TYPES = exports.sortingFieldsValidator = exports.groupMMSUserStatesValidator = exports.groupMMSUserStateValidator = exports.mmsMessagesValidator = exports.mmsMessageValidator = exports.imageAttachmentValidator = exports.is_valid_mm_dd_yyyy = exports.isDateString = exports.phoneCallsReportQueriesValidator = exports.formResponsesReportQueriesValidator = exports.endusersReportQueriesValidator = exports.formFieldCalloutConditionsValidator = exports.tableViewColumnsValidator = exports.languageValidator = exports.formCustomizationValidator = exports.phoneTreeEnduserConditionValidator = exports.PHONE_TREE_ENDUSER_CONDITIONS = exports.phoneTreeNodesValidator = exports.phoneTreeNodeValidator = exports.phoneTreeActionValidator = exports.phonePlaybackValidatorOptional = exports.phonePlaybackValidator = exports.phoneTreeEventsValidator = exports.phoneTreeEventValidator = exports.insurancesValidator = exports.customDashboardBlocksValidator = exports.customDashboardBlockValidator = exports.enduserProfileViewBlocksValidator = exports.enduserProfileViewBlockValidator = exports.sharedEnduserProfileViewBlockFields = exports.externalChatGPTMessagesValidator = exports.portalSchemaRestrictionsValidator = exports.userUIRestrictionsValidator = exports.userFieldRedactionsValidator = exports.userCallRoutingBehaviorValidator = exports.USER_CALL_ROUTING_BEHAVIORS = void 0;
-exports.listOfEmailCCsValidator = exports.emailCCValidator = exports.userOutOfOfficesValidator = exports.userOutOfOfficeValidator = exports.outOfOfficeBlocksValidator = exports.outOfOfficeBlockValidator = exports.recentViewersValidator = exports.recentViewerValidator = exports.enduserProgramsValidator = exports.organizationProgramsValidator = exports.recordProgramsValidator = exports.enduserDiagnosisValidator = exports.bookingRestrictionsByTemplateValidator = exports.analyticsFrameGroupingCategoriesValidator = exports.analyticsFrameGroupingCategoryValidator = void 0;
+exports.numberValidatorMin1Max31 = exports.inclusionProjectionValidator = exports.listOfNumbersValidatorUniqueOptionalOrEmptyOkay = exports.numberValidatorOptional = exports.numberValidator = exports.positiveNumberValidator = exports.nonNegNumberValidatorOptional = exports.nonNegNumberValidator = exports.numberValidatorBuilder = exports.emailValidatorEmptyOkay = exports.listOfEmailsValidatorUniqueOptionalOrEmptyOkay = exports.emailValidatorOptional = exports.emailValidator = exports.nameValidator = exports.escape_name = exports.first_letter_capitalized = exports.slugValidator = exports.SUBDOMAIN_SLUG_REGEX = exports.listOfListsOfMongoIdStringsValidatorOptionalOrEmptyOk = exports.sharedWithOrganizationIdsValidator = exports.listOfMongoIdStringValidatorOptionalOrEmptyOk = exports.listOfMongoIdStringValidatorEmptyOk = exports.listOfMongoIdStringValidatorOptional = exports.listOfMongoIdStringValidator = exports.mongoIdStringOptional = exports.mongoIdStringRequired = exports.listOfMongoIdValidator = exports.mongoIdOptional = exports.mongoIdRequired = exports.stringReadonlyValidator = exports.nullValidator = exports.buildMongoIdStringValidator = exports.mongoIdValidator = exports.escapeMongoId = exports.booleanValidatorOptional = exports.booleanValidator = exports.booleanValidatorBuilder = exports.listOfUniqueStringsValidatorEmptyOk = exports.listOfObjectAnyFieldsAnyValuesValidator = exports.listOfStringsValidatorUniqueOptionalOrEmptyOkay = exports.listOfStringsValidatorEmptyOk = exports.listOfStringsValidatorOptionalOrEmptyOk = exports.listOfStringsValidator = exports.listValidatorUniqueOptionalEmptyOkay = exports.listValidatorUniqueEmptyOkay = exports.listValidatorUnique = exports.listValidatorOptionalOrEmptyOk = exports.listValidatorEmptyOk = exports.listValidator = exports.SMSMessageValidator = void 0;
+exports.indexableValidator = exports.validateIndexable = exports.emailEncodingValidator = exports.journeyStatesValidator = exports.journeyStateValidator = exports.journeyStatePriorityValidator = exports.updateOptionsValidator = exports.preferenceValidator = exports.fieldsValidator = exports.FORM_FIELD_VALIDATORS_BY_TYPE = exports.formFieldTypeValidator = exports.FORM_FIELD_TYPES = exports.listOfStripeCheckoutItemsValidatorOptional = exports.stripeCheckoutItemValidator = exports.stripeCheckoutQuantityValidator = exports.linkedAccountAccessValidator = exports.linkedAccountAccessEntryValidator = exports.labeledFieldsValidator = exports.signatureResponseValidator = exports.fileResponseValidator = exports.subdomainValidator = exports.safeBase64Validator = exports.sipUrlValidatorOptional = exports.sipUrlValidator = exports.urlValidator = exports.fileTypeValidator = exports.parse_phone_number = exports.phoneValidatorOptional = exports.phoneValidator = exports.escape_phone_number = exports.journeysValidator = exports.stateValidatorOptional = exports.stateValidator = exports.VALID_STATES = exports.exactMatchListValidator = exports.exactMatchValidatorOptional = exports.exactMatchValidator = exports.dateRangeOptionalValidator = exports.dateRangeValidator = exports.dateValidatorOptional = exports.dateOptionalOrEmptyStringValidator = exports.dateValidator = exports.numberOrStringValidatorOptional = exports.numberOrStringValidatorEmptyOkay = exports.numberValidatorMin1Max100Optional = exports.fileSizeValidator = exports.externalIdNumberValidatorOptional = exports.externalIdNumberValidator = exports.numberValidatorMin0Max59Optional = exports.numberValidatorMin0Max23Optional = void 0;
+exports.listOfUserIndentitiesValidator = exports.userIdentityValidator = exports.meetingInfoValidator = exports.listOfVideoCallParticipantEventsValidator = exports.videoCallParticipantEventValidator = exports.listOfAttendeesValidator = exports.attendeeValidator = exports.attendeeInfoValidator = exports.listOfDisplayNameInfo = exports.sessionTypeOrAnyoneValidatorOptional = exports.sessionTypeValidator = exports.WebhookSubscriptionValidator = exports.UnitOfTimeValidator = exports.UNITS_OF_TIME = exports.CUDValidator = exports.CUDStringValidator = exports.CUD = exports.meetingStatusValidator = exports.MEETING_STATUSES = exports.messageTemplateTypeValidator = exports.MESSAGE_TEMPLATE_TYPES = exports.accountTypeValidator = exports.ACCOUNT_TYPES = exports.chatRoomTypeValidator = exports.CHAT_ROOM_TYPES = exports.listOfFormFieldsValidator = exports.formFieldValidator = exports.intakeDateOfBirthValidator = exports.intakePhoneValidator = exports.formResponsesValidator = exports.formResponseValidator = exports.fullscriptDisabledForEnduser = exports.photonDisabledForEnduser = exports.mmddyyyyRegex = exports.formResponseAnswerValidator = exports.pharmacyValidator = exports.insuranceOptionalValidator = exports.tellescopeGenderOptionalValidator = exports.tellescopeGenderValidator = exports.TELLESCOPE_GENDER = exports.addressOptionalValidator = exports.addressValidator = exports.INTERNAL_NAME_TO_DISPLAY_FIELD = exports.RESERVED_INTAKE_FIELDS = exports.translationsValidator = exports.fieldTranslationsValidator = exports.idStringToDateValidator = exports.numberToDateValidator = exports.rejectionWithMessage = exports.indexableNumberValidator = void 0;
+exports.aiSummaryDataSourceConfigValidator = exports.aiSummaryDataSourceTypeValidator = exports.AI_SUMMARY_DATA_SOURCES = exports.canvasCodingValidatorOptional = exports.canvasCodingValidator = exports.developHealthMockResultValidator = exports.developHealthDiagnosesValidator = exports.developHealthDrugsValidator = exports.automationForMessageValidator = exports.smartMeterLinesValidator = exports.senderAssignmentStrategyValidatorOptional = exports.ticketActionsValidator = exports.ticketActionValidator = exports.ticketReminderValidator = exports.listOfAutomationConditionsValidator = exports.automationConditionValidator = exports.automationEventsValidator = exports.automationEventValidator = exports.coldTransfersValidator = exports.cancelConditionsValidatorOptional = exports.cancelConditionsValidator = exports.cancelConditionValidator = exports.listOfCalendarEventRemindersValidator = exports.calendarEventReminderValidator = exports.messageTemplateModeValidator = exports.MESSAGE_TEMPLATE_MODES = exports.communicationsChannelValidatorOptional = exports.communicationsChannelValidator = exports.COMMUNICATIONS_CHANNELS = exports.automationActionTypeValidator = exports.AUTOMATION_ACTIONS = exports.automationEventTypeValidator = exports.AUTOMATION_EVENTS = exports.automatedActionStatusValidator = exports.AUTOMATION_ENDUSER_STATUS = exports.listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay = exports.listOfStringsWithQualifierValidatorOptional = exports.listOfStringsWithQualifierValidator = exports.listQueryQualifiersValidator = exports.LIST_QUERY_QUALIFIERS = exports.chatRoomUserInfoValidator = exports.meetingDisplayInfoValidator = exports.userDisplayInfoValidator = exports.meetingsListValidator = exports.listOfGenericAttachmentsValidator = exports.genericAttachmentValidator = exports.listOfChatAttachmentsValidator = exports.chatAttachmentValidator = exports.calendarEventAttendeesValidator = exports.calendarEventAttendeeValidator = void 0;
+exports.previousFormFieldsValidator = exports.previousFormFieldValidator = exports.observationComponentsValidator = exports.FHIRObservationValueValidator = exports.FHIRObservationStatusCodeValidator = exports.FHIR_OBSERVATION_STATUS_CODES = exports.FHIRObservationCategoryValidator = exports.userPreferencesValidator = exports.userPortalSettingsValidator = exports.notificationPreferencesValidator = exports.notificationPreferenceValidator = exports.searchOptionsValidator = exports.minimumShouldMatchValidatorOptional = exports.relatedRecordsValidatorOptional = exports.listOfRelatedRecordsValidator = exports.relatedRecordValidator = exports.journeyContextValidator = exports.automationActionValidator = exports.list_item_mutation_error = exports.is_list_mutation_action = exports.LIST_MUTATION_ACTION_KINDS = exports.LIST_MUTATION_ACTION_DISPLAY_NAMES = exports.LIST_MUTATION_ACTION_TYPES = exports.ENDUSER_LIST_FIELDS = exports.ENDUSER_LIST_FIELD_CONFIG = exports.phoneTreeAgentToolValidator = exports.agentToolChoiceValidator = exports.agentToolsValidator = exports.agentSystemValidator = exports.agentMessagesValidator = exports.AGENT_SUPPORTED_BLOCK_TYPES = exports.ATTACHMENT_TOKENS_PER_IMAGE = exports.ATTACHMENT_TOKENS_PER_PDF_PAGE = exports.AGENT_IMAGE_MEDIA_TYPES = exports.AGENT_DOCUMENT_MEDIA_TYPES = exports.AGENT_MAX_PDF_PAGES = exports.AGENT_MAX_ATTACHMENT_BYTES = exports.AGENT_MAX_ATTACHMENTS = exports.AGENT_ATTACHMENT_BLOCK_TYPES = exports.AI_CONVERSATION_MAX_STORED_MESSAGES = exports.AGENT_MAX_MAX_TOKENS = exports.AGENT_DEFAULT_MAX_TOKENS = exports.AGENT_MAX_CACHE_CONTROL_MARKERS = exports.AGENT_MAX_MESSAGES = exports.AGENT_MAX_REQUEST_CHARS = exports.AGENT_MAX_BLOCK_CHARS = exports.AIMessageInputValidator = exports.AIDecisionSourceValidator = exports.aiSummaryConfigurationValidator = exports.selectableAIModelValidator = void 0;
+exports.weeklyAvailabilityValidator = exports.monthlyRestrictionOptionalValidator = exports.monthlyRestrictionValidator = exports.baseAvailabilityBlocksValidator = exports.baseAvailabilityBlockValidator = exports.stateCredentialsValidator = exports.stateCredentialValidator = exports.genericUnitWithQuantityValidator = exports.enduserFormResponsesForEventValidator = exports.enduserFormResponseForEventValidator = exports.enduserTasksForEventValidator = exports.enduserTaskForEventValidator = exports.portalTypeValidator = exports.PORTAL_BLOCK_TYPES = exports.portalBlocksValidator = exports.portalBlockValidator = exports.formTypeValidator = exports.FORM_TYPES = exports.portalPageValidator = exports.PORTAL_PAGES = exports.organizationAccessValidator = exports.databaseRecordValuesValidator = exports.databaseRecordValueValidator = exports.databaseFieldsValidator = exports.databaseFieldValidator = exports.is_database_record_field_type = exports.databaseRecordFieldTypeValidator = exports.DATABASE_RECORD_FIELD_TYPES = exports.blocksValidator = exports.is_block_type = exports.blockTypeValidator = exports.BLOCK_TYPES = exports.blockValidator = exports.blockStyleValidator = exports.formFieldOptionsValidator = exports.formFieldOptionDetailsValidator = exports.formFieldFeedbackValidator = exports.tableInputChoiceValidator = exports.tableInputTypesValidator = exports.TABLE_INPUT_TYPES = exports.integrationAuthenticationsValidator = exports.flowchartUIValidator = exports.passwordValidator = exports.managedContentRecordAssignmentTypeValidator = exports.MANAGED_CONTENT_RECORD_ASSIGNMENT_TYPES = exports.managedContentRecordTypeValidator = exports.MANAGED_CONTENT_RECORD_TYPES = exports.organizationThemeValidator = exports.customPoliciesValidator = exports.portalSettingsValidator = void 0;
+exports.purchaseCreditValueValidator = exports.costValidator = exports.paymentProcessorValidator = exports.PAYMENT_PROCESSORS = exports.currencyValidator = exports.CURRENCIES = exports.appointmentTermsValidator = exports.loginFlowResultValidator = exports.LOGIN_FLOW_RESULTS = exports.organizationLimitsValidator = exports.accessPermissionsValidator = exports.accessPermissionValidator = exports.ticketSnoozesValidator = exports.superbillLineItemsValidator = exports.billingCodeValidatorOptional = exports.billingCodeValidator = exports.superbillProviderInfoValidator = exports.superbillPatientInfoValidator = exports.embeddingTypeValidator = exports.EMBEDDING_TYPES = exports.automatioNTriggerStatusValidator = exports.AUTOMATION_TRIGGER_STATUSES = exports.automationTriggerActionValidator = exports.AUTOMATION_TRIGGER_ACTION_EVENT_RESTRICTIONS = exports.AUTOMATION_TRIGGER_ACTION_TYPES = exports.automationTriggerEventValidator = exports.ACTIVE_AUTOMATION_TRIGGER_EVENT_TYPES = exports.DEPRECATED_AUTOMATION_TRIGGER_EVENT_TYPES = exports.AUTOMATION_TRIGGER_EVENT_TYPES = exports.vitalConfigurationRangesValidator = exports.vitalConfigurationRangeValidator = exports.vitalComparisonValidator = exports.calendarEventPortalSettingsValidator = exports.organizationSettingsValidator = exports.customDashboardViewValidator = exports.buildInFieldsValidator = exports.customEnduserFieldsValidatorOptionalOrEmpty = exports.customEnduserFieldValidator = exports.indexUpdatesValidator = exports.indexUpdateValidator = exports.availabilityEntitiesValidator = exports.AVAILABILITY_BLOCK_ENTITIES = exports.customEnduserFieldTypeValidator = exports.CUSTOM_ENDUSER_FIELD_TYPES = exports.accessValidator = exports.timezoneValidatorOptional = exports.timezoneValidator = exports.calendarEventLimitsValidator = exports.calendarEventLimitValidator = exports.weeklyAvailabilitiesValidator = void 0;
+exports.diagnosisTypeValidator = exports.DIAGNOSIS_TYPES = exports.sortingFieldsValidator = exports.groupMMSUserStatesValidator = exports.groupMMSUserStateValidator = exports.mmsMessagesValidator = exports.mmsMessageValidator = exports.imageAttachmentValidator = exports.is_valid_mm_dd_yyyy = exports.isDateString = exports.phoneCallsReportQueriesValidator = exports.formResponsesReportQueriesValidator = exports.endusersReportQueriesValidator = exports.formFieldCalloutConditionsValidator = exports.tableViewColumnsValidator = exports.languageValidator = exports.formCustomizationValidator = exports.phoneTreeEnduserConditionValidator = exports.PHONE_TREE_ENDUSER_CONDITIONS = exports.phoneTreeNodesValidator = exports.phoneTreeNodeValidator = exports.phoneTreeActionValidator = exports.phonePlaybackValidatorOptional = exports.phonePlaybackValidator = exports.phoneTreeEventsValidator = exports.phoneTreeEventValidator = exports.insurancesValidator = exports.customDashboardBlocksValidator = exports.customDashboardBlockValidator = exports.enduserProfileViewBlocksValidator = exports.enduserProfileViewBlockValidator = exports.sharedEnduserProfileViewBlockFields = exports.externalChatGPTMessagesValidator = exports.portalSchemaRestrictionsValidator = exports.userUIRestrictionsValidator = exports.userFieldRedactionsValidator = exports.userCallRoutingBehaviorValidator = exports.USER_CALL_ROUTING_BEHAVIORS = exports.analyticsQueryTypeValidator = exports.ANALYTICS_QUERY_TYPES = exports.analyticsFrameTypeValidator = exports.ANALYTICS_FRAME_TYPES = exports.analyticsQueriesValidatorOptional = exports.analyticsQueryValidator = exports.formScoringValidator = exports.scheduledJourneysValidator = exports.analyticsQueryResultsValidator = exports.videoIntegrationTypesValidator = exports.VIDEO_INTEGRATION_TYPES = exports.integrationTitleValidator = void 0;
+exports.listOfEmailCCsValidator = exports.emailCCValidator = exports.userOutOfOfficesValidator = exports.userOutOfOfficeValidator = exports.outOfOfficeBlocksValidator = exports.outOfOfficeBlockValidator = exports.recentViewersValidator = exports.recentViewerValidator = exports.enduserProgramsValidator = exports.organizationProgramsValidator = exports.recordProgramsValidator = exports.enduserDiagnosisValidator = exports.bookingRestrictionsByTemplateValidator = exports.analyticsFrameGroupingCategoriesValidator = exports.analyticsFrameGroupingCategoryValidator = exports.fieldMappingsValidator = exports.fieldMappingValidator = exports.athenaSubscriptionsValidator = exports.athenaSubscriptionValidator = exports.athenaSubscriptionTypeValidator = exports.fieldsSyncValidator = exports.fieldSyncValidator = exports.syncDirectionValidator = exports.enduserProfileWebhooksValidator = exports.diagnosesValidator = exports.diagnosisValidator = exports.candidProcedureCodeValidator = void 0;
 var utilities_1 = require("@tellescope/utilities");
 var types_models_1 = require("@tellescope/types-models");
 Object.defineProperty(exports, "VALID_STATES", { enumerable: true, get: function () { return types_models_1.VALID_STATES; } });
@@ -973,6 +973,9 @@ exports.emailValidatorOptional = {
     getExample: function () { return "example@tellescope.com"; },
     getType: getTypeString,
 };
+// Unique, optional list of emails (empty list accepted). Each entry runs the same isEmail
+// check and lowercasing as emailValidator, so callers get normalized addresses.
+exports.listOfEmailsValidatorUniqueOptionalOrEmptyOkay = (0, exports.listValidatorUniqueOptionalEmptyOkay)(exports.emailValidator);
 exports.emailValidatorEmptyOkay = {
     validate: function (options) {
         if (options === void 0) { options = {}; }
@@ -1367,7 +1370,9 @@ exports.linkedAccountAccessEntryValidator = (0, exports.objectValidator)({
     orgName: exports.stringValidatorOptional,
     status: (0, exports.exactMatchValidator)(['pending', 'accepted']),
     createdAt: exports.dateValidator,
-    requestExpiresAt: exports.dateValidator,
+    // Optional: admin pre-granted entries (invite_user's linkedAccountAccessFor) are created
+    // already-accepted and have no pending window to expire.
+    requestExpiresAt: exports.dateValidatorOptional,
 });
 exports.linkedAccountAccessValidator = (0, exports.listValidatorOptionalOrEmptyOk)(exports.linkedAccountAccessEntryValidator);
 // Quantity for one products/prepare-stripe-checkout line. Deliberately only "is a number": the
@@ -2318,6 +2323,9 @@ var _AUTOMATION_ACTIONS = {
     notifyTeam: '',
     addEnduserTags: '',
     removeEnduserTags: '',
+    addListItem: '',
+    removeListItem: '',
+    updateListItem: '',
     addToJourney: '',
     removeFromJourney: '',
     removeFromAllJourneys: '',
@@ -2671,7 +2679,7 @@ var sendWebhookInfoValidator = (0, exports.objectValidator)({
 }, { emptyOk: false });
 exports.AI_SUMMARY_DATA_SOURCES = [
     'enduser_observations', 'form_responses', 'chats', 'phone_calls',
-    'calendar_events', 'tickets', 'sms_messages', 'emails',
+    'calendar_events', 'tickets', 'sms_messages', 'group_mms_conversations', 'emails',
     'enduser_orders', 'enduser_medications', 'purchases',
     'managed_content_records', 'templates', // org-wide reference sources, selected by ids
 ];
@@ -2731,6 +2739,32 @@ exports.AGENT_DEFAULT_MAX_TOKENS = 10000;
 exports.AGENT_MAX_MAX_TOKENS = 64000;
 /** An ai_conversation stops accepting agent_message turns at this many stored entries. */
 exports.AI_CONVERSATION_MAX_STORED_MESSAGES = 1000;
+/***************************************************************************************************
+ * agent_message attachments (document / image blocks)
+ *
+ * A caller references a Tellescope `files` record by id; the server resolves it, reads the object
+ * from S3 and substitutes the base64 source immediately before InvokeModel. These are the limits
+ * that bound that work — the SHAPE of the block is checked here, the per-record rules (the file
+ * exists in this tenant, is confirmed, is of a supported media type, fits the byte and page caps)
+ * are enforced in bedrock.ts where the record and the object are available.
+ ***************************************************************************************************/
+/** Block types that carry a file reference rather than text. */
+exports.AGENT_ATTACHMENT_BLOCK_TYPES = ['document', 'image'];
+/** At most this many attachment blocks in one request, across the whole transcript. */
+exports.AGENT_MAX_ATTACHMENTS = 5;
+/** Per-file ceiling, enforced from S3's ContentLength before any bytes are buffered. */
+exports.AGENT_MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024;
+/** A PDF with more pages than this is refused rather than sent (it would blow the context window). */
+exports.AGENT_MAX_PDF_PAGES = 100;
+/** The media types each block type accepts. A `files` record whose `type` is absent — which an
+ *  integration-synced file can be — matches neither and is refused. */
+exports.AGENT_DOCUMENT_MEDIA_TYPES = ['application/pdf'];
+exports.AGENT_IMAGE_MEDIA_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+/** Deliberate OVER-estimates, used only for the pre-call write-ahead ceiling (never for billing,
+ *  which always uses the usage metadata Bedrock returns). A page of PDF is in practice well under
+ *  3000 tokens and an image well under 2000; erring high keeps the fail-closed ledger honest. */
+exports.ATTACHMENT_TOKENS_PER_PDF_PAGE = 3000;
+exports.ATTACHMENT_TOKENS_PER_IMAGE = 2000;
 /** Keys that must never reach a Mongo document (operator/path syntax, prototype pollution). */
 var UNSAFE_JSON_KEYS = ['__proto__', 'constructor', 'prototype'];
 /** Nesting ceiling for a tool's JSON Schema and for the arguments a model produces. */
@@ -2806,18 +2840,52 @@ var agent_text_block = function (value, label) {
     var cache_control = agent_cache_control(object.cache_control, "".concat(label, ".cache_control"));
     return __assign({ type: 'text', text: agent_string(object.text, "".concat(label, ".text")) }, (cache_control ? { cache_control: cache_control } : {}));
 };
-/** The content blocks this proxy forwards. Anything else (image, document, server_tool_use, …) is
- *  rejected rather than passed through — an unknown block is a shape we neither bill nor audit. */
-var AGENT_SUPPORTED_BLOCK_TYPES = ['text', 'thinking', 'redacted_thinking', 'tool_use', 'tool_result'];
+/** The content blocks this proxy forwards. Anything else (server_tool_use, web_search_tool_result,
+ *  …) is rejected rather than passed through — an unknown block is a shape we neither bill nor
+ *  audit. `document` / `image` are accepted as a FILE REFERENCE only (agent_attachment_block); an
+ *  inline `source` is not accepted, so file bytes never travel in a request body. */
+exports.AGENT_SUPPORTED_BLOCK_TYPES = __spreadArray([
+    'text', 'thinking', 'redacted_thinking', 'tool_use', 'tool_result'
+], exports.AGENT_ATTACHMENT_BLOCK_TYPES, true);
+/**
+ * `{ type: 'document' | 'image', fileId, cache_control? }` and nothing else.
+ *
+ * `source` is deliberately NOT accepted: accepting inline base64 would put file bytes inside
+ * AGENT_MAX_REQUEST_CHARS and inside the ai_conversations ledger, which is exactly what
+ * referencing by id avoids. Rejecting it by the unrecognised-field rule also means a client that
+ * copied an Anthropic example gets a message naming the field rather than a silent strip.
+ */
+var agent_attachment_block = function (value, label) {
+    agent_no_unrecognized_fields(value, ['type', 'fileId', 'cache_control'], label);
+    var cache_control = agent_cache_control(value.cache_control, "".concat(label, ".cache_control"));
+    if (typeof value.fileId !== 'string' || !(0, exports.isMongoId)(value.fileId)) {
+        throw new Error("".concat(label, ".fileId must be the id of a Tellescope file"));
+    }
+    return __assign({ type: value.type, fileId: value.fileId }, (cache_control ? { cache_control: cache_control } : {}));
+};
+/**
+ * A block inside a `tool_result`'s content list. Text only — an attachment is answered for by the
+ * client, so it belongs in the user's own message, not inside a tool's result. Named explicitly
+ * rather than falling through agent_text_block's unrecognised-field rule so the 400 says why.
+ */
+var agent_tool_result_block = function (value, label) {
+    if ((0, utilities_2.is_object)(value) && exports.AGENT_ATTACHMENT_BLOCK_TYPES.includes(value.type)) {
+        throw new Error("".concat(label, " is a ").concat(value.type, " attachment;")
+            + " attachments are only allowed as blocks of a user message, not inside a tool_result");
+    }
+    return agent_text_block(value, label);
+};
 var agent_content_block = function (value, label) {
     var object = agent_plain_object(value, label);
     var type = object.type;
-    if (typeof type !== 'string' || !AGENT_SUPPORTED_BLOCK_TYPES.includes(type)) {
+    if (typeof type !== 'string' || !exports.AGENT_SUPPORTED_BLOCK_TYPES.includes(type)) {
         throw new Error("".concat(label, ".type ").concat(typeof type === 'string' ? "\"".concat(type, "\" is not supported") : 'is missing')
-            + " (supported: ".concat(AGENT_SUPPORTED_BLOCK_TYPES.join(', '), ")"));
+            + " (supported: ".concat(exports.AGENT_SUPPORTED_BLOCK_TYPES.join(', '), ")"));
     }
     if (type === 'text')
         return agent_text_block(object, label);
+    if (exports.AGENT_ATTACHMENT_BLOCK_TYPES.includes(type))
+        return agent_attachment_block(object, label);
     if (type === 'thinking') {
         agent_no_unrecognized_fields(object, ['type', 'thinking', 'signature'], label);
         return {
@@ -2842,7 +2910,7 @@ var agent_content_block = function (value, label) {
     var content = (object.content === undefined ? undefined
         : typeof object.content === 'string' ? agent_string(object.content, "".concat(label, ".content"))
             : Array.isArray(object.content)
-                ? object.content.map(function (block, i) { return agent_text_block(block, "".concat(label, ".content[").concat(i, "]")); })
+                ? object.content.map(function (block, i) { return agent_tool_result_block(block, "".concat(label, ".content[").concat(i, "]")); })
                 : (function () { throw new Error("".concat(label, ".content must be a string or a list of text blocks")); })());
     return __assign(__assign(__assign({ type: 'tool_result', tool_use_id: agent_string(object.tool_use_id, "".concat(label, ".tool_use_id"), 200) }, (content !== undefined ? { content: content } : {})), (object.is_error !== undefined ? { is_error: agent_boolean(object.is_error, "".concat(label, ".is_error")) } : {})), (cache_control ? { cache_control: cache_control } : {}));
 };
@@ -2964,6 +3032,130 @@ exports.phoneTreeAgentToolValidator = (0, exports.orValidator)({
         }),
     }),
 });
+/**
+ * The enduser list-of-objects fields automations may read and write, and the sub-fields of each that
+ * they may match on and write.
+ *
+ * This is the ONLY place a sub-field of a list entry is named. The action validators, the save-time
+ * check (list_item_mutation_error), the Mongo operations in handle_actions_for_triggers_inner, the
+ * `Field Equals` / `Fields Changed` expansion in handle_field_update_triggers and the trigger editor
+ * are all driven by it, so adding a list field here is a registry entry rather than a change in any
+ * of them.
+ *
+ * Enforced when a trigger is SAVED rather than skipped at fire time: the alternative leaves a trigger
+ * that looks configured in the editor and silently never does anything. It is re-applied at fire time
+ * as well, so no stored key can reach a Mongo path.
+ *
+ * The one thing a new entry may still need is an editor in the webapp (list_mutation_actions.tsx):
+ * without one, each sub-field gets a plain text box, which is right for a free-text sub-field and
+ * wrong for one backed by a registry the way `programs` is.
+ */
+exports.ENDUSER_LIST_FIELD_CONFIG = {
+    programs: { matchKeys: ['name'], valueKeys: ['status'], label: 'Programs' },
+};
+exports.ENDUSER_LIST_FIELDS = Object.keys(exports.ENDUSER_LIST_FIELD_CONFIG);
+/**
+ * Every action type that carries a ListItemMutation: the three TRIGGER actions (the spaced,
+ * title-cased keys) and their three JOURNEY STEP twins (the camelCase keys).
+ *
+ * The two families differ only in where they run and what the resulting write cascades into — the
+ * info they carry, what makes them saveable and the Mongo work they do are shared, so everything
+ * keyed off this list treats them alike.
+ */
+exports.LIST_MUTATION_ACTION_TYPES = [
+    'Add List Item', 'Remove List Item', 'Update List Item',
+    'addListItem', 'removeListItem', 'updateListItem',
+];
+/**
+ * What to call each action in a message a PERSON reads.
+ *
+ * A journey step's action type is a camelCase key, which is an implementation detail: the editor's
+ * dropdown says "Add List Item", so its blocking error must too. Mapping here (rather than printing
+ * `type`) is what keeps the trigger and journey versions of a rejection identically worded.
+ */
+exports.LIST_MUTATION_ACTION_DISPLAY_NAMES = {
+    'Add List Item': 'Add List Item',
+    'Remove List Item': 'Remove List Item',
+    'Update List Item': 'Update List Item',
+    addListItem: 'Add List Item',
+    removeListItem: 'Remove List Item',
+    updateListItem: 'Update List Item',
+};
+exports.LIST_MUTATION_ACTION_KINDS = {
+    'Add List Item': 'add',
+    'Remove List Item': 'remove',
+    'Update List Item': 'update',
+    addListItem: 'add',
+    removeListItem: 'remove',
+    updateListItem: 'update',
+};
+var is_list_mutation_action = function (action) { return (exports.LIST_MUTATION_ACTION_TYPES.includes(action === null || action === void 0 ? void 0 : action.type)); };
+exports.is_list_mutation_action = is_list_mutation_action;
+/**
+ * The blocking error for a list-item mutation action, or '' when it is saveable.
+ *
+ * Shared by the API (as an automation_triggers constraint) and by the trigger editor, so the two
+ * reject the same actions with the same wording. It exists as a separate check because the field and
+ * its sub-fields validate TOGETHER: `objectValidator` sees one key at a time and cannot tell whether
+ * `status` is a sub-field `field` actually has.
+ *
+ * Keeping unrecognized keys out here is also what keeps `$`-prefixed and dotted keys out of the Mongo
+ * paths that handle_actions_for_triggers_inner builds from them.
+ */
+var list_item_mutation_error = function (action) {
+    var _a, _b, _c, _d;
+    if (!(0, exports.is_list_mutation_action)(action))
+        return '';
+    // the action is named to the person as the editor's dropdown names it, never by its raw `type`:
+    // a journey step's type is the camelCase `addListItem`, which means nothing to whoever is reading
+    var type = exports.LIST_MUTATION_ACTION_DISPLAY_NAMES[action.type];
+    var kind = exports.LIST_MUTATION_ACTION_KINDS[action.type];
+    var field = (_a = action.info) === null || _a === void 0 ? void 0 : _a.field;
+    // hasOwnProperty: a field of "constructor" or "toString" finds a function on the prototype, which a
+    // truthiness check would accept as a configured list field
+    var config = Object.prototype.hasOwnProperty.call(exports.ENDUSER_LIST_FIELD_CONFIG, field)
+        ? exports.ENDUSER_LIST_FIELD_CONFIG[field]
+        : undefined;
+    if (!config) {
+        return "The \"".concat(type, "\" action does not support the field \"").concat(field !== null && field !== void 0 ? field : '', "\"");
+    }
+    var match = (_b = action.info) === null || _b === void 0 ? void 0 : _b.match;
+    if (!match || typeof match !== 'object' || Object.keys(match).length === 0) {
+        return "The \"".concat(type, "\" action must match on ").concat(config.matchKeys.join(' and '));
+    }
+    for (var key in match) {
+        if (!config.matchKeys.includes(key)) {
+            return "The \"".concat(type, "\" action cannot match \"").concat(field, "\" on \"").concat(key, "\"");
+        }
+        // deliberately not trimmed: a value of only spaces is a real (if unwise) one elsewhere in the
+        // product, and matching is exact, so trimming here would match something other than what was saved
+        if (typeof match[key] !== 'string' || match[key] === '') {
+            return "Select a ".concat(field, " ").concat(key, " for the \"").concat(type, "\" action");
+        }
+    }
+    // Remove List Item matches on `match` alone and removes every entry carrying it, whatever else
+    // those entries hold — its type carries no `values` at all
+    if (kind === 'remove')
+        return '';
+    var values = (_d = (_c = action.info) === null || _c === void 0 ? void 0 : _c.values) !== null && _d !== void 0 ? _d : {};
+    if (typeof values !== 'object') {
+        return "The \"".concat(type, "\" action has an invalid value to set");
+    }
+    for (var key in values) {
+        if (!config.valueKeys.includes(key)) {
+            return "The \"".concat(type, "\" action cannot set \"").concat(key, "\" on \"").concat(field, "\"");
+        }
+    }
+    // an Update that sets nothing would match entries and write nothing, every time it fires
+    if (kind === 'update' && Object.keys(values).length === 0) {
+        return "The \"".concat(type, "\" action must set at least one of ").concat(config.valueKeys.join(', '));
+    }
+    return '';
+};
+exports.list_item_mutation_error = list_item_mutation_error;
+// a match value is required and matched exactly; a value may be '' , which CLEARS that sub-field
+var listItemMutationMatchValidator = (0, exports.objectAnyFieldsValidator)(exports.stringValidator100);
+var listItemMutationValuesValidator = (0, exports.objectAnyFieldsValidator)(exports.stringValidator100Optional);
 exports.automationActionValidator = (0, exports.orValidator)({
     developHealthMedEligibility: (0, exports.objectValidator)(__assign({ type: (0, exports.exactMatchValidator)(['developHealthMedEligibility']), info: (0, exports.objectValidator)({
             drugs: exports.developHealthDrugsValidator,
@@ -3089,6 +3281,25 @@ exports.automationActionValidator = (0, exports.orValidator)({
         }, { emptyOk: false }) })),
     removeEnduserTags: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['removeEnduserTags']), info: (0, exports.objectValidator)({
             tags: exports.listOfStringsValidator,
+        }, { emptyOk: false }) })),
+    // The journey-step twins of the Add / Remove / Update List Item TRIGGER actions: same info shape,
+    // same save-time check (list_item_mutation_error, applied as an automation_steps relationship
+    // constraint), same Mongo work (apply_list_item_mutation). Unlike the trigger validators these
+    // spread sharedAutomationActionValidators, which every journey action carries.
+    addListItem: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['addListItem']), info: (0, exports.objectValidator)({
+            field: (0, exports.exactMatchValidator)(exports.ENDUSER_LIST_FIELDS),
+            match: listItemMutationMatchValidator,
+            values: listItemMutationValuesValidator,
+        }, { emptyOk: false }) })),
+    // no `values`: the action removes EVERY entry matching, whatever else those entries hold
+    removeListItem: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['removeListItem']), info: (0, exports.objectValidator)({
+            field: (0, exports.exactMatchValidator)(exports.ENDUSER_LIST_FIELDS),
+            match: listItemMutationMatchValidator,
+        }, { emptyOk: false }) })),
+    updateListItem: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['updateListItem']), info: (0, exports.objectValidator)({
+            field: (0, exports.exactMatchValidator)(exports.ENDUSER_LIST_FIELDS),
+            match: listItemMutationMatchValidator,
+            values: listItemMutationValuesValidator,
         }, { emptyOk: false }) })),
     addAccessTags: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['addAccessTags']), info: (0, exports.objectValidator)({
             tags: exports.listOfStringsValidator,
@@ -3524,6 +3735,7 @@ exports.organizationThemeValidator = (0, exports.objectValidator)({
     hasConnectedVital: exports.booleanValidatorOptional,
     brandId: exports.mongoIdStringOptional,
     portalV2SchemaURL: exports.stringValidatorOptional,
+    disablePublicRegistration: exports.booleanValidatorOptional,
 });
 var _MANAGED_CONTENT_RECORD_TYPES = {
     Article: '',
@@ -4441,6 +4653,9 @@ exports.organizationSettingsValidator = (0, exports.objectValidator)({
         dontMarkReadForAssigned: exports.booleanValidatorOptional,
         matchEmailAndNames: exports.booleanValidatorOptional,
         caseInsensitiveMatching: exports.booleanValidatorOptional,
+        disablePublicRegistration: exports.booleanValidatorOptional,
+        disablePublicFormStarts: exports.booleanValidatorOptional,
+        disablePublicBookingStarts: exports.booleanValidatorOptional,
         hideNotesFromComposeForm: exports.booleanValidatorOptional,
         showSalesforceId: exports.booleanValidatorOptional,
         loopQueueCallSound: exports.booleanValidatorOptional,
@@ -5028,93 +5243,6 @@ exports.AUTOMATION_TRIGGER_ACTION_EVENT_RESTRICTIONS = {
     // needs journeyContext.observationId, which only the Vital Update event supplies
     "Review Vital Reading": ['Vital Update'],
 };
-/**
- * The enduser list-of-objects fields automations may read and write, and the sub-fields of each that
- * they may match on and write.
- *
- * This is the ONLY place a sub-field of a list entry is named. The action validators, the save-time
- * check (list_item_mutation_error), the Mongo operations in handle_actions_for_triggers_inner, the
- * `Field Equals` / `Fields Changed` expansion in handle_field_update_triggers and the trigger editor
- * are all driven by it, so adding a list field here is a registry entry rather than a change in any
- * of them.
- *
- * Enforced when a trigger is SAVED rather than skipped at fire time: the alternative leaves a trigger
- * that looks configured in the editor and silently never does anything. It is re-applied at fire time
- * as well, so no stored key can reach a Mongo path.
- *
- * The one thing a new entry may still need is an editor in the webapp (list_mutation_actions.tsx):
- * without one, each sub-field gets a plain text box, which is right for a free-text sub-field and
- * wrong for one backed by a registry the way `programs` is.
- */
-exports.ENDUSER_LIST_FIELD_CONFIG = {
-    programs: { matchKeys: ['name'], valueKeys: ['status'], label: 'Programs' },
-};
-exports.ENDUSER_LIST_FIELDS = Object.keys(exports.ENDUSER_LIST_FIELD_CONFIG);
-exports.LIST_MUTATION_ACTION_TYPES = ['Add List Item', 'Remove List Item', 'Update List Item'];
-var is_list_mutation_action = function (action) { return (exports.LIST_MUTATION_ACTION_TYPES.includes(action === null || action === void 0 ? void 0 : action.type)); };
-exports.is_list_mutation_action = is_list_mutation_action;
-/**
- * The blocking error for a list-item mutation action, or '' when it is saveable.
- *
- * Shared by the API (as an automation_triggers constraint) and by the trigger editor, so the two
- * reject the same actions with the same wording. It exists as a separate check because the field and
- * its sub-fields validate TOGETHER: `objectValidator` sees one key at a time and cannot tell whether
- * `status` is a sub-field `field` actually has.
- *
- * Keeping unrecognized keys out here is also what keeps `$`-prefixed and dotted keys out of the Mongo
- * paths that handle_actions_for_triggers_inner builds from them.
- */
-var list_item_mutation_error = function (action) {
-    var _a, _b, _c, _d;
-    if (!(0, exports.is_list_mutation_action)(action))
-        return '';
-    var type = action.type;
-    var field = (_a = action.info) === null || _a === void 0 ? void 0 : _a.field;
-    // hasOwnProperty: a field of "constructor" or "toString" finds a function on the prototype, which a
-    // truthiness check would accept as a configured list field
-    var config = Object.prototype.hasOwnProperty.call(exports.ENDUSER_LIST_FIELD_CONFIG, field)
-        ? exports.ENDUSER_LIST_FIELD_CONFIG[field]
-        : undefined;
-    if (!config) {
-        return "The \"".concat(type, "\" action does not support the field \"").concat(field !== null && field !== void 0 ? field : '', "\"");
-    }
-    var match = (_b = action.info) === null || _b === void 0 ? void 0 : _b.match;
-    if (!match || typeof match !== 'object' || Object.keys(match).length === 0) {
-        return "The \"".concat(type, "\" action must match on ").concat(config.matchKeys.join(' and '));
-    }
-    for (var key in match) {
-        if (!config.matchKeys.includes(key)) {
-            return "The \"".concat(type, "\" action cannot match \"").concat(field, "\" on \"").concat(key, "\"");
-        }
-        // deliberately not trimmed: a value of only spaces is a real (if unwise) one elsewhere in the
-        // product, and matching is exact, so trimming here would match something other than what was saved
-        if (typeof match[key] !== 'string' || match[key] === '') {
-            return "Select a ".concat(field, " ").concat(key, " for the \"").concat(type, "\" action");
-        }
-    }
-    // Remove List Item matches on `match` alone and removes every entry carrying it, whatever else
-    // those entries hold — its type carries no `values` at all
-    if (type === 'Remove List Item')
-        return '';
-    var values = (_d = (_c = action.info) === null || _c === void 0 ? void 0 : _c.values) !== null && _d !== void 0 ? _d : {};
-    if (typeof values !== 'object') {
-        return "The \"".concat(type, "\" action has an invalid value to set");
-    }
-    for (var key in values) {
-        if (!config.valueKeys.includes(key)) {
-            return "The \"".concat(type, "\" action cannot set \"").concat(key, "\" on \"").concat(field, "\"");
-        }
-    }
-    // an Update that sets nothing would match entries and write nothing, every time it fires
-    if (type === 'Update List Item' && Object.keys(values).length === 0) {
-        return "The \"".concat(type, "\" action must set at least one of ").concat(config.valueKeys.join(', '));
-    }
-    return '';
-};
-exports.list_item_mutation_error = list_item_mutation_error;
-// a match value is required and matched exactly; a value may be '' , which CLEARS that sub-field
-var listItemMutationMatchValidator = (0, exports.objectAnyFieldsValidator)(exports.stringValidator100);
-var listItemMutationValuesValidator = (0, exports.objectAnyFieldsValidator)(exports.stringValidator100Optional);
 exports.automationTriggerActionValidator = (0, exports.orValidator)({
     "Add To Journey": (0, exports.objectValidator)({
         type: (0, exports.exactMatchValidator)(['Add To Journey']),

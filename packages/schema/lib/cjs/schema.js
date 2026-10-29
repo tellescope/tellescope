@@ -45,6 +45,13 @@ var SUPER_ADMIN_ONLY_ORGANIZATION_FIELDS = [
     'bedrockAIAllowed', 'stediAllowed', 'subscriptionExpiresAt', 'subscriptionPeriod',
     'allowCreateSuborganizations', 'customPortalURLs', 'subdomains', 'plan',
 ];
+// Per-user AI credit fields. Credits a user holds are minted, not transferred from the
+// organization's balance, so letting an organization admin write either of these would let them
+// grant themselves unlimited AI spend at Tellescope's expense. Enforced by the 'AI credit fields
+// on a user are Tellescope super admin only' relationship constraint in the users block below.
+// They stay readable by a user session (the AI settings page shows the signed-in user's balance).
+var SUPER_ADMIN_ONLY_USER_CREDIT_FIELDS = ['creditCount', 'disableOrganizationCreditFallback'];
+var SUPER_ADMIN_ONLY_USER_CREDIT_FIELDS_MESSAGE = 'Only a Tellescope super admin can update user AI credits';
 var sideEffects = {
     handleJourneyStateChange: {
         name: "handleJourneyStateChange",
@@ -1759,6 +1766,26 @@ exports.schema = (0, exports.build_schema)({
                             return "enduserIds may only contain your own id for enduser session";
                     }
                 },
+                {
+                    // Mute is per-user: one member's entry must never be writable by another, or by a
+                    // whole-map replace that would erase everybody else's.
+                    explanation: 'mutedBy may only contain the authenticated session\'s own id, and cannot be replaced wholesale',
+                    evaluate: function (doc, _, session, method, options) {
+                        var _a;
+                        // the merged first argument always carries the existing map, so an update has to be
+                        // judged on the raw updates; on create no updates are passed and the document IS the write
+                        var mutedBy = method === 'update' ? (_a = options === null || options === void 0 ? void 0 : options.updates) === null || _a === void 0 ? void 0 : _a.mutedBy : doc.mutedBy;
+                        if (mutedBy === undefined)
+                            return;
+                        if (options === null || options === void 0 ? void 0 : options.replaceObjectFields) {
+                            return "mutedBy cannot be updated with replaceObjectFields, which would erase other users' mute state";
+                        }
+                        for (var id in mutedBy) {
+                            if (id !== session.id)
+                                return "mutedBy may only contain your own id";
+                        }
+                    }
+                },
             ],
             access: [
                 { type: 'filter', field: 'userIds' },
@@ -1816,7 +1843,12 @@ exports.schema = (0, exports.build_schema)({
                         relationship: 'foreignKey',
                         onDependencyDelete: 'delete',
                     }]
-            }, pinnedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, fields: { validator: validation_1.fieldsValidator }, 
+            }, pinnedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, 
+            // Per-user mute for team chats: { [userId]: Date } when muted, '' when un-muted. An un-mute
+            // writes '' instead of deleting the key so that the per-key $set a PATCH produces can never
+            // clobber another member's concurrent mute. A session may only write its OWN key (see the
+            // relationship constraint above), and the map is redacted from endusers.
+            mutedBy: { validator: validation_1.idStringToDateValidator, redactions: ['enduser'], enduserUpdatesDisabled: true }, fields: { validator: validation_1.fieldsValidator }, 
             // chat_rooms is enduser-readable (see enduserActions + the enduserIds access filter below), so
             // this staff-facing draft must be redacted — a patient should never see an unsent reply.
             suggestedReply: { validator: validation_1.stringValidator5000EmptyOkay, redactions: ['enduser'], enduserUpdatesDisabled: true }, suggestedReplyIsAIGenerated: { validator: validation_1.booleanValidator, redactions: ['enduser'], enduserUpdatesDisabled: true }, discussionRoomId: { validator: validation_1.mongoIdStringRequired }, identifier: { validator: validation_1.stringValidator100 }, externalId: { validator: validation_1.stringValidator100 }, emoji: { validator: validation_1.stringValidator100 }, source: { validator: validation_1.stringValidator100 }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, trashedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, groupMentions: { validator: validation_1.listOfUniqueStringsValidatorEmptyOk } }),
@@ -1882,6 +1914,10 @@ exports.schema = (0, exports.build_schema)({
                     },
                     limit: { validator: validation_1.nonNegNumberValidator },
                     showClosed: { validator: validation_1.booleanValidatorOptional },
+                    showMuted: {
+                        validator: validation_1.booleanValidatorOptional,
+                        description: "When true, also returns rooms the authenticated user has muted. Muted rooms are excluded by default.",
+                    },
                 },
                 returns: {
                     chat_rooms: { validator: 'chat_rooms' },
@@ -2071,6 +2107,54 @@ exports.schema = (0, exports.build_schema)({
                     }
                 },
                 {
+                    explanation: "Only admin users can expire user sessions",
+                    evaluate: function (_a, _, session, method, _b) {
+                        var _c;
+                        var updates = _b.updates;
+                        if ((_c = session === null || session === void 0 ? void 0 : session.roles) === null || _c === void 0 ? void 0 : _c.includes('Admin'))
+                            return; // admin can do this
+                        if (method === 'create')
+                            return; // create already admin restricted
+                        if ((updates === null || updates === void 0 ? void 0 : updates.invalidateSessionsBefore) === undefined)
+                            return; // not provided
+                        return "Only admin users can expire user sessions";
+                    }
+                },
+                {
+                    // an expiry that could move backwards would un-expire tokens an admin had already revoked
+                    explanation: 'invalidateSessionsBefore can only be set forward in time, never backwards',
+                    evaluate: function (_v, _deps, _session, method, _a) {
+                        var updates = _a.updates, original = _a.original;
+                        // Deliberately `=== undefined` and NOT a truthiness check. Fields are validated with
+                        // isOptional (modules/routing.ts createDefaultEndpoints), and build_validator returns ''
+                        // unchanged for an empty string before any date coercion — so
+                        // `invalidateSessionsBefore: ""` would otherwise store a falsy value that passes a
+                        // truthiness guard here AND makes the is_logged_in comparison skip entirely, silently
+                        // restoring every token the admin had just revoked. dateValidator likewise lets an
+                        // unparseable string through as an Invalid Date, which is truthy but compares false
+                        // against everything — the same bypass by another route.
+                        // Scope: UPDATES only. modules/routing.ts passes no `updates` on create (it calls
+                        // validateRelationshipConstraints with `'create', {}`), so this returns on the line
+                        // below for a create and an invalid value there is not caught here. That is tolerable —
+                        // it is admin-only, affects a brand-new account with no tokens, and the next valid
+                        // update overwrites it — but it is not a guarantee this constraint makes.
+                        // Regression: sdk/src/tests/api_tests/user_session_invalidation.test.ts check 4b.
+                        if ((updates === null || updates === void 0 ? void 0 : updates.invalidateSessionsBefore) === undefined)
+                            return;
+                        var next = new Date(updates.invalidateSessionsBefore);
+                        if (isNaN(next.getTime()))
+                            return "invalidateSessionsBefore must be a valid date";
+                        if (method === 'create')
+                            return; // nothing to compare against
+                        var orig = original;
+                        if (!(orig === null || orig === void 0 ? void 0 : orig.invalidateSessionsBefore))
+                            return;
+                        if (next < new Date(orig.invalidateSessionsBefore)) {
+                            return "invalidateSessionsBefore can only be set forward in time";
+                        }
+                    }
+                },
+                {
                     explanation: "Only admin users can update failed login attempts",
                     evaluate: function (_a, _, session, method, _b) {
                         var _c;
@@ -2149,6 +2233,24 @@ exports.schema = (0, exports.build_schema)({
                     }
                 },
                 {
+                    explanation: "Only admin users can update switchOnly",
+                    evaluate: function (_a, _, session, method, _b) {
+                        var _c;
+                        var roles = _a.roles;
+                        var updates = _b.updates;
+                        if ((_c = session === null || session === void 0 ? void 0 : session.roles) === null || _c === void 0 ? void 0 : _c.includes('Admin'))
+                            return; // admin can do this
+                        if (method === 'create')
+                            return; // create already admin restricted
+                        // `=== undefined` rather than a truthiness check: switchOnly is a boolean, so
+                        // `switchOnly: false` (the value that unlocks password login on a switch-only
+                        // account) must be caught too.
+                        if ((updates === null || updates === void 0 ? void 0 : updates.switchOnly) === undefined)
+                            return; // switchOnly not provided
+                        return "Only admin users can update switchOnly";
+                    }
+                },
+                {
                     explanation: "Only admin users can update allowedMFAMethods",
                     evaluate: function (_a, _, session, method, _b) {
                         var _c;
@@ -2216,7 +2318,13 @@ exports.schema = (0, exports.build_schema)({
                                 return { value: "linkedAccountAccess entry orgName is immutable" };
                             if (new Date(newEntry.createdAt).getTime() !== new Date(oldMatch.createdAt).getTime())
                                 return { value: "linkedAccountAccess entry createdAt is immutable" };
-                            if (new Date(newEntry.requestExpiresAt).getTime() !== new Date(oldMatch.requestExpiresAt).getTime())
+                            // requestExpiresAt is absent on admin pre-granted entries (invite_user). Compare
+                            // through null rather than through `new Date(undefined)`, whose NaN !== NaN would
+                            // report every untouched pre-granted entry as mutated — which would block the owner
+                            // from accepting any later pending request, since that PATCH re-sends the whole array.
+                            var newExpires = newEntry.requestExpiresAt ? new Date(newEntry.requestExpiresAt).getTime() : null;
+                            var oldExpires = oldMatch.requestExpiresAt ? new Date(oldMatch.requestExpiresAt).getTime() : null;
+                            if (newExpires !== oldExpires)
                                 return { value: "linkedAccountAccess entry requestExpiresAt is immutable" };
                             if (newEntry.status !== oldMatch.status) {
                                 if (!(oldMatch.status === 'pending' && newEntry.status === 'accepted')) {
@@ -2225,7 +2333,7 @@ exports.schema = (0, exports.build_schema)({
                                 // Reject approval of an expired pending request — owner must wait for the requester
                                 // to re-issue. requestExpiresAt is immutable per the rule above; the only way for a
                                 // pending entry to refresh is request_linked_account_access replacing the expired entry.
-                                if (new Date(oldMatch.requestExpiresAt).getTime() < Date.now()) {
+                                if (oldExpires !== null && oldExpires < Date.now()) {
                                     return { value: "linkedAccountAccess request has expired and cannot be approved; requester must re-request" };
                                 }
                             }
@@ -2249,6 +2357,31 @@ exports.schema = (0, exports.build_schema)({
                         return;
                     }
                 },
+                {
+                    explanation: "AI credit fields on a user are Tellescope super admin only",
+                    // Modeled on the organizations 'Subscription date, period, and feature enablement cannot
+                    // be updated' constraint: key on PRESENCE, never truthiness. An update field validates
+                    // with isOptional, so `creditCount: 0` / `disableOrganizationCreditFallback: false`
+                    // reach here as falsy values — a truthiness check would let an org admin zero a balance
+                    // or switch the no-fallback flag off, which is exactly the escalation this guards.
+                    //
+                    // `create` is covered too (unlike most users constraints, which return early on it):
+                    // users.create is admin-only, not super-admin-only, so without this an org admin could
+                    // mint credits on a brand new user. On create `options.updates` is not populated
+                    // (routing.ts passes `{}`), so the built document is what has to be inspected.
+                    evaluate: function (document, _, session, method, _a) {
+                        var updates = _a.updates;
+                        var touched = (method === 'create'
+                            ? SUPER_ADMIN_ONLY_USER_CREDIT_FIELDS.some(function (f) { return (document === null || document === void 0 ? void 0 : document[f]) !== undefined; })
+                            : SUPER_ADMIN_ONLY_USER_CREDIT_FIELDS.some(function (f) { return f in (updates !== null && updates !== void 0 ? updates : {}); }));
+                        if (!touched)
+                            return; // not changing
+                        if (session.type === 'enduser')
+                            return SUPER_ADMIN_ONLY_USER_CREDIT_FIELDS_MESSAGE;
+                        if (!session.isa)
+                            return SUPER_ADMIN_ONLY_USER_CREDIT_FIELDS_MESSAGE;
+                    }
+                },
             ],
         },
         defaultActions: {
@@ -2270,6 +2403,14 @@ exports.schema = (0, exports.build_schema)({
                     organizationId: { validator: validation_1.mongoIdStringRequired, required: true },
                     role: { validator: validation_1.stringValidator },
                     tags: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk },
+                    // Admin-only options (both enforced inside the handler — invite_user is deliberately
+                    // not adminOnly, so that anyone with users.create access can still send a plain invite).
+                    // skipInviteEmail creates the account with no invite email, no invite code, and
+                    // switchOnly: true — it is only accepted alongside a non-empty linkedAccountAccessFor,
+                    // which pre-grants linked-account (switch-in) access to the named, already-registered
+                    // users. Emails that don't resolve to an eligible grantee are dropped silently.
+                    skipInviteEmail: { validator: validation_1.booleanValidatorOptional },
+                    linkedAccountAccessFor: { validator: validation_1.listOfEmailsValidatorUniqueOptionalOrEmptyOkay },
                 },
                 returns: {
                     created: { validator: 'user', required: true },
@@ -2648,7 +2789,19 @@ exports.schema = (0, exports.build_schema)({
             }, preferences: {
                 validator: validation_1.userPreferencesValidator,
                 redactions: ['enduser'], // frontend-only settings; endusers have no business reading them
-            }, notificationEmailsDisabled: { validator: validation_1.booleanValidator }, avatar: {
+            }, notificationEmailsDisabled: { validator: validation_1.booleanValidator }, 
+            // Per-user AI credit balance, same unit as organizations.creditCount. Deliberately NOT
+            // `readonly: true` (which organizations.creditCount uses): a super admin has to be able to
+            // top it up and zero it repeatedly, and readonly would lock them out too. Writes are gated
+            // by the 'AI credit fields on a user are Tellescope super admin only' relationship
+            // constraint above instead.
+            creditCount: {
+                validator: validation_1.numberValidator,
+                redactions: ['enduser'],
+            }, disableOrganizationCreditFallback: {
+                validator: validation_1.booleanValidator,
+                redactions: ['enduser'],
+            }, avatar: {
                 validator: validation_1.stringValidator1000,
                 // BUG: This dependency is disabled because handleDeletionForDependencies queries
                 // by file._id instead of file.secureName (the dependencyField is ignored).
@@ -2665,12 +2818,12 @@ exports.schema = (0, exports.build_schema)({
                 // ]
             }, credentialedStates: {
                 validator: validation_1.stateCredentialsValidator,
-            }, timezone: { validator: validation_1.timezoneValidator }, weeklyAvailabilities: { validator: validation_1.weeklyAvailabilitiesValidator }, calendarEventLimits: { validator: validation_1.calendarEventLimitsValidator }, autoReplyEnabled: { validator: validation_1.booleanValidatorOptional }, pushNotificationIosTokens: { validator: validation_1.listOfStringsValidatorEmptyOk }, pushNotificationFirebaseTokens: { validator: validation_1.listOfStringsValidatorEmptyOk }, callRouting: { validator: validation_1.userCallRoutingBehaviorValidator }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, emailSignature: { validator: validation_1.stringValidator1000 }, disableTicketAutoAssignment: { validator: validation_1.booleanValidator }, ticketAssignmentPriority: { validator: validation_1.nonNegNumberValidator }, specialties: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, bio: { validator: validation_1.stringValidator25000EmptyOkay }, TIN: { validator: validation_1.stringValidatorOptionalEmptyOkay }, NPI: { validator: validation_1.stringValidatorOptionalEmptyOkay }, DEA: { validator: validation_1.stringValidatorOptionalEmptyOkay }, voicemailPlayback: { validator: validation_1.phonePlaybackValidatorOptional }, lockedOutUntil: { validator: validation_1.numberValidator }, failedLoginAttempts: { validator: validation_1.nonNegNumberValidator }, elationUserId: { validator: validation_1.numberValidator }, iOSBadgeCount: { validator: validation_1.nonNegNumberValidator }, availableFromNumbers: { validator: validation_1.listOfStringsValidatorEmptyOk }, availableFromEmails: { validator: validation_1.listOfStringsValidatorEmptyOk }, doseSpotUserId: { validator: validation_1.stringValidator100 }, scriptSurePrescriberId: { validator: validation_1.stringValidator100 }, isScriptsureProvider: { validator: validation_1.booleanValidatorOptional }, url: { validator: validation_1.stringValidator1000 }, templateFields: {
+            }, timezone: { validator: validation_1.timezoneValidator }, weeklyAvailabilities: { validator: validation_1.weeklyAvailabilitiesValidator }, calendarEventLimits: { validator: validation_1.calendarEventLimitsValidator }, autoReplyEnabled: { validator: validation_1.booleanValidatorOptional }, pushNotificationIosTokens: { validator: validation_1.listOfStringsValidatorEmptyOk }, pushNotificationFirebaseTokens: { validator: validation_1.listOfStringsValidatorEmptyOk }, callRouting: { validator: validation_1.userCallRoutingBehaviorValidator }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, emailSignature: { validator: validation_1.stringValidator1000 }, disableTicketAutoAssignment: { validator: validation_1.booleanValidator }, ticketAssignmentPriority: { validator: validation_1.nonNegNumberValidator }, specialties: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, bio: { validator: validation_1.stringValidator25000EmptyOkay }, TIN: { validator: validation_1.stringValidatorOptionalEmptyOkay }, NPI: { validator: validation_1.stringValidatorOptionalEmptyOkay }, DEA: { validator: validation_1.stringValidatorOptionalEmptyOkay }, voicemailPlayback: { validator: validation_1.phonePlaybackValidatorOptional }, lockedOutUntil: { validator: validation_1.numberValidator }, invalidateSessionsBefore: { validator: validation_1.dateValidator }, failedLoginAttempts: { validator: validation_1.nonNegNumberValidator }, elationUserId: { validator: validation_1.numberValidator }, iOSBadgeCount: { validator: validation_1.nonNegNumberValidator }, availableFromNumbers: { validator: validation_1.listOfStringsValidatorEmptyOk }, availableFromEmails: { validator: validation_1.listOfStringsValidatorEmptyOk }, doseSpotUserId: { validator: validation_1.stringValidator100 }, scriptSurePrescriberId: { validator: validation_1.stringValidator100 }, isScriptsureProvider: { validator: validation_1.booleanValidatorOptional }, url: { validator: validation_1.stringValidator1000 }, templateFields: {
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     field: validation_1.stringValidator100,
                     value: validation_1.stringValidator5000,
                 }))
-            }, canvasId: { validator: validation_1.stringValidator100 }, medplumId: { validator: validation_1.stringValidator100 }, athenaId: { validator: validation_1.stringValidator100 }, dashboardView: { validator: validation_1.customDashboardViewValidator }, hideFromCalendarView: { validator: validation_1.booleanValidator }, requireSSO: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, allowedMFAMethods: { validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.exactMatchValidator)(['email', 'authenticator'])) }, linkedAccountAccess: { validator: validation_1.linkedAccountAccessValidator } })
+            }, canvasId: { validator: validation_1.stringValidator100 }, medplumId: { validator: validation_1.stringValidator100 }, athenaId: { validator: validation_1.stringValidator100 }, dashboardView: { validator: validation_1.customDashboardViewValidator }, hideFromCalendarView: { validator: validation_1.booleanValidator }, requireSSO: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, switchOnly: { validator: validation_1.booleanValidatorOptional }, allowedMFAMethods: { validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.exactMatchValidator)(['email', 'authenticator'])) }, linkedAccountAccess: { validator: validation_1.linkedAccountAccessValidator } })
     },
     templates: {
         info: {},
@@ -3436,7 +3589,7 @@ exports.schema = (0, exports.build_schema)({
             // portal patient could stamp copiedFrom on their own draft to silently suppress the intake
             // sync of everything they answer, or point the staff-facing link at an arbitrary patient id.
             // Same reasoning as enduserId above.
-            copiedFrom: { validator: validation_1.mongoIdStringOptional, enduserUpdatesDisabled: true }, copiedFromEnduserId: { validator: validation_1.mongoIdStringOptional, enduserUpdatesDisabled: true }, publicSubmit: { validator: validation_1.booleanValidator }, submittedBy: { validator: validation_1.stringValidator250, enduserUpdatesDisabled: true }, submittedByIsPlaceholder: { validator: validation_1.booleanValidator, enduserUpdatesDisabled: true }, markedAsSubmitted: { validator: validation_1.booleanValidator, enduserUpdatesDisabled: true }, viewedInLanguage: { validator: validation_1.stringValidator100, enduserUpdatesDisabled: true }, accessCode: { validator: validation_1.stringValidator250 }, userEmail: { validator: validation_1.emailValidator, enduserUpdatesDisabled: true }, submittedAt: { validator: validation_1.dateValidator, enduserUpdatesDisabled: true }, formTitle: { validator: validation_1.stringValidator250, enduserUpdatesDisabled: true }, responses: { validator: validation_1.formResponsesValidator }, draftSavedAt: { validator: validation_1.dateValidator }, draftSavedBy: { validator: validation_1.mongoIdStringRequired }, hideFromEnduserPortal: { validator: validation_1.booleanValidator }, sharedVia: { validator: validation_1.communicationsChannelValidator }, isInternalNote: { validator: validation_1.booleanValidator, enduserUpdatesDisabled: true }, pinnedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator, enduserUpdatesDisabled: true }, publicIdentifier: { validator: validation_1.stringValidator250 }, source: { validator: validation_1.stringValidator250 }, externalId: { validator: validation_1.stringValidator250 }, rootResponseId: { validator: validation_1.mongoIdStringRequired }, parentResponseId: { validator: validation_1.mongoIdStringRequired }, tags: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk, enduserUpdatesDisabled: true }, carePlanId: { validator: validation_1.mongoIdStringRequired }, context: { validator: validation_1.stringValidator1000 }, logoURL: { validator: validation_1.stringValidator5000, enduserUpdatesDisabled: true }, logoHeight: { validator: validation_1.numberValidator, enduserUpdatesDisabled: true }, calendarEventId: { validator: validation_1.mongoIdStringRequired }, references: { validator: validation_1.listOfRelatedRecordsValidator, readonly: true }, groupId: { validator: validation_1.mongoIdStringRequired }, groupInstance: { validator: validation_1.stringValidator100 }, groupPosition: { validator: validation_1.nonNegNumberValidator }, hideAfterUnsubmittedInMS: { validator: validation_1.numberValidator }, addenda: {
+            copiedFrom: { validator: validation_1.mongoIdStringOptional, enduserUpdatesDisabled: true }, copiedFromEnduserId: { validator: validation_1.mongoIdStringOptional, enduserUpdatesDisabled: true }, publicSubmit: { validator: validation_1.booleanValidator }, submittedBy: { validator: validation_1.stringValidator250, enduserUpdatesDisabled: true }, submittedByIsPlaceholder: { validator: validation_1.booleanValidator, enduserUpdatesDisabled: true }, markedAsSubmitted: { validator: validation_1.booleanValidator, enduserUpdatesDisabled: true }, viewedInLanguage: { validator: validation_1.stringValidator100, enduserUpdatesDisabled: true }, accessCode: { validator: validation_1.stringValidator250 }, userEmail: { validator: validation_1.emailValidator, enduserUpdatesDisabled: true }, submittedAt: { validator: validation_1.dateValidator, enduserUpdatesDisabled: true }, formTitle: { validator: validation_1.stringValidator250, enduserUpdatesDisabled: true }, responses: { validator: validation_1.formResponsesValidator }, draftSavedAt: { validator: validation_1.dateValidator }, draftSavedBy: { validator: validation_1.mongoIdStringRequired }, hideFromEnduserPortal: { validator: validation_1.booleanValidator }, sharedVia: { validator: validation_1.communicationsChannelValidator }, isInternalNote: { validator: validation_1.booleanValidator, enduserUpdatesDisabled: true }, pinnedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator, enduserUpdatesDisabled: true }, publicIdentifier: { validator: validation_1.stringValidator250 }, source: { validator: validation_1.stringValidator250 }, externalId: { validator: validation_1.stringValidator250 }, rootResponseId: { validator: validation_1.mongoIdStringRequired }, parentResponseId: { validator: validation_1.mongoIdStringRequired }, tags: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk, enduserUpdatesDisabled: true }, carePlanId: { validator: validation_1.mongoIdStringRequired }, context: { validator: validation_1.stringValidator1000 }, logoURL: { validator: validation_1.stringValidator5000, enduserUpdatesDisabled: true }, logoHeight: { validator: validation_1.numberValidator, enduserUpdatesDisabled: true }, calendarEventId: { validator: validation_1.mongoIdStringRequired }, references: { validator: validation_1.listOfRelatedRecordsValidator, readonly: true }, releasedAfterPaymentAt: { validator: validation_1.dateValidator, readonly: true }, groupId: { validator: validation_1.mongoIdStringRequired }, groupInstance: { validator: validation_1.stringValidator100 }, groupPosition: { validator: validation_1.nonNegNumberValidator }, hideAfterUnsubmittedInMS: { validator: validation_1.numberValidator }, addenda: {
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     text: validation_1.stringValidator25000EmptyOkay,
                     timestamp: validation_1.dateValidator,
@@ -4372,6 +4525,20 @@ exports.schema = (0, exports.build_schema)({
                     explanation: 'Event, action, and conditions cannot all be shared by an existing event automation (no duplicates)',
                     evaluate: function () { } // implemented in routing.ts
                 },
+                {
+                    explanation: 'A list-item mutation may only touch the sub-fields its list field declares',
+                    evaluate: function (step, _deps, _session, _method, options) {
+                        var _a, _b;
+                        // a partial update may carry no action at all, so fall back to the stored one; the two are
+                        // never merged, since an action is always written whole
+                        var action = (_a = step.action) !== null && _a !== void 0 ? _a : (_b = options.original) === null || _b === void 0 ? void 0 : _b.action;
+                        if (!action)
+                            return;
+                        // the same helper the Journey Editor blocks on (and the same one automation_triggers uses),
+                        // so the editor and the server reject the same actions with the same wording
+                        return (0, validation_1.list_item_mutation_error)(action) || undefined;
+                    }
+                },
             ],
             access: []
         },
@@ -4679,7 +4846,7 @@ exports.schema = (0, exports.build_schema)({
                         relationship: 'foreignKey',
                         onDependencyDelete: 'delete',
                     }]
-            }, code: { validator: validation_1.stringValidator }, source: { validator: validation_1.stringValidator }, type: { validator: validation_1.stringValidator }, notes: { validator: validation_1.stringValidator }, qualitativeResult: { validator: validation_1.stringValidator250 }, refRange: { validator: validation_1.stringValidator250 }, statusIndicator: { validator: validation_1.stringValidator100 }, recordedAt: { validator: validation_1.dateValidator }, reviewedAt: { validator: validation_1.dateValidatorOptional }, timestamp: { validator: validation_1.dateValidator, initializer: function () { return new Date(); } }, statusChangedBy: { validator: validation_1.mongoIdStringRequired }, beforeMeal: { validator: validation_1.booleanValidator }, medStatus: { validator: validation_1.stringValidator }, irregularHeartbeat: { validator: validation_1.booleanValidator }, dontTrigger: { validator: validation_1.booleanValidator }, references: { validator: validation_1.listOfRelatedRecordsValidator, readonly: true }, showWithPlotsByUnit: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, invalidationReason: { validator: validation_1.stringValidatorOptionalEmptyOkay }, externalId: { validator: validation_1.stringValidator250 }, programs: { validator: validation_1.recordProgramsValidator } })
+            }, code: { validator: validation_1.stringValidator }, source: { validator: validation_1.stringValidator }, type: { validator: validation_1.stringValidator }, notes: { validator: validation_1.stringValidator }, qualitativeResult: { validator: validation_1.stringValidator250 }, refRange: { validator: validation_1.stringValidator250 }, statusIndicator: { validator: validation_1.stringValidator100 }, recordedAt: { validator: validation_1.dateValidator }, reviewedAt: { validator: validation_1.dateValidatorOptional }, timestamp: { validator: validation_1.dateValidator, initializer: function () { return new Date(); } }, statusChangedBy: { validator: validation_1.mongoIdStringRequired }, beforeMeal: { validator: validation_1.booleanValidator }, medStatus: { validator: validation_1.stringValidator }, flags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay, enduserUpdatesDisabled: true }, irregularHeartbeat: { validator: validation_1.booleanValidator }, dontTrigger: { validator: validation_1.booleanValidator }, references: { validator: validation_1.listOfRelatedRecordsValidator, readonly: true }, showWithPlotsByUnit: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, invalidationReason: { validator: validation_1.stringValidatorOptionalEmptyOkay }, externalId: { validator: validation_1.stringValidator250 }, programs: { validator: validation_1.recordProgramsValidator } })
     },
     managed_content_records: {
         info: {},
@@ -5370,7 +5537,7 @@ exports.schema = (0, exports.build_schema)({
                     id: validation_1.stringValidator100,
                     questions: (0, validation_1.listValidatorEmptyOk)(validation_1.stringValidator1000),
                 }))
-            }, externalFormIdsToSync: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, healthieImportLockedNotesFromTellescope: { validator: validation_1.booleanValidator }, analyticsIframes: {
+            }, externalFormIdsToSync: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, healthieImportLockedNotesFromTellescope: { validator: validation_1.booleanValidator }, healthieMatchAcrossIntegrations: { validator: validation_1.booleanValidator }, analyticsIframes: {
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     title: validation_1.stringValidator1000,
                     iframeURL: validation_1.stringValidator1000,
@@ -5380,7 +5547,7 @@ exports.schema = (0, exports.build_schema)({
                     id: validation_1.stringValidator100,
                     name: validation_1.stringValidator,
                 }))
-            }, groups: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, canvasURL: { validator: validation_1.stringValidator }, healthiePortalURL: { validator: validation_1.stringValidator }, observationInvalidationReasons: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customNotificationTypes: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOFields: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOIdField: { validator: validation_1.stringValidator }, hasConnectedPaubox: { validator: validation_1.booleanValidator }, hasConnectedBridge: { validator: validation_1.booleanValidator }, hasConnectedMDIntegrations: { validator: validation_1.booleanValidator }, hasConnectedSeason: { validator: validation_1.booleanValidator }, hasConnectedWelle: { validator: validation_1.booleanValidator }, createEnduserForms: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, defaultSummaryJourneyId: {
+            }, groups: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, canvasURL: { validator: validation_1.stringValidator }, healthiePortalURL: { validator: validation_1.stringValidator }, observationInvalidationReasons: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, observationFlagOptions: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customNotificationTypes: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOFields: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOIdField: { validator: validation_1.stringValidator }, hasConnectedPaubox: { validator: validation_1.booleanValidator }, hasConnectedBridge: { validator: validation_1.booleanValidator }, hasConnectedMDIntegrations: { validator: validation_1.booleanValidator }, hasConnectedSeason: { validator: validation_1.booleanValidator }, hasConnectedWelle: { validator: validation_1.booleanValidator }, createEnduserForms: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, defaultSummaryJourneyId: {
                 validator: validation_1.mongoIdStringOptional,
                 dependencies: [
                     {
@@ -5693,6 +5860,9 @@ exports.schema = (0, exports.build_schema)({
                     productIds: { validator: validation_1.listOfMongoIdStringValidatorOptional },
                     items: { validator: validation_1.listOfStripeCheckoutItemsValidatorOptional },
                     stripeKey: { validator: validation_1.stringValidator250 },
+                    // submitted intake responses released to Healthie / OpenLoop once Stripe confirms payment
+                    // (enduser sessions and Stripe Custom only - see the handler)
+                    formResponseIds: { validator: validation_1.listOfMongoIdStringValidatorOptional },
                 },
                 returns: {
                     clientSecret: { validator: validation_1.stringValidator, required: true },
@@ -5809,7 +5979,7 @@ exports.schema = (0, exports.build_schema)({
                 examples: ['Stripe'],
             }, 
             // for timestamp of old/imported data processed before Tellescope
-            processedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, description: { validator: validation_1.stringValidator5000EmptyOkay }, refundedAmount: { validator: validation_1.nonNegNumberValidator }, source: { validator: validation_1.stringValidatorOptional }, externalId: { validator: validation_1.stringValidator }, cptCode: { validator: validation_1.billingCodeValidatorOptional }, notes: { validator: validation_1.stringValidator5000EmptyOkay }, stripeProductName: { validator: validation_1.stringValidator5000EmptyOkay }, couponCodes: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk } })
+            processedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, description: { validator: validation_1.stringValidator5000EmptyOkay }, refundedAmount: { validator: validation_1.nonNegNumberValidator }, source: { validator: validation_1.stringValidatorOptional }, externalId: { validator: validation_1.stringValidator }, cptCode: { validator: validation_1.billingCodeValidatorOptional }, notes: { validator: validation_1.stringValidator5000EmptyOkay }, stripeProductName: { validator: validation_1.stringValidator5000EmptyOkay }, couponCodes: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, formResponseIds: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk, readonly: true } })
     },
     purchase_credits: {
         info: {},
@@ -7456,7 +7626,7 @@ exports.schema = (0, exports.build_schema)({
                 op: "custom", access: 'create', method: "post",
                 name: 'Agent Message',
                 path: '/ai-conversations/agent-message',
-                description: "Sends an Anthropic-shaped transcript to the configured model with native tool use and prompt caching, and records the turn against an ai_conversation. Returns { conversationId, reply }, or a text/event-stream when stream is true.",
+                description: "Sends an Anthropic-shaped transcript to the configured model with native tool use and prompt caching, and records the turn against an ai_conversation. A user message may include { type: 'document' | 'image', fileId } blocks referencing Tellescope files, which the server resolves and attaches (requires files read access). Returns { conversationId, reply }, or a text/event-stream when stream is true.",
                 parameters: {
                     messages: { validator: validation_1.agentMessagesValidator, required: true },
                     system: { validator: validation_1.agentSystemValidator },
@@ -7523,7 +7693,7 @@ exports.schema = (0, exports.build_schema)({
                     timestamp: validation_1.dateValidator,
                     tokens: validation_1.nonNegNumberValidator,
                     content: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
-                        type: (0, validation_1.exactMatchValidator)(['text', 'image', 'file', 'tool_use', 'tool_result']),
+                        type: (0, validation_1.exactMatchValidator)(['text', 'image', 'file', 'tool_use', 'tool_result', 'document']),
                         text: validation_1.stringValidatorOptional,
                         // agent_message tool-loop blocks; see types-models AICOnversationMessageContent
                         id: validation_1.stringValidatorOptional,
@@ -7532,6 +7702,9 @@ exports.schema = (0, exports.build_schema)({
                         tool_use_id: validation_1.stringValidatorOptional,
                         content: validation_1.stringValidator100000OptionalEmptyOkay,
                         is_error: validation_1.booleanValidatorOptional,
+                        // agent_message attachment ('document' / 'image'): the files record the caller
+                        // referenced. The base64 the server substituted for the model call is never stored.
+                        fileId: validation_1.mongoIdStringOptional,
                     })),
                     userId: validation_1.mongoIdStringOptional,
                     systemPrompt: validation_1.stringValidator5000OptionalEmptyOkay,

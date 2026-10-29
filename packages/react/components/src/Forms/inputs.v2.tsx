@@ -533,7 +533,7 @@ export const EmailInput = ({ field, value, onChange, form, ...props }: FormInput
 
 export const NumberInput = ({ field, value, onChange, form, ...props }: FormInputProps<'number'>) => {
   // Prevent the default scroll behavior when focused on this input
-  const inputRef = useRef<HTMLInputElement>(null); 
+  const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     const handleWheel = (e: any) => {
       e?.preventDefault?.();
@@ -553,8 +553,14 @@ export const NumberInput = ({ field, value, onChange, form, ...props }: FormInpu
   }, []);
 
   return (
-    <TextField ref={inputRef} autoFocus InputProps={defaultInputProps} {...props} required={!field.isOptional} fullWidth type="number" value={value} 
-      onChange={e => onChange(parseInt(e.target.value), field.id)}  
+    <TextField ref={inputRef} autoFocus InputProps={defaultInputProps} {...props} required={!field.isOptional} fullWidth type="number"
+      value={value ?? ''} // fully controlled -- see NumberInput in inputs.tsx (the v1 renderer)
+      inputProps={{ ...props.inputProps, step: 'any' }} // step="any" allows decimals; merged with any caller's inputProps
+      onChange={e => {
+        const parsed = parseFloat(e.target.value)
+        // never emit NaN: it survives the `typeof value === 'number'` answer check and serializes to null
+        onChange((isNaN(parsed) ? undefined : parsed) as number, field.id)
+      }}
       label={(!field.title && field.placeholder) ? form_display_text_for_language(form, field.placeholder) : props.label}
       placeholder={field.placeholder ? form_display_text_for_language(form, field.placeholder) : form_display_text_for_language(form, "Enter a number...", '')}
       onScroll={e => e.preventDefault()} // prevent scroll on number input
