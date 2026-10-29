@@ -10951,3 +10951,147 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
 
 // export type SchemaType = typeof schema
 // export type SchemaV1 = SchemaType// & Schema
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * $lookup join allowlist for the custom aggregation endpoint
+ *
+ * The set of joins a customer may ask for is DERIVED from the `dependencies`
+ * metadata already declared on schema fields (see `Dependency` above, near
+ * `DependencyAccessConstraint`) rather than from a hand-written constant, so
+ * the allowlist cannot drift away from the real foreign keys as models change.
+ *
+ * A field declaring `{ dependsOn: ['endusers'], dependencyField: '_id',
+ * relationship: 'foreignKey' }` yields BOTH directions:
+ *   - forward: the model holding the FK joins into the model it points at
+ *       form_responses.enduserId -> endusers._id
+ *   - reverse: the pointed-at model joins into its children (one-to-many)
+ *       endusers._id -> form_responses.enduserId
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+export type AggregationJoin = {
+  from: ModelName,        // collection being joined in ($lookup.from)
+  localField: string,     // field on the base model
+  foreignField: string,   // field on `from`
+  direction: 'forward' | 'reverse',
+}
+
+/**
+ * `organizationIds` is declared as a foreignKey on EVERY model (it lives in BuiltInFields), and
+ * its "join" would be an array-to-array match on a tenancy field rather than an analytic
+ * relationship. Including it would add a meaningless pair to all ~90 models and, worse, make the
+ * `organizations` allowlist ~90 entries long — which is the list surfaced in rejection errors.
+ */
+const AGGREGATION_JOIN_EXCLUDED_FIELDS = ['organizationIds']
+
+/**
+ * Foreign keys that carry no `dependencies` entry but are worth joining on. Hand-written because a
+ * dependency cannot sit on a nested path (attendees.id), and on a scalar field it would add
+ * create/update validation (ensureValidDependentKeys) that existing stale ids would start failing.
+ *
+ * FORWARD ONLY: the reverse of a list or nested key can only be matched by membership, which no
+ * index serves (a scan of the joined collection per outer document), and the reverse of a scalar
+ * key here has no index we rely on. The same question can be asked from the other base model.
+ */
+const AGGREGATION_JOIN_EXTRA_PAIRS: { model: ModelName, localField: string, from: ModelName[] }[] = [
+  { model: 'calendar_events', localField: 'attendees.id', from: ['endusers', 'users'] },
+  { model: 'calendar_events', localField: 'locationIds', from: ['appointment_locations'] },
+  { model: 'calendar_events', localField: 'bookingPageId', from: ['appointment_booking_pages'] },
+  { model: 'endusers', localField: 'assignedTo', from: ['users'] },
+  { model: 'endusers', localField: 'primaryAssignee', from: ['users'] },
+  { model: 'endusers', localField: 'customTypeId', from: ['enduser_custom_types'] },
+  { model: 'tickets', localField: 'owner', from: ['users'] },
+  { model: 'tickets', localField: 'closedBy', from: ['users'] },
+  { model: 'tickets', localField: 'journeyId', from: ['journeys'] },
+  { model: 'tickets', localField: 'queueId', from: ['ticket_queues'] },
+  { model: 'tickets', localField: 'calendarEventId', from: ['calendar_events'] },
+  { model: 'form_responses', localField: 'submittedBy', from: ['users', 'endusers'] },
+  { model: 'form_responses', localField: 'calendarEventId', from: ['calendar_events'] },
+  { model: 'emails', localField: 'userId', from: ['users'] },
+  { model: 'emails', localField: 'journeyId', from: ['journeys'] },
+  { model: 'emails', localField: 'templateId', from: ['templates'] },
+  { model: 'sms_messages', localField: 'journeyId', from: ['journeys'] },
+  { model: 'sms_messages', localField: 'templateId', from: ['templates'] },
+  { model: 'purchases', localField: 'productIds', from: ['products'] },
+  { model: 'phone_calls', localField: 'userId', from: ['users'] },
+]
+
+let cachedAggregationJoins: { [model: string]: AggregationJoin[] } | undefined
+
+const buildAggregationJoins = () => {
+  // Null-prototype, so a model name like 'constructor' or '__proto__' misses instead of resolving
+  // to an inherited value. These helpers are public API (the webapp calls them), and returning a
+  // function where an array is expected would be an uncaught TypeError in a render.
+  const byModel: { [model: string]: AggregationJoin[] } = Object.create(null)
+
+  const push = (model: string, join: AggregationJoin) => {
+    const existing = byModel[model] ?? (byModel[model] = [])
+    if (existing.some(e => (
+      e.from === join.from && e.localField === join.localField && e.foreignField === join.foreignField
+    ))) return // same pair declared by more than one dependency
+    existing.push(join)
+  }
+
+  const allModels = schema as any as Indexable<{ fields?: Indexable<{ dependencies?: Dependency<any>[] }> }>
+
+  for (const model of Object.keys(allModels)) {
+    const fields = allModels[model]?.fields ?? {}
+
+    for (const field of Object.keys(fields)) {
+      if (AGGREGATION_JOIN_EXCLUDED_FIELDS.includes(field)) continue
+
+      for (const dependency of (fields[field]?.dependencies ?? [])) {
+        if (dependency.relationship !== 'foreignKey') continue
+
+        // `getDependentValues` / `filterByDependency` exist precisely because the field's own value
+        // is NOT the join key (e.g. endusers.journeys is a map keyed by journey id). An equality
+        // join on such a field can never match, so it is not offered.
+        if (dependency.getDependentValues || dependency.filterByDependency) continue
+
+        const foreignField = dependency.dependencyField
+        if (!foreignField) continue
+
+        for (const foreignModel of (dependency.dependsOn ?? [])) {
+          if (!allModels[foreignModel]) continue
+
+          push(model, { from: foreignModel, localField: field, foreignField, direction: 'forward' })
+          push(foreignModel, { from: model as ModelName, localField: foreignField, foreignField: field, direction: 'reverse' })
+        }
+      }
+    }
+  }
+
+  for (const { model, localField, from } of AGGREGATION_JOIN_EXTRA_PAIRS) {
+    for (const foreignModel of from) {
+      push(model, { from: foreignModel, localField, foreignField: '_id', direction: 'forward' })
+    }
+  }
+
+  return byModel
+}
+
+/** Every join legal for `modelName` as the base collection of an aggregation. Unknown model => []. */
+export const getAggregationJoinsForModel = (modelName: string): AggregationJoin[] => {
+  cachedAggregationJoins = cachedAggregationJoins ?? buildAggregationJoins()
+
+  const joins = cachedAggregationJoins[modelName]
+  return Array.isArray(joins) ? joins : []
+}
+
+/** The matching allowlist entry, or undefined when the requested join is not legal. */
+export const getAggregationJoin = (
+  modelName: string, from: string, localField: string, foreignField: string
+): AggregationJoin | undefined => (
+  getAggregationJoinsForModel(modelName).find(j => (
+    j.from === from && j.localField === localField && j.foreignField === foreignField
+  ))
+)
+
+/** Human-readable enumeration of the legal joins, for rejection messages and prompt building. */
+export const describeAggregationJoinsForModel = (modelName: string): string => {
+  const joins = getAggregationJoinsForModel(modelName)
+  if (joins.length === 0) return `${modelName} has no joinable relationships`
+
+  return joins
+    .map(j => `${modelName}.${j.localField} -> ${j.from}.${j.foreignField}`)
+    .join(', ')
+}

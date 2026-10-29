@@ -2170,5 +2170,17 @@ export type SchemaV1 = Schema & {
 };
 export declare const build_schema: <T extends Schema>(schema: T) => T;
 export declare const schema: SchemaV1;
+export type AggregationJoin = {
+    from: ModelName;
+    localField: string;
+    foreignField: string;
+    direction: 'forward' | 'reverse';
+};
+/** Every join legal for `modelName` as the base collection of an aggregation. Unknown model => []. */
+export declare const getAggregationJoinsForModel: (modelName: string) => AggregationJoin[];
+/** The matching allowlist entry, or undefined when the requested join is not legal. */
+export declare const getAggregationJoin: (modelName: string, from: string, localField: string, foreignField: string) => AggregationJoin | undefined;
+/** Human-readable enumeration of the legal joins, for rejection messages and prompt building. */
+export declare const describeAggregationJoinsForModel: (modelName: string) => string;
 export {};
 //# sourceMappingURL=schema.d.ts.map
