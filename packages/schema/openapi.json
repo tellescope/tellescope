@@ -211,6 +211,15 @@
                       },
                       "faxLogId": {
                         "type": "string"
+                      },
+                      "stripeSubscriptionId": {
+                        "type": "string"
+                      },
+                      "stripeSubscriptionCancelAt": {
+                        "type": "number"
+                      },
+                      "stripeSubscriptionCancelAtPeriodEnd": {
+                        "type": "boolean"
                       }
                     },
                     "example": {
@@ -235,7 +244,10 @@
                       "ticketThreadId": "60398b0231a295e64f084fd9",
                       "ticketThreadCommentId": "60398b0231a295e64f084fd9",
                       "medicationId": "60398b0231a295e64f084fd9",
-                      "faxLogId": "60398b0231a295e64f084fd9"
+                      "faxLogId": "60398b0231a295e64f084fd9",
+                      "stripeSubscriptionId": "example string",
+                      "stripeSubscriptionCancelAt": 0,
+                      "stripeSubscriptionCancelAtPeriodEnd": true
                     }
                   },
                   "throttle": {
@@ -1467,6 +1479,15 @@
                       },
                       "faxLogId": {
                         "type": "string"
+                      },
+                      "stripeSubscriptionId": {
+                        "type": "string"
+                      },
+                      "stripeSubscriptionCancelAt": {
+                        "type": "number"
+                      },
+                      "stripeSubscriptionCancelAtPeriodEnd": {
+                        "type": "boolean"
                       }
                     },
                     "example": {
@@ -1491,7 +1512,10 @@
                       "ticketThreadId": "60398b0231a295e64f084fd9",
                       "ticketThreadCommentId": "60398b0231a295e64f084fd9",
                       "medicationId": "60398b0231a295e64f084fd9",
-                      "faxLogId": "60398b0231a295e64f084fd9"
+                      "faxLogId": "60398b0231a295e64f084fd9",
+                      "stripeSubscriptionId": "example string",
+                      "stripeSubscriptionCancelAt": 0,
+                      "stripeSubscriptionCancelAtPeriodEnd": true
                     }
                   }
                 },
@@ -40496,6 +40520,93 @@
         }
       }
     },
+    "/v1/prepare-form-group-response": {
+      "post": {
+        "summary": "Prepare Form Group Response",
+        "description": "Generates the unsubmitted form responses for every form of a Form Group under one group instance, and returns a link to the first of them.",
+        "tags": [
+          "FormResponses"
+        ],
+        "operationId": "form_responses_prepare_form_group_response",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "groupId": {
+                      "type": "string",
+                      "example": "example string"
+                    },
+                    "groupInstance": {
+                      "type": "string",
+                      "example": "example string"
+                    },
+                    "fullURL": {
+                      "type": "string",
+                      "example": "example string"
+                    }
+                  },
+                  "required": [
+                    "groupId",
+                    "groupInstance",
+                    "fullURL"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "formGroupId": {
+                    "type": "string",
+                    "example": "60398b0231a295e64f084fd9"
+                  },
+                  "enduserId": {
+                    "type": "string",
+                    "example": "60398b0231a295e64f084fd9"
+                  },
+                  "rootResponseId": {
+                    "type": "string",
+                    "example": "60398b0231a295e64f084fd9"
+                  },
+                  "parentResponseId": {
+                    "type": "string",
+                    "example": "60398b0231a295e64f084fd9"
+                  }
+                },
+                "required": [
+                  "formGroupId",
+                  "enduserId"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/prepare-form-response": {
       "post": {
         "summary": "Prepare Form Response",
@@ -42959,7 +43070,7 @@
     "/v1/refresh-session": {
       "post": {
         "summary": "Refresh user authentication",
-        "description": "When called by an authenticated user, generates a new session",
+        "description": "When called by an authenticated user, generates a new session. By default the new session keeps the duration of the current one. Pass expirationInSeconds to set the new session's duration instead (at most 72 hours; larger values are reduced to 72 hours).",
         "tags": [
           "Users"
         ],
@@ -43013,6 +43124,10 @@
                   "invalidatePreviousToken": {
                     "type": "boolean",
                     "example": true
+                  },
+                  "expirationInSeconds": {
+                    "type": "number",
+                    "example": 1
                   }
                 }
               }
@@ -46636,6 +46751,15 @@
                       },
                       "faxLogId": {
                         "type": "string"
+                      },
+                      "stripeSubscriptionId": {
+                        "type": "string"
+                      },
+                      "stripeSubscriptionCancelAt": {
+                        "type": "number"
+                      },
+                      "stripeSubscriptionCancelAtPeriodEnd": {
+                        "type": "boolean"
                       }
                     },
                     "example": {
@@ -46660,7 +46784,10 @@
                       "ticketThreadId": "60398b0231a295e64f084fd9",
                       "ticketThreadCommentId": "60398b0231a295e64f084fd9",
                       "medicationId": "60398b0231a295e64f084fd9",
-                      "faxLogId": "60398b0231a295e64f084fd9"
+                      "faxLogId": "60398b0231a295e64f084fd9",
+                      "stripeSubscriptionId": "example string",
+                      "stripeSubscriptionCancelAt": 0,
+                      "stripeSubscriptionCancelAtPeriodEnd": true
                     }
                   }
                 }
@@ -50366,6 +50493,15 @@
                       },
                       "faxLogId": {
                         "type": "string"
+                      },
+                      "stripeSubscriptionId": {
+                        "type": "string"
+                      },
+                      "stripeSubscriptionCancelAt": {
+                        "type": "number"
+                      },
+                      "stripeSubscriptionCancelAtPeriodEnd": {
+                        "type": "boolean"
                       }
                     },
                     "example": {
@@ -50390,7 +50526,10 @@
                       "ticketThreadId": "60398b0231a295e64f084fd9",
                       "ticketThreadCommentId": "60398b0231a295e64f084fd9",
                       "medicationId": "60398b0231a295e64f084fd9",
-                      "faxLogId": "60398b0231a295e64f084fd9"
+                      "faxLogId": "60398b0231a295e64f084fd9",
+                      "stripeSubscriptionId": "example string",
+                      "stripeSubscriptionCancelAt": 0,
+                      "stripeSubscriptionCancelAtPeriodEnd": true
                     }
                   },
                   "relatedContactId": {
@@ -57849,6 +57988,15 @@
                       },
                       "faxLogId": {
                         "type": "string"
+                      },
+                      "stripeSubscriptionId": {
+                        "type": "string"
+                      },
+                      "stripeSubscriptionCancelAt": {
+                        "type": "number"
+                      },
+                      "stripeSubscriptionCancelAtPeriodEnd": {
+                        "type": "boolean"
                       }
                     },
                     "example": {
@@ -57873,7 +58021,10 @@
                       "ticketThreadId": "60398b0231a295e64f084fd9",
                       "ticketThreadCommentId": "60398b0231a295e64f084fd9",
                       "medicationId": "60398b0231a295e64f084fd9",
-                      "faxLogId": "60398b0231a295e64f084fd9"
+                      "faxLogId": "60398b0231a295e64f084fd9",
+                      "stripeSubscriptionId": "example string",
+                      "stripeSubscriptionCancelAt": 0,
+                      "stripeSubscriptionCancelAtPeriodEnd": true
                     }
                   }
                 },
@@ -62348,6 +62499,27 @@
             "example": "example string",
             "description": "Not visible to endusers"
           },
+          "stripeCustomerIds": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "stripeKey": {
+                  "type": "string"
+                },
+                "customerId": {
+                  "type": "string"
+                }
+              }
+            },
+            "example": [
+              {
+                "stripeKey": "example string",
+                "customerId": "example string"
+              }
+            ],
+            "description": "Not visible to endusers"
+          },
           "chargebeeId": {
             "type": "string",
             "example": "example string",
@@ -63428,6 +63600,26 @@
             "type": "string",
             "example": "example string"
           },
+          "stripeCustomerIds": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "stripeKey": {
+                  "type": "string"
+                },
+                "customerId": {
+                  "type": "string"
+                }
+              }
+            },
+            "example": [
+              {
+                "stripeKey": "example string",
+                "customerId": "example string"
+              }
+            ]
+          },
           "chargebeeId": {
             "type": "string",
             "example": "example string"
@@ -64499,6 +64691,26 @@
           "stripeKey": {
             "type": "string",
             "example": "example string"
+          },
+          "stripeCustomerIds": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "stripeKey": {
+                  "type": "string"
+                },
+                "customerId": {
+                  "type": "string"
+                }
+              }
+            },
+            "example": [
+              {
+                "stripeKey": "example string",
+                "customerId": "example string"
+              }
+            ]
           },
           "chargebeeId": {
             "type": "string",
@@ -66456,6 +66668,15 @@
               },
               "faxLogId": {
                 "type": "string"
+              },
+              "stripeSubscriptionId": {
+                "type": "string"
+              },
+              "stripeSubscriptionCancelAt": {
+                "type": "number"
+              },
+              "stripeSubscriptionCancelAtPeriodEnd": {
+                "type": "boolean"
               }
             },
             "example": {
@@ -66480,7 +66701,10 @@
               "ticketThreadId": "60398b0231a295e64f084fd9",
               "ticketThreadCommentId": "60398b0231a295e64f084fd9",
               "medicationId": "60398b0231a295e64f084fd9",
-              "faxLogId": "60398b0231a295e64f084fd9"
+              "faxLogId": "60398b0231a295e64f084fd9",
+              "stripeSubscriptionId": "example string",
+              "stripeSubscriptionCancelAt": 0,
+              "stripeSubscriptionCancelAtPeriodEnd": true
             }
           },
           "sendAt": {
@@ -66782,6 +67006,15 @@
               },
               "faxLogId": {
                 "type": "string"
+              },
+              "stripeSubscriptionId": {
+                "type": "string"
+              },
+              "stripeSubscriptionCancelAt": {
+                "type": "number"
+              },
+              "stripeSubscriptionCancelAtPeriodEnd": {
+                "type": "boolean"
               }
             },
             "example": {
@@ -66806,7 +67039,10 @@
               "ticketThreadId": "60398b0231a295e64f084fd9",
               "ticketThreadCommentId": "60398b0231a295e64f084fd9",
               "medicationId": "60398b0231a295e64f084fd9",
-              "faxLogId": "60398b0231a295e64f084fd9"
+              "faxLogId": "60398b0231a295e64f084fd9",
+              "stripeSubscriptionId": "example string",
+              "stripeSubscriptionCancelAt": 0,
+              "stripeSubscriptionCancelAtPeriodEnd": true
             }
           },
           "sendAt": {
@@ -67106,6 +67342,15 @@
               },
               "faxLogId": {
                 "type": "string"
+              },
+              "stripeSubscriptionId": {
+                "type": "string"
+              },
+              "stripeSubscriptionCancelAt": {
+                "type": "number"
+              },
+              "stripeSubscriptionCancelAtPeriodEnd": {
+                "type": "boolean"
               }
             },
             "example": {
@@ -67130,7 +67375,10 @@
               "ticketThreadId": "60398b0231a295e64f084fd9",
               "ticketThreadCommentId": "60398b0231a295e64f084fd9",
               "medicationId": "60398b0231a295e64f084fd9",
-              "faxLogId": "60398b0231a295e64f084fd9"
+              "faxLogId": "60398b0231a295e64f084fd9",
+              "stripeSubscriptionId": "example string",
+              "stripeSubscriptionCancelAt": 0,
+              "stripeSubscriptionCancelAtPeriodEnd": true
             }
           },
           "sendAt": {
@@ -67451,6 +67699,15 @@
               },
               "faxLogId": {
                 "type": "string"
+              },
+              "stripeSubscriptionId": {
+                "type": "string"
+              },
+              "stripeSubscriptionCancelAt": {
+                "type": "number"
+              },
+              "stripeSubscriptionCancelAtPeriodEnd": {
+                "type": "boolean"
               }
             },
             "example": {
@@ -67475,7 +67732,10 @@
               "ticketThreadId": "60398b0231a295e64f084fd9",
               "ticketThreadCommentId": "60398b0231a295e64f084fd9",
               "medicationId": "60398b0231a295e64f084fd9",
-              "faxLogId": "60398b0231a295e64f084fd9"
+              "faxLogId": "60398b0231a295e64f084fd9",
+              "stripeSubscriptionId": "example string",
+              "stripeSubscriptionCancelAt": 0,
+              "stripeSubscriptionCancelAtPeriodEnd": true
             }
           },
           "sendAt": {
@@ -67772,6 +68032,15 @@
               },
               "faxLogId": {
                 "type": "string"
+              },
+              "stripeSubscriptionId": {
+                "type": "string"
+              },
+              "stripeSubscriptionCancelAt": {
+                "type": "number"
+              },
+              "stripeSubscriptionCancelAtPeriodEnd": {
+                "type": "boolean"
               }
             },
             "example": {
@@ -67796,7 +68065,10 @@
               "ticketThreadId": "60398b0231a295e64f084fd9",
               "ticketThreadCommentId": "60398b0231a295e64f084fd9",
               "medicationId": "60398b0231a295e64f084fd9",
-              "faxLogId": "60398b0231a295e64f084fd9"
+              "faxLogId": "60398b0231a295e64f084fd9",
+              "stripeSubscriptionId": "example string",
+              "stripeSubscriptionCancelAt": 0,
+              "stripeSubscriptionCancelAtPeriodEnd": true
             }
           },
           "sendAt": {
@@ -68087,6 +68359,15 @@
               },
               "faxLogId": {
                 "type": "string"
+              },
+              "stripeSubscriptionId": {
+                "type": "string"
+              },
+              "stripeSubscriptionCancelAt": {
+                "type": "number"
+              },
+              "stripeSubscriptionCancelAtPeriodEnd": {
+                "type": "boolean"
               }
             },
             "example": {
@@ -68111,7 +68392,10 @@
               "ticketThreadId": "60398b0231a295e64f084fd9",
               "ticketThreadCommentId": "60398b0231a295e64f084fd9",
               "medicationId": "60398b0231a295e64f084fd9",
-              "faxLogId": "60398b0231a295e64f084fd9"
+              "faxLogId": "60398b0231a295e64f084fd9",
+              "stripeSubscriptionId": "example string",
+              "stripeSubscriptionCancelAt": 0,
+              "stripeSubscriptionCancelAtPeriodEnd": true
             }
           },
           "sendAt": {
@@ -76853,6 +77137,9 @@
               "redirectFormId": {
                 "type": "string"
               },
+              "redirectFormGroupId": {
+                "type": "string"
+              },
               "redirectExternalUrl": {
                 "type": "string"
               },
@@ -77110,6 +77397,7 @@
               "holdAppointmentMinutes": -10000000000000,
               "rangeStepSize": -10000000000000,
               "redirectFormId": "60398b0231a295e64f084fd9",
+              "redirectFormGroupId": "60398b0231a295e64f084fd9",
               "redirectExternalUrl": "example string",
               "customTypeId": "60398b0231a295e64f084fd9",
               "groupPadding": -10000000000000,
@@ -77703,6 +77991,9 @@
               "redirectFormId": {
                 "type": "string"
               },
+              "redirectFormGroupId": {
+                "type": "string"
+              },
               "redirectExternalUrl": {
                 "type": "string"
               },
@@ -77960,6 +78251,7 @@
               "holdAppointmentMinutes": -10000000000000,
               "rangeStepSize": -10000000000000,
               "redirectFormId": "60398b0231a295e64f084fd9",
+              "redirectFormGroupId": "60398b0231a295e64f084fd9",
               "redirectExternalUrl": "example string",
               "customTypeId": "60398b0231a295e64f084fd9",
               "groupPadding": -10000000000000,
@@ -78553,6 +78845,9 @@
               "redirectFormId": {
                 "type": "string"
               },
+              "redirectFormGroupId": {
+                "type": "string"
+              },
               "redirectExternalUrl": {
                 "type": "string"
               },
@@ -78810,6 +79105,7 @@
               "holdAppointmentMinutes": -10000000000000,
               "rangeStepSize": -10000000000000,
               "redirectFormId": "60398b0231a295e64f084fd9",
+              "redirectFormGroupId": "60398b0231a295e64f084fd9",
               "redirectExternalUrl": "example string",
               "customTypeId": "60398b0231a295e64f084fd9",
               "groupPadding": -10000000000000,
@@ -86213,7 +86509,8 @@
           },
           "videoStartURL": {
             "type": "string",
-            "example": "example string"
+            "example": "example string",
+            "description": "Not visible to endusers"
           },
           "externalVideoURL": {
             "type": "string",
@@ -101902,6 +102199,15 @@
               },
               "faxLogId": {
                 "type": "string"
+              },
+              "stripeSubscriptionId": {
+                "type": "string"
+              },
+              "stripeSubscriptionCancelAt": {
+                "type": "number"
+              },
+              "stripeSubscriptionCancelAtPeriodEnd": {
+                "type": "boolean"
               }
             },
             "example": {
@@ -101926,12 +102232,23 @@
               "ticketThreadId": "60398b0231a295e64f084fd9",
               "ticketThreadCommentId": "60398b0231a295e64f084fd9",
               "medicationId": "60398b0231a295e64f084fd9",
-              "faxLogId": "60398b0231a295e64f084fd9"
+              "faxLogId": "60398b0231a295e64f084fd9",
+              "stripeSubscriptionId": "example string",
+              "stripeSubscriptionCancelAt": 0,
+              "stripeSubscriptionCancelAtPeriodEnd": true
             }
           },
           "externalId": {
             "type": "string",
             "example": "example string"
+          },
+          "cancelReason": {
+            "type": "number",
+            "example": 0
+          },
+          "cancelledBy": {
+            "type": "string",
+            "example": "60398b0231a295e64f084fd9"
           }
         },
         "required": [
@@ -105396,6 +105713,15 @@
               },
               "faxLogId": {
                 "type": "string"
+              },
+              "stripeSubscriptionId": {
+                "type": "string"
+              },
+              "stripeSubscriptionCancelAt": {
+                "type": "number"
+              },
+              "stripeSubscriptionCancelAtPeriodEnd": {
+                "type": "boolean"
               }
             },
             "example": {
@@ -105420,12 +105746,23 @@
               "ticketThreadId": "60398b0231a295e64f084fd9",
               "ticketThreadCommentId": "60398b0231a295e64f084fd9",
               "medicationId": "60398b0231a295e64f084fd9",
-              "faxLogId": "60398b0231a295e64f084fd9"
+              "faxLogId": "60398b0231a295e64f084fd9",
+              "stripeSubscriptionId": "example string",
+              "stripeSubscriptionCancelAt": 0,
+              "stripeSubscriptionCancelAtPeriodEnd": true
             }
           },
           "externalId": {
             "type": "string",
             "example": "example string"
+          },
+          "cancelReason": {
+            "type": "number",
+            "example": 0
+          },
+          "cancelledBy": {
+            "type": "string",
+            "example": "60398b0231a295e64f084fd9"
           }
         },
         "required": [
@@ -108890,6 +109227,15 @@
               },
               "faxLogId": {
                 "type": "string"
+              },
+              "stripeSubscriptionId": {
+                "type": "string"
+              },
+              "stripeSubscriptionCancelAt": {
+                "type": "number"
+              },
+              "stripeSubscriptionCancelAtPeriodEnd": {
+                "type": "boolean"
               }
             },
             "example": {
@@ -108914,12 +109260,23 @@
               "ticketThreadId": "60398b0231a295e64f084fd9",
               "ticketThreadCommentId": "60398b0231a295e64f084fd9",
               "medicationId": "60398b0231a295e64f084fd9",
-              "faxLogId": "60398b0231a295e64f084fd9"
+              "faxLogId": "60398b0231a295e64f084fd9",
+              "stripeSubscriptionId": "example string",
+              "stripeSubscriptionCancelAt": 0,
+              "stripeSubscriptionCancelAtPeriodEnd": true
             }
           },
           "externalId": {
             "type": "string",
             "example": "example string"
+          },
+          "cancelReason": {
+            "type": "number",
+            "example": 0
+          },
+          "cancelledBy": {
+            "type": "string",
+            "example": "60398b0231a295e64f084fd9"
           }
         },
         "description": "Fields to update (all optional)"
@@ -112889,6 +113246,15 @@
               "example string"
             ]
           },
+          "messagingTags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "example string"
+            ]
+          },
           "themeColor": {
             "type": "string",
             "example": "example string"
@@ -113264,6 +113630,9 @@
                   "disablePublicBookingStarts": {
                     "type": "boolean"
                   },
+                  "disablePhoneLogin": {
+                    "type": "boolean"
+                  },
                   "hideNotesFromComposeForm": {
                     "type": "boolean"
                   },
@@ -113593,6 +113962,7 @@
                 "disablePublicRegistration": true,
                 "disablePublicFormStarts": true,
                 "disablePublicBookingStarts": true,
+                "disablePhoneLogin": true,
                 "hideNotesFromComposeForm": true,
                 "showSalesforceId": true,
                 "loopQueueCallSound": true,
@@ -114668,6 +115038,15 @@
               "example string"
             ]
           },
+          "messagingTags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "example string"
+            ]
+          },
           "themeColor": {
             "type": "string",
             "example": "example string"
@@ -115043,6 +115422,9 @@
                   "disablePublicBookingStarts": {
                     "type": "boolean"
                   },
+                  "disablePhoneLogin": {
+                    "type": "boolean"
+                  },
                   "hideNotesFromComposeForm": {
                     "type": "boolean"
                   },
@@ -115372,6 +115754,7 @@
                 "disablePublicRegistration": true,
                 "disablePublicFormStarts": true,
                 "disablePublicBookingStarts": true,
+                "disablePhoneLogin": true,
                 "hideNotesFromComposeForm": true,
                 "showSalesforceId": true,
                 "loopQueueCallSound": true,
@@ -116446,6 +116829,15 @@
               "example string"
             ]
           },
+          "messagingTags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "example string"
+            ]
+          },
           "themeColor": {
             "type": "string",
             "example": "example string"
@@ -116821,6 +117213,9 @@
                   "disablePublicBookingStarts": {
                     "type": "boolean"
                   },
+                  "disablePhoneLogin": {
+                    "type": "boolean"
+                  },
                   "hideNotesFromComposeForm": {
                     "type": "boolean"
                   },
@@ -117150,6 +117545,7 @@
                 "disablePublicRegistration": true,
                 "disablePublicFormStarts": true,
                 "disablePublicBookingStarts": true,
+                "disablePhoneLogin": true,
                 "hideNotesFromComposeForm": true,
                 "showSalesforceId": true,
                 "loopQueueCallSound": true,
@@ -138567,7 +138963,15 @@
                       "type": "string"
                     },
                     "info": {
-                      "type": "string"
+                      "type": "object",
+                      "properties": {
+                        "productIds": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
                     },
                     "conditions": {
                       "type": "string"
@@ -138589,6 +138993,20 @@
                   }
                 },
                 "15": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    },
+                    "info": {
+                      "type": "string"
+                    },
+                    "conditions": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "16": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -138625,7 +139043,7 @@
                     }
                   }
                 },
-                "16": {
+                "17": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -138639,7 +139057,7 @@
                     }
                   }
                 },
-                "17": {
+                "18": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -138667,7 +139085,7 @@
                     }
                   }
                 },
-                "18": {
+                "19": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -138701,7 +139119,7 @@
                     }
                   }
                 },
-                "19": {
+                "20": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -138729,7 +139147,7 @@
                     }
                   }
                 },
-                "20": {
+                "21": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -138775,7 +139193,7 @@
                     }
                   }
                 },
-                "21": {
+                "22": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -138800,7 +139218,7 @@
                     }
                   }
                 },
-                "22": {
+                "23": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -138831,7 +139249,7 @@
                     }
                   }
                 },
-                "23": {
+                "24": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -138850,7 +139268,7 @@
                     }
                   }
                 },
-                "24": {
+                "25": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -138869,7 +139287,7 @@
                     }
                   }
                 },
-                "25": {
+                "26": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -138946,7 +139364,7 @@
                     }
                   }
                 },
-                "26": {
+                "27": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -138983,7 +139401,7 @@
                     }
                   }
                 },
-                "27": {
+                "28": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -139011,7 +139429,7 @@
                     }
                   }
                 },
-                "28": {
+                "29": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -139081,34 +139499,6 @@
                     }
                   }
                 },
-                "29": {
-                  "type": "object",
-                  "properties": {
-                    "type": {
-                      "type": "string"
-                    },
-                    "info": {
-                      "type": "object",
-                      "properties": {
-                        "inputs": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          }
-                        },
-                        "phoneNumbers": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          }
-                        }
-                      }
-                    },
-                    "conditions": {
-                      "type": "string"
-                    }
-                  }
-                },
                 "30": {
                   "type": "object",
                   "properties": {
@@ -139138,6 +139528,34 @@
                   }
                 },
                 "31": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    },
+                    "info": {
+                      "type": "object",
+                      "properties": {
+                        "inputs": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "phoneNumbers": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "conditions": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "32": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -139180,7 +139598,7 @@
                     }
                   }
                 },
-                "32": {
+                "33": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -139214,25 +139632,6 @@
                     }
                   }
                 },
-                "33": {
-                  "type": "object",
-                  "properties": {
-                    "type": {
-                      "type": "string"
-                    },
-                    "info": {
-                      "type": "object",
-                      "properties": {
-                        "reason": {
-                          "type": "string"
-                        }
-                      }
-                    },
-                    "conditions": {
-                      "type": "string"
-                    }
-                  }
-                },
                 "34": {
                   "type": "object",
                   "properties": {
@@ -139242,7 +139641,7 @@
                     "info": {
                       "type": "object",
                       "properties": {
-                        "groupId": {
+                        "reason": {
                           "type": "string"
                         }
                       }
@@ -139263,9 +139662,6 @@
                       "properties": {
                         "groupId": {
                           "type": "string"
-                        },
-                        "intervalInMS": {
-                          "type": "number"
                         }
                       }
                     },
@@ -139283,11 +139679,11 @@
                     "info": {
                       "type": "object",
                       "properties": {
-                        "templateIds": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          }
+                        "groupId": {
+                          "type": "string"
+                        },
+                        "intervalInMS": {
+                          "type": "number"
                         }
                       }
                     },
@@ -139327,14 +139723,11 @@
                     "info": {
                       "type": "object",
                       "properties": {
-                        "healthieFormIds": {
+                        "templateIds": {
                           "type": "array",
                           "items": {
                             "type": "string"
                           }
-                        },
-                        "answersCondition": {
-                          "type": "string"
                         }
                       }
                     },
@@ -139377,7 +139770,13 @@
                     "info": {
                       "type": "object",
                       "properties": {
-                        "databaseId": {
+                        "healthieFormIds": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "answersCondition": {
                           "type": "string"
                         }
                       }
@@ -139396,7 +139795,7 @@
                     "info": {
                       "type": "object",
                       "properties": {
-                        "source": {
+                        "databaseId": {
                           "type": "string"
                         }
                       }
@@ -139434,7 +139833,7 @@
                     "info": {
                       "type": "object",
                       "properties": {
-                        "tag": {
+                        "source": {
                           "type": "string"
                         }
                       }
@@ -139445,6 +139844,25 @@
                   }
                 },
                 "44": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    },
+                    "info": {
+                      "type": "object",
+                      "properties": {
+                        "tag": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "conditions": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "45": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -139466,7 +139884,7 @@
                     }
                   }
                 },
-                "45": {
+                "46": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -140525,7 +140943,15 @@
                       "type": "string"
                     },
                     "info": {
-                      "type": "string"
+                      "type": "object",
+                      "properties": {
+                        "productIds": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
                     },
                     "conditions": {
                       "type": "string"
@@ -140547,6 +140973,20 @@
                   }
                 },
                 "15": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    },
+                    "info": {
+                      "type": "string"
+                    },
+                    "conditions": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "16": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -140583,7 +141023,7 @@
                     }
                   }
                 },
-                "16": {
+                "17": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -140597,7 +141037,7 @@
                     }
                   }
                 },
-                "17": {
+                "18": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -140625,7 +141065,7 @@
                     }
                   }
                 },
-                "18": {
+                "19": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -140659,7 +141099,7 @@
                     }
                   }
                 },
-                "19": {
+                "20": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -140687,7 +141127,7 @@
                     }
                   }
                 },
-                "20": {
+                "21": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -140733,7 +141173,7 @@
                     }
                   }
                 },
-                "21": {
+                "22": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -140758,7 +141198,7 @@
                     }
                   }
                 },
-                "22": {
+                "23": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -140789,7 +141229,7 @@
                     }
                   }
                 },
-                "23": {
+                "24": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -140808,7 +141248,7 @@
                     }
                   }
                 },
-                "24": {
+                "25": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -140827,7 +141267,7 @@
                     }
                   }
                 },
-                "25": {
+                "26": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -140904,7 +141344,7 @@
                     }
                   }
                 },
-                "26": {
+                "27": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -140941,7 +141381,7 @@
                     }
                   }
                 },
-                "27": {
+                "28": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -140969,7 +141409,7 @@
                     }
                   }
                 },
-                "28": {
+                "29": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -141039,34 +141479,6 @@
                     }
                   }
                 },
-                "29": {
-                  "type": "object",
-                  "properties": {
-                    "type": {
-                      "type": "string"
-                    },
-                    "info": {
-                      "type": "object",
-                      "properties": {
-                        "inputs": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          }
-                        },
-                        "phoneNumbers": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          }
-                        }
-                      }
-                    },
-                    "conditions": {
-                      "type": "string"
-                    }
-                  }
-                },
                 "30": {
                   "type": "object",
                   "properties": {
@@ -141096,6 +141508,34 @@
                   }
                 },
                 "31": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    },
+                    "info": {
+                      "type": "object",
+                      "properties": {
+                        "inputs": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "phoneNumbers": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "conditions": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "32": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -141138,7 +141578,7 @@
                     }
                   }
                 },
-                "32": {
+                "33": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -141172,25 +141612,6 @@
                     }
                   }
                 },
-                "33": {
-                  "type": "object",
-                  "properties": {
-                    "type": {
-                      "type": "string"
-                    },
-                    "info": {
-                      "type": "object",
-                      "properties": {
-                        "reason": {
-                          "type": "string"
-                        }
-                      }
-                    },
-                    "conditions": {
-                      "type": "string"
-                    }
-                  }
-                },
                 "34": {
                   "type": "object",
                   "properties": {
@@ -141200,7 +141621,7 @@
                     "info": {
                       "type": "object",
                       "properties": {
-                        "groupId": {
+                        "reason": {
                           "type": "string"
                         }
                       }
@@ -141221,9 +141642,6 @@
                       "properties": {
                         "groupId": {
                           "type": "string"
-                        },
-                        "intervalInMS": {
-                          "type": "number"
                         }
                       }
                     },
@@ -141241,11 +141659,11 @@
                     "info": {
                       "type": "object",
                       "properties": {
-                        "templateIds": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          }
+                        "groupId": {
+                          "type": "string"
+                        },
+                        "intervalInMS": {
+                          "type": "number"
                         }
                       }
                     },
@@ -141285,14 +141703,11 @@
                     "info": {
                       "type": "object",
                       "properties": {
-                        "healthieFormIds": {
+                        "templateIds": {
                           "type": "array",
                           "items": {
                             "type": "string"
                           }
-                        },
-                        "answersCondition": {
-                          "type": "string"
                         }
                       }
                     },
@@ -141335,7 +141750,13 @@
                     "info": {
                       "type": "object",
                       "properties": {
-                        "databaseId": {
+                        "healthieFormIds": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "answersCondition": {
                           "type": "string"
                         }
                       }
@@ -141354,7 +141775,7 @@
                     "info": {
                       "type": "object",
                       "properties": {
-                        "source": {
+                        "databaseId": {
                           "type": "string"
                         }
                       }
@@ -141392,7 +141813,7 @@
                     "info": {
                       "type": "object",
                       "properties": {
-                        "tag": {
+                        "source": {
                           "type": "string"
                         }
                       }
@@ -141403,6 +141824,25 @@
                   }
                 },
                 "44": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    },
+                    "info": {
+                      "type": "object",
+                      "properties": {
+                        "tag": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "conditions": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "45": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -141424,7 +141864,7 @@
                     }
                   }
                 },
-                "45": {
+                "46": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -142483,7 +142923,15 @@
                       "type": "string"
                     },
                     "info": {
-                      "type": "string"
+                      "type": "object",
+                      "properties": {
+                        "productIds": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
                     },
                     "conditions": {
                       "type": "string"
@@ -142505,6 +142953,20 @@
                   }
                 },
                 "15": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    },
+                    "info": {
+                      "type": "string"
+                    },
+                    "conditions": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "16": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -142541,7 +143003,7 @@
                     }
                   }
                 },
-                "16": {
+                "17": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -142555,7 +143017,7 @@
                     }
                   }
                 },
-                "17": {
+                "18": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -142583,7 +143045,7 @@
                     }
                   }
                 },
-                "18": {
+                "19": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -142617,7 +143079,7 @@
                     }
                   }
                 },
-                "19": {
+                "20": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -142645,7 +143107,7 @@
                     }
                   }
                 },
-                "20": {
+                "21": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -142691,7 +143153,7 @@
                     }
                   }
                 },
-                "21": {
+                "22": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -142716,7 +143178,7 @@
                     }
                   }
                 },
-                "22": {
+                "23": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -142747,7 +143209,7 @@
                     }
                   }
                 },
-                "23": {
+                "24": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -142766,7 +143228,7 @@
                     }
                   }
                 },
-                "24": {
+                "25": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -142785,7 +143247,7 @@
                     }
                   }
                 },
-                "25": {
+                "26": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -142862,7 +143324,7 @@
                     }
                   }
                 },
-                "26": {
+                "27": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -142899,7 +143361,7 @@
                     }
                   }
                 },
-                "27": {
+                "28": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -142927,7 +143389,7 @@
                     }
                   }
                 },
-                "28": {
+                "29": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -142997,34 +143459,6 @@
                     }
                   }
                 },
-                "29": {
-                  "type": "object",
-                  "properties": {
-                    "type": {
-                      "type": "string"
-                    },
-                    "info": {
-                      "type": "object",
-                      "properties": {
-                        "inputs": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          }
-                        },
-                        "phoneNumbers": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          }
-                        }
-                      }
-                    },
-                    "conditions": {
-                      "type": "string"
-                    }
-                  }
-                },
                 "30": {
                   "type": "object",
                   "properties": {
@@ -143054,6 +143488,34 @@
                   }
                 },
                 "31": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    },
+                    "info": {
+                      "type": "object",
+                      "properties": {
+                        "inputs": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "phoneNumbers": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "conditions": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "32": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -143096,7 +143558,7 @@
                     }
                   }
                 },
-                "32": {
+                "33": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -143130,25 +143592,6 @@
                     }
                   }
                 },
-                "33": {
-                  "type": "object",
-                  "properties": {
-                    "type": {
-                      "type": "string"
-                    },
-                    "info": {
-                      "type": "object",
-                      "properties": {
-                        "reason": {
-                          "type": "string"
-                        }
-                      }
-                    },
-                    "conditions": {
-                      "type": "string"
-                    }
-                  }
-                },
                 "34": {
                   "type": "object",
                   "properties": {
@@ -143158,7 +143601,7 @@
                     "info": {
                       "type": "object",
                       "properties": {
-                        "groupId": {
+                        "reason": {
                           "type": "string"
                         }
                       }
@@ -143179,9 +143622,6 @@
                       "properties": {
                         "groupId": {
                           "type": "string"
-                        },
-                        "intervalInMS": {
-                          "type": "number"
                         }
                       }
                     },
@@ -143199,11 +143639,11 @@
                     "info": {
                       "type": "object",
                       "properties": {
-                        "templateIds": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          }
+                        "groupId": {
+                          "type": "string"
+                        },
+                        "intervalInMS": {
+                          "type": "number"
                         }
                       }
                     },
@@ -143243,14 +143683,11 @@
                     "info": {
                       "type": "object",
                       "properties": {
-                        "healthieFormIds": {
+                        "templateIds": {
                           "type": "array",
                           "items": {
                             "type": "string"
                           }
-                        },
-                        "answersCondition": {
-                          "type": "string"
                         }
                       }
                     },
@@ -143293,7 +143730,13 @@
                     "info": {
                       "type": "object",
                       "properties": {
-                        "databaseId": {
+                        "healthieFormIds": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "answersCondition": {
                           "type": "string"
                         }
                       }
@@ -143312,7 +143755,7 @@
                     "info": {
                       "type": "object",
                       "properties": {
-                        "source": {
+                        "databaseId": {
                           "type": "string"
                         }
                       }
@@ -143350,7 +143793,7 @@
                     "info": {
                       "type": "object",
                       "properties": {
-                        "tag": {
+                        "source": {
                           "type": "string"
                         }
                       }
@@ -143361,6 +143804,25 @@
                   }
                 },
                 "44": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    },
+                    "info": {
+                      "type": "object",
+                      "properties": {
+                        "tag": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "conditions": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "45": {
                   "type": "object",
                   "properties": {
                     "type": {
@@ -143382,7 +143844,7 @@
                     }
                   }
                 },
-                "45": {
+                "46": {
                   "type": "object",
                   "properties": {
                     "type": {

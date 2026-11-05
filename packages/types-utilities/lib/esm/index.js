@@ -10,7 +10,7 @@ export var UNLOADED = {
     value: undefined,
 };
 export var isErrorCode = function (c) {
-    return [400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 429, 500].includes(c);
+    return [400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 429, 500, 503].includes(c);
 };
 export var isFileBlob = function (f) {
     return typeof f === 'object' && typeof f.name === 'string' && typeof f.size === 'number' &&

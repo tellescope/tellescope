@@ -20,7 +20,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.describeAggregationJoinsForModel = exports.getAggregationJoin = exports.getAggregationJoinsForModel = exports.schema = exports.build_schema = exports.UNIQUE_LIST_FIELDS = exports.get_next_reminder_timestamp_for_ticket = void 0;
+exports.describeAggregationJoinsForModel = exports.getAggregationJoin = exports.getAggregationJoinsForModel = exports.schema = exports.build_schema = exports.MAX_STRIPE_CUSTOMER_IDS = exports.UNIQUE_LIST_FIELDS = exports.get_next_reminder_timestamp_for_ticket = void 0;
 var types_models_1 = require("@tellescope/types-models");
 var validation_1 = require("@tellescope/validation");
 var constants_1 = require("@tellescope/constants");
@@ -38,6 +38,12 @@ var get_next_reminder_timestamp_for_ticket = function (_a) {
 };
 exports.get_next_reminder_timestamp_for_ticket = get_next_reminder_timestamp_for_ticket;
 exports.UNIQUE_LIST_FIELDS = ['assignedTo', 'tags', 'closeReasons'];
+// Bound on Enduser.stripeCustomerIds — one entry per connected Stripe Custom integration. Generous
+// next to any real organization's number of connected Stripe accounts. Enforced by a relationship
+// constraint, so it bounds API and staff writes only: the purchase path writes through the internal
+// query builder, which does not run constraints (it is self-bounding anyway, since the upsert
+// replaces by stripeKey rather than appending).
+exports.MAX_STRIPE_CUSTOMER_IDS = 20;
 // Organization fields that only a Tellescope super admin may change, enforced by the
 // 'Subscription date, period, and feature enablement cannot be updated' relationship constraint below.
 // These stay readable by any user session — the webapp gates features on them client-side.
@@ -154,6 +160,12 @@ exports.schema = (0, exports.build_schema)({
                 'email',
                 'externalId',
                 // 'devices.id' as any, { array: 'devices', itemKey: 'id', compareToOtherRecords: true }
+                // A Stripe customer id identifies exactly one patient on its account, and the Stripe webhooks
+                // resolve the patient by customer id alone — two patients holding one id makes that
+                // attribution ambiguous, so it is rejected across records, not only within one.
+                { array: 'stripeCustomerIds', itemKey: 'customerId', compareToOtherRecords: true },
+                // ...and at most one entry per Stripe account within a patient, so resolution has one answer.
+                { array: 'stripeCustomerIds', itemKey: 'stripeKey' },
             ],
             relationship: [
                 // {
@@ -185,6 +197,21 @@ exports.schema = (0, exports.build_schema)({
                         if (!(updates === null || updates === void 0 ? void 0 : updates.organizationIds))
                             return;
                         return "Enduser organizationIds can only be updated by users";
+                    }
+                }, {
+                    explanation: "An enduser can be linked to at most ".concat(exports.MAX_STRIPE_CUSTOMER_IDS, " Stripe accounts"),
+                    // Bounds a list the purchase path appends to. The value checked is the POST-update document
+                    // (weightedMerge of original and updates), so a $push that would take the list over the cap
+                    // is caught, not only a wholesale replace.
+                    evaluate: function (_a) {
+                        var stripeCustomerIds = _a.stripeCustomerIds;
+                        if (stripeCustomerIds === undefined)
+                            return; // not part of this write
+                        if (!Array.isArray(stripeCustomerIds))
+                            return; // shape is the validator's job
+                        if (stripeCustomerIds.length > exports.MAX_STRIPE_CUSTOMER_IDS) {
+                            return "An enduser can be linked to at most ".concat(exports.MAX_STRIPE_CUSTOMER_IDS, " Stripe accounts");
+                        }
                     }
                 }, {
                     explanation: 'invalidateSessionsBefore can only be set forward in time, never backwards',
@@ -371,6 +398,20 @@ exports.schema = (0, exports.build_schema)({
                 redactions: ['enduser'],
                 enduserUpdatesDisabled: true,
             }, references: { validator: validation_1.listOfRelatedRecordsValidator, redactions: ['enduser'], enduserUpdatesDisabled: true }, athenaDepartmentId: { validator: validation_1.stringValidator100, redactions: ['enduser'], enduserUpdatesDisabled: true }, athenaPracticeId: { validator: validation_1.stringValidator100, redactions: ['enduser'], enduserUpdatesDisabled: true }, salesforceId: { validator: validation_1.stringValidator100, redactions: ['enduser'], enduserUpdatesDisabled: true }, vitalTriggersDisabled: { validator: validation_1.booleanValidator }, defaultFromPhone: { validator: validation_1.phoneValidator, redactions: ['enduser'] }, defaultFromEmail: { validator: validation_1.emailValidator, redactions: ['enduser'] }, useDefaultFromEmailInAutomations: { validator: validation_1.booleanValidator }, useDefaultFromPhoneInAutomations: { validator: validation_1.booleanValidator }, stripeCustomerId: { validator: validation_1.stringValidator100, redactions: ['enduser'], enduserUpdatesDisabled: true }, stripeKey: { validator: validation_1.stringValidator250, redactions: ['enduser'], enduserUpdatesDisabled: true }, 
+            // One customer id per connected Stripe Custom integration, so a patient can be charged on more
+            // than one Stripe account (the ids above are only valid on the one account that minted them).
+            // Maintained server-side by the purchase path alone. A staff edit of the pair above is
+            // deliberately NOT mirrored here — the two are edited independently. Same guards as
+            // stripeCustomerId: staff/API writable for manual correction, never readable or writable by a
+            // patient session.
+            stripeCustomerIds: {
+                validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
+                    stripeKey: validation_1.stringValidator250,
+                    customerId: validation_1.stringValidator100,
+                })),
+                redactions: ['enduser'],
+                enduserUpdatesDisabled: true,
+            }, 
             // Chargebee linkage fields. Normally written server-side at customer creation, but exposed as
             // staff-editable (enduserUpdatesDisabled) for manual correction — e.g. reflecting a Chargebee-side
             // customer transfer between business entities, for which Chargebee emits no webhook. Empty clears.
@@ -2457,9 +2498,10 @@ exports.schema = (0, exports.build_schema)({
                 op: "custom", access: 'update', method: "post",
                 name: 'Refresh user authentication',
                 path: '/refresh-session',
-                description: "When called by an authenticated user, generates a new session",
+                description: "When called by an authenticated user, generates a new session. By default the new session keeps the duration of the current one. Pass expirationInSeconds to set the new session's duration instead (at most 72 hours; larger values are reduced to 72 hours).",
                 parameters: {
                     invalidatePreviousToken: { validator: validation_1.booleanValidator },
+                    expirationInSeconds: { validator: validation_1.positiveNumberValidator },
                 },
                 returns: {
                     authToken: { validator: validation_1.stringValidator, required: true },
@@ -3618,7 +3660,7 @@ exports.schema = (0, exports.build_schema)({
             }, startedViaPinnedForm: { validator: validation_1.booleanValidator }, enduserAISummary: { validator: validation_1.stringValidator25000, redactions: ['enduser'], enduserUpdatesDisabled: true }, responsesAISummary: { validator: validation_1.stringValidator25000, redactions: ['enduser'], enduserUpdatesDisabled: true }, responsesAISummaryGeneratedAt: { validator: validation_1.dateValidator, redactions: ['enduser'], enduserUpdatesDisabled: true }, procedureCodes: { validator: procedureCodesValidator, enduserUpdatesDisabled: true }, diagnosisCodes: { validator: diagnosisCodesValidator, enduserUpdatesDisabled: true } }),
         defaultActions: constants_1.DEFAULT_OPERATIONS,
         enduserActions: {
-            prepare_form_response: {}, info_for_access_code: {}, submit_form_response: {}, stripe_details: {}, chargebee_details: {},
+            prepare_form_response: {}, prepare_form_group_response: {}, info_for_access_code: {}, submit_form_response: {}, stripe_details: {}, chargebee_details: {},
             read: {}, readMany: {}, save_field_response: {},
             update: {} /* allows for hiding from client portal, storing partial responses while submitting form */
         },
@@ -3652,6 +3694,23 @@ exports.schema = (0, exports.build_schema)({
                     accessCode: { validator: validation_1.stringValidator250, required: true },
                     url: { validator: validation_1.stringValidator250, required: true },
                     response: { validator: 'form_response', required: true },
+                    fullURL: { validator: validation_1.stringValidator250, required: true },
+                },
+            },
+            prepare_form_group_response: {
+                op: "custom", access: 'create', method: "post",
+                path: '/prepare-form-group-response',
+                name: 'Prepare Form Group Response',
+                description: "Generates the unsubmitted form responses for every form of a Form Group under one group instance, and returns a link to the first of them.",
+                parameters: {
+                    formGroupId: { validator: validation_1.mongoIdStringRequired, required: true },
+                    enduserId: { validator: validation_1.mongoIdStringRequired, required: true },
+                    rootResponseId: { validator: validation_1.mongoIdStringRequired },
+                    parentResponseId: { validator: validation_1.mongoIdStringRequired },
+                },
+                returns: {
+                    groupId: { validator: validation_1.stringValidator250, required: true },
+                    groupInstance: { validator: validation_1.stringValidator250, required: true },
                     fullURL: { validator: validation_1.stringValidator250, required: true },
                 },
             },
@@ -4432,7 +4491,19 @@ exports.schema = (0, exports.build_schema)({
                         relationship: 'foreignKey',
                         onDependencyDelete: 'nop',
                     }]
-            }, publicRead: { validator: validation_1.booleanValidator }, wasSelfScheduled: { validator: validation_1.booleanValidator }, enableVideoCall: { validator: validation_1.booleanValidator }, fields: { validator: validation_1.fieldsValidator }, numRSVPs: { validator: validation_1.nonNegNumberValidator }, image: { validator: validation_1.stringValidator5000 }, sharedContentIds: { validator: validation_1.listOfMongoIdStringValidatorEmptyOk }, enduserFormResponses: { validator: validation_1.enduserFormResponsesForEventValidator }, enduserTasks: { validator: validation_1.enduserTasksForEventValidator }, color: { validator: validation_1.stringValidator1000 }, location: { validator: validation_1.stringValidator1000 }, locationURL: { validator: validation_1.stringValidator1000 }, locationNotes: { validator: validation_1.stringValidator5000 }, phone: { validator: validation_1.stringValidator100 }, portalSettings: { validator: validation_1.calendarEventPortalSettingsValidator }, externalId: { validator: validation_1.stringValidator }, source: { validator: validation_1.stringValidator }, videoIntegration: { validator: validation_1.videoIntegrationTypesValidator }, videoHostUserId: { validator: validation_1.mongoIdStringRequired }, videoURL: { validator: validation_1.stringValidator }, videoStartURL: { validator: validation_1.stringValidator }, externalVideoURL: { validator: validation_1.stringValidator }, timezone: { validator: validation_1.timezoneValidator }, copiedFrom: { validator: validation_1.mongoIdStringRequired }, internalNotes: { validator: validation_1.stringValidator5000EmptyOkay }, hiddenFromPortal: { validator: validation_1.booleanValidatorOptional }, enduserAttendeeLimit: { validator: validation_1.numberValidator }, bufferEndMinutes: { validator: validation_1.numberValidator }, bufferStartMinutes: { validator: validation_1.numberValidator }, canvasCoding: { validator: validation_1.canvasCodingValidatorOptional }, canvasReasonCoding: { validator: validation_1.canvasCodingValidatorOptional }, canvasLocationId: { validator: validation_1.stringValidator100 }, references: { validator: validation_1.listOfRelatedRecordsValidator, enduserUpdatesDisabled: true }, completedAt: { validator: validation_1.dateValidatorOptional }, completedBy: { validator: validation_1.stringValidator }, confirmedAt: { validator: validation_1.dateValidatorOptional }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, cancelledGroupAttendees: {
+            }, publicRead: { validator: validation_1.booleanValidator }, wasSelfScheduled: { validator: validation_1.booleanValidator }, enableVideoCall: { validator: validation_1.booleanValidator }, fields: { validator: validation_1.fieldsValidator }, numRSVPs: { validator: validation_1.nonNegNumberValidator }, image: { validator: validation_1.stringValidator5000 }, sharedContentIds: { validator: validation_1.listOfMongoIdStringValidatorEmptyOk }, enduserFormResponses: { validator: validation_1.enduserFormResponsesForEventValidator }, enduserTasks: { validator: validation_1.enduserTasksForEventValidator }, color: { validator: validation_1.stringValidator1000 }, location: { validator: validation_1.stringValidator1000 }, locationURL: { validator: validation_1.stringValidator1000 }, locationNotes: { validator: validation_1.stringValidator5000 }, phone: { validator: validation_1.stringValidator100 }, portalSettings: { validator: validation_1.calendarEventPortalSettingsValidator }, externalId: { validator: validation_1.stringValidator }, source: { validator: validation_1.stringValidator }, 
+            // The four video fields are enduserUpdatesDisabled because an enduser attendee can PATCH the
+            // event (enduserActions.update, for cancelling) and these are server-side state, not patient
+            // input: book_appointment keys the "has this event already got a meeting?" decision off
+            // videoURL, so a patient-planted link would be served to every later attendee of a group event
+            // and would suppress the real meeting entirely. The portal only ever reads them (Events.tsx
+            // writes attendees / cancelledGroupAttendees / cancelReason / cancelledAt /
+            // statusChangeSource), so nothing legitimate is blocked.
+            videoIntegration: { validator: validation_1.videoIntegrationTypesValidator, enduserUpdatesDisabled: true }, videoHostUserId: { validator: validation_1.mongoIdStringRequired, enduserUpdatesDisabled: true }, videoURL: { validator: validation_1.stringValidator, enduserUpdatesDisabled: true }, 
+            // the Zoom host start_url: opening it STARTS the meeting as host, so it must never reach a
+            // patient attendee. Note that custom actions returning a calendar event (book_appointment)
+            // bypass applyRedactions and have to strip it themselves.
+            videoStartURL: { validator: validation_1.stringValidator, redactions: ['enduser'], enduserUpdatesDisabled: true }, externalVideoURL: { validator: validation_1.stringValidator }, timezone: { validator: validation_1.timezoneValidator }, copiedFrom: { validator: validation_1.mongoIdStringRequired }, internalNotes: { validator: validation_1.stringValidator5000EmptyOkay }, hiddenFromPortal: { validator: validation_1.booleanValidatorOptional }, enduserAttendeeLimit: { validator: validation_1.numberValidator }, bufferEndMinutes: { validator: validation_1.numberValidator }, bufferStartMinutes: { validator: validation_1.numberValidator }, canvasCoding: { validator: validation_1.canvasCodingValidatorOptional }, canvasReasonCoding: { validator: validation_1.canvasCodingValidatorOptional }, canvasLocationId: { validator: validation_1.stringValidator100 }, references: { validator: validation_1.listOfRelatedRecordsValidator, enduserUpdatesDisabled: true }, completedAt: { validator: validation_1.dateValidatorOptional }, completedBy: { validator: validation_1.stringValidator }, confirmedAt: { validator: validation_1.dateValidatorOptional }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, cancelledGroupAttendees: {
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     id: validation_1.mongoIdStringRequired,
                     at: validation_1.dateValidator,
@@ -4661,7 +4732,14 @@ exports.schema = (0, exports.build_schema)({
                 validator: validation_1.nonNegNumberValidator,
                 required: true,
                 examples: [Date.now()],
-            }, journeyContext: { validator: validation_1.journeyContextValidator }, externalId: { validator: validation_1.stringValidator100 } })
+            }, journeyContext: { validator: validation_1.journeyContextValidator }, externalId: { validator: validation_1.stringValidator100 }, 
+            // index into AUTOMATED_ACTION_CANCEL_REASONS. Set together with cancelledBy: a cancelReason of
+            // 'Removed by User' with no cancelledBy is how a Remove from All Journeys cancellation is
+            // displayed as "Removed by Automation", so writing one without the other mislabels the row.
+            cancelReason: { validator: validation_1.automatedActionCancelReasonValidator }, cancelledBy: {
+                validator: validation_1.mongoIdStringRequired,
+                examples: [constants_1.PLACEHOLDER_ID],
+            } })
     },
     user_logs: {
         info: {},
@@ -5348,6 +5426,36 @@ exports.schema = (0, exports.build_schema)({
                             || checkStringArray((_l = updateSettings.calendar) === null || _l === void 0 ? void 0 : _l.cancelReasons, (_m = originalSettings === null || originalSettings === void 0 ? void 0 : originalSettings.calendar) === null || _m === void 0 ? void 0 : _m.cancelReasons, 'settings.calendar.cancelReasons'));
                     }
                 },
+                {
+                    explanation: 'messagingTags must not contain duplicates',
+                    evaluate: function (updated, lookup, session, type, options) {
+                        var _a, _b;
+                        if (type !== 'update')
+                            return;
+                        // Key presence, not truthiness. `messagingTags: []` -- the write that clears the list
+                        // after deleting the last entry -- must still be evaluated, and an empty array is the
+                        // only legal falsy-looking value here. `undefined` is the one value that means
+                        // "this write does not touch the field".
+                        var updates = options.updates;
+                        if ((updates === null || updates === void 0 ? void 0 : updates.messagingTags) === undefined)
+                            return;
+                        var newTags = updates.messagingTags;
+                        if (!Array.isArray(newTags))
+                            return; // a non-array is rejected by the validator already
+                        var oldTags = (_b = (_a = options.original) === null || _a === void 0 ? void 0 : _a.messagingTags) !== null && _b !== void 0 ? _b : [];
+                        // What must be duplicate-free is the RESULTING list, not the submitted one:
+                        //  - replace mode stores exactly what was submitted, so any duplicate inside it is a
+                        //    duplicate in the result -- including a same-length rename of one entry onto
+                        //    another's name, which the settings constraint's checkStringArray lets through
+                        //    because it only rejects a replacement that GROWS the array.
+                        //  - merge mode pushes, so the result is the stored list plus the submitted values; a
+                        //    submitted value equal to another submitted value OR to one already stored is a
+                        //    duplicate in the result.
+                        var resulting = options.replaceObjectFields ? newTags : __spreadArray(__spreadArray([], oldTags, true), newTags, true);
+                        if (resulting.length !== new Set(resulting).size)
+                            return 'Duplicate value in messagingTags';
+                    }
+                },
             ],
         },
         defaultActions: { read: {}, readMany: {}, update: {},
@@ -5502,7 +5610,14 @@ exports.schema = (0, exports.build_schema)({
             }, limits: {
                 validator: validation_1.organizationLimitsValidator,
                 readonly: true, // to be set by Tellescope super admin only
-            }, owner: { validator: validation_1.mongoIdStringRequired }, parentOrganizationId: { validator: validation_1.mongoIdStringRequired }, subscriptionExpiresAt: { validator: validation_1.dateValidator }, subscriptionPeriod: { validator: validation_1.numberValidator }, logoVersion: { validator: validation_1.numberValidator }, faviconVersion: { validator: validation_1.numberValidator }, roles: { validator: validation_1.listOfStringsValidatorEmptyOk }, skills: { validator: validation_1.listOfStringsValidator }, themeColor: { validator: validation_1.stringValidator100 }, themeColorSecondary: { validator: validation_1.stringValidator100 }, enduserDisplayName: { validator: validation_1.stringValidator100 }, customPortalURL: { validator: validation_1.stringValidator250 }, customPortalURLs: { validator: validation_1.listOfStringsValidator }, subdomains: { validator: validation_1.listOfStringsValidator }, portalSettings: { validator: validation_1.portalSettingsValidator }, settings: { validator: validation_1.organizationSettingsValidator }, timezone: { validator: validation_1.timezoneValidator }, forwardAllIncomingEmailsTo: { validator: validation_1.emailValidator }, zendeskSettings: {
+            }, owner: { validator: validation_1.mongoIdStringRequired }, parentOrganizationId: { validator: validation_1.mongoIdStringRequired }, subscriptionExpiresAt: { validator: validation_1.dateValidator }, subscriptionPeriod: { validator: validation_1.numberValidator }, logoVersion: { validator: validation_1.numberValidator }, faviconVersion: { validator: validation_1.numberValidator }, roles: { validator: validation_1.listOfStringsValidatorEmptyOk }, skills: { validator: validation_1.listOfStringsValidator }, 
+            // Pre-defined message tags offered on timeline Email / SMS / Group MMS / Chat items.
+            // EmptyOk so clearing the list to [] is a legal write (a delete of the last entry).
+            // Duplicates are rejected by the 'messagingTags must not contain duplicates' relationship
+            // constraint in constraints.relationship above, which -- unlike a `unique: true` validator
+            // -- can also see the STORED list, and so can catch a merge-mode push of a value the org
+            // already has.
+            messagingTags: { validator: validation_1.listOfStringsValidatorEmptyOk }, themeColor: { validator: validation_1.stringValidator100 }, themeColorSecondary: { validator: validation_1.stringValidator100 }, enduserDisplayName: { validator: validation_1.stringValidator100 }, customPortalURL: { validator: validation_1.stringValidator250 }, customPortalURLs: { validator: validation_1.listOfStringsValidator }, subdomains: { validator: validation_1.listOfStringsValidator }, portalSettings: { validator: validation_1.portalSettingsValidator }, settings: { validator: validation_1.organizationSettingsValidator }, timezone: { validator: validation_1.timezoneValidator }, forwardAllIncomingEmailsTo: { validator: validation_1.emailValidator }, zendeskSettings: {
                 validator: (0, validation_1.objectValidator)({
                     priorityGroups: validation_1.listOfStringsValidatorOptionalOrEmptyOk,
                     resolutionFieldId: validation_1.stringValidatorOptionalEmptyOkay,

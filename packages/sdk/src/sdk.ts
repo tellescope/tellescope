@@ -519,6 +519,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     prepare_form_response: (args: extractFields<CustomActions['form_responses']['prepare_form_response']['parameters']>) => (
       Promise<extractFields<CustomActions['form_responses']['prepare_form_response']['returns']>>
     ),
+    prepare_form_group_response: (args: extractFields<CustomActions['form_responses']['prepare_form_group_response']['parameters']>) => (
+      Promise<extractFields<CustomActions['form_responses']['prepare_form_group_response']['returns']>>
+    ),
     info_for_access_code: (args: extractFields<CustomActions['form_responses']['info_for_access_code']['parameters']>) => (
       Promise<extractFields<CustomActions['form_responses']['info_for_access_code']['returns']>>
     ),
@@ -1078,6 +1081,7 @@ export class Session extends SessionManager {
     queries.form_fields.booking_info = args => this._GET(`/v1${schema.form_fields.customActions.booking_info.path}`, args)
 
     queries.form_responses.prepare_form_response = (args) => this._POST(`/v1${schema.form_responses.customActions.prepare_form_response.path}`, args)
+    queries.form_responses.prepare_form_group_response = (args) => this._POST(`/v1${schema.form_responses.customActions.prepare_form_group_response.path}`, args)
     queries.form_responses.submit_form_response = (args) => this._PATCH(`/v1${schema.form_responses.customActions.submit_form_response.path}`, args)
     queries.form_responses.save_field_response = (args) => this._PATCH(`/v1${schema.form_responses.customActions.save_field_response.path}`, args)
     queries.form_responses.info_for_access_code = (args) => this._GET(`/v1${schema.form_responses.customActions.info_for_access_code.path}`, args)
@@ -1320,7 +1324,8 @@ export class Session extends SessionManager {
     return { user, authToken }
   }
 
-  refresh_session = async (args?: { invalidatePreviousToken?: boolean }) => {
+  // expirationInSeconds sets the new session's duration (server caps it at 72h); omit it to keep the current duration
+  refresh_session = async (args?: { invalidatePreviousToken?: boolean, expirationInSeconds?: number }) => {
     const { user, authToken } = await this.POST<typeof args, { user: UserSession } & { authToken: string }>('/v1/refresh-session', args)
     this.handle_new_session({ ...user, authToken })
     return { user, authToken }

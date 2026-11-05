@@ -5196,6 +5196,8 @@ export const include_current_url_parameters_if_templated = (url: string ) => {
 
 export const RedirectInput = ({ enduserId, groupId, groupInsance, rootResponseId, formResponseId, field, submit, value={} as any, onChange, responses, enduser, ...props }: FormInputProps<'Redirect'>) => {
   const session = useResolvedSession()
+  /** Guards the form-group redirect against a second fire — see the note at its call below. */
+  const startedFormGroupRef = useRef(false)
 
   let eId = ''
   try {
@@ -5260,6 +5262,52 @@ export const RedirectInput = ({ enduserId, groupId, groupInsance, rootResponseId
       .catch(console.error)
       
       return 
+    }
+
+    // Precedence is redirectExternalUrl (above) > redirectFormGroupId > redirectFormId: a group
+    // picked on a question that already names a single form would otherwise do nothing at all.
+    if (field.options?.redirectFormGroupId) {
+      // The server reuses an unsubmitted package for this patient and group rather than minting a
+      // fresh one, but that is a plain read, so this ref is what actually stops a settling re-render
+      // (the effect's deps are patient fields, which arrive asynchronously) from firing it twice.
+      if (startedFormGroupRef.current) { return }
+      startedFormGroupRef.current = true
+
+      session.api.form_responses.prepare_form_group_response({
+        enduserId: session.userInfo.id || eId,
+        formGroupId: field.options.redirectFormGroupId,
+        rootResponseId: rootResponseId || formResponseId,
+        parentResponseId: formResponseId,
+      })
+      .then(({ fullURL }) => (
+        // we should still redirect even if submission fails
+        submit?.()
+        .catch(console.error)
+        .finally(() => {
+          // An empty or fully-deleted group: submit normally and show the form's own thanks message.
+          if (!fullURL) { return }
+
+          // No `back=` branch here, unlike the single-form case below: for a portal (unconfined)
+          // caller fullURL IS a /documents URL already, and for a public-form caller the chaining in
+          // submit_form_response walks the rest of the group.
+          //
+          // This also runs AFTER the submit above has set window.location for a source form that is
+          // itself in a group (submit_form_response's nextFormGroupPublicURL), so the redirect the
+          // admin configured here wins over that one.
+          window.location.replace(fullURL)
+        })
+      ))
+      .catch(err => {
+        startedFormGroupRef.current = false // let a retry through
+        console.error(err)
+
+        // The group was deleted, or is unreadable for this session. Submit anyway and show the
+        // form's own thanks message, exactly as the empty-group path above does — otherwise the
+        // patient is parked on the Redirect question with their answers unsent and nothing to click.
+        submit?.()?.catch(console.error)
+      })
+
+      return
     }
 
     if (!field.options?.redirectFormId) { return }

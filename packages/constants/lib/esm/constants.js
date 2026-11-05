@@ -524,6 +524,13 @@ export var PORTAL_DEFAULT_LOGIN_TITLE = "Welcome back!";
 export var PORTAL_DEFAULT_LOGIN_DESCRIPTION = "Log in to your account.";
 export var PORTAL_DEFAULT_REGISTER_TITLE = "Getting Started";
 export var PORTAL_DEFAULT_REGISTER_DESCRIPTION = "Let's create your account.";
+/**
+ * The one piece of patient copy for organization.settings.endusers.disablePhoneLogin. Shared rather
+ * than written out twice because the ticket pins it verbatim in three places: the 403 body from
+ * begin_login_flow and send_otp, the portal's inline login error (which renders that 403 body), and
+ * the message an email-less patient sees at the OTP step, which the portal produces on its own.
+ */
+export var PHONE_LOGIN_DISABLED_MESSAGE = "Please sign in with your email address.";
 export var CPT_CODES = [
     { code: "76641", label: 'ULTRASOUND BREAST COMPLETE' },
     { code: "76642", label: 'ULTRASOUND BREAST LIMITED' },
@@ -540,6 +547,10 @@ export var HELPDESK_TICKET_CLOSE_REASONS = [
     "Not needed",
     "Unresponsive",
 ];
+// How long the worker holds a lock on an automated_action before it is considered stale and
+// eligible for reprocessing (getAndLockAutomatedActionsForProcessing). The webapp uses it to tell
+// an action that is currently being processed from one whose lock has simply expired.
+export var AUTOMATED_ACTION_LOCK_TIMEOUT_MS = 10 * ONE_MINUTE_IN_MS;
 export var AUTOMATED_ACTION_CANCEL_REASONS = [
     'Removed by User',
     'Restarted in Journey',

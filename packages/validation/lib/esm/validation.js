@@ -37,7 +37,7 @@ export var isDate = v.isDate, isEmail = v.isEmail, isMobilePhone = v.isMobilePho
 //   BUSINESS_TYPE,
 // } from "@tellescope/constants"
 import { filter_object, is_defined, is_object, is_whitespace, object_is_empty, to_object_id, } from "@tellescope/utilities";
-import { ACTIVE_CAMPAIGN_TITLE, ALL_ACCESS, ASSIGNED_ACCESS, ATHENA_TITLE, BRIDGE_TITLE, CANDID_TITLE, CANVAS_TITLE, DEFAULT_ACCESS, DEVELOP_HEALTH_TITLE, DOCSUMO_TITLE, DOSESPOT_TITLE, EMOTII_TITLE, ENDUSER_FIELD_TYPES, FULLSCRIPT_INTEGRATIONS_TITLE, GOGO_MEDS_TITLE, INSURANCE_RELATIONSHIPS, MFAX_TITLE, NO_ACCESS, OUTLOOK_INTEGRATIONS_TITLE, PAGER_DUTY_TITLE, SELECTABLE_AI_MODELS, SMART_METER_TITLE, SQUARE_INTEGRATIONS_TITLE, STRIPE_TITLE, ZENDESK_INTEGRATIONS_TITLE, ZOHO_TITLE, ZOOM_TITLE, ZUS_TITLE, } from "@tellescope/constants";
+import { ACTIVE_CAMPAIGN_TITLE, ALL_ACCESS, ASSIGNED_ACCESS, ATHENA_TITLE, AUTOMATED_ACTION_CANCEL_REASONS, BRIDGE_TITLE, CANDID_TITLE, CANVAS_TITLE, DEFAULT_ACCESS, DEVELOP_HEALTH_TITLE, DOCSUMO_TITLE, DOSESPOT_TITLE, EMOTII_TITLE, ENDUSER_FIELD_TYPES, FULLSCRIPT_INTEGRATIONS_TITLE, GOGO_MEDS_TITLE, INSURANCE_RELATIONSHIPS, MFAX_TITLE, NO_ACCESS, OUTLOOK_INTEGRATIONS_TITLE, PAGER_DUTY_TITLE, SELECTABLE_AI_MODELS, SMART_METER_TITLE, SQUARE_INTEGRATIONS_TITLE, STRIPE_TITLE, ZENDESK_INTEGRATIONS_TITLE, ZOHO_TITLE, ZOOM_TITLE, ZUS_TITLE, } from "@tellescope/constants";
 var EXAMPLE_OBJECT_ID = '60398b0231a295e64f084fd9';
 var getTypeString = function () { return "string"; };
 var getTypeNumber = function () { return "number"; };
@@ -988,6 +988,9 @@ export var externalIdNumberValidator = numberValidatorBuilder({ lower: 0, upper:
 export var externalIdNumberValidatorOptional = numberValidatorBuilder({ lower: 0, upper: Number.MAX_SAFE_INTEGER, isOptional: true });
 export var fileSizeValidator = numberValidatorBuilder({ lower: 0, upper: MAX_FILE_SIZE });
 export var numberValidatorMin1Max100Optional = numberValidatorBuilder({ lower: 1, upper: 100, isOptional: true });
+// AutomatedAction.cancelReason is an index into AUTOMATED_ACTION_CANCEL_REASONS, which is append-only,
+// so the upper bound grows with the array rather than being pinned to a literal
+export var automatedActionCancelReasonValidator = numberValidatorBuilder({ lower: 0, upper: AUTOMATED_ACTION_CANCEL_REASONS.length - 1 });
 export var numberOrStringValidatorEmptyOkay = orValidator({
     number: numberValidator,
     string: stringValidator5000EmptyOkay,
@@ -3520,6 +3523,11 @@ export var journeyContextValidator = objectValidator({
     ticketThreadCommentId: mongoIdStringOptional,
     medicationId: mongoIdStringOptional,
     faxLogId: mongoIdStringOptional,
+    // Stripe subscription cancellation snapshot — a Stripe id (sub_...), not a Mongo id, and a
+    // millisecond timestamp. nonNegNumber's upper bound is year 2286, which covers any cancel date.
+    stripeSubscriptionId: stringValidator100Optional,
+    stripeSubscriptionCancelAt: nonNegNumberValidatorOptional,
+    stripeSubscriptionCancelAtPeriodEnd: booleanValidatorOptional,
 });
 export var relatedRecordValidator = objectValidator({
     type: stringValidator100,
@@ -3681,6 +3689,7 @@ export var organizationThemeValidator = objectValidator({
     brandId: mongoIdStringOptional,
     portalV2SchemaURL: stringValidatorOptional,
     disablePublicRegistration: booleanValidatorOptional,
+    disablePhoneLogin: booleanValidatorOptional,
 });
 var _MANAGED_CONTENT_RECORD_TYPES = {
     Article: '',
@@ -3858,6 +3867,7 @@ export var formFieldOptionsValidator = objectValidator({
     holdAppointmentMinutes: numberValidatorOptional,
     rangeStepSize: numberValidatorOptional,
     redirectFormId: mongoIdStringOptional,
+    redirectFormGroupId: mongoIdStringOptional,
     redirectExternalUrl: stringValidatorOptional,
     customTypeId: mongoIdStringOptional,
     groupPadding: numberValidatorOptional,
@@ -4599,6 +4609,7 @@ export var organizationSettingsValidator = objectValidator({
         disablePublicRegistration: booleanValidatorOptional,
         disablePublicFormStarts: booleanValidatorOptional,
         disablePublicBookingStarts: booleanValidatorOptional,
+        disablePhoneLogin: booleanValidatorOptional,
         hideNotesFromComposeForm: booleanValidatorOptional,
         showSalesforceId: booleanValidatorOptional,
         loopQueueCallSound: booleanValidatorOptional,
@@ -4724,6 +4735,7 @@ var _AUTOMATION_TRIGGER_EVENT_TYPES = {
     "Subscription Payment Failed": true,
     "Subscription Paused": true,
     "Subscription Resumed": true,
+    "Subscription Cancellation Scheduled": true,
     "Stripe: Payment Intent Failed": true,
     "Appointment No-Showed": true,
     "Appointment Created": true,
@@ -4876,6 +4888,15 @@ export var automationTriggerEventValidator = orValidator({
     }),
     "Subscription Resumed": objectValidator({
         type: exactMatchValidator(['Subscription Resumed']),
+        info: objectValidator({
+            productIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+        }, { isOptional: true, emptyOk: true }),
+        conditions: optionalEmptyObjectValidator,
+    }),
+    "Subscription Cancellation Scheduled": objectValidator({
+        type: exactMatchValidator(['Subscription Cancellation Scheduled']),
+        // isOptional/emptyOk so that an omitted or empty info stays valid, matching Subscription Paused
+        // and every other productIds-only event (a bare objectValidator would require info to be present)
         info: objectValidator({
             productIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
         }, { isOptional: true, emptyOk: true }),

@@ -148,6 +148,7 @@ export type Schema = {
     [N in keyof ServerModelForName]: Model<ServerModelForName[N], ModelName>;
 };
 export declare const UNIQUE_LIST_FIELDS: string[];
+export declare const MAX_STRIPE_CUSTOMER_IDS = 20;
 declare const sideEffects: {
     handleJourneyStateChange: {
         name: string;
@@ -497,6 +498,27 @@ export type CustomActions = {
             accessCode: string;
             url: string;
             response: FormResponse;
+            fullURL: string;
+        }>;
+        /**
+         * Starts a whole Form Group for one patient: inserts an unsubmitted response per form of the
+         * group under a single `groupInstance`, and returns the URL of the first of them.
+         *
+         * Separate from prepare_form_response (rather than a `formGroupId` parameter on it) because that
+         * action's contract is one response and one `/link/form` URL, and `/link/form` has no group
+         * chaining — a group landing there dead-ends after form 1.
+         *
+         * `fullURL` is empty when the group has no reachable forms left (every form deleted, or the only
+         * form in it is the one the caller is already on); the caller then simply does not redirect.
+         */
+        prepare_form_group_response: CustomAction<{
+            formGroupId: string;
+            enduserId: string;
+            rootResponseId?: string;
+            parentResponseId?: string;
+        }, {
+            groupId: string;
+            groupInstance: string;
             fullURL: string;
         }>;
         submit_form_response: CustomAction<{
@@ -867,6 +889,7 @@ export type CustomActions = {
         }[]>;
         refresh_session: CustomAction<{
             invalidatePreviousToken?: boolean;
+            expirationInSeconds?: number;
         }, {
             user: UserSession;
             authToken: string;

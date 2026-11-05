@@ -315,6 +315,7 @@ var EnduserSession = /** @class */ (function (_super) {
         _this.api.form_fields.booking_info = function (args) { return _this._GET("/v1".concat(schema.form_fields.customActions.booking_info.path), args); };
         // this.api.form_fields.load_payers = args => this._GET(`/v1${schema.form_fields.customActions.load_payers.path}`, args)
         _this.api.form_responses.prepare_form_response = function (args) { return _this._POST("/v1".concat(schema.form_responses.customActions.prepare_form_response.path), args); };
+        _this.api.form_responses.prepare_form_group_response = function (args) { return _this._POST("/v1".concat(schema.form_responses.customActions.prepare_form_group_response.path), args); };
         _this.api.form_responses.session_for_public_form = function (args) { return _this._POST("/v1".concat(schema.form_responses.publicActions.session_for_public_form.path), args); };
         _this.api.form_responses.submit_form_response = function (args) { return _this._PATCH("/v1".concat(schema.form_responses.customActions.submit_form_response.path), args); };
         _this.api.form_responses.save_field_response = function (args) { return _this._PATCH("/v1".concat(schema.form_responses.customActions.save_field_response.path), args); };

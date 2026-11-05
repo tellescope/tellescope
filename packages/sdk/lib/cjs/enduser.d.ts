@@ -1897,6 +1897,7 @@ type EnduserQueries = {
         save_field_response: (args: extractFields<CustomActions['form_responses']['save_field_response']['parameters']>) => (Promise<extractFields<CustomActions['form_responses']['save_field_response']['returns']>>);
         submit_form_response: (args: extractFields<CustomActions['form_responses']['submit_form_response']['parameters']>) => (Promise<extractFields<CustomActions['form_responses']['submit_form_response']['returns']>>);
         prepare_form_response: (args: extractFields<CustomActions['form_responses']['prepare_form_response']['parameters']>) => (Promise<extractFields<CustomActions['form_responses']['prepare_form_response']['returns']>>);
+        prepare_form_group_response: (args: extractFields<CustomActions['form_responses']['prepare_form_group_response']['parameters']>) => (Promise<extractFields<CustomActions['form_responses']['prepare_form_group_response']['returns']>>);
         session_for_public_form: (args: extractFields<PublicActions['form_responses']['session_for_public_form']['parameters']>) => (Promise<extractFields<PublicActions['form_responses']['session_for_public_form']['returns']>>);
         info_for_access_code: (args: extractFields<CustomActions['form_responses']['info_for_access_code']['parameters']>) => (Promise<extractFields<CustomActions['form_responses']['info_for_access_code']['returns']>>);
         stripe_details: (args: extractFields<CustomActions['form_responses']['stripe_details']['parameters']>) => (Promise<extractFields<CustomActions['form_responses']['stripe_details']['returns']>>);
@@ -2012,7 +2013,7 @@ export declare class EnduserSession extends Session {
         };
     }>;
     begin_login_flow: (a: Omit<extractFields<PublicActions['endusers']['begin_login_flow']['parameters']>, 'businessId' | 'organizationIds'>) => Promise<{
-        result: "continue-with-password" | "sent-email" | "sent-sms" | "requires-dob";
+        result: "continue-with-password" | "sent-sms" | "requires-dob" | "sent-email";
         email?: string | undefined;
         otpToken?: string | undefined;
     }>;

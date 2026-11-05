@@ -464,6 +464,19 @@ export const mm_dd_yyyy = (date: Date): string => {
   const { dayOfMonth, monthNumber, year } = get_time_values(date)
   return `${monthNumber < 10 ? '0': ''}${monthNumber}-${dayOfMonth < 10 ? '0' : ''}${dayOfMonth}-${year}`
 }
+/**
+ * Strict FHIR / ISO-8601 `YYYY-MM-DD`, with the month and the day zero-padded to two digits.
+ *
+ * Use this, not `yyyy_mm_dd_numeric`, when a VALID Date is being formatted for an external system that
+ * validates the format: `yyyy_mm_dd_numeric` emits `2026-11-3`, which FHIR's date regex rejects.
+ * Like the other helpers here the date parts come from `get_time_values`, i.e. the caller's local day,
+ * and — also like them — an invalid Date formats as `NaN-NaN-NaN` rather than being rejected, so parse
+ * and check a stored date string (see `parse_date_string`) before handing it here.
+ */
+export const yyyy_mm_dd_padded = (date: Date): string => {
+  const { dayOfMonth, monthNumber, year } = get_time_values(date)
+  return `${year}-${monthNumber < 10 ? '0' : ''}${monthNumber}-${dayOfMonth < 10 ? '0' : ''}${dayOfMonth}`
+}
 
 /**
  * Parses a date string that can be in ISO format, YYYY-MM-DD format, or MM-DD-YYYY format
@@ -2898,12 +2911,16 @@ export const validate_enduser_for_vitl = (enduser?: Omit<Enduser, 'id'> | null) 
 }
 
 /**
- * The 5-digit zip VITL expects, taken from our free-form zipCode.
+ * The 5-digit zip code taken from our free-form zipCode field.
  *
- * "12345-6789" and "12345 6789" both yield "12345"; zipPlusFour is never appended, per the vendor
- * contract. Returns undefined when five leading digits cannot be found, which is a pre-flight failure.
+ * "12345-6789" and "12345 6789" both yield "12345"; the +4 is never appended. Returns undefined when
+ * five leading digits cannot be found, which callers treat as "nothing usable to send".
+ *
+ * Shared by the VITL push (where it is a pre-flight requirement, see vitl_zipcode below) and the
+ * Metriport patient sync (where undefined means the stored value is forwarded for the vendor to
+ * reject in its own words).
  */
-export const vitl_zipcode = (zipCode?: string) => {
+export const five_digit_zipcode = (zipCode?: string) => {
   const trimmed = (zipCode ?? '').trim()
 
   // "12345-6789" / "12345 6789" — a separator, then anything.
@@ -2915,6 +2932,12 @@ export const vitl_zipcode = (zipCode?: string) => {
   const digitsOnly = /^(\d{5})(?:\d{4})?$/.exec(trimmed)
   return digitsOnly ? digitsOnly[1] : undefined
 }
+
+/**
+ * The 5-digit zip VITL expects. Kept as a named re-export of five_digit_zipcode: the helper is no
+ * longer VITL-specific, and @tellescope/utilities is published, so the original name stays valid.
+ */
+export const vitl_zipcode = five_digit_zipcode
 
 /**
  * MM-DD-YYYY (our stored format) -> YYYY-MM-DD (a format VITL accepts).

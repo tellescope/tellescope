@@ -470,6 +470,19 @@ export var mm_dd_yyyy = function (date) {
     return "".concat(monthNumber < 10 ? '0' : '').concat(monthNumber, "-").concat(dayOfMonth < 10 ? '0' : '').concat(dayOfMonth, "-").concat(year);
 };
 /**
+ * Strict FHIR / ISO-8601 `YYYY-MM-DD`, with the month and the day zero-padded to two digits.
+ *
+ * Use this, not `yyyy_mm_dd_numeric`, when a VALID Date is being formatted for an external system that
+ * validates the format: `yyyy_mm_dd_numeric` emits `2026-11-3`, which FHIR's date regex rejects.
+ * Like the other helpers here the date parts come from `get_time_values`, i.e. the caller's local day,
+ * and — also like them — an invalid Date formats as `NaN-NaN-NaN` rather than being rejected, so parse
+ * and check a stored date string (see `parse_date_string`) before handing it here.
+ */
+export var yyyy_mm_dd_padded = function (date) {
+    var _a = get_time_values(date), dayOfMonth = _a.dayOfMonth, monthNumber = _a.monthNumber, year = _a.year;
+    return "".concat(year, "-").concat(monthNumber < 10 ? '0' : '').concat(monthNumber, "-").concat(dayOfMonth < 10 ? '0' : '').concat(dayOfMonth);
+};
+/**
  * Parses a date string that can be in ISO format, YYYY-MM-DD format, or MM-DD-YYYY format
  * Uses Luxon for consistent timezone handling - all dates are parsed as UTC to avoid timezone issues
  * @param dateString - Date string in various formats:
@@ -2728,12 +2741,16 @@ export var validate_enduser_for_vitl = function (enduser) {
     }
 };
 /**
- * The 5-digit zip VITL expects, taken from our free-form zipCode.
+ * The 5-digit zip code taken from our free-form zipCode field.
  *
- * "12345-6789" and "12345 6789" both yield "12345"; zipPlusFour is never appended, per the vendor
- * contract. Returns undefined when five leading digits cannot be found, which is a pre-flight failure.
+ * "12345-6789" and "12345 6789" both yield "12345"; the +4 is never appended. Returns undefined when
+ * five leading digits cannot be found, which callers treat as "nothing usable to send".
+ *
+ * Shared by the VITL push (where it is a pre-flight requirement, see vitl_zipcode below) and the
+ * Metriport patient sync (where undefined means the stored value is forwarded for the vendor to
+ * reject in its own words).
  */
-export var vitl_zipcode = function (zipCode) {
+export var five_digit_zipcode = function (zipCode) {
     var trimmed = (zipCode !== null && zipCode !== void 0 ? zipCode : '').trim();
     // "12345-6789" / "12345 6789" — a separator, then anything.
     var separated = /^(\d{5})[^\d].*$/.exec(trimmed);
@@ -2744,6 +2761,11 @@ export var vitl_zipcode = function (zipCode) {
     var digitsOnly = /^(\d{5})(?:\d{4})?$/.exec(trimmed);
     return digitsOnly ? digitsOnly[1] : undefined;
 };
+/**
+ * The 5-digit zip VITL expects. Kept as a named re-export of five_digit_zipcode: the helper is no
+ * longer VITL-specific, and @tellescope/utilities is published, so the original name stays valid.
+ */
+export var vitl_zipcode = five_digit_zipcode;
 /**
  * MM-DD-YYYY (our stored format) -> YYYY-MM-DD (a format VITL accepts).
  * Returns undefined — never a partially-converted string — when the input is not a real calendar date,

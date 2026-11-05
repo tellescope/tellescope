@@ -269,6 +269,21 @@ export type OrganizationSettings = {
          *  Accepted regression while on: a staff-generated `?token=` booking link is blocked too — the
          *  token is validated by a different endpoint and is never passed to the two gated ones. */
         disablePublicBookingStarts?: boolean;
+        /** Stops a phone number being a portal sign-in identifier, and stops any login code reaching a
+         *  phone. Off by default for existing and new organizations. While on, begin_login_flow refuses
+         *  a phone-only identifier with 403, get_otp_methods omits 'sms' and send_otp refuses
+         *  method: 'sms' — so the magic-link and requireOTPAfterPassword code steps cannot deliver to a
+         *  phone either. Read from the ROOT business organization, so a root admin's toggle also closes
+         *  every sub-organization's portal, and it fails CLOSED: an unresolvable organization or a
+         *  database error counts as ON, because this one is a security control rather than an
+         *  availability setting.
+         *
+         *  Consequences while on, both intended: an enduser with a phone and no email cannot sign in at
+         *  all, and a portal link already carrying `?token=` still authenticates even when an automation
+         *  sends it by SMS — this stops a phone being used as an identity, not every authenticating link
+         *  from travelling by SMS. Staff login, staff MFA, registration, password reset and the
+         *  endusers.login password endpoint are all unaffected. */
+        disablePhoneLogin?: boolean;
         hideNotesFromComposeForm?: boolean;
         showSalesforceId?: boolean;
         loopQueueCallSound?: boolean;
@@ -400,6 +415,10 @@ export type StripeKeyDetail = {
     key: string;
     title: string;
 };
+export type StripeCustomerIdEntry = {
+    stripeKey: string;
+    customerId: string;
+};
 export type MetriportIntegrationDetail = {
     title: string;
     environment?: string;
@@ -495,6 +514,7 @@ export interface Organization extends Organization_readonly, Organization_requir
     timezone?: Timezone;
     roles?: string[];
     skills?: string[];
+    messagingTags?: string[];
     logoVersion?: number;
     faviconVersion?: number;
     themeColor?: string;
@@ -697,6 +717,11 @@ export type OrganizationTheme = {
      *  on a sub-organization portal may differ from the root the server gate reads — accepted: the
      *  Register option stays visible there and the API answers 403. */
     disablePublicRegistration?: boolean;
+    /** Mirrors organization.settings.endusers.disablePhoneLogin, so the portal's login field can read
+     *  "Email" instead of "Email or Phone Number". Reports the MATCHED organization, which on a
+     *  sub-organization portal may differ from the root the server gate reads — accepted: the label is
+     *  cosmetic and the API still answers 403. */
+    disablePhoneLogin?: boolean;
 };
 export interface RecordInfo {
     businessId: string;
@@ -1181,6 +1206,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
     useDefaultFromPhoneInAutomations?: boolean;
     stripeCustomerId?: string;
     stripeKey?: string;
+    stripeCustomerIds?: StripeCustomerIdEntry[];
     lastDoseSpotSyncAt?: Date;
     lastVITLSyncAt?: Date;
     diagnoses?: EnduserDiagnosis[];
@@ -2121,6 +2147,7 @@ export type FormFieldOptions = FormFieldValidation & {
     holdAppointmentMinutes?: number;
     rangeStepSize?: number;
     redirectFormId?: string;
+    redirectFormGroupId?: string;
     redirectExternalUrl?: string;
     groupPadding?: number;
     saveIntakeOnPartial?: boolean;
@@ -5152,6 +5179,9 @@ export type AutomationTriggerEvents = {
     'Subscription Resumed': AutomationTriggerEventBuilder<"Subscription Resumed", {
         productIds?: string[];
     }, {}>;
+    'Subscription Cancellation Scheduled': AutomationTriggerEventBuilder<"Subscription Cancellation Scheduled", {
+        productIds?: string[];
+    }, {}>;
     'Stripe: Payment Intent Failed': AutomationTriggerEventBuilder<"Stripe: Payment Intent Failed", {}, {}>;
     'Appointment No-Showed': AutomationTriggerEventBuilder<"Appointment No-Showed", {
         titles?: string[];
@@ -6793,6 +6823,9 @@ export type JourneyContext = {
     ticketThreadCommentId?: string;
     medicationId?: string;
     faxLogId?: string;
+    stripeSubscriptionId?: string;
+    stripeSubscriptionCancelAt?: number;
+    stripeSubscriptionCancelAtPeriodEnd?: boolean;
 };
 export declare const TIMEZONE_MAP: {
     readonly "Africa/Abidjan": "+00:00";
@@ -7410,6 +7443,7 @@ export type DataSyncRecord = {
     userIds: string[];
     enduserIds: string[];
     visibleToAllUsers?: boolean;
+    roomId?: string;
 };
 export type InsuranceType = "Primary" | "Secondary";
 export type TwilioQueue = {

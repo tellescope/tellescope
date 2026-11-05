@@ -426,6 +426,7 @@ import {
   ALL_ACCESS,
   ASSIGNED_ACCESS,
   ATHENA_TITLE,
+  AUTOMATED_ACTION_CANCEL_REASONS,
   BRIDGE_TITLE,
   CANDID_TITLE,
   CANVAS_TITLE,
@@ -1455,6 +1456,10 @@ export const externalIdNumberValidator = numberValidatorBuilder({ lower: 0, uppe
 export const externalIdNumberValidatorOptional = numberValidatorBuilder({ lower: 0, upper: Number.MAX_SAFE_INTEGER, isOptional: true })
 export const fileSizeValidator = numberValidatorBuilder({ lower: 0, upper: MAX_FILE_SIZE })
 export const numberValidatorMin1Max100Optional = numberValidatorBuilder({ lower: 1, upper: 100, isOptional: true })
+
+// AutomatedAction.cancelReason is an index into AUTOMATED_ACTION_CANCEL_REASONS, which is append-only,
+// so the upper bound grows with the array rather than being pinned to a literal
+export const automatedActionCancelReasonValidator = numberValidatorBuilder({ lower: 0, upper: AUTOMATED_ACTION_CANCEL_REASONS.length - 1 })
 
 export const numberOrStringValidatorEmptyOkay = orValidator({
   number: numberValidator,
@@ -4565,6 +4570,11 @@ export const journeyContextValidator = objectValidator<JourneyContext>({
   ticketThreadCommentId: mongoIdStringOptional,
   medicationId: mongoIdStringOptional,
   faxLogId: mongoIdStringOptional,
+  // Stripe subscription cancellation snapshot — a Stripe id (sub_...), not a Mongo id, and a
+  // millisecond timestamp. nonNegNumber's upper bound is year 2286, which covers any cancel date.
+  stripeSubscriptionId: stringValidator100Optional,
+  stripeSubscriptionCancelAt: nonNegNumberValidatorOptional,
+  stripeSubscriptionCancelAtPeriodEnd: booleanValidatorOptional,
 })
 
 export const relatedRecordValidator = objectValidator<RelatedRecord>({
@@ -4748,6 +4758,7 @@ export const organizationThemeValidator = objectValidator<OrganizationTheme>({
   brandId: mongoIdStringOptional,
   portalV2SchemaURL: stringValidatorOptional,
   disablePublicRegistration: booleanValidatorOptional,
+  disablePhoneLogin: booleanValidatorOptional,
 })
 
 const _MANAGED_CONTENT_RECORD_TYPES: { [K in ManagedContentRecordType]: any } = {
@@ -4942,6 +4953,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   holdAppointmentMinutes: numberValidatorOptional,
   rangeStepSize: numberValidatorOptional,
   redirectFormId: mongoIdStringOptional,
+  redirectFormGroupId: mongoIdStringOptional,
   redirectExternalUrl: stringValidatorOptional,
   customTypeId: mongoIdStringOptional,
   groupPadding: numberValidatorOptional,
@@ -5720,6 +5732,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     disablePublicRegistration: booleanValidatorOptional,
     disablePublicFormStarts: booleanValidatorOptional,
     disablePublicBookingStarts: booleanValidatorOptional,
+    disablePhoneLogin: booleanValidatorOptional,
     hideNotesFromComposeForm: booleanValidatorOptional,
     showSalesforceId: booleanValidatorOptional,
     loopQueueCallSound: booleanValidatorOptional,
@@ -5849,6 +5862,7 @@ const _AUTOMATION_TRIGGER_EVENT_TYPES: { [K in AutomationTriggerEventType]: any 
   "Subscription Payment Failed": true,
   "Subscription Paused": true,
   "Subscription Resumed": true,
+  "Subscription Cancellation Scheduled": true,
   "Stripe: Payment Intent Failed": true,
   "Appointment No-Showed": true,
   "Appointment Created": true,
@@ -6007,6 +6021,15 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
   "Subscription Resumed": objectValidator<AutomationTriggerEvents["Subscription Resumed"]>({
     type: exactMatchValidator(['Subscription Resumed']),
     info: objectValidator<AutomationTriggerEvents['Subscription Resumed']['info']>({
+      productIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+    }, { isOptional: true, emptyOk: true }),
+    conditions: optionalEmptyObjectValidator,
+  }),
+  "Subscription Cancellation Scheduled": objectValidator<AutomationTriggerEvents["Subscription Cancellation Scheduled"]>({
+    type: exactMatchValidator(['Subscription Cancellation Scheduled']),
+    // isOptional/emptyOk so that an omitted or empty info stays valid, matching Subscription Paused
+    // and every other productIds-only event (a bare objectValidator would require info to be present)
+    info: objectValidator<AutomationTriggerEvents['Subscription Cancellation Scheduled']['info']>({
       productIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
     }, { isOptional: true, emptyOk: true }),
     conditions: optionalEmptyObjectValidator,

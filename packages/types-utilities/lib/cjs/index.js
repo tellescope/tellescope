@@ -13,7 +13,7 @@ exports.UNLOADED = {
     value: undefined,
 };
 var isErrorCode = function (c) {
-    return [400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 429, 500].includes(c);
+    return [400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 429, 500, 503].includes(c);
 };
 exports.isErrorCode = isErrorCode;
 var isFileBlob = function (f) {

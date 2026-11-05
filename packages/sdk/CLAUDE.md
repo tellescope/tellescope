@@ -40,13 +40,14 @@ export const my_feature_tests = async () => { assert_checks('My feature', await 
 export const ISOLATED_SUITE: IsolatedSuite = { name: 'My feature', run: my_feature_checks }
 ```
 
-`run_discovered_isolated_suites()` (called once from `tests.ts`) walks the **compiled** `lib/cjs/tests/api_tests` tree recursively, loads every `*.test.js`, collects the `ISOLATED_SUITE` exports, sorts them by relative path and runs them in batches of `TEST_PARALLELISM` (default 8), asserting after each batch settles.
+`run_discovered_isolated_suites()` (called once from `tests.ts`) lists every `*.test.ts` under `src/tests/api_tests` recursively, loads its compiled `lib/cjs` `.test.js` (a missing one throws as a stale build), collects the `ISOLATED_SUITE` exports, sorts them by relative path and runs them in batches of `TEST_PARALLELISM` (default 8), asserting after each batch settles.
 
 Rules this depends on:
 - `run` must collect `Check[]`, tear its own tenants down in a `finally`, and **never assert** — `assert` calls `process.exit`, which skips every other in-flight suite's teardown and strands its tenants permanently (an organization record cannot be deleted).
 - Isolated suites must never call `sdk.reset_db()`; it clears throttle namespaces shared with concurrent suites.
 - Keep the `if (require.main === module)` guard. Discovery `require()`s every test file, so anything at module scope runs at discovery time.
-- Discovery reads the compiled tree, so a stale `lib/cjs` silently drops a suite. `npm run check:build` (run automatically by `npm test` / `npm run test-api` / `npm run test:modular`) is what catches it, and `unit_tests/isolated_suite_discovery.test.ts` fails the run if a `src` file enrolls a suite that discovery did not find.
+- Listing from source means compiled orphans (tsc never deletes the output of a deleted or renamed test, and `lib/cjs` is shared across branch checkouts) are never loaded. The published package has no `src`, so there discovery falls back to walking the compiled tree.
+- Discovery still runs the compiled code, so a stale `lib/cjs` runs old code. `npm run check:build` (run automatically by `npm test` / `npm run test-api` / `npm run test:modular`) is what catches it, and `unit_tests/isolated_suite_discovery.test.ts` fails the run if a `src` file enrolls a suite that discovery did not find.
 - A suite that enrolls must not also be awaited by name in `tests.ts` — it would run, and provision tenants, twice. The discovery unit test asserts this.
 - `TEST_PARALLELISM` tunes the pool without a rebuild; a non-positive or non-integer value falls back to 8. Above ~8 against a local API, the per-record update throttles start returning 429s that look like failures.
 

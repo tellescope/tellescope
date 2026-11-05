@@ -225,11 +225,19 @@ export declare const PORTAL_DEFAULT_LOGIN_TITLE = "Welcome back!";
 export declare const PORTAL_DEFAULT_LOGIN_DESCRIPTION = "Log in to your account.";
 export declare const PORTAL_DEFAULT_REGISTER_TITLE = "Getting Started";
 export declare const PORTAL_DEFAULT_REGISTER_DESCRIPTION = "Let's create your account.";
+/**
+ * The one piece of patient copy for organization.settings.endusers.disablePhoneLogin. Shared rather
+ * than written out twice because the ticket pins it verbatim in three places: the 403 body from
+ * begin_login_flow and send_otp, the portal's inline login error (which renders that 403 body), and
+ * the message an email-less patient sees at the OTP step, which the portal produces on its own.
+ */
+export declare const PHONE_LOGIN_DISABLED_MESSAGE = "Please sign in with your email address.";
 export declare const CPT_CODES: {
     code: string;
     label: string;
 }[];
 export declare const HELPDESK_TICKET_CLOSE_REASONS: string[];
+export declare const AUTOMATED_ACTION_LOCK_TIMEOUT_MS: number;
 export declare const AUTOMATED_ACTION_CANCEL_REASONS: readonly ["Removed by User", "Restarted in Journey", "Form Submission", "Incoming Communication", "Removed by Automation", "Journey Deleted", "Restored from Deletion"];
 export declare const RELATIONSHIP_TYPES: ("Parent" | "Child" | "Spouse" | "Partner" | "Sibling" | "Grandparent" | "Grandchild" | "Caregiver" | "Care Recipient" | "Power of Attorney" | "Power of Attorney For" | "Emergency Contact" | "Emergency Contact For" | "Care Partner" | "Relates To" | "Referring Provider" | "Referred Patient")[];
 export declare const get_inverse_relationship_type: (type: EnduserRelationship['type']) => EnduserRelationship['type'];

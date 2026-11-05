@@ -4260,6 +4260,7 @@ type Queries = {
         submit_form_response: (args: extractFields<CustomActions['form_responses']['submit_form_response']['parameters']>) => (Promise<extractFields<CustomActions['form_responses']['submit_form_response']['returns']>>);
         save_field_response: (args: extractFields<CustomActions['form_responses']['save_field_response']['parameters']>) => (Promise<extractFields<CustomActions['form_responses']['save_field_response']['returns']>>);
         prepare_form_response: (args: extractFields<CustomActions['form_responses']['prepare_form_response']['parameters']>) => (Promise<extractFields<CustomActions['form_responses']['prepare_form_response']['returns']>>);
+        prepare_form_group_response: (args: extractFields<CustomActions['form_responses']['prepare_form_group_response']['parameters']>) => (Promise<extractFields<CustomActions['form_responses']['prepare_form_group_response']['returns']>>);
         info_for_access_code: (args: extractFields<CustomActions['form_responses']['info_for_access_code']['parameters']>) => (Promise<extractFields<CustomActions['form_responses']['info_for_access_code']['returns']>>);
         stripe_details: (args: extractFields<CustomActions['form_responses']['stripe_details']['parameters']>) => (Promise<extractFields<CustomActions['form_responses']['stripe_details']['returns']>>);
         chargebee_details: (args: extractFields<CustomActions['form_responses']['chargebee_details']['parameters']>) => (Promise<extractFields<CustomActions['form_responses']['chargebee_details']['returns']>>);
@@ -4676,6 +4677,7 @@ export declare class Session extends SessionManager {
     }>;
     refresh_session: (args?: {
         invalidatePreviousToken?: boolean;
+        expirationInSeconds?: number;
     }) => Promise<{
         user: UserSession;
         authToken: string;

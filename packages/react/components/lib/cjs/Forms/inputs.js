@@ -2948,6 +2948,8 @@ var RedirectInput = function (_a) {
     var _b, _d, _e, _f, _g, _h;
     var enduserId = _a.enduserId, groupId = _a.groupId, groupInsance = _a.groupInsance, rootResponseId = _a.rootResponseId, formResponseId = _a.formResponseId, field = _a.field, submit = _a.submit, _j = _a.value, value = _j === void 0 ? {} : _j, onChange = _a.onChange, responses = _a.responses, enduser = _a.enduser, props = __rest(_a, ["enduserId", "groupId", "groupInsance", "rootResponseId", "formResponseId", "field", "submit", "value", "onChange", "responses", "enduser"]);
     var session = (0, __1.useResolvedSession)();
+    /** Guards the form-group redirect against a second fire — see the note at its call below. */
+    var startedFormGroupRef = (0, react_2.useRef)(false);
     var eId = '';
     try {
         eId = new URL(window.location.href).searchParams.get('eId') || enduserId || (enduser === null || enduser === void 0 ? void 0 : enduser.id) || '';
@@ -2978,7 +2980,7 @@ var RedirectInput = function (_a) {
         || (enduser === null || enduser === void 0 ? void 0 : enduser.state)
         || ((_h = session.userInfo) === null || _h === void 0 ? void 0 : _h.state));
     (0, react_2.useEffect)(function () {
-        var _a, _b;
+        var _a, _b, _d;
         if (session.type === 'user') {
             return;
         }
@@ -2992,7 +2994,53 @@ var RedirectInput = function (_a) {
             }).catch(console.error);
             return;
         }
-        if (!((_b = field.options) === null || _b === void 0 ? void 0 : _b.redirectFormId)) {
+        // Precedence is redirectExternalUrl (above) > redirectFormGroupId > redirectFormId: a group
+        // picked on a question that already names a single form would otherwise do nothing at all.
+        if ((_b = field.options) === null || _b === void 0 ? void 0 : _b.redirectFormGroupId) {
+            // The server reuses an unsubmitted package for this patient and group rather than minting a
+            // fresh one, but that is a plain read, so this ref is what actually stops a settling re-render
+            // (the effect's deps are patient fields, which arrive asynchronously) from firing it twice.
+            if (startedFormGroupRef.current) {
+                return;
+            }
+            startedFormGroupRef.current = true;
+            session.api.form_responses.prepare_form_group_response({
+                enduserId: session.userInfo.id || eId,
+                formGroupId: field.options.redirectFormGroupId,
+                rootResponseId: rootResponseId || formResponseId,
+                parentResponseId: formResponseId,
+            })
+                .then(function (_a) {
+                var fullURL = _a.fullURL;
+                return (
+                // we should still redirect even if submission fails
+                submit === null || submit === void 0 ? void 0 : submit().catch(console.error).finally(function () {
+                    // An empty or fully-deleted group: submit normally and show the form's own thanks message.
+                    if (!fullURL) {
+                        return;
+                    }
+                    // No `back=` branch here, unlike the single-form case below: for a portal (unconfined)
+                    // caller fullURL IS a /documents URL already, and for a public-form caller the chaining in
+                    // submit_form_response walks the rest of the group.
+                    //
+                    // This also runs AFTER the submit above has set window.location for a source form that is
+                    // itself in a group (submit_form_response's nextFormGroupPublicURL), so the redirect the
+                    // admin configured here wins over that one.
+                    window.location.replace(fullURL);
+                }));
+            })
+                .catch(function (err) {
+                var _a;
+                startedFormGroupRef.current = false; // let a retry through
+                console.error(err);
+                // The group was deleted, or is unreadable for this session. Submit anyway and show the
+                // form's own thanks message, exactly as the empty-group path above does — otherwise the
+                // patient is parked on the Redirect question with their answers unsent and nothing to click.
+                (_a = submit === null || submit === void 0 ? void 0 : submit()) === null || _a === void 0 ? void 0 : _a.catch(console.error);
+            });
+            return;
+        }
+        if (!((_d = field.options) === null || _d === void 0 ? void 0 : _d.redirectFormId)) {
             return;
         }
         session.api.form_responses.prepare_form_response({

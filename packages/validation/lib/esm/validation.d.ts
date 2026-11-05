@@ -286,6 +286,7 @@ export declare const externalIdNumberValidator: ValidatorDefinition<number>;
 export declare const externalIdNumberValidatorOptional: ValidatorDefinition<number>;
 export declare const fileSizeValidator: ValidatorDefinition<number>;
 export declare const numberValidatorMin1Max100Optional: ValidatorDefinition<number>;
+export declare const automatedActionCancelReasonValidator: ValidatorDefinition<number>;
 export declare const numberOrStringValidatorEmptyOkay: ValidatorDefinition<string | number>;
 export declare const numberOrStringValidatorOptional: ValidatorDefinition<string | number>;
 export declare const dateValidator: ValidatorDefinition<Date>;
@@ -1912,6 +1913,8 @@ export declare const automationTriggerEventValidator: ValidatorDefinition<import
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Subscription Paused", {
     productIds?: string[] | undefined;
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Subscription Resumed", {
+    productIds?: string[] | undefined;
+}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Subscription Cancellation Scheduled", {
     productIds?: string[] | undefined;
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Stripe: Payment Intent Failed", {}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Message Delivery Failure", {}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Incoming Message", {
     noCareTeam?: boolean | undefined;

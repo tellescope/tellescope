@@ -135,6 +135,9 @@ type EnduserQueries = { [K in EnduserAccessibleModels]: APIQuery<K> } & {
     prepare_form_response: (args: extractFields<CustomActions['form_responses']['prepare_form_response']['parameters']>) => (
       Promise<extractFields<CustomActions['form_responses']['prepare_form_response']['returns']>>
     ),
+    prepare_form_group_response: (args: extractFields<CustomActions['form_responses']['prepare_form_group_response']['parameters']>) => (
+      Promise<extractFields<CustomActions['form_responses']['prepare_form_group_response']['returns']>>
+    ),
     session_for_public_form: (args: extractFields<PublicActions['form_responses']['session_for_public_form']['parameters']>) => (
       Promise<extractFields<PublicActions['form_responses']['session_for_public_form']['returns']>>
     ),
@@ -337,6 +340,7 @@ export class EnduserSession extends Session {
     // this.api.form_fields.load_payers = args => this._GET(`/v1${schema.form_fields.customActions.load_payers.path}`, args)
 
     this.api.form_responses.prepare_form_response   = args => this._POST(`/v1${schema.form_responses.customActions.prepare_form_response.path}`, args)
+    this.api.form_responses.prepare_form_group_response = args => this._POST(`/v1${schema.form_responses.customActions.prepare_form_group_response.path}`, args)
     this.api.form_responses.session_for_public_form = args => this._POST(`/v1${schema.form_responses.publicActions.session_for_public_form.path}`, args)
     this.api.form_responses.submit_form_response    = args => this._PATCH(`/v1${schema.form_responses.customActions.submit_form_response.path}`, args)
     this.api.form_responses.save_field_response     = args => this._PATCH(`/v1${schema.form_responses.customActions.save_field_response.path}`, args)

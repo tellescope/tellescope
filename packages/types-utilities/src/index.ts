@@ -20,9 +20,13 @@ export type LoadedData<T=any> = typeof UNLOADED
   | LoadedDataSuccess<T>
 
 export type ErrorType = "User" | "Internal"
-export type ErrorCode = 400 | 401 | 402 | 403 | 404 | 405 | 406 | 407 | 408 | 409 | 429 | 500
+// 503 is here so a handler that deliberately refuses work for capacity reasons (e.g. the generic
+// CRUD read time budgets, api/modules/crud_read_timeouts.ts) can say so with its own message.
+// Without it, routing.ts's endpoint error handler drops such a throw into handleInternalError and
+// the caller gets an opaque 500 instead.
+export type ErrorCode = 400 | 401 | 402 | 403 | 404 | 405 | 406 | 407 | 408 | 409 | 429 | 500 | 503
 export const isErrorCode = (c: any): c is ErrorCode => 
-  [400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 429, 500].includes(c)
+  [400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 429, 500, 503].includes(c)
 
 export interface ErrorInfo {
   message: string;

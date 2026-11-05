@@ -27,7 +27,7 @@ export type LoadedData<T = any> = typeof UNLOADED | {
     value: APIError;
 } | LoadedDataSuccess<T>;
 export type ErrorType = "User" | "Internal";
-export type ErrorCode = 400 | 401 | 402 | 403 | 404 | 405 | 406 | 407 | 408 | 409 | 429 | 500;
+export type ErrorCode = 400 | 401 | 402 | 403 | 404 | 405 | 406 | 407 | 408 | 409 | 429 | 500 | 503;
 export declare const isErrorCode: (c: any) => c is ErrorCode;
 export interface ErrorInfo {
     message: string;

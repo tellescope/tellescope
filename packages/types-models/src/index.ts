@@ -299,6 +299,21 @@ export type OrganizationSettings = {
      *  Accepted regression while on: a staff-generated `?token=` booking link is blocked too — the
      *  token is validated by a different endpoint and is never passed to the two gated ones. */
     disablePublicBookingStarts?: boolean,
+    /** Stops a phone number being a portal sign-in identifier, and stops any login code reaching a
+     *  phone. Off by default for existing and new organizations. While on, begin_login_flow refuses
+     *  a phone-only identifier with 403, get_otp_methods omits 'sms' and send_otp refuses
+     *  method: 'sms' — so the magic-link and requireOTPAfterPassword code steps cannot deliver to a
+     *  phone either. Read from the ROOT business organization, so a root admin's toggle also closes
+     *  every sub-organization's portal, and it fails CLOSED: an unresolvable organization or a
+     *  database error counts as ON, because this one is a security control rather than an
+     *  availability setting.
+     *
+     *  Consequences while on, both intended: an enduser with a phone and no email cannot sign in at
+     *  all, and a portal link already carrying `?token=` still authenticates even when an automation
+     *  sends it by SMS — this stops a phone being used as an identity, not every authenticating link
+     *  from travelling by SMS. Staff login, staff MFA, registration, password reset and the
+     *  endusers.login password endpoint are all unaffected. */
+    disablePhoneLogin?: boolean,
     hideNotesFromComposeForm?: boolean,
     showSalesforceId?: boolean,
     loopQueueCallSound?: boolean,
@@ -437,6 +452,17 @@ export type StripeKeyDetail = {
   title: string,
 }
 
+// One Stripe customer id per connected Stripe Custom integration, keyed by that integration's
+// publishable key (Organization.stripeKeyDetails[].key / Integration.authentication.info.external_id).
+// Stripe customer ids are scoped to the account that minted them, so an organization with more than
+// one connected Stripe account needs one id per account for the same patient. The legacy
+// Enduser.stripeCustomerId/stripeKey pair is kept alongside this list (it freezes on the first
+// account linked) so existing readers, including the patient-facing billing portal, are unchanged.
+export type StripeCustomerIdEntry = {
+  stripeKey: string,
+  customerId: string,
+}
+
 export type MetriportIntegrationDetail = {
   title: string,
   environment?: string,
@@ -544,6 +570,11 @@ export interface Organization extends Organization_readonly, Organization_requir
   timezone?: Timezone,
   roles?: string[];
   skills?: string[];
+  // Pre-defined tags offered as a dropdown when tagging an Email / SMS / Group MMS / Chat item on
+  // the contact profile timeline. Free-typed tags stay allowed; with no list configured the tag
+  // input behaves exactly as it did before this field existed. Root-level rather than under
+  // settings.messages because nested settings lists are easy to clobber under replaceObjectFields.
+  messagingTags?: string[];
   logoVersion?: number; // missing if no logo set
   faviconVersion?: number;
   themeColor?: string;
@@ -725,6 +756,11 @@ export type OrganizationTheme = {
    *  on a sub-organization portal may differ from the root the server gate reads — accepted: the
    *  Register option stays visible there and the API answers 403. */
   disablePublicRegistration?: boolean,
+  /** Mirrors organization.settings.endusers.disablePhoneLogin, so the portal's login field can read
+   *  "Email" instead of "Email or Phone Number". Reports the MATCHED organization, which on a
+   *  sub-organization portal may differ from the root the server gate reads — accepted: the label is
+   *  cosmetic and the API still answers 403. */
+  disablePhoneLogin?: boolean,
 }
 
 
@@ -1314,6 +1350,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   useDefaultFromPhoneInAutomations?: boolean,
   stripeCustomerId?: string,
   stripeKey?: string,
+  stripeCustomerIds?: StripeCustomerIdEntry[],
   lastDoseSpotSyncAt?: Date,
   lastVITLSyncAt?: Date, // last successful push of this enduser to VITL (server-written only)
   diagnoses?: EnduserDiagnosis[]
@@ -2253,6 +2290,9 @@ export type FormFieldOptions = FormFieldValidation & {
   holdAppointmentMinutes?: number,
   rangeStepSize?: number,
   redirectFormId?: string,
+  // Redirect question: hand the patient into a whole Form Group instead of a single form.
+  // Precedence is redirectExternalUrl > redirectFormGroupId > redirectFormId.
+  redirectFormGroupId?: string,
   redirectExternalUrl?: string,
   groupPadding?: number,
   saveIntakeOnPartial?: boolean,
@@ -5328,6 +5368,7 @@ export type AutomationTriggerEvents = {
   'Subscription Payment Failed': AutomationTriggerEventBuilder<"Subscription Payment Failed", { productIds?: string[] }, {}>,
   'Subscription Paused': AutomationTriggerEventBuilder<"Subscription Paused", { productIds?: string[] }, {}>,
   'Subscription Resumed': AutomationTriggerEventBuilder<"Subscription Resumed", { productIds?: string[] }, {}>,
+  'Subscription Cancellation Scheduled': AutomationTriggerEventBuilder<"Subscription Cancellation Scheduled", { productIds?: string[] }, {}>,
   'Stripe: Payment Intent Failed': AutomationTriggerEventBuilder<"Stripe: Payment Intent Failed", { }, {}>,
   'Appointment No-Showed': AutomationTriggerEventBuilder<"Appointment No-Showed", { titles?: string[], templateIds?: string[] }, { }>,
   'Field Equals': AutomationTriggerEventBuilder<"Field Equals", { field: string, value: string }, { }>,
@@ -6936,6 +6977,14 @@ export type JourneyContext = {
   ticketThreadCommentId?: string,
   medicationId?: string,
   faxLogId?: string,
+  // Snapshot of a Stripe subscription cancellation, taken at webhook time by the custom Stripe
+  // integration for the Subscription Cancellation Scheduled trigger. Rendered by the
+  // {{subscription.*}} message-template tokens, which are the only readers.
+  stripeSubscriptionId?: string,
+  // the effective cancellation date in MS (Stripe sends seconds): cancel_at when set, otherwise the
+  // end of the current billing period, which is what a "cancel at period end" cancellation means
+  stripeSubscriptionCancelAt?: number,
+  stripeSubscriptionCancelAtPeriodEnd?: boolean,
 }
 
 // https://gist.github.com/aviflax/a4093965be1cd008f172/ 
@@ -7669,6 +7718,9 @@ export type DataSyncRecord = {
   userIds: string[], // Default access
   enduserIds: string[], // Assigned access
   visibleToAllUsers?: boolean, // 'visibleToAllUsers' schema access constraint (staff users only)
+  // chats only: the room the message belongs to. userIds above is a snapshot of the room's members
+  // as of the write, so the reader re-checks this room's CURRENT membership instead of trusting it.
+  roomId?: string,
 }
 
 export type InsuranceType = "Primary" | "Secondary"
