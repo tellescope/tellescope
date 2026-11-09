@@ -6,7 +6,7 @@ import { AddToDatabaseProps, AddressInput, AllergiesInput, AppointmentBookingInp
 import { PRIMARY_HEX, DEFAULT_HISTORICAL_DATA_SOURCE_LIMIT } from "@tellescope/constants"
 import { FormResponse, FormField, Form, Enduser } from "@tellescope/types-client"
 import { FormResponseAnswerFileValue, OrganizationTheme, HistoricalDataSource } from "@tellescope/types-models"
-import { calculate_form_scoring, field_can_autosubmit, form_response_value_to_string, formatted_date, object_is_empty, objects_equivalent, read_local_storage, sanitize_user_html, sanitize_user_html_with_iframes, responses_satisfy_conditions, truncate_string } from "@tellescope/utilities"
+import { calculate_form_scoring, field_can_autosubmit, form_response_value_to_string, insurance_relationships_for_field, formatted_date, object_is_empty, objects_equivalent, read_local_storage, sanitize_user_html, sanitize_user_html_with_iframes, responses_satisfy_conditions, truncate_string } from "@tellescope/utilities"
 import { Divider } from "@mui/material"
 
 export const TellescopeFormContainer = ({ businessId, organizationIds, ...props } : {
@@ -398,7 +398,11 @@ export const QuestionForField = ({
             enduser={enduser} responses={responses} // for filtering insurers by state
             onChange={(v, fieldId) => (onFieldChange as ChangeHandler<'Insurance'>)({
               ...v,
-              relationship: v?.relationship || 'Self', // make sure relationship is initialized to self if input is provided
+              // Initializes the relationship when the patient fills any other insurance input without
+              // touching the selector. Reads the SAME derived default the selector displays and
+              // validateBasicField enforces (CU-1dfjxwuyxmg): with a configured list that excludes
+              // Self, hard-coding 'Self' here stored Self while the screen said Spouse.
+              relationship: v?.relationship || insurance_relationships_for_field(field).defaultRelationship,
             }, fieldId)}
           />
         )

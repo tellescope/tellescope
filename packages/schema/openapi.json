@@ -1647,6 +1647,709 @@
         }
       }
     },
+    "/v1/ai-document": {
+      "post": {
+        "summary": "Create ai-document",
+        "description": "Creates a new ai-document. A saved AI App or Agent. The mutable head; the payload lives in ai_document_versions. Private to its creator (and admins) unless shared with visibleToAllUsers or sharedWithUserIds; sharing grants read access only.",
+        "tags": [
+          "AiDocuments"
+        ],
+        "operationId": "createAiDocuments",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiDocumentsCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Created ai-document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiDocuments"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/v1/ai-document-version/{id}": {
+      "get": {
+        "summary": "Get ai-document-version by ID",
+        "description": "Retrieves a single ai-document-version by its ID",
+        "tags": [
+          "AiDocumentVersions"
+        ],
+        "operationId": "getAiDocumentVersionsById",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-fA-F]{24}$"
+            },
+            "description": "The unique identifier of the record"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AiDocumentVersions record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiDocumentVersions"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/v1/ai-document-versions": {
+      "get": {
+        "summary": "List ai-document-versions",
+        "description": "Retrieves a list of ai-document-versions with optional filtering and pagination",
+        "tags": [
+          "AiDocumentVersions"
+        ],
+        "operationId": "listAiDocumentVersions",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000
+            },
+            "description": "Maximum number of records to return (default varies by model, max 1000)"
+          },
+          {
+            "name": "lastId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-fA-F]{24}$"
+            },
+            "description": "Cursor for pagination - ID of the last record from previous page"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "oldFirst",
+                "newFirst"
+              ]
+            },
+            "description": "Sort order by creation date"
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Field to sort by"
+          },
+          {
+            "name": "mdbFilter",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "JSON-encoded MongoDB-style filter object"
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Text search query"
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "description": "Filter records created after this date"
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "description": "Filter records created before this date"
+          },
+          {
+            "name": "fromToField",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Field to use for date range filtering (default: createdAt)"
+          },
+          {
+            "name": "ids",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma-separated list of IDs to filter by"
+          },
+          {
+            "name": "returnCount",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "If true, return only the count of matching records"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of ai-document-versions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AiDocumentVersions"
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "count": {
+                          "type": "integer",
+                          "description": "Total count when returnCount=true"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/v1/ai-document/{id}": {
+      "get": {
+        "summary": "Get ai-document by ID",
+        "description": "Retrieves a single ai-document by its ID",
+        "tags": [
+          "AiDocuments"
+        ],
+        "operationId": "getAiDocumentsById",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-fA-F]{24}$"
+            },
+            "description": "The unique identifier of the record"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AiDocuments record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiDocuments"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update ai-document",
+        "description": "Updates a ai-document by ID",
+        "tags": [
+          "AiDocuments"
+        ],
+        "operationId": "updateAiDocuments",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-fA-F]{24}$"
+            },
+            "description": "The unique identifier of the record to update"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "updates": {
+                    "$ref": "#/components/schemas/AiDocumentsUpdate"
+                  },
+                  "options": {
+                    "type": "object",
+                    "properties": {
+                      "replaceObjectFields": {
+                        "type": "boolean",
+                        "description": "If true, replace object fields entirely instead of merging"
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "updates"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated ai-document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiDocuments"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/v1/ai-documents": {
+      "post": {
+        "summary": "Create multiple ai-documents",
+        "description": "Creates multiple ai-documents in a single request",
+        "tags": [
+          "AiDocuments"
+        ],
+        "operationId": "createManyAiDocuments",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "create": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/AiDocumentsCreate"
+                    },
+                    "description": "Array of records to create"
+                  }
+                },
+                "required": [
+                  "create"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Created ai-documents",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "created": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AiDocuments"
+                      }
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "index": {
+                            "type": "integer"
+                          },
+                          "error": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "get": {
+        "summary": "List ai-documents",
+        "description": "Retrieves a list of ai-documents with optional filtering and pagination",
+        "tags": [
+          "AiDocuments"
+        ],
+        "operationId": "listAiDocuments",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000
+            },
+            "description": "Maximum number of records to return (default varies by model, max 1000)"
+          },
+          {
+            "name": "lastId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-fA-F]{24}$"
+            },
+            "description": "Cursor for pagination - ID of the last record from previous page"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "oldFirst",
+                "newFirst"
+              ]
+            },
+            "description": "Sort order by creation date"
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Field to sort by"
+          },
+          {
+            "name": "mdbFilter",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "JSON-encoded MongoDB-style filter object"
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Text search query"
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "description": "Filter records created after this date"
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "description": "Filter records created before this date"
+          },
+          {
+            "name": "fromToField",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Field to use for date range filtering (default: createdAt)"
+          },
+          {
+            "name": "ids",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma-separated list of IDs to filter by"
+          },
+          {
+            "name": "returnCount",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "If true, return only the count of matching records"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of ai-documents",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AiDocuments"
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "count": {
+                          "type": "integer",
+                          "description": "Total count when returnCount=true"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/v1/ai-documents/save-version": {
+      "post": {
+        "summary": "Save Version",
+        "description": "Appends an immutable ai_document_versions record and advances the document's currentVersion and currentVersionId together, creating the document when documentId is omitted. Returns 409 when expectedVersion is no longer the document's current version.",
+        "tags": [
+          "AiDocuments"
+        ],
+        "operationId": "ai_documents_save_version",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "document": {
+                      "type": "object",
+                      "additionalProperties": true
+                    },
+                    "version": {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  },
+                  "required": [
+                    "document",
+                    "version"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "documentId": {
+                    "type": "string",
+                    "example": "60398b0231a295e64f084fd9"
+                  },
+                  "kind": {
+                    "type": "string",
+                    "example": "app"
+                  },
+                  "title": {
+                    "type": "string",
+                    "example": "example string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "example": "example string"
+                  },
+                  "card": {
+                    "type": "string",
+                    "example": "{\"format\":\"tellescope-ai-app\",\"version\":1}"
+                  },
+                  "definition": {
+                    "type": "string",
+                    "example": "{\"format\":\"tellescope-ai-app\",\"version\":1}"
+                  },
+                  "allowedTools": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "example": [
+                      "example string"
+                    ]
+                  },
+                  "autopilotTools": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "example": [
+                      "example string"
+                    ]
+                  },
+                  "expectedVersion": {
+                    "type": "number",
+                    "example": 0
+                  }
+                },
+                "required": [
+                  "definition"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/allergy-code": {
       "post": {
         "summary": "Create allergy-code",
@@ -11916,6 +12619,34 @@
                           }
                         }
                       },
+                      "ai_documents": {
+                        "type": "object",
+                        "properties": {
+                          "create": {
+                            "type": "boolean"
+                          },
+                          "update": {
+                            "type": "boolean"
+                          },
+                          "delete": {
+                            "type": "boolean"
+                          }
+                        }
+                      },
+                      "ai_document_versions": {
+                        "type": "object",
+                        "properties": {
+                          "create": {
+                            "type": "boolean"
+                          },
+                          "update": {
+                            "type": "boolean"
+                          },
+                          "delete": {
+                            "type": "boolean"
+                          }
+                        }
+                      },
                       "ai_conversations": {
                         "type": "object",
                         "properties": {
@@ -13165,6 +13896,16 @@
                     },
                     "example": {
                       "inbox_threads": {
+                        "create": true,
+                        "update": true,
+                        "delete": true
+                      },
+                      "ai_documents": {
+                        "create": true,
+                        "update": true,
+                        "delete": true
+                      },
+                      "ai_document_versions": {
                         "create": true,
                         "update": true,
                         "delete": true
@@ -54363,6 +55104,34 @@
                           }
                         }
                       },
+                      "ai_documents": {
+                        "type": "object",
+                        "properties": {
+                          "create": {
+                            "type": "boolean"
+                          },
+                          "update": {
+                            "type": "boolean"
+                          },
+                          "delete": {
+                            "type": "boolean"
+                          }
+                        }
+                      },
+                      "ai_document_versions": {
+                        "type": "object",
+                        "properties": {
+                          "create": {
+                            "type": "boolean"
+                          },
+                          "update": {
+                            "type": "boolean"
+                          },
+                          "delete": {
+                            "type": "boolean"
+                          }
+                        }
+                      },
                       "ai_conversations": {
                         "type": "object",
                         "properties": {
@@ -55612,6 +56381,16 @@
                     },
                     "example": {
                       "inbox_threads": {
+                        "create": true,
+                        "update": true,
+                        "delete": true
+                      },
+                      "ai_documents": {
+                        "create": true,
+                        "update": true,
+                        "delete": true
+                      },
+                      "ai_document_versions": {
                         "create": true,
                         "update": true,
                         "delete": true
@@ -59166,7 +59945,7 @@
     "/v1/webhook": {
       "post": {
         "summary": "Create webhook",
-        "description": "Creates a new webhook. Allows you to subscribe to Webhooks when models in Tellescope are created, updated, and deleted.\n\n        <strong style=\"font-size: 25px\">\n        To avoid echo (receiving webhooks when updating records with an API Key), pass the use { dontSendWebhook: true } in the \"options\" parameter to update (PATCH) requests\n        We rate limit requests which perform the same update to the same record to help you detect echo during development\n        </strong>\n\n        Each webhook is a POST request to the given URL, of the form <pre>{ \n          model: string, \n          type: 'create' | 'update' | 'delete', \n          records: object[], \n          timestamp: string, \n          integrity: string, \n          relatedRecords: { [id: string]: object } \n}</pre>\n        This includes the name of the model, the type of operation performed, and an array of the new, updated, or deleted model(s).\n\n        <strong>Each 'create' webhook may include more than one record (e.g. when records are created as part of a bulk POST) </strong>\n\n        The integrity field is a sha256 hash of (record ids concatenated from index 0 to the end, with the timestamp and then secret appended)\n        For example hook: { records: [{ id: '1', ... }, { id: '4', ... }], timestamp: \"1029358\" } with secret set as \"secret\",\n        integrity = sha256('141029358secret')\n        Each time you handle a webhook, you should verify the integrity field is correct to ensure that the request is actually coming from Tellescope. \n\n        For performance, a relatedRecords object is provided as a cache. This object maps some ids referenced in the webhook records to the corresponding models in Tellescope. \n        For a given webhook, relatedRecords may be empty, or may not include all related ids. In such cases, you'll need to query against the Tellescope API for an up-to-date reference.\n\n        Currently supported models for Webhooks: inbox_threads, ai_conversations, waitlists, agent_records, enduser_eligibility_results, integration_logs, organization_payments, allergy_codes, diagnosis_codes, suggested_contacts, call_hold_queues, fax_logs, message_template_snippets, portal_brandings, form_groups, webhook_logs, flowchart_notes, enduser_problems, prescription_routes, blocked_phones, vital_configurations, enduser_encounters, enduser_orders, group_mms_conversations, ticket_queues, configurations, ticket_thread_comments, ticket_threads, enduser_custom_types, phone_trees, enduser_medications, superbill_providers, superbills, automation_triggers, background_errors, enduser_views, availability_blocks, analytics_frames, endusers, enduser_status_updates, engagement_events, journeys, emails, sms_messages, chat_rooms, chats, users, templates, files, tickets, ticket_templates, meetings, notes, forms, form_fields, form_responses, calendar_events, calendar_event_templates, calendar_event_RSVPs, automation_steps, automated_actions, webhooks, user_logs, user_notifications, enduser_observations, managed_content_records, managed_content_record_assignments, forums, forum_posts, post_likes, comment_likes, post_comments, organizations, databases, database_records, portal_customizations, care_plans, enduser_tasks, role_based_access_permissions, appointment_booking_pages, appointment_locations, products, purchases, purchase_credits, phone_calls, enduser_profile_views, custom_dashboards, table_views, email_sync_denials, time_tracks\n\n        You can handle webhooks from automations in Tellescope, which have a simpler format: <pre>{ \n          type: 'automation'\n          message: string,\n          timestamp: string, \n          integrity: string, \n          enduserId: string, \n}</pre>\n        In this case, integrity is a simple sha256 hash of message + timestamp + secret\n\n        You can also handle calendar event reminders as webhooks, which have the format: <pre>{ \n          type: 'calendar_event_reminder'\n          event: CalendarEvent,\n          timestamp: string, \n          integrity: string, \n}</pre>\n        In this case, integrity is a simple sha256 hash of event.id + timestamp + secret\n      ",
+        "description": "Creates a new webhook. Allows you to subscribe to Webhooks when models in Tellescope are created, updated, and deleted.\n\n        <strong style=\"font-size: 25px\">\n        To avoid echo (receiving webhooks when updating records with an API Key), pass the use { dontSendWebhook: true } in the \"options\" parameter to update (PATCH) requests\n        We rate limit requests which perform the same update to the same record to help you detect echo during development\n        </strong>\n\n        Each webhook is a POST request to the given URL, of the form <pre>{ \n          model: string, \n          type: 'create' | 'update' | 'delete', \n          records: object[], \n          timestamp: string, \n          integrity: string, \n          relatedRecords: { [id: string]: object } \n}</pre>\n        This includes the name of the model, the type of operation performed, and an array of the new, updated, or deleted model(s).\n\n        <strong>Each 'create' webhook may include more than one record (e.g. when records are created as part of a bulk POST) </strong>\n\n        The integrity field is a sha256 hash of (record ids concatenated from index 0 to the end, with the timestamp and then secret appended)\n        For example hook: { records: [{ id: '1', ... }, { id: '4', ... }], timestamp: \"1029358\" } with secret set as \"secret\",\n        integrity = sha256('141029358secret')\n        Each time you handle a webhook, you should verify the integrity field is correct to ensure that the request is actually coming from Tellescope. \n\n        For performance, a relatedRecords object is provided as a cache. This object maps some ids referenced in the webhook records to the corresponding models in Tellescope. \n        For a given webhook, relatedRecords may be empty, or may not include all related ids. In such cases, you'll need to query against the Tellescope API for an up-to-date reference.\n\n        Currently supported models for Webhooks: inbox_threads, ai_documents, ai_document_versions, ai_conversations, waitlists, agent_records, enduser_eligibility_results, integration_logs, organization_payments, allergy_codes, diagnosis_codes, suggested_contacts, call_hold_queues, fax_logs, message_template_snippets, portal_brandings, form_groups, webhook_logs, flowchart_notes, enduser_problems, prescription_routes, blocked_phones, vital_configurations, enduser_encounters, enduser_orders, group_mms_conversations, ticket_queues, configurations, ticket_thread_comments, ticket_threads, enduser_custom_types, phone_trees, enduser_medications, superbill_providers, superbills, automation_triggers, background_errors, enduser_views, availability_blocks, analytics_frames, endusers, enduser_status_updates, engagement_events, journeys, emails, sms_messages, chat_rooms, chats, users, templates, files, tickets, ticket_templates, meetings, notes, forms, form_fields, form_responses, calendar_events, calendar_event_templates, calendar_event_RSVPs, automation_steps, automated_actions, webhooks, user_logs, user_notifications, enduser_observations, managed_content_records, managed_content_record_assignments, forums, forum_posts, post_likes, comment_likes, post_comments, organizations, databases, database_records, portal_customizations, care_plans, enduser_tasks, role_based_access_permissions, appointment_booking_pages, appointment_locations, products, purchases, purchase_credits, phone_calls, enduser_profile_views, custom_dashboards, table_views, email_sync_denials, time_tracks\n\n        You can handle webhooks from automations in Tellescope, which have a simpler format: <pre>{ \n          type: 'automation'\n          message: string,\n          timestamp: string, \n          integrity: string, \n          enduserId: string, \n}</pre>\n        In this case, integrity is a simple sha256 hash of message + timestamp + secret\n\n        You can also handle calendar event reminders as webhooks, which have the format: <pre>{ \n          type: 'calendar_event_reminder'\n          event: CalendarEvent,\n          timestamp: string, \n          integrity: string, \n}</pre>\n        In this case, integrity is a simple sha256 hash of event.id + timestamp + secret\n      ",
         "tags": [
           "Webhooks"
         ],
@@ -59237,6 +60016,34 @@
                       "type": "object",
                       "properties": {
                         "inbox_threads": {
+                          "type": "object",
+                          "properties": {
+                            "create": {
+                              "type": "boolean"
+                            },
+                            "update": {
+                              "type": "boolean"
+                            },
+                            "delete": {
+                              "type": "boolean"
+                            }
+                          }
+                        },
+                        "ai_documents": {
+                          "type": "object",
+                          "properties": {
+                            "create": {
+                              "type": "boolean"
+                            },
+                            "update": {
+                              "type": "boolean"
+                            },
+                            "delete": {
+                              "type": "boolean"
+                            }
+                          }
+                        },
+                        "ai_document_versions": {
                           "type": "object",
                           "properties": {
                             "create": {
@@ -60499,6 +61306,16 @@
                       },
                       "example": {
                         "inbox_threads": {
+                          "create": true,
+                          "update": true,
+                          "delete": true
+                        },
+                        "ai_documents": {
+                          "create": true,
+                          "update": true,
+                          "delete": true
+                        },
+                        "ai_document_versions": {
                           "create": true,
                           "update": true,
                           "delete": true
@@ -77450,6 +78267,10 @@
               ]
             }
           },
+          "settings": {
+            "type": "object",
+            "additionalProperties": true
+          },
           "description": {
             "type": "string",
             "example": "example string"
@@ -78304,6 +79125,10 @@
               ]
             }
           },
+          "settings": {
+            "type": "object",
+            "additionalProperties": true
+          },
           "description": {
             "type": "string",
             "example": "example string"
@@ -79157,6 +79982,10 @@
                 }
               ]
             }
+          },
+          "settings": {
+            "type": "object",
+            "additionalProperties": true
           },
           "description": {
             "type": "string",
@@ -80813,6 +81642,34 @@
                   }
                 }
               },
+              "ai_documents": {
+                "type": "object",
+                "properties": {
+                  "create": {
+                    "type": "boolean"
+                  },
+                  "update": {
+                    "type": "boolean"
+                  },
+                  "delete": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "ai_document_versions": {
+                "type": "object",
+                "properties": {
+                  "create": {
+                    "type": "boolean"
+                  },
+                  "update": {
+                    "type": "boolean"
+                  },
+                  "delete": {
+                    "type": "boolean"
+                  }
+                }
+              },
               "ai_conversations": {
                 "type": "object",
                 "properties": {
@@ -82062,6 +82919,16 @@
             },
             "example": {
               "inbox_threads": {
+                "create": true,
+                "update": true,
+                "delete": true
+              },
+              "ai_documents": {
+                "create": true,
+                "update": true,
+                "delete": true
+              },
+              "ai_document_versions": {
                 "create": true,
                 "update": true,
                 "delete": true
@@ -82576,6 +83443,34 @@
                   }
                 }
               },
+              "ai_documents": {
+                "type": "object",
+                "properties": {
+                  "create": {
+                    "type": "boolean"
+                  },
+                  "update": {
+                    "type": "boolean"
+                  },
+                  "delete": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "ai_document_versions": {
+                "type": "object",
+                "properties": {
+                  "create": {
+                    "type": "boolean"
+                  },
+                  "update": {
+                    "type": "boolean"
+                  },
+                  "delete": {
+                    "type": "boolean"
+                  }
+                }
+              },
               "ai_conversations": {
                 "type": "object",
                 "properties": {
@@ -83825,6 +84720,16 @@
             },
             "example": {
               "inbox_threads": {
+                "create": true,
+                "update": true,
+                "delete": true
+              },
+              "ai_documents": {
+                "create": true,
+                "update": true,
+                "delete": true
+              },
+              "ai_document_versions": {
                 "create": true,
                 "update": true,
                 "delete": true
@@ -84335,6 +85240,34 @@
                   }
                 }
               },
+              "ai_documents": {
+                "type": "object",
+                "properties": {
+                  "create": {
+                    "type": "boolean"
+                  },
+                  "update": {
+                    "type": "boolean"
+                  },
+                  "delete": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "ai_document_versions": {
+                "type": "object",
+                "properties": {
+                  "create": {
+                    "type": "boolean"
+                  },
+                  "update": {
+                    "type": "boolean"
+                  },
+                  "delete": {
+                    "type": "boolean"
+                  }
+                }
+              },
               "ai_conversations": {
                 "type": "object",
                 "properties": {
@@ -85584,6 +86517,16 @@
             },
             "example": {
               "inbox_threads": {
+                "create": true,
+                "update": true,
+                "delete": true
+              },
+              "ai_documents": {
+                "create": true,
+                "update": true,
+                "delete": true
+              },
+              "ai_document_versions": {
                 "create": true,
                 "update": true,
                 "delete": true
@@ -113064,6 +114007,12 @@
               },
               "inbox_threads": {
                 "type": "number"
+              },
+              "ai_documents": {
+                "type": "number"
+              },
+              "ai_document_versions": {
+                "type": "number"
               }
             },
             "example": {
@@ -113200,7 +114149,9 @@
               "enduser_eligibility_results": -10000000000000,
               "agent_records": -10000000000000,
               "waitlists": -10000000000000,
-              "inbox_threads": -10000000000000
+              "inbox_threads": -10000000000000,
+              "ai_documents": -10000000000000,
+              "ai_document_versions": -10000000000000
             }
           },
           "owner": {
@@ -121726,6 +122677,46 @@
                   }
                 }
               },
+              "ai_documents": {
+                "type": "object",
+                "properties": {
+                  "create": {
+                    "type": "string"
+                  },
+                  "delete": {
+                    "type": "string"
+                  },
+                  "read": {
+                    "type": "string"
+                  },
+                  "update": {
+                    "type": "string"
+                  },
+                  "showInSidebar": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "ai_document_versions": {
+                "type": "object",
+                "properties": {
+                  "create": {
+                    "type": "string"
+                  },
+                  "delete": {
+                    "type": "string"
+                  },
+                  "read": {
+                    "type": "string"
+                  },
+                  "update": {
+                    "type": "string"
+                  },
+                  "showInSidebar": {
+                    "type": "boolean"
+                  }
+                }
+              },
               "apiKeys": {
                 "type": "object",
                 "properties": {
@@ -122386,6 +123377,20 @@
                 "showInSidebar": true
               },
               "inbox_threads": {
+                "create": "All",
+                "delete": "All",
+                "read": "All",
+                "update": "All",
+                "showInSidebar": true
+              },
+              "ai_documents": {
+                "create": "All",
+                "delete": "All",
+                "read": "All",
+                "update": "All",
+                "showInSidebar": true
+              },
+              "ai_document_versions": {
                 "create": "All",
                 "delete": "All",
                 "read": "All",
@@ -124449,6 +125454,46 @@
                   }
                 }
               },
+              "ai_documents": {
+                "type": "object",
+                "properties": {
+                  "create": {
+                    "type": "string"
+                  },
+                  "delete": {
+                    "type": "string"
+                  },
+                  "read": {
+                    "type": "string"
+                  },
+                  "update": {
+                    "type": "string"
+                  },
+                  "showInSidebar": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "ai_document_versions": {
+                "type": "object",
+                "properties": {
+                  "create": {
+                    "type": "string"
+                  },
+                  "delete": {
+                    "type": "string"
+                  },
+                  "read": {
+                    "type": "string"
+                  },
+                  "update": {
+                    "type": "string"
+                  },
+                  "showInSidebar": {
+                    "type": "boolean"
+                  }
+                }
+              },
               "apiKeys": {
                 "type": "object",
                 "properties": {
@@ -125109,6 +126154,20 @@
                 "showInSidebar": true
               },
               "inbox_threads": {
+                "create": "All",
+                "delete": "All",
+                "read": "All",
+                "update": "All",
+                "showInSidebar": true
+              },
+              "ai_documents": {
+                "create": "All",
+                "delete": "All",
+                "read": "All",
+                "update": "All",
+                "showInSidebar": true
+              },
+              "ai_document_versions": {
                 "create": "All",
                 "delete": "All",
                 "read": "All",
@@ -127172,6 +128231,46 @@
                   }
                 }
               },
+              "ai_documents": {
+                "type": "object",
+                "properties": {
+                  "create": {
+                    "type": "string"
+                  },
+                  "delete": {
+                    "type": "string"
+                  },
+                  "read": {
+                    "type": "string"
+                  },
+                  "update": {
+                    "type": "string"
+                  },
+                  "showInSidebar": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "ai_document_versions": {
+                "type": "object",
+                "properties": {
+                  "create": {
+                    "type": "string"
+                  },
+                  "delete": {
+                    "type": "string"
+                  },
+                  "read": {
+                    "type": "string"
+                  },
+                  "update": {
+                    "type": "string"
+                  },
+                  "showInSidebar": {
+                    "type": "boolean"
+                  }
+                }
+              },
               "apiKeys": {
                 "type": "object",
                 "properties": {
@@ -127832,6 +128931,20 @@
                 "showInSidebar": true
               },
               "inbox_threads": {
+                "create": "All",
+                "delete": "All",
+                "read": "All",
+                "update": "All",
+                "showInSidebar": true
+              },
+              "ai_documents": {
+                "create": "All",
+                "delete": "All",
+                "read": "All",
+                "update": "All",
+                "showInSidebar": true
+              },
+              "ai_document_versions": {
                 "create": "All",
                 "delete": "All",
                 "read": "All",
@@ -156498,6 +157611,564 @@
         },
         "description": "Fields to update (all optional)"
       },
+      "AiDocuments": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier",
+            "pattern": "^[0-9a-fA-F]{24}$"
+          },
+          "businessId": {
+            "type": "string",
+            "example": "60398b0231a295e64f084fd9"
+          },
+          "organizationIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "60398b0231a295e64f084fd9"
+            ]
+          },
+          "sharedWithOrganizations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "0": {
+                  "type": "string"
+                }
+              }
+            },
+            "example": [
+              [
+                "60398b0231a295e64f084fd9"
+              ]
+            ]
+          },
+          "creator": {
+            "type": "string",
+            "example": "60398b0231a295e64f084fd9"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "originalId": {
+            "type": "string",
+            "example": "example string"
+          },
+          "kind": {
+            "type": "string",
+            "example": "app"
+          },
+          "title": {
+            "type": "string",
+            "example": "example string"
+          },
+          "description": {
+            "type": "string",
+            "example": "example string"
+          },
+          "card": {
+            "type": "string",
+            "example": "{\"format\":\"tellescope-ai-app\",\"version\":1}"
+          },
+          "currentVersion": {
+            "type": "number",
+            "example": 0
+          },
+          "currentVersionId": {
+            "type": "string",
+            "example": "60398b0231a295e64f084fd9"
+          },
+          "archivedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "example string"
+            ]
+          },
+          "visibleToAllUsers": {
+            "type": "boolean",
+            "example": true
+          },
+          "sharedWithUserIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "60398b0231a295e64f084fd9"
+            ]
+          },
+          "runAsUserId": {
+            "type": "string",
+            "example": "60398b0231a295e64f084fd9"
+          },
+          "approverUserIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "60398b0231a295e64f084fd9"
+            ]
+          },
+          "maxCredits": {
+            "type": "number",
+            "example": 0
+          },
+          "autopilotEnabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "scheduleCron": {
+            "type": "string",
+            "example": "example string"
+          }
+        },
+        "required": [
+          "kind",
+          "title"
+        ]
+      },
+      "AiDocumentsCreate": {
+        "type": "object",
+        "properties": {
+          "organizationIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "60398b0231a295e64f084fd9"
+            ]
+          },
+          "sharedWithOrganizations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "0": {
+                  "type": "string"
+                }
+              }
+            },
+            "example": [
+              [
+                "60398b0231a295e64f084fd9"
+              ]
+            ]
+          },
+          "originalId": {
+            "type": "string",
+            "example": "example string"
+          },
+          "kind": {
+            "type": "string",
+            "example": "app"
+          },
+          "title": {
+            "type": "string",
+            "example": "example string"
+          },
+          "description": {
+            "type": "string",
+            "example": "example string"
+          },
+          "card": {
+            "type": "string",
+            "example": "{\"format\":\"tellescope-ai-app\",\"version\":1}"
+          },
+          "archivedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "example string"
+            ]
+          },
+          "visibleToAllUsers": {
+            "type": "boolean",
+            "example": true
+          },
+          "sharedWithUserIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "60398b0231a295e64f084fd9"
+            ]
+          },
+          "runAsUserId": {
+            "type": "string",
+            "example": "60398b0231a295e64f084fd9"
+          },
+          "approverUserIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "60398b0231a295e64f084fd9"
+            ]
+          },
+          "maxCredits": {
+            "type": "number",
+            "example": 0
+          },
+          "autopilotEnabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "scheduleCron": {
+            "type": "string",
+            "example": "example string"
+          }
+        },
+        "required": [
+          "kind",
+          "title"
+        ]
+      },
+      "AiDocumentsUpdate": {
+        "type": "object",
+        "properties": {
+          "organizationIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "60398b0231a295e64f084fd9"
+            ]
+          },
+          "sharedWithOrganizations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "0": {
+                  "type": "string"
+                }
+              }
+            },
+            "example": [
+              [
+                "60398b0231a295e64f084fd9"
+              ]
+            ]
+          },
+          "originalId": {
+            "type": "string",
+            "example": "example string"
+          },
+          "title": {
+            "type": "string",
+            "example": "example string"
+          },
+          "description": {
+            "type": "string",
+            "example": "example string"
+          },
+          "card": {
+            "type": "string",
+            "example": "{\"format\":\"tellescope-ai-app\",\"version\":1}"
+          },
+          "archivedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "example string"
+            ]
+          },
+          "visibleToAllUsers": {
+            "type": "boolean",
+            "example": true
+          },
+          "sharedWithUserIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "60398b0231a295e64f084fd9"
+            ]
+          },
+          "runAsUserId": {
+            "type": "string",
+            "example": "60398b0231a295e64f084fd9"
+          },
+          "approverUserIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "60398b0231a295e64f084fd9"
+            ]
+          },
+          "maxCredits": {
+            "type": "number",
+            "example": 0
+          },
+          "autopilotEnabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "scheduleCron": {
+            "type": "string",
+            "example": "example string"
+          }
+        },
+        "description": "Fields to update (all optional)"
+      },
+      "AiDocumentVersions": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier",
+            "pattern": "^[0-9a-fA-F]{24}$"
+          },
+          "businessId": {
+            "type": "string",
+            "example": "60398b0231a295e64f084fd9"
+          },
+          "organizationIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "60398b0231a295e64f084fd9"
+            ]
+          },
+          "sharedWithOrganizations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "0": {
+                  "type": "string"
+                }
+              }
+            },
+            "example": [
+              [
+                "60398b0231a295e64f084fd9"
+              ]
+            ]
+          },
+          "creator": {
+            "type": "string",
+            "example": "60398b0231a295e64f084fd9"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "originalId": {
+            "type": "string",
+            "example": "example string"
+          },
+          "documentId": {
+            "type": "string",
+            "example": "60398b0231a295e64f084fd9"
+          },
+          "version": {
+            "type": "number",
+            "example": 1
+          },
+          "definition": {
+            "type": "string",
+            "example": "{\"format\":\"tellescope-ai-app\",\"version\":1}"
+          },
+          "title": {
+            "type": "string",
+            "example": "example string"
+          },
+          "description": {
+            "type": "string",
+            "example": "example string"
+          },
+          "card": {
+            "type": "string",
+            "example": "{\"format\":\"tellescope-ai-app\",\"version\":1}"
+          },
+          "allowedTools": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "example string"
+            ]
+          },
+          "autopilotTools": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "example string"
+            ]
+          }
+        },
+        "required": [
+          "documentId",
+          "version",
+          "definition"
+        ]
+      },
+      "AiDocumentVersionsCreate": {
+        "type": "object",
+        "properties": {
+          "organizationIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "60398b0231a295e64f084fd9"
+            ]
+          },
+          "sharedWithOrganizations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "0": {
+                  "type": "string"
+                }
+              }
+            },
+            "example": [
+              [
+                "60398b0231a295e64f084fd9"
+              ]
+            ]
+          },
+          "originalId": {
+            "type": "string",
+            "example": "example string"
+          },
+          "documentId": {
+            "type": "string",
+            "example": "60398b0231a295e64f084fd9"
+          },
+          "version": {
+            "type": "number",
+            "example": 1
+          },
+          "definition": {
+            "type": "string",
+            "example": "{\"format\":\"tellescope-ai-app\",\"version\":1}"
+          },
+          "title": {
+            "type": "string",
+            "example": "example string"
+          },
+          "description": {
+            "type": "string",
+            "example": "example string"
+          },
+          "card": {
+            "type": "string",
+            "example": "{\"format\":\"tellescope-ai-app\",\"version\":1}"
+          }
+        },
+        "required": [
+          "documentId",
+          "version",
+          "definition"
+        ]
+      },
+      "AiDocumentVersionsUpdate": {
+        "type": "object",
+        "properties": {
+          "organizationIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "60398b0231a295e64f084fd9"
+            ]
+          },
+          "sharedWithOrganizations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "0": {
+                  "type": "string"
+                }
+              }
+            },
+            "example": [
+              [
+                "60398b0231a295e64f084fd9"
+              ]
+            ]
+          },
+          "originalId": {
+            "type": "string",
+            "example": "example string"
+          },
+          "documentId": {
+            "type": "string",
+            "example": "60398b0231a295e64f084fd9"
+          },
+          "version": {
+            "type": "number",
+            "example": 1
+          },
+          "definition": {
+            "type": "string",
+            "example": "{\"format\":\"tellescope-ai-app\",\"version\":1}"
+          },
+          "title": {
+            "type": "string",
+            "example": "example string"
+          },
+          "description": {
+            "type": "string",
+            "example": "example string"
+          },
+          "card": {
+            "type": "string",
+            "example": "{\"format\":\"tellescope-ai-app\",\"version\":1}"
+          }
+        },
+        "description": "Fields to update (all optional)"
+      },
       "InboxThreads": {
         "type": "object",
         "properties": {
@@ -157095,6 +158766,14 @@
       "description": "AiConversations resource operations"
     },
     {
+      "name": "AiDocuments",
+      "description": "A saved AI App or Agent. The mutable head; the payload lives in ai_document_versions. Private to its creator (and admins) unless shared with visibleToAllUsers or sharedWithUserIds; sharing grants read access only."
+    },
+    {
+      "name": "AiDocumentVersions",
+      "description": "An immutable, numbered version of an ai_document. Written only by ai-documents/save-version. Readable by exactly the users who can read its document."
+    },
+    {
       "name": "AllergyCodes",
       "description": "AllergyCodes resource operations"
     },
@@ -157452,7 +159131,7 @@
     },
     {
       "name": "Webhooks",
-      "description": "Allows you to subscribe to Webhooks when models in Tellescope are created, updated, and deleted.\n\n        <strong style=\"font-size: 25px\">\n        To avoid echo (receiving webhooks when updating records with an API Key), pass the use { dontSendWebhook: true } in the \"options\" parameter to update (PATCH) requests\n        We rate limit requests which perform the same update to the same record to help you detect echo during development\n        </strong>\n\n        Each webhook is a POST request to the given URL, of the form <pre>{ \n          model: string, \n          type: 'create' | 'update' | 'delete', \n          records: object[], \n          timestamp: string, \n          integrity: string, \n          relatedRecords: { [id: string]: object } \n}</pre>\n        This includes the name of the model, the type of operation performed, and an array of the new, updated, or deleted model(s).\n\n        <strong>Each 'create' webhook may include more than one record (e.g. when records are created as part of a bulk POST) </strong>\n\n        The integrity field is a sha256 hash of (record ids concatenated from index 0 to the end, with the timestamp and then secret appended)\n        For example hook: { records: [{ id: '1', ... }, { id: '4', ... }], timestamp: \"1029358\" } with secret set as \"secret\",\n        integrity = sha256('141029358secret')\n        Each time you handle a webhook, you should verify the integrity field is correct to ensure that the request is actually coming from Tellescope. \n\n        For performance, a relatedRecords object is provided as a cache. This object maps some ids referenced in the webhook records to the corresponding models in Tellescope. \n        For a given webhook, relatedRecords may be empty, or may not include all related ids. In such cases, you'll need to query against the Tellescope API for an up-to-date reference.\n\n        Currently supported models for Webhooks: inbox_threads, ai_conversations, waitlists, agent_records, enduser_eligibility_results, integration_logs, organization_payments, allergy_codes, diagnosis_codes, suggested_contacts, call_hold_queues, fax_logs, message_template_snippets, portal_brandings, form_groups, webhook_logs, flowchart_notes, enduser_problems, prescription_routes, blocked_phones, vital_configurations, enduser_encounters, enduser_orders, group_mms_conversations, ticket_queues, configurations, ticket_thread_comments, ticket_threads, enduser_custom_types, phone_trees, enduser_medications, superbill_providers, superbills, automation_triggers, background_errors, enduser_views, availability_blocks, analytics_frames, endusers, enduser_status_updates, engagement_events, journeys, emails, sms_messages, chat_rooms, chats, users, templates, files, tickets, ticket_templates, meetings, notes, forms, form_fields, form_responses, calendar_events, calendar_event_templates, calendar_event_RSVPs, automation_steps, automated_actions, webhooks, user_logs, user_notifications, enduser_observations, managed_content_records, managed_content_record_assignments, forums, forum_posts, post_likes, comment_likes, post_comments, organizations, databases, database_records, portal_customizations, care_plans, enduser_tasks, role_based_access_permissions, appointment_booking_pages, appointment_locations, products, purchases, purchase_credits, phone_calls, enduser_profile_views, custom_dashboards, table_views, email_sync_denials, time_tracks\n\n        You can handle webhooks from automations in Tellescope, which have a simpler format: <pre>{ \n          type: 'automation'\n          message: string,\n          timestamp: string, \n          integrity: string, \n          enduserId: string, \n}</pre>\n        In this case, integrity is a simple sha256 hash of message + timestamp + secret\n\n        You can also handle calendar event reminders as webhooks, which have the format: <pre>{ \n          type: 'calendar_event_reminder'\n          event: CalendarEvent,\n          timestamp: string, \n          integrity: string, \n}</pre>\n        In this case, integrity is a simple sha256 hash of event.id + timestamp + secret\n      "
+      "description": "Allows you to subscribe to Webhooks when models in Tellescope are created, updated, and deleted.\n\n        <strong style=\"font-size: 25px\">\n        To avoid echo (receiving webhooks when updating records with an API Key), pass the use { dontSendWebhook: true } in the \"options\" parameter to update (PATCH) requests\n        We rate limit requests which perform the same update to the same record to help you detect echo during development\n        </strong>\n\n        Each webhook is a POST request to the given URL, of the form <pre>{ \n          model: string, \n          type: 'create' | 'update' | 'delete', \n          records: object[], \n          timestamp: string, \n          integrity: string, \n          relatedRecords: { [id: string]: object } \n}</pre>\n        This includes the name of the model, the type of operation performed, and an array of the new, updated, or deleted model(s).\n\n        <strong>Each 'create' webhook may include more than one record (e.g. when records are created as part of a bulk POST) </strong>\n\n        The integrity field is a sha256 hash of (record ids concatenated from index 0 to the end, with the timestamp and then secret appended)\n        For example hook: { records: [{ id: '1', ... }, { id: '4', ... }], timestamp: \"1029358\" } with secret set as \"secret\",\n        integrity = sha256('141029358secret')\n        Each time you handle a webhook, you should verify the integrity field is correct to ensure that the request is actually coming from Tellescope. \n\n        For performance, a relatedRecords object is provided as a cache. This object maps some ids referenced in the webhook records to the corresponding models in Tellescope. \n        For a given webhook, relatedRecords may be empty, or may not include all related ids. In such cases, you'll need to query against the Tellescope API for an up-to-date reference.\n\n        Currently supported models for Webhooks: inbox_threads, ai_documents, ai_document_versions, ai_conversations, waitlists, agent_records, enduser_eligibility_results, integration_logs, organization_payments, allergy_codes, diagnosis_codes, suggested_contacts, call_hold_queues, fax_logs, message_template_snippets, portal_brandings, form_groups, webhook_logs, flowchart_notes, enduser_problems, prescription_routes, blocked_phones, vital_configurations, enduser_encounters, enduser_orders, group_mms_conversations, ticket_queues, configurations, ticket_thread_comments, ticket_threads, enduser_custom_types, phone_trees, enduser_medications, superbill_providers, superbills, automation_triggers, background_errors, enduser_views, availability_blocks, analytics_frames, endusers, enduser_status_updates, engagement_events, journeys, emails, sms_messages, chat_rooms, chats, users, templates, files, tickets, ticket_templates, meetings, notes, forms, form_fields, form_responses, calendar_events, calendar_event_templates, calendar_event_RSVPs, automation_steps, automated_actions, webhooks, user_logs, user_notifications, enduser_observations, managed_content_records, managed_content_record_assignments, forums, forum_posts, post_likes, comment_likes, post_comments, organizations, databases, database_records, portal_customizations, care_plans, enduser_tasks, role_based_access_permissions, appointment_booking_pages, appointment_locations, products, purchases, purchase_credits, phone_calls, enduser_profile_views, custom_dashboards, table_views, email_sync_denials, time_tracks\n\n        You can handle webhooks from automations in Tellescope, which have a simpler format: <pre>{ \n          type: 'automation'\n          message: string,\n          timestamp: string, \n          integrity: string, \n          enduserId: string, \n}</pre>\n        In this case, integrity is a simple sha256 hash of message + timestamp + secret\n\n        You can also handle calendar event reminders as webhooks, which have the format: <pre>{ \n          type: 'calendar_event_reminder'\n          event: CalendarEvent,\n          timestamp: string, \n          integrity: string, \n}</pre>\n        In this case, integrity is a simple sha256 hash of event.id + timestamp + secret\n      "
     }
   ],
   "security": [

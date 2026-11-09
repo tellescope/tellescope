@@ -14,7 +14,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.WELLE_TITLE = exports.SEASON_TITLE = exports.OPEN_LOOP_TITLE = exports.ZUS_TITLE = exports.ELATION_TITLE = exports.VITAL_TITLE = exports.PHOTON_TITLE = exports.MEDPLUM_TITLE = exports.ITERABLE_TITLE = exports.HEALTHIE_TITLE = exports.OPENAI_TITLE = exports.ZOOM_URI_ENDING = exports.ZOOM_TITLE = exports.ZOHO_URI_ENDING = exports.ZOHO_TITLE = exports.OKTA_INTEGRATIONS_TITLE = exports.OKTA_OIDC_URI_ENDING = exports.MICROSOFT_OIDC_URI_ENDING = exports.OUTLOOK_REDIRECT_URI_ENDING = exports.MICROSOFT_INTEGRATIONS_TITLE = exports.OUTLOOK_INTEGRATIONS_TITLE = exports.DIALPAD_REDIRECT_URI_ENDING = exports.DIALPAD_INTEGRATIONS_TITLE = exports.SQUARE_REDIRECT_URI_ENDING = exports.SQUARE_INTEGRATIONS_TITLE = exports.DR_CHRONO_REDIRECT_URI_ENDING = exports.DR_CHRONO_INTEGRATIONS_TITLE = exports.SMART_METER_TITLE = exports.PAGER_DUTY_TITLE = exports.GOOGLE_INTEGRATIONS_TITLE = exports.MM_DD_YYYY_REGEX = exports.QUESTION_GROUP_VALUE_PLACEHOLDER = exports.UNSEARCHABLE_FIELDS = exports.SECONDS_IN_ONE_YEAR = exports.ENDUSER_SESSION_TYPE = exports.USER_SESSION_TYPE = exports.PLACEHOLDER_ID = exports.ACCESS_ACTION_FOR_OPERATION = exports.DEFAULT_OPERATIONS = exports.CREATOR_ONLY_ACCESS = exports.BUSINESS_TYPE = exports.ADMIN_ROLE = exports.WARNING_HEX = exports.ERROR_HEX = exports.SECONDARY_HEX = exports.PRIMARY_HEX = exports.ENDUSER_FIELD_TYPES = exports.READONLY_ENDUSER_FIELDS_TO_DISPLAY_NAME = exports.ENDUSER_FIELDS_WITH_NESTED_PATHS_DISPLAY_NAME = exports.ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME = void 0;
 exports.READ_ONLY_ALL = exports.INACCESSIBLE = exports.DEFAULT_ONLY_ACCESS = exports.ASSIGNED_AND_DEFAULT_ACCESS_ALL_CREATE = exports.ASSIGNED_AND_DEFAULT_ACCESS = exports.FULL_ACCESS = exports.NO_ACCESS = exports.DEFAULT_ACCESS = exports.ASSIGNED_ACCESS = exports.ALL_ACCESS = exports.UNIQUENESS_VIOLATION = exports.EMAIL_SYNC_FREQUENCY_IN_MS = exports.ONE_WEEK_IN_MS = exports.ONE_DAY_IN_MS = exports.ONE_HOUR_IN_MS = exports.ONE_MINUTE_IN_MS = exports.ORGANIZATION_WIDE_INTEGRATIONS = exports.GENERIC_INTEGRATIONS = exports.MDI_FILE_TYPES = exports.MDI_FLAG_ALL_ANSWERS = exports.VITL_TITLE = exports.MD_INTEGRATIONS_TITLE = exports.BRIDGE_TITLE = exports.PAUBOX_TITLE = exports.METRIPORT_TITLE = exports.BELUGA_TITLE = exports.PUPPETEER_TITLE = exports.CUSTOMER_IO_TITLE = exports.CHARGEBEE_TITLE = exports.KENDRA_TITLE = exports.DEVELOP_HEALTH_TITLE = exports.EMOTII_TITLE = exports.STRIPE_TITLE = exports.FULLSCRIPT_REDIRECT_URI_ENDING = exports.FULLSCRIPT_INTEGRATIONS_TITLE = exports.ZENDESK_REDIRECT_URI_ENDING = exports.INTEGRATION_SENSITIVE_FIELDS = exports.ZENDESK_INTEGRATIONS_TITLE = exports.ACTIVE_CAMPAIGN_TITLE = exports.DOCSUMO_TITLE = exports.USDA_TITLE = exports.SCRIPTSURE_TITLE = exports.DOSESPOT_TITLE = exports.SUPERDIAL_TITLE = exports.ATHENA_TITLE = exports.GOGO_MEDS_TITLE = exports.STEDI_TITLE = exports.CANDID_TITLE = exports.MFAX_TITLE = exports.CANVAS_TITLE = void 0;
 exports.SELECTABLE_AI_MODELS = exports.DEFAULT_HISTORICAL_DATA_SOURCE_LIMIT = exports.AI_SUMMARY_DATE_FIDELITY_INSTRUCTION = exports.MAX_AI_SUMMARY_CHAT_ROOMS = exports.MAX_AI_SUMMARY_RECORD_CHARS = exports.MAX_AI_SUMMARY_DATA_SOURCES = exports.DEFAULT_AI_SUMMARY_MAX_OUTPUT_TOKENS = exports.DEFAULT_AI_SUMMARY_DATA_SOURCE_LIMIT = exports.AI_SUMMARY_CACHE_TTL_MS = exports.MAX_AI_SUMMARY_INPUT_TOKENS = exports.DEFAULT_CALL_SUMMARY_MAX_TOKENS = exports.DEFAULT_CALL_SUMMARY_PROMPT = exports.ATHENA_DOCUMENT_TYPES_TO_DISPLAY = exports.TELLESCOPE_PORTAL_SOURCE = exports.USER_PERSONAL_EMAIL_OVERRIDE = exports.PORTAL_PAGES_HIDDEN_BY_DEFAULT = exports.DOCUMENT_TYPE_CODINGS = exports.DOCUMENT_REFERENCE_CODINGS = exports.HEALTHIE_FORCE_SYNC_FIELD = exports.BUILT_IN_BOOLEANS_FOR_SET_FIELDS = exports.BUILT_INS_FOR_SET_FIELDS = exports.CURRENT_POLICY_VERION = exports.DAYS_OF_WEEK_STARTING_SUNDAY = exports.CANDID_MODIFIERS = exports.WEIGHT_UNITS = exports.VITAL_UNITS = exports.VITAL_UNITS_INFO = exports.VITAL_RANGE_CLASSIFICATIONS = exports.TELLESCOPE_GENDERS = exports.INSURANCE_RELATIONSHIPS_CANVAS = exports.INSURANCE_RELATIONSHIPS_CANVAS_MAPPING = exports.INSURANCE_RELATIONSHIPS_ALPHABETICAL = exports.INSURANCE_RELATIONSHIPS = exports.INSURANCE_RELATIONSHIPS_TO_CODE = exports.get_inverse_relationship_type = exports.RELATIONSHIP_TYPES = exports.AUTOMATED_ACTION_CANCEL_REASONS = exports.AUTOMATED_ACTION_LOCK_TIMEOUT_MS = exports.HELPDESK_TICKET_CLOSE_REASONS = exports.CPT_CODES = exports.PHONE_LOGIN_DISABLED_MESSAGE = exports.PORTAL_DEFAULT_REGISTER_DESCRIPTION = exports.PORTAL_DEFAULT_REGISTER_TITLE = exports.PORTAL_DEFAULT_LOGIN_DESCRIPTION = exports.PORTAL_DEFAULT_LOGIN_TITLE = exports.PORTAL_DEFAULT_LANDING_TITLE = exports.ADMIN_PERMISSIONS = exports.PROVIDER_PERMISSIONS = exports.READ_ONLY_DEFAULT = exports.READ_ONLY_ASSIGNED = void 0;
-exports.SYSTEM_REVIEWER_ID = exports.VOICE_AGENT_FORM_RESPONSE_SOURCE = exports.VOICE_FORM_SUPPORTED_FIELD_TYPES = exports.SMS_AGENT_FORM_RESPONSE_SOURCE = exports.SMS_AGENT_CONVERSATION_TYPE = exports.DEFAULT_VOICE_AGENT_GREETING = exports.VOICE_AGENT_CONVERSATION_TYPE = exports.T2_TEMPLATE_EDITOR_STATE = exports.EXAMPLE_AI_SUGGESTED_REPLY_PROMPT = exports.EXAMPLE_FORM_RESPONSE_SUMMARY_PROMPT = exports.EXAMPLE_AI_SUMMARY_PROMPT = exports.DEFAULT_AI_MODEL = void 0;
+exports.AI_DOCUMENT_AGENT_KIND = exports.MODEL_READ_MANY_LIMITS = exports.AI_DOCUMENT_VERSIONS_PAGE_LIMIT = exports.AI_DOCUMENT_GOVERNANCE_FIELDS = exports.AI_DOCUMENT_CARD_MAX_LENGTH = exports.AI_DOCUMENT_DEFINITION_MAX_LENGTH = exports.SYSTEM_REVIEWER_ID = exports.VOICE_AGENT_FORM_RESPONSE_SOURCE = exports.VOICE_FORM_SUPPORTED_FIELD_TYPES = exports.SMS_AGENT_FORM_RESPONSE_SOURCE = exports.SMS_AGENT_CONVERSATION_TYPE = exports.DEFAULT_VOICE_AGENT_GREETING = exports.VOICE_AGENT_CONVERSATION_TYPE = exports.T2_TEMPLATE_EDITOR_STATE = exports.EXAMPLE_AI_SUGGESTED_REPLY_PROMPT = exports.EXAMPLE_FORM_RESPONSE_SUMMARY_PROMPT = exports.EXAMPLE_AI_SUMMARY_PROMPT = exports.DEFAULT_AI_MODEL = void 0;
 exports.ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME = {
     'id': "ID",
     'assignedTo': "Care Team",
@@ -276,6 +276,21 @@ exports.READ_ONLY_DEFAULT = {
     delete: exports.NO_ACCESS,
 };
 exports.PROVIDER_PERMISSIONS = {
+    // Apps and agent definitions are PRIVATE BY DEFAULT: any provider may create one, and reads the
+    // ones they created plus any shared with them (visibleToAllUsers / sharedWithUserIds — the schema's
+    // access constraints). read must stay Default: at All, buildQueryObject skips every access
+    // constraint and the whole organization would see every document. Only the creator (or an admin)
+    // may update. There is no delete at any level — conversations cite documents for audit, so
+    // retirement is `archivedAt`.
+    ai_documents: {
+        create: exports.ALL_ACCESS,
+        read: exports.DEFAULT_ACCESS,
+        update: exports.DEFAULT_ACCESS,
+        delete: exports.NO_ACCESS,
+    },
+    // Versions are written only by ai_documents.save_version, never through the generic endpoints.
+    // Default, not All, for the same reason: a version is readable iff its document is.
+    ai_document_versions: exports.READ_ONLY_DEFAULT,
     inbox_threads: exports.ASSIGNED_AND_DEFAULT_ACCESS,
     ai_conversations: exports.ASSIGNED_AND_DEFAULT_ACCESS,
     waitlists: exports.READ_ONLY_ALL,
@@ -431,6 +446,8 @@ exports.PROVIDER_PERMISSIONS = {
     },
 };
 exports.ADMIN_PERMISSIONS = {
+    ai_documents: exports.FULL_ACCESS,
+    ai_document_versions: exports.FULL_ACCESS,
     inbox_threads: exports.FULL_ACCESS,
     ai_conversations: exports.FULL_ACCESS,
     waitlists: exports.FULL_ACCESS,
@@ -1263,4 +1280,55 @@ exports.VOICE_AGENT_FORM_RESPONSE_SOURCE = "AI Voice Agent"; // form_responses.s
 // vital configuration range instead of by a human. Not a valid ObjectId, so it cannot collide with
 // a real user id — callers rendering reviewedBy must special-case it rather than looking up a user.
 exports.SYSTEM_REVIEWER_ID = 'system';
+/* ============================== ai_documents / ai_document_versions ============================== */
+/** Opaque JSON blob caps. Generous on purpose: a real agent definition carries its whole tool set
+ *  and prompt, and a truncated one is unusable. 25 MB is the body-parser limit above both. */
+exports.AI_DOCUMENT_DEFINITION_MAX_LENGTH = 2000000;
+exports.AI_DOCUMENT_CARD_MAX_LENGTH = 2000;
+/**
+ * ai_documents fields that are legal ONLY when `kind === 'agent'`; sending any of them on a
+ * document of any other kind is a 400 (the relationship constraint in schema.ts).
+ *
+ * Shared with the API so the endpoint and the schema constraint can never disagree about the set.
+ */
+exports.AI_DOCUMENT_GOVERNANCE_FIELDS = [
+    'runAsUserId',
+    'approverUserIds',
+    'maxCredits',
+    'autopilotEnabled',
+    'scheduleCron',
+];
+/**
+ * Page size for ai_document_versions reads.
+ *
+ * Far below the platform's 100/1000 because each record carries a `definition` of up to
+ * AI_DOCUMENT_DEFINITION_MAX_LENGTH characters. At the platform default one page would be ~200 MB of
+ * JSON assembled in a single worker, and at the platform maximum ~2 GB — an out-of-memory stall
+ * rather than a slow query. 20 bounds the worst case at ~40 MB (and a realistic ~100 KB definition
+ * at ~2 MB), the same order as the 25 MB body-parser limit. Longer histories page with `lastId`.
+ *
+ * It is applied at all THREE entry points that decide a page size, because the obvious one is not
+ * the only one: the `limit` parameter (validated against the model's readManyLimit), `ids` on
+ * readMany (whose length becomes the limit, and is NOT validated against it), and the
+ * `/bulk-read` endpoint (same). Capping only `limit` would leave the other two returning up to
+ * 1,000 records, which is the exact scenario above.
+ */
+exports.AI_DOCUMENT_VERSIONS_PAGE_LIMIT = 20;
+/**
+ * Models whose readMany page size is capped BELOW the platform's defaults, because one record is
+ * large enough that an ordinary page is a memory problem rather than a slow query.
+ *
+ * Shared deliberately, by all three places that decide a page size: api/v1/api.ts passes it to
+ * createDefaultEndpoints as the readManyLimit an explicit `limit` is validated against,
+ * database.ts's default_page_limit applies it to a caller that sends no limit at all, and the
+ * React list hook clamps every request it builds to it — the mount fetch, `loadMore`, and the id batches behind
+ * `findById({ batch: true })`. A client that asks for more is refused with a 400, not truncated, so
+ * the two sides cannot be allowed to drift: a hook sending the platform default of 500 against a
+ * model capped at 20 does not return 20 records, it returns nothing at all.
+ */
+exports.MODEL_READ_MANY_LIMITS = {
+    ai_document_versions: exports.AI_DOCUMENT_VERSIONS_PAGE_LIMIT,
+};
+/** The one `kind` the server itself branches on. Every other slug is opaque to the backend. */
+exports.AI_DOCUMENT_AGENT_KIND = 'agent';
 //# sourceMappingURL=constants.js.map

@@ -62,6 +62,7 @@ import { LoadingStatus, UNLOADED, } from "@tellescope/types-utilities";
 import { useEnduserSession, useResolvedSession, useSession, } from "./index";
 import { value_is_loaded } from './loading';
 import { matches_organization, object_is_empty, objects_equivalent } from '@tellescope/utilities';
+import { MODEL_READ_MANY_LIMITS } from '@tellescope/constants';
 var RESET_CACHE_TYPE = "cache/reset";
 export var resetStateAction = createAction(RESET_CACHE_TYPE);
 export var TellescopeStoreContext = React.createContext(null);
@@ -280,12 +281,16 @@ var enduserEligibilityResultsSlice = createSliceForList('enduser_eligibility_res
 var agentRecordsSlice = createSliceForList('agent_records');
 var waitlistsSlice = createSliceForList('waitlists');
 var aiConversationsSlice = createSliceForList('ai_conversations');
+var aiDocumentsSlice = createSliceForList('ai_documents');
+var aiDocumentVersionsSlice = createSliceForList('ai_document_versions');
 var roleBasedAccessPermissionsSlice = createSliceForList('role_based_access_permissions');
 var calendarEventRSVPsSlice = createSliceForList('calendar_event_rsvps');
 var userLogsSlice = createSliceForList('user_logs');
 export var sharedConfig = {
     reducer: {
         ai_conversations: aiConversationsSlice.reducer,
+        ai_documents: aiDocumentsSlice.reducer,
+        ai_document_versions: aiDocumentVersionsSlice.reducer,
         agent_records: agentRecordsSlice.reducer,
         enduser_eligibility_results: enduserEligibilityResultsSlice.reducer,
         integration_logs: integrationLogsSlice.reducer,
@@ -555,6 +560,26 @@ export var useSyncContext = function () { return useContext(SyncContext); };
 var DEFAULT_FETCH_LIMIT = 500;
 var BULK_READ_DEFAULT_LIMIT = 1000; // 1000 is max
 var DONE_LOADING_TOKEN = 'doneLoading';
+/**
+ * A handful of models cap readMany well below the platform defaults because one record is large
+ * (an ai_document_versions `definition` is up to 2 MB) — MODEL_READ_MANY_LIMITS, shared with the
+ * server, which is what enforces it.
+ *
+ * Every request this hook builds goes through one of the two helpers below, because the API
+ * REFUSES an over-limit read with a 400 rather than truncating it. Sending the default 500 at a
+ * model capped at 20 does not return 20 records, it returns none — and in the batch path a
+ * rejection marks every id in the batch `recordNotFound`, which is sticky for the session, so the
+ * records read as deleted rather than as an error. Both helpers are a no-op (`Math.min(x, Infinity)`)
+ * for every model not in the map, which today is all of them but one.
+ */
+export var readLimitForModel = function (modelName, requested) {
+    var _a;
+    return Math.min(requested || DEFAULT_FETCH_LIMIT, (_a = MODEL_READ_MANY_LIMITS[modelName]) !== null && _a !== void 0 ? _a : Infinity);
+};
+export var bulkReadBatchSizeForModel = function (modelName) {
+    var _a;
+    return Math.min(BULK_READ_DEFAULT_LIMIT, (_a = MODEL_READ_MANY_LIMITS[modelName]) !== null && _a !== void 0 ? _a : Infinity);
+};
 export var useListStateHook = function (modelName, state, session, slice, apiCalls, options) {
     var _a, _b, _c, _d;
     var _e = (_a = useSyncContext()) !== null && _a !== void 0 ? _a : {}, setHandler = _e.setHandler, popDeleted = _e.popDeleted, popLoaded = _e.popLoaded, removeHandler = _e.removeHandler;
@@ -749,12 +774,13 @@ export var useListStateHook = function (modelName, state, session, slice, apiCal
                 return; // already fetching
             if (batchRef.current.ids.length === 0)
                 return;
-            // can only load max of 1000, ensure other ids are included in nextBatch
-            if (batchRef.current.ids.length > BULK_READ_DEFAULT_LIMIT) {
-                (_a = batchRef.current.nextBatch).unshift.apply(_a, batchRef.current.ids.slice(BULK_READ_DEFAULT_LIMIT));
+            // can only load max of 1000 (less for a capped model), ensure other ids are included in nextBatch
+            var batchSize = bulkReadBatchSizeForModel(modelName);
+            if (batchRef.current.ids.length > batchSize) {
+                (_a = batchRef.current.nextBatch).unshift.apply(_a, batchRef.current.ids.slice(batchSize));
             }
             batchRef.current.fetching = true;
-            var currentBatchIds = batchRef.current.ids.slice(0, BULK_READ_DEFAULT_LIMIT);
+            var currentBatchIds = batchRef.current.ids.slice(0, batchSize);
             // Filter out IDs that are already loaded to prevent unnecessary fetching
             var idsToFetch = currentBatchIds.filter(function (id) {
                 var alreadyLoaded = state.status === LoadingStatus.Loaded &&
@@ -888,7 +914,7 @@ export var useListStateHook = function (modelName, state, session, slice, apiCal
         if (didFetch(fetchKey, force, options === null || options === void 0 ? void 0 : options.refetchInMS))
             return;
         setFetched(fetchKey, true);
-        var limit = (options === null || options === void 0 ? void 0 : options.limit) || DEFAULT_FETCH_LIMIT;
+        var limit = readLimitForModel(modelName, options === null || options === void 0 ? void 0 : options.limit);
         toLoadedData(function () { return loadQuery({ mdbFilter: mdbFilter, filter: loadFilter, limit: limit, sort: sort, sortBy: sortBy }); }, { valueOnError: mdbFilter ? [] : undefined }).then(function (es) {
             var _a, _b;
             if (es.status === LoadingStatus.Loaded) {
@@ -949,8 +975,8 @@ export var useListStateHook = function (modelName, state, session, slice, apiCal
     }, [didFetch, modelName, options === null || options === void 0 ? void 0 : options.loadFilter, options === null || options === void 0 ? void 0 : options.mdbFilter, options === null || options === void 0 ? void 0 : options.sort, options === null || options === void 0 ? void 0 : options.sortBy]);
     var loadMore = useCallback(function (loadOptions) { return __awaiter(void 0, void 0, void 0, function () {
         var sort, sortBy, _filter, filter, _mdbFilter, mdbFilter, mdbFilterIsActive, filterKey, lastId, key, limit;
-        var _a, _b, _c, _d, _e, _f;
-        return __generator(this, function (_g) {
+        var _a, _b, _c, _d, _e;
+        return __generator(this, function (_f) {
             sort = options === null || options === void 0 ? void 0 : options.sort;
             sortBy = options === null || options === void 0 ? void 0 : options.sortBy;
             _filter = (_a = loadOptions === null || loadOptions === void 0 ? void 0 : loadOptions.filter) !== null && _a !== void 0 ? _a : options === null || options === void 0 ? void 0 : options.loadFilter;
@@ -972,7 +998,7 @@ export var useListStateHook = function (modelName, state, session, slice, apiCal
             key = (_d = loadOptions === null || loadOptions === void 0 ? void 0 : loadOptions.key) !== null && _d !== void 0 ? _d : 'id';
             if (key !== 'id')
                 console.warn("Unrecognized key provided");
-            limit = (_f = (_e = loadOptions === null || loadOptions === void 0 ? void 0 : loadOptions.limit) !== null && _e !== void 0 ? _e : options === null || options === void 0 ? void 0 : options.limit) !== null && _f !== void 0 ? _f : DEFAULT_FETCH_LIMIT;
+            limit = readLimitForModel(modelName, (_e = loadOptions === null || loadOptions === void 0 ? void 0 : loadOptions.limit) !== null && _e !== void 0 ? _e : options === null || options === void 0 ? void 0 : options.limit);
             return [2 /*return*/, toLoadedData(function () { return loadQuery({
                     // lastId: !options?.filter ? oldestRecord?.id?.toString() : undefined,  // don't provide a lastId when there's a filter, filter could include that on its own
                     lastId: lastId,
@@ -1169,6 +1195,40 @@ export var useAIConversations = function (options) {
         addSome: session.api.ai_conversations.createSome,
         deleteOne: session.api.ai_conversations.deleteOne,
         updateOne: session.api.ai_conversations.updateOne,
+    }, __assign({}, options));
+};
+export var useAIDocuments = function (options) {
+    if (options === void 0) { options = {}; }
+    var session = useSession();
+    // No deleteOne: ai_documents has no delete action at any access level (archive with archivedAt).
+    return useListStateHook('ai_documents', useTypedSelector(function (s) { return s.ai_documents; }), session, aiDocumentsSlice, {
+        loadQuery: session.api.ai_documents.getSome,
+        findOne: session.api.ai_documents.getOne,
+        findByIds: session.api.ai_documents.getByIds,
+        addOne: session.api.ai_documents.createOne,
+        addSome: session.api.ai_documents.createSome,
+        updateOne: session.api.ai_documents.updateOne,
+    }, __assign({}, options));
+};
+export var useAIDocumentVersions = function (options) {
+    if (options === void 0) { options = {}; }
+    var session = useSession();
+    // Read-only by design: versions are written only by ai-documents/save-version.
+    //
+    // Both reads are capped at AI_DOCUMENT_VERSIONS_PAGE_LIMIT (20) records, loadQuery and findByIds
+    // alike, because one version can carry a 2 MB definition. Nothing is needed here to honour that:
+    // the cap lives in MODEL_READ_MANY_LIMITS and useListStateHook clamps the mount fetch, loadMore
+    // and the findById id batches to it — see readLimitForModel / bulkReadBatchSizeForModel. Passing
+    // `limit` through `options` would NOT have been enough, since it does not reach the batch path.
+    // A consumer loading a longer history pages with loadMore; asking the API for more than the cap
+    // is a 400, not a truncated result.
+    //
+    // Below 'All' read the API also refuses an UNFILTERED list (400): pass
+    // `mdbFilter: { documentId }` to list one document's versions, or read versions by id.
+    return useListStateHook('ai_document_versions', useTypedSelector(function (s) { return s.ai_document_versions; }), session, aiDocumentVersionsSlice, {
+        loadQuery: session.api.ai_document_versions.getSome,
+        findOne: session.api.ai_document_versions.getOne,
+        findByIds: session.api.ai_document_versions.getByIds,
     }, __assign({}, options));
 };
 export var useAgentRecords = function (options) {

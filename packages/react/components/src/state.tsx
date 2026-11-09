@@ -103,6 +103,8 @@ import {
   AgentRecord,
   Waitlist,
   AIConversation,
+  AIDocument,
+  AIDocumentVersion,
 } from "@tellescope/types-client"
 
 import {
@@ -118,6 +120,7 @@ import {
 import { value_is_loaded } from './loading'
 import { matches_organization, object_is_empty, objects_equivalent } from '@tellescope/utilities'
 import { Diagnosis, ModelName, ReadFilter, SortBy } from '@tellescope/types-models'
+import { MODEL_READ_MANY_LIMITS } from '@tellescope/constants'
 
 const RESET_CACHE_TYPE = "cache/reset" as const
 export const resetStateAction = createAction(RESET_CACHE_TYPE)
@@ -365,6 +368,8 @@ const enduserEligibilityResultsSlice = createSliceForList<EnduserEligibilityResu
 const agentRecordsSlice = createSliceForList<AgentRecord, 'agent_records'>('agent_records')
 const waitlistsSlice = createSliceForList<Waitlist, 'waitlists'>('waitlists')
 const aiConversationsSlice = createSliceForList<AIConversation, 'ai_conversations'>('ai_conversations')
+const aiDocumentsSlice = createSliceForList<AIDocument, 'ai_documents'>('ai_documents')
+const aiDocumentVersionsSlice = createSliceForList<AIDocumentVersion, 'ai_document_versions'>('ai_document_versions')
 
 const roleBasedAccessPermissionsSlice = createSliceForList<RoleBasedAccessPermission, 'role_based_access_permissions'>('role_based_access_permissions')
 
@@ -374,6 +379,8 @@ const userLogsSlice = createSliceForList<UserLog, 'user_logs'>('user_logs')
 export const sharedConfig = {
   reducer: { 
     ai_conversations: aiConversationsSlice.reducer,
+    ai_documents: aiDocumentsSlice.reducer,
+    ai_document_versions: aiDocumentVersionsSlice.reducer,
     agent_records: agentRecordsSlice.reducer,
     enduser_eligibility_results: enduserEligibilityResultsSlice.reducer,
     integration_logs: integrationLogsSlice.reducer,
@@ -710,6 +717,27 @@ const DEFAULT_FETCH_LIMIT = 500
 const BULK_READ_DEFAULT_LIMIT = 1000 // 1000 is max
 const DONE_LOADING_TOKEN = 'doneLoading'
 
+/**
+ * A handful of models cap readMany well below the platform defaults because one record is large
+ * (an ai_document_versions `definition` is up to 2 MB) — MODEL_READ_MANY_LIMITS, shared with the
+ * server, which is what enforces it.
+ *
+ * Every request this hook builds goes through one of the two helpers below, because the API
+ * REFUSES an over-limit read with a 400 rather than truncating it. Sending the default 500 at a
+ * model capped at 20 does not return 20 records, it returns none — and in the batch path a
+ * rejection marks every id in the batch `recordNotFound`, which is sticky for the session, so the
+ * records read as deleted rather than as an error. Both helpers are a no-op (`Math.min(x, Infinity)`)
+ * for every model not in the map, which today is all of them but one.
+ */
+export const readLimitForModel = (modelName: string, requested?: number) => Math.min(
+  requested || DEFAULT_FETCH_LIMIT,
+  MODEL_READ_MANY_LIMITS[modelName as ModelName] ?? Infinity,
+)
+export const bulkReadBatchSizeForModel = (modelName: string) => Math.min(
+  BULK_READ_DEFAULT_LIMIT,
+  MODEL_READ_MANY_LIMITS[modelName as ModelName] ?? Infinity,
+)
+
 export type UpdateElement <T,> = (id: string, e: Partial<T>, o?: CustomUpdateOptions, _overrideUnique?: boolean) => Promise<T>
 
 export interface ListUpdateMethods <T, ADD> extends LoadMoreFunctions<T> {
@@ -925,13 +953,14 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
       if (batchRef.current.fetching) return // already fetching
       if (batchRef.current.ids.length === 0) return
 
-      // can only load max of 1000, ensure other ids are included in nextBatch
-      if (batchRef.current.ids.length > BULK_READ_DEFAULT_LIMIT) {
-        batchRef.current.nextBatch.unshift(...batchRef.current.ids.slice(BULK_READ_DEFAULT_LIMIT))
+      // can only load max of 1000 (less for a capped model), ensure other ids are included in nextBatch
+      const batchSize = bulkReadBatchSizeForModel(modelName)
+      if (batchRef.current.ids.length > batchSize) {
+        batchRef.current.nextBatch.unshift(...batchRef.current.ids.slice(batchSize))
       }
 
       batchRef.current.fetching = true
-      const currentBatchIds = batchRef.current.ids.slice(0, BULK_READ_DEFAULT_LIMIT)
+      const currentBatchIds = batchRef.current.ids.slice(0, batchSize)
 
       // Filter out IDs that are already loaded to prevent unnecessary fetching
       const idsToFetch = currentBatchIds.filter(id => {
@@ -1083,7 +1112,7 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
     if (didFetch(fetchKey, force, options?.refetchInMS)) return
     setFetched(fetchKey, true)
 
-    const limit = options?.limit || DEFAULT_FETCH_LIMIT
+    const limit = readLimitForModel(modelName, options?.limit)
     toLoadedData(() => loadQuery({ mdbFilter, filter: loadFilter, limit, sort, sortBy }), { valueOnError: mdbFilter ? [] : undefined }).then(
       es => {
         if (es.status === LoadingStatus.Loaded) {
@@ -1177,7 +1206,7 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
     const key = loadOptions?.key ?? 'id' 
     if (key !== 'id') console.warn("Unrecognized key provided")
 
-    const limit = loadOptions?.limit ?? options?.limit ?? DEFAULT_FETCH_LIMIT
+    const limit = readLimitForModel(modelName, loadOptions?.limit ?? options?.limit)
     return toLoadedData(() => loadQuery({ 
       // lastId: !options?.filter ? oldestRecord?.id?.toString() : undefined,  // don't provide a lastId when there's a filter, filter could include that on its own
       lastId,
@@ -1358,6 +1387,52 @@ export const useAIConversations = (options={} as HookOptions<AIConversation>) =>
       addSome: session.api.ai_conversations.createSome,
       deleteOne: session.api.ai_conversations.deleteOne,
       updateOne: session.api.ai_conversations.updateOne,
+    },
+    { 
+      ...options,
+    },
+  )
+}
+
+export const useAIDocuments = (options={} as HookOptions<AIDocument>) => {
+  const session = useSession()
+
+  // No deleteOne: ai_documents has no delete action at any access level (archive with archivedAt).
+  return useListStateHook('ai_documents', useTypedSelector(s => s.ai_documents), session, aiDocumentsSlice,
+    { 
+      loadQuery: session.api.ai_documents.getSome,
+      findOne: session.api.ai_documents.getOne,
+      findByIds: session.api.ai_documents.getByIds,
+      addOne: session.api.ai_documents.createOne,
+      addSome: session.api.ai_documents.createSome,
+      updateOne: session.api.ai_documents.updateOne,
+    },
+    { 
+      ...options,
+    },
+  )
+}
+
+export const useAIDocumentVersions = (options={} as HookOptions<AIDocumentVersion>) => {
+  const session = useSession()
+
+  // Read-only by design: versions are written only by ai-documents/save-version.
+  //
+  // Both reads are capped at AI_DOCUMENT_VERSIONS_PAGE_LIMIT (20) records, loadQuery and findByIds
+  // alike, because one version can carry a 2 MB definition. Nothing is needed here to honour that:
+  // the cap lives in MODEL_READ_MANY_LIMITS and useListStateHook clamps the mount fetch, loadMore
+  // and the findById id batches to it — see readLimitForModel / bulkReadBatchSizeForModel. Passing
+  // `limit` through `options` would NOT have been enough, since it does not reach the batch path.
+  // A consumer loading a longer history pages with loadMore; asking the API for more than the cap
+  // is a 400, not a truncated result.
+  //
+  // Below 'All' read the API also refuses an UNFILTERED list (400): pass
+  // `mdbFilter: { documentId }` to list one document's versions, or read versions by id.
+  return useListStateHook('ai_document_versions', useTypedSelector(s => s.ai_document_versions), session, aiDocumentVersionsSlice,
+    { 
+      loadQuery: session.api.ai_document_versions.getSome,
+      findOne: session.api.ai_document_versions.getOne,
+      findByIds: session.api.ai_document_versions.getByIds,
     },
     { 
       ...options,

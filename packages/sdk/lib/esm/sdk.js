@@ -226,6 +226,8 @@ var loadDefaultQueries = function (s) { return ({
     enduser_eligibility_results: defaultQueries(s, 'enduser_eligibility_results'),
     waitlists: defaultQueries(s, 'waitlists'),
     ai_conversations: defaultQueries(s, 'ai_conversations'),
+    ai_documents: defaultQueries(s, 'ai_documents'),
+    ai_document_versions: defaultQueries(s, 'ai_document_versions'),
     inbox_threads: defaultQueries(s, 'inbox_threads'),
 }); };
 var Session = /** @class */ (function (_super) {
@@ -646,6 +648,7 @@ var Session = /** @class */ (function (_super) {
         queries.ai_conversations.generate_ai_decision = function (args) { return _this._POST("/v1".concat(schema.ai_conversations.customActions.generate_ai_decision.path), args); };
         queries.ai_conversations.agent_message = function (args) { return _this._POST("/v1".concat(schema.ai_conversations.customActions.agent_message.path), args); };
         queries.automated_actions.process = function (args) { return _this._POST("/v1".concat(schema.automated_actions.customActions.process.path), args); };
+        queries.ai_documents.save_version = function (args) { return _this._POST("/v1".concat(schema.ai_documents.customActions.save_version.path), args); };
         _this.api = queries;
         return _this;
     }

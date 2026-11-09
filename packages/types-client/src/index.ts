@@ -96,6 +96,8 @@ export type EnduserEligibilityResult = ClientModelForName['enduser_eligibility_r
 export type AgentRecord = ClientModelForName['agent_records']
 export type Waitlist = ClientModelForName['waitlists']
 export type AIConversation = ClientModelForName['ai_conversations']
+export type AIDocument = ClientModelForName['ai_documents']
+export type AIDocumentVersion = ClientModelForName['ai_document_versions']
 export type InboxThread = ClientModelForName['inbox_threads']
 
 export type VerifiedEmailDomain = models.VerifiedEmailDomain

@@ -1,6 +1,6 @@
 /// <reference types="node" />
 /// <reference types="node" />
-import { AvailabilityBlock, CalendarEvent, CalendarEventLimit, CompoundFilter, Enduser, EnduserInsurance, EnduserMedication, EnduserObservation, EnduserOrder, Form, FormField, FormFieldType, FormResponse, FormResponseValue, FormResponseValueAnswer, Integration, LabeledField, ManagedContentRecord, Organization, OutOfOfficeBlock, Purchase, RoundRobinAssignmentInfo, SMSMessage, TableInputCell, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models";
+import { AvailabilityBlock, CalendarEvent, CalendarEventLimit, CompoundFilter, Enduser, EnduserInsurance, EnduserMedication, EnduserObservation, EnduserOrder, Form, FormField, FormFieldType, FormResponse, FormResponseValue, FormResponseValueAnswer, Integration, InsuranceRelationship, LabeledField, ManagedContentRecord, Organization, OutOfOfficeBlock, Purchase, RoundRobinAssignmentInfo, SMSMessage, TableInputCell, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models";
 import { DateTime } from "luxon";
 import { ObjectId } from "./ObjectId/objectid";
 export { ObjectId };
@@ -414,6 +414,10 @@ export declare const weighted_round_robin: ({ assignments: _assignments, users: 
 }) => ({
     selected?: string;
 });
+export declare const insurance_relationships_for_field: (field: Pick<FormField, 'options' | 'settings'>) => {
+    options: InsuranceRelationship[];
+    defaultRelationship: InsuranceRelationship;
+};
 export declare const validate_insurance_for_eligibility: (enduser: Pick<Enduser, 'insurance'>) => "Insurance not set" | "Payer name not set" | "Payer id not set" | "Member id not set" | "Subscriber relationship not set" | "Subscriber first name not set" | "Subscriber last name not set" | "Subscriber gender not set" | undefined;
 export declare const validate_organization_for_candid: (organization?: Omit<Organization, 'id'> | null) => "Organization is required" | "Billing organization name is required" | "Billing organization NPI is required" | "Billing organization Tax ID is required" | "Billing organization address is required (Line One)" | "Billing organization address is required (City)" | "Billing organization address is required (State)" | "Billing organization address is required (ZIP)" | "Billing organization address is required (ZIP+4)" | undefined;
 export declare const validate_provider_for_candid: (user?: Omit<User, 'id'> | null) => "User is required" | "User first name is required" | "User last name is required" | "User NPI is required" | undefined;

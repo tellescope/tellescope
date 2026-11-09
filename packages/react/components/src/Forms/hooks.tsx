@@ -9,7 +9,7 @@ import { WithTheme, contact_is_valid, useAddGTMTag, useFileUpload, useFormFields
 import ReactGA from "react-ga4";
 
 import isEmail from "validator/lib/isEmail"
-import { MM_DD_YYYY_to_YYYY_MM_DD, TRANSLATION_LANGUAGES, append_current_utm_params, emit_gtm_event, field_can_autoadvance, getLocalTimezone, get_time_values, get_utm_params, is_object, languageLabelForCode, mm_dd_yyyy, object_is_empty, read_local_storage, replace_form_field_template_values, responses_satisfy_conditions, translationLanguageCodeForLanguage, update_local_storage } from "@tellescope/utilities"
+import { MM_DD_YYYY_to_YYYY_MM_DD, TRANSLATION_LANGUAGES, append_current_utm_params, insurance_relationships_for_field, emit_gtm_event, field_can_autoadvance, getLocalTimezone, get_time_values, get_utm_params, is_object, languageLabelForCode, mm_dd_yyyy, object_is_empty, read_local_storage, replace_form_field_template_values, responses_satisfy_conditions, translationLanguageCodeForLanguage, update_local_storage } from "@tellescope/utilities"
 
 // Bridges legacy form-language display names ('English', 'Spanish', 'Español') and raw codes to a
 // TranslationLanguageCode, defaulting to English
@@ -1166,17 +1166,23 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
         return "Member ID is required"
       }
 
-      // assumes Self by default when left blank
-      if (value.answer.value?.relationship && value.answer.value?.relationship !== 'Self' && !value.answer.value?.relationshipDetails?.fname) {
+      // The relationship in effect, which is NOT always Self when the answer leaves it blank: a field
+      // configuring settings.insuranceRelationships defaults to its first entry, which the selector
+      // already displays and which forms.tsx stamps onto the answer (CU-1dfjxwuyxmg). Reading the
+      // same derived default here is what makes Policy Owner Details required when the screen shows
+      // them — gating on `relationship && ...` let a blank answer skip all four checks.
+      const relationship = value.answer.value?.relationship || insurance_relationships_for_field(field).defaultRelationship
+
+      if (relationship !== 'Self' && !value.answer.value?.relationshipDetails?.fname) {
         return "First name is required"
       }
-      if (value.answer.value?.relationship && value.answer.value?.relationship !== 'Self' && !value.answer.value?.relationshipDetails?.lname) {
+      if (relationship !== 'Self' && !value.answer.value?.relationshipDetails?.lname) {
         return "Last name is required"
       }
-      if (value.answer.value?.relationship && value.answer.value?.relationship !== 'Self' && !value.answer.value?.relationshipDetails?.gender) {
+      if (relationship !== 'Self' && !value.answer.value?.relationshipDetails?.gender) {
         return "Gender is required"
       }
-      if (value.answer.value?.relationship && value.answer.value?.relationship !== 'Self' && !value.answer.value?.relationshipDetails?.dateOfBirth) {
+      if (relationship !== 'Self' && !value.answer.value?.relationshipDetails?.dateOfBirth) {
         return "Date of birth is required"
       }
     }

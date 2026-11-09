@@ -11,6 +11,14 @@ export declare const TellescopeStoreContext: React.Context<ReactReduxContextValu
         id: string;
         createdAt: Date;
     })[]>;
+    ai_documents: LoadedData<(import("@tellescope/types-models").AIDocument & {
+        id: string;
+        createdAt: Date;
+    })[]>;
+    ai_document_versions: LoadedData<(import("@tellescope/types-models").AIDocumentVersion & {
+        id: string;
+        createdAt: Date;
+    })[]>;
     agent_records: LoadedData<(import("@tellescope/types-models").AgentRecord & {
         id: string;
         createdAt: Date;
@@ -360,6 +368,14 @@ export declare const TellescopeStoreContext: React.Context<ReactReduxContextValu
 }, undefined, import("redux").AnyAction> & import("redux").Dispatch<import("redux").AnyAction>, import("redux").AnyAction>>;
 export declare const createTellescopeSelector: () => <Selected extends unknown>(selector: (state: import("@reduxjs/toolkit").ThunkDispatch<{
     ai_conversations: LoadedData<(import("@tellescope/types-models").AIConversation & {
+        id: string;
+        createdAt: Date;
+    })[]>;
+    ai_documents: LoadedData<(import("@tellescope/types-models").AIDocument & {
+        id: string;
+        createdAt: Date;
+    })[]>;
+    ai_document_versions: LoadedData<(import("@tellescope/types-models").AIDocumentVersion & {
         id: string;
         createdAt: Date;
     })[]>;
@@ -818,6 +834,14 @@ export declare const sharedConfig: {
             id: string;
             createdAt: Date;
         })[]>, import("redux").AnyAction>;
+        ai_documents: import("redux").Reducer<LoadedData<(import("@tellescope/types-models").AIDocument & {
+            id: string;
+            createdAt: Date;
+        })[]>, import("redux").AnyAction>;
+        ai_document_versions: import("redux").Reducer<LoadedData<(import("@tellescope/types-models").AIDocumentVersion & {
+            id: string;
+            createdAt: Date;
+        })[]>, import("redux").AnyAction>;
         agent_records: import("redux").Reducer<LoadedData<(import("@tellescope/types-models").AgentRecord & {
             id: string;
             createdAt: Date;
@@ -1228,6 +1252,12 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").AIConversation & {
         id: string;
         createdAt: Date;
+    }) | (import("@tellescope/types-models").AIDocument & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").AIDocumentVersion & {
+        id: string;
+        createdAt: Date;
     }) | (import("@tellescope/types-models").AgentRecord & {
         id: string;
         createdAt: Date;
@@ -1504,6 +1534,12 @@ export declare const useDataSync____internal: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AIConversation & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").AIDocument & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").AIDocumentVersion & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AgentRecord & {
@@ -1792,6 +1828,12 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").AIConversation & {
         id: string;
         createdAt: Date;
+    }) | (import("@tellescope/types-models").AIDocument & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").AIDocumentVersion & {
+        id: string;
+        createdAt: Date;
     }) | (import("@tellescope/types-models").AgentRecord & {
         id: string;
         createdAt: Date;
@@ -2070,6 +2112,12 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").AIConversation & {
         id: string;
         createdAt: Date;
+    }) | (import("@tellescope/types-models").AIDocument & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").AIDocumentVersion & {
+        id: string;
+        createdAt: Date;
     }) | (import("@tellescope/types-models").AgentRecord & {
         id: string;
         createdAt: Date;
@@ -2337,6 +2385,20 @@ export declare const useSyncContext: () => {
     }))[];
     popDeleted: <T_3 extends string>(modelName: T_3) => string[];
 };
+/**
+ * A handful of models cap readMany well below the platform defaults because one record is large
+ * (an ai_document_versions `definition` is up to 2 MB) — MODEL_READ_MANY_LIMITS, shared with the
+ * server, which is what enforces it.
+ *
+ * Every request this hook builds goes through one of the two helpers below, because the API
+ * REFUSES an over-limit read with a 400 rather than truncating it. Sending the default 500 at a
+ * model capped at 20 does not return 20 records, it returns none — and in the batch path a
+ * rejection marks every id in the batch `recordNotFound`, which is sticky for the session, so the
+ * records read as deleted rather than as an error. Both helpers are a no-op (`Math.min(x, Infinity)`)
+ * for every model not in the map, which today is all of them but one.
+ */
+export declare const readLimitForModel: (modelName: string, requested?: number) => number;
+export declare const bulkReadBatchSizeForModel: (modelName: string) => number;
 export type UpdateElement<T> = (id: string, e: Partial<T>, o?: CustomUpdateOptions, _overrideUnique?: boolean) => Promise<T>;
 export interface ListUpdateMethods<T, ADD> extends LoadMoreFunctions<T> {
     addLocalElement: (e: T, o?: AddOptions) => T;
@@ -2440,6 +2502,29 @@ export declare const useAIConversations: (options?: HookOptions<import("@tellesc
     sharedWithOrganizations?: string[][] | undefined;
     _overrideUnique?: boolean | undefined;
 }>;
+export declare const useAIDocuments: (options?: HookOptions<import("@tellescope/types-models").AIDocument & {
+    id: string;
+    createdAt: Date;
+}>) => ListStateReturnType<import("@tellescope/types-models").AIDocument & {
+    id: string;
+    createdAt: Date;
+}, import("@tellescope/types-client").CreateFields<"ai_documents", import("@tellescope/types-models").AIDocument & {
+    id: string;
+    createdAt: Date;
+}> & {
+    sharedWithOrganizations?: string[][] | undefined;
+    _overrideUnique?: boolean | undefined;
+}>;
+export declare const useAIDocumentVersions: (options?: HookOptions<import("@tellescope/types-models").AIDocumentVersion & {
+    id: string;
+    createdAt: Date;
+}>) => ListStateReturnType<import("@tellescope/types-models").AIDocumentVersion & {
+    id: string;
+    createdAt: Date;
+}, Partial<import("@tellescope/types-models").AIDocumentVersion & {
+    id: string;
+    createdAt: Date;
+}>>;
 export declare const useAgentRecords: (options?: HookOptions<import("@tellescope/types-models").AgentRecord & {
     id: string;
     createdAt: Date;

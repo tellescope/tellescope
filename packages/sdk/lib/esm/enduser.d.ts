@@ -16,6 +16,14 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         id: string;
         createdAt: Date;
     };
+    ai_documents: import("@tellescope/types-models").AIDocument & {
+        id: string;
+        createdAt: Date;
+    };
+    ai_document_versions: import("@tellescope/types-models").AIDocumentVersion & {
+        id: string;
+        createdAt: Date;
+    };
     ai_conversations: import("@tellescope/types-models").AIConversation & {
         id: string;
         createdAt: Date;
@@ -382,6 +390,14 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
     };
 }[N], import("@tellescope/types-client").CreateFields<N, {
     inbox_threads: import("@tellescope/types-models").InboxThread & {
+        id: string;
+        createdAt: Date;
+    };
+    ai_documents: import("@tellescope/types-models").AIDocument & {
+        id: string;
+        createdAt: Date;
+    };
+    ai_document_versions: import("@tellescope/types-models").AIDocumentVersion & {
         id: string;
         createdAt: Date;
     };
@@ -754,6 +770,14 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         id: string;
         createdAt: Date;
     };
+    ai_documents: import("@tellescope/types-models").AIDocument & {
+        id: string;
+        createdAt: Date;
+    };
+    ai_document_versions: import("@tellescope/types-models").AIDocumentVersion & {
+        id: string;
+        createdAt: Date;
+    };
     ai_conversations: import("@tellescope/types-models").AIConversation & {
         id: string;
         createdAt: Date;
@@ -1123,6 +1147,14 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         id: string;
         createdAt: Date;
     };
+    ai_documents: import("@tellescope/types-models").AIDocument_readonly & {
+        id: string;
+        createdAt: Date;
+    };
+    ai_document_versions: import("@tellescope/types-models").AIDocumentVersion_readonly & {
+        id: string;
+        createdAt: Date;
+    };
     ai_conversations: import("@tellescope/types-models").AIConversation_readonly & {
         id: string;
         createdAt: Date;
@@ -1489,6 +1521,14 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
     };
 }[N] | keyof {
     inbox_threads: import("@tellescope/types-models").InboxThread_updatesDisabled & {
+        id: string;
+        createdAt: Date;
+    };
+    ai_documents: import("@tellescope/types-models").AIDocument_updatesDisabled & {
+        id: string;
+        createdAt: Date;
+    };
+    ai_document_versions: import("@tellescope/types-models").AIDocumentVersion_updatesDisabled & {
         id: string;
         createdAt: Date;
     };
@@ -2013,7 +2053,7 @@ export declare class EnduserSession extends Session {
         };
     }>;
     begin_login_flow: (a: Omit<extractFields<PublicActions['endusers']['begin_login_flow']['parameters']>, 'businessId' | 'organizationIds'>) => Promise<{
-        result: "continue-with-password" | "sent-sms" | "requires-dob" | "sent-email";
+        result: "continue-with-password" | "requires-dob" | "sent-email" | "sent-sms";
         email?: string | undefined;
         otpToken?: string | undefined;
     }>;

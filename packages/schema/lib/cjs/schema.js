@@ -3580,7 +3580,11 @@ exports.schema = (0, exports.build_schema)({
                 validator: validation_1.previousFormFieldsValidator,
                 initializer: function () { return []; },
                 examples: [[{ type: 'root', info: {} }]]
-            }, flowchartUI: { validator: validation_1.flowchartUIValidator }, options: { validator: validation_1.formFieldOptionsValidator }, description: { validator: validation_1.stringValidator25000EmptyOkay }, htmlDescription: { validator: validation_1.stringValidator25000EmptyOkay }, intakeField: { validator: validation_1.stringValidator5000EmptyOkay }, isOptional: { validator: validation_1.booleanValidator }, fullZIP: { validator: validation_1.booleanValidator }, isInGroup: { validator: validation_1.booleanValidator }, externalId: { validator: validation_1.stringValidator1000 }, sharedWithEnduser: { validator: validation_1.booleanValidator }, calloutConditions: { validator: validation_1.formFieldCalloutConditionsValidator }, mdiImportantValues: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, mdiCriticalValues: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, mdiIgnore: { validator: validation_1.booleanValidator }, highlightOnTimeline: { validator: validation_1.booleanValidator }, prepopulateFromFields: { validator: validation_1.booleanValidator }, prepopulateFromDatabase: {
+            }, flowchartUI: { validator: validation_1.flowchartUIValidator }, options: { validator: validation_1.formFieldOptionsValidator }, 
+            // Open, key-generic bag (see formFieldSettingsValidator). Staff/API-writable only — form_fields
+            // has no enduser create/update action — and readable by endusers, which the public form
+            // renderer needs to honour insuranceRelationships.
+            settings: { validator: validation_1.formFieldSettingsValidator }, description: { validator: validation_1.stringValidator25000EmptyOkay }, htmlDescription: { validator: validation_1.stringValidator25000EmptyOkay }, intakeField: { validator: validation_1.stringValidator5000EmptyOkay }, isOptional: { validator: validation_1.booleanValidator }, fullZIP: { validator: validation_1.booleanValidator }, isInGroup: { validator: validation_1.booleanValidator }, externalId: { validator: validation_1.stringValidator1000 }, sharedWithEnduser: { validator: validation_1.booleanValidator }, calloutConditions: { validator: validation_1.formFieldCalloutConditionsValidator }, mdiImportantValues: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, mdiCriticalValues: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, mdiIgnore: { validator: validation_1.booleanValidator }, highlightOnTimeline: { validator: validation_1.booleanValidator }, prepopulateFromFields: { validator: validation_1.booleanValidator }, prepopulateFromDatabase: {
                 validator: (0, validation_1.objectValidator)({
                     databaseId: validation_1.mongoIdStringOptional,
                     field: validation_1.stringValidatorOptionalEmptyOkay,
@@ -7838,6 +7842,251 @@ exports.schema = (0, exports.build_schema)({
                     creditsCharged: validation_1.nonNegNumberValidatorOptional,
                 }))
             } })
+    },
+    /**
+     * ai_documents — the MUTABLE HEAD of a saved AI App (and, later, Agent).
+     *
+     * PRIVATE BY DEFAULT: a provider reads only documents they created (read is Default), and an
+     * admin reads every one. Sharing is opt-in and READ-ONLY — `visibleToAllUsers` opens a document
+     * to every staff user in the organization, `sharedWithUserIds` to named users (the two access
+     * constraints below, OR-ed with the creator arm the `filter` constraint carries). Only the creator
+     * or an admin may update a document, change its sharing or save a version onto it: the access
+     * constraints also scope UPDATE queries, so the relationship rule "Only the creator or an admin
+     * can update an ai_document" (and the matching check in save_version) is what keeps sharing from
+     * granting write access.
+     *
+     * Nobody may delete at any level — `delete` is absent from defaultActions, so the route 405s even
+     * for an admin, because ai_conversations will cite documents for audit. Retirement is `archivedAt`.
+     */
+    ai_documents: {
+        info: { description: 'A saved AI App or Agent. The mutable head; the payload lives in ai_document_versions. Private to its creator (and admins) unless shared with visibleToAllUsers or sharedWithUserIds; sharing grants read access only.' },
+        constraints: {
+            unique: [],
+            relationship: [
+                {
+                    explanation: "Agent governance fields are only valid on a document with kind 'agent'",
+                    // `document` is the merged result on update and the raw body on create. kind is
+                    // updatesDisabled, so on update the merged kind is always the STORED one — which is what
+                    // makes "an app can never carry governance fields" hold for the lifetime of the record.
+                    // Checked against `updates` on update rather than the merge so an unrelated edit to a
+                    // document is never blamed for a field it did not send.
+                    evaluate: function (document, _, __, method, _a) {
+                        var updates = _a.updates;
+                        if (document.kind === constants_1.AI_DOCUMENT_AGENT_KIND)
+                            return;
+                        var source = (method === 'create' ? document : updates !== null && updates !== void 0 ? updates : {});
+                        // `!== undefined`, never truthiness: update fields validate with isOptional and
+                        // build_validator returns '' unchanged, so `runAsUserId: ""` is a real, present value
+                        // that a truthiness check would wave through.
+                        var present = constants_1.AI_DOCUMENT_GOVERNANCE_FIELDS.filter(function (f) { return source[f] !== undefined; });
+                        if (present.length === 0)
+                            return;
+                        return ("".concat(present.join(', '), " ").concat(present.length === 1 ? 'is' : 'are', " only valid on an ai_document with kind '").concat(constants_1.AI_DOCUMENT_AGENT_KIND, "'")
+                            + " (this document's kind is '".concat(document.kind, "')"));
+                    },
+                },
+                {
+                    explanation: "kind must be a lowercase slug",
+                    // Belt and braces over aiDocumentKindValidator, which cannot see every value: the generic
+                    // create/update endpoints build every field's validator with `isOptional: true`
+                    // (routing.ts createDefaultEndpoints), and build_validator returns '' unchanged before the
+                    // escape function runs — so `kind: ""` reaches the database with the slug rule never
+                    // consulted, and `required` only rejects `undefined`. A document's kind is updatesDisabled
+                    // and is what gates the governance fields, so an empty one would be permanent.
+                    evaluate: function (document) {
+                        var kind = document.kind;
+                        if (kind === undefined)
+                            return; // presence is `required`'s job, and it reports it better
+                        if (validation_1.AI_DOCUMENT_KIND_REGEX.test(kind))
+                            return;
+                        return "kind must be a lowercase slug of 1-50 characters matching ^[a-z][a-z0-9-]{0,49}$ (e.g. 'app', 'agent')";
+                    },
+                },
+                {
+                    explanation: "Only admin users can set runAsUserId",
+                    // runAsUserId is an impersonation grant: a background run acts as that user. Gating it on
+                    // the session's Admin role (not on `session.id === creator`, which is what time_tracks
+                    // does) is the point — a non-admin must not be able to name anyone, including themselves.
+                    evaluate: function (document, _, session, method, _a) {
+                        var _b;
+                        var updates = _a.updates, original = _a.original;
+                        var incoming = (method === 'create'
+                            ? document.runAsUserId
+                            : updates === null || updates === void 0 ? void 0 : updates.runAsUserId);
+                        if (incoming === undefined)
+                            return;
+                        // a no-op re-send of the stored value is not an escalation; webapp editors re-PATCH
+                        // every field of the record they loaded, including ones the user never saw
+                        if (method === 'update' && incoming === (original === null || original === void 0 ? void 0 : original.runAsUserId))
+                            return;
+                        if (session.type === 'user' && ((_b = session.roles) === null || _b === void 0 ? void 0 : _b.includes('Admin')))
+                            return;
+                        return "Only admin users can set runAsUserId on an ai_document";
+                    },
+                },
+                {
+                    explanation: "Only the creator or an admin can update an ai_document",
+                    // Required, not belt and braces: the access constraints below scope update queries too
+                    // (buildQueryObject applies them at every access type), so without this rule a user the
+                    // document is merely SHARED with — by sharedWithUserIds or visibleToAllUsers — would match
+                    // the update query and could edit it, re-share it or archive it. A role granted update
+                    // 'All' keeps the usual meaning of All.
+                    evaluate: function (_, __, session, method, _a) {
+                        var _b, _c, _d;
+                        var original = _a.original;
+                        if (method !== 'update')
+                            return;
+                        if (session.type === 'user' && ((_b = session.roles) === null || _b === void 0 ? void 0 : _b.includes('Admin')))
+                            return;
+                        if (((_d = (_c = session.access) === null || _c === void 0 ? void 0 : _c.ai_documents) === null || _d === void 0 ? void 0 : _d.update) === 'All')
+                            return;
+                        if ((original === null || original === void 0 ? void 0 : original.creator) === session.id)
+                            return;
+                        return "Only the creator or an admin can update an ai_document";
+                    },
+                },
+            ],
+            // A document is readable by its creator (the `filter` constraint's built-in creator arm — it
+            // is the ONLY source of that arm once any constraint is declared), by the users it is shared
+            // with, and by every staff user when visibleToAllUsers is true. These only bite below 'All':
+            // buildQueryObject returns before applying any constraint at 'All', which is why provider
+            // read is Default (constants.ts).
+            access: [
+                { type: 'filter', field: 'sharedWithUserIds' },
+                { type: 'visibleToAllUsers', field: 'visibleToAllUsers' },
+            ],
+        },
+        // No delete: conversations cite documents for audit. `archivedAt` is the retirement path.
+        defaultActions: { create: {}, createMany: {}, read: {}, readMany: {}, update: {} },
+        customActions: {
+            save_version: {
+                op: "custom", access: 'update', method: "post",
+                name: 'Save Version',
+                path: '/ai-documents/save-version',
+                description: "Appends an immutable ai_document_versions record and advances the document's currentVersion and currentVersionId together, creating the document when documentId is omitted. Returns 409 when expectedVersion is no longer the document's current version.",
+                parameters: {
+                    documentId: { validator: validation_1.mongoIdStringOptional },
+                    kind: { validator: validation_1.aiDocumentKindValidator },
+                    title: { validator: validation_1.stringValidator250 },
+                    description: { validator: validation_1.stringValidator5000Optional },
+                    card: { validator: (0, validation_1.jsonStringValidator)({ maxLength: constants_1.AI_DOCUMENT_CARD_MAX_LENGTH, label: 'card' }) },
+                    definition: { validator: (0, validation_1.jsonStringValidator)({ maxLength: constants_1.AI_DOCUMENT_DEFINITION_MAX_LENGTH, label: 'definition' }), required: true },
+                    allowedTools: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk },
+                    autopilotTools: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk },
+                    expectedVersion: { validator: validation_1.nonNegNumberValidatorOptional },
+                },
+                returns: {
+                    document: { validator: 'ai_document', required: true },
+                    version: { validator: 'ai_document_version', required: true },
+                },
+            },
+        },
+        fields: __assign(__assign({}, BuiltInFields), { kind: {
+                validator: validation_1.aiDocumentKindValidator,
+                required: true,
+                updatesDisabled: true,
+                examples: ['app', 'agent'],
+            }, title: { validator: validation_1.stringValidator250, required: true, examples: ['Intake summarizer'] }, description: { validator: validation_1.stringValidator5000Optional }, card: {
+                validator: (0, validation_1.jsonStringValidator)({ maxLength: constants_1.AI_DOCUMENT_CARD_MAX_LENGTH, label: 'card' }),
+                unfilterable: true,
+                // '' is accepted and means "no card" — build_validator returns an empty string unchanged
+                // for an optional field, before the validator's own parse check runs. Deliberate: it is how
+                // every other optional field in the schema is cleared.
+                description: 'Opaque JSON string (<= 2,000 characters) the front end renders as a launcher card, or "" for none. Never parsed by the server.',
+            }, currentVersion: {
+                validator: validation_1.nonNegNumberValidator,
+                readonly: true,
+                initializer: function () { return 0; },
+            }, currentVersionId: { validator: validation_1.mongoIdStringOptional, readonly: true }, 
+            // Initialized to '' rather than left absent so that `archivedAt: ''` — the filter the UI uses
+            // for "active documents", and the one inbox_threads already writes at creation — actually
+            // matches. A missing field is not matched by an equality filter on ''.
+            archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator, initializer: function () { return ''; } }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, 
+            // ---- sharing: valid on every kind, read access only, never copied onto versions ----
+            visibleToAllUsers: { validator: validation_1.booleanValidatorOptional, examples: [true] }, sharedWithUserIds: {
+                validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk,
+                dependencies: [{
+                        dependsOn: ['users'],
+                        dependencyField: '_id',
+                        relationship: 'foreignKey',
+                        onDependencyDelete: 'pull',
+                    }],
+            }, 
+            // ---- governance: rejected with a 400 unless kind === 'agent' (see the constraint above) ----
+            runAsUserId: {
+                validator: validation_1.mongoIdStringOptional,
+                description: "Admin-only. The user a background run acts as.",
+                dependencies: [{
+                        dependsOn: ['users'],
+                        dependencyField: '_id',
+                        relationship: 'foreignKey',
+                        onDependencyDelete: 'unset',
+                    }],
+            }, approverUserIds: {
+                validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk,
+                dependencies: [{
+                        dependsOn: ['users'],
+                        dependencyField: '_id',
+                        relationship: 'foreignKey',
+                        onDependencyDelete: 'pull',
+                    }],
+            }, maxCredits: { validator: validation_1.nonNegNumberValidatorOptional }, autopilotEnabled: { validator: validation_1.booleanValidatorOptional }, scheduleCron: { validator: validation_1.stringValidator100Optional } }),
+    },
+    /**
+     * ai_document_versions — the IMMUTABLE BODY.
+     *
+     * Written only by ai_documents.save_version: `create`, `update` and `delete` are all absent from
+     * defaultActions, so every generic write route answers 405 regardless of role. A separate
+     * collection rather than a `versions: []` array on the head because one `definition` routinely
+     * exceeds 100 KB and an array of them reaches Mongo's 16 MB document cap.
+     */
+    ai_document_versions: {
+        info: { description: 'An immutable, numbered version of an ai_document. Written only by ai-documents/save-version. Readable by exactly the users who can read its document.' },
+        constraints: {
+            unique: [],
+            relationship: [],
+            // A version is readable iff its head is: reads are post-filtered through the session's own
+            // ai_documents access (enforceForeignAccessConstraints), so nothing about sharing is copied
+            // onto the version. The base query adds no creator arm for a model with constraints, so
+            // without this every version in the tenant would be readable at Default.
+            //
+            // Because that rule is a POST-filter, it cannot bound a query: below 'All' read, a list or
+            // count of versions must name one documentId (or read by id), and aggregating versions is
+            // refused (assertAIDocumentVersionsReadIsScoped in routing.ts, denialForParentScopedCollection).
+            access: [{ type: 'dependency', foreignModel: 'ai_documents', foreignField: '_id', accessField: 'documentId' }],
+        },
+        defaultActions: { read: {}, readMany: {} },
+        customActions: {},
+        fields: __assign(__assign({}, BuiltInFields), { documentId: {
+                validator: validation_1.mongoIdStringRequired,
+                required: true,
+                examples: [constants_1.PLACEHOLDER_ID],
+                dependencies: [{
+                        dependsOn: ['ai_documents'],
+                        dependencyField: '_id',
+                        relationship: 'foreignKey',
+                        // Inert today — ai_documents has no delete action, so the route 405s for everyone. If one
+                        // is ever added, read withoutAIDocumentBlobs in api/v1/api.ts FIRST: the cascade writes
+                        // each deleted dependent verbatim into user_logs, which would put a 2 MB definition in
+                        // the audit collection — the one hole in the rule that the blobs never reach a log.
+                        onDependencyDelete: 'delete',
+                    }],
+            }, version: { validator: validation_1.positiveNumberValidator, required: true, examples: [1] }, definition: {
+                validator: (0, validation_1.jsonStringValidator)({ maxLength: constants_1.AI_DOCUMENT_DEFINITION_MAX_LENGTH, label: 'definition' }),
+                required: true,
+                unfilterable: true,
+                description: 'Opaque JSON string (<= 2,000,000 characters). The front end owns the shape; the server stores it verbatim and never parses it.',
+            }, 
+            // copied from the head at save time, so a pinned version renders without its head
+            title: { validator: validation_1.stringValidator250 }, description: { validator: validation_1.stringValidator5000Optional }, card: {
+                validator: (0, validation_1.jsonStringValidator)({ maxLength: constants_1.AI_DOCUMENT_CARD_MAX_LENGTH, label: 'card' }),
+                unfilterable: true,
+            }, 
+            // Written by the client through save_version, read by nothing on the server today — here now
+            // so the P4 background-run tool policy does not need a second schema round. `readonly`
+            // declares what the absent create/update actions already enforce: no generic endpoint may
+            // write them, and save_version (which inserts below route validation) is the only writer.
+            allowedTools: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk, readonly: true }, autopilotTools: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk, readonly: true } }),
     },
     inbox_threads: {
         info: { description: '' },

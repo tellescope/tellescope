@@ -1,5 +1,5 @@
 import { Operation } from "@tellescope/types-utilities";
-import { AccessAction, AccessForResource, AccessPermissions, AccessType, Enduser, EnduserRelationship, FormFieldType, InsuranceRelationship, TellescopeGender } from "@tellescope/types-models";
+import { AccessAction, AccessForResource, AccessPermissions, AccessType, Enduser, EnduserRelationship, FormFieldType, InsuranceRelationship, ModelName, TellescopeGender } from "@tellescope/types-models";
 export type EnduserField = keyof Pick<Enduser, 'email' | 'phone' | 'landline' | 'fname' | 'lname' | 'dateOfBirth' | 'height' | 'weight'>;
 export declare const ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME: {
     id: string;
@@ -309,4 +309,46 @@ export declare const SMS_AGENT_FORM_RESPONSE_SOURCE = "AI Text Agent";
 export declare const VOICE_FORM_SUPPORTED_FIELD_TYPES: readonly ["string", "stringLong", "email", "phone", "multiple_choice", "Dropdown", "number", "rating", "date", "dateString"];
 export declare const VOICE_AGENT_FORM_RESPONSE_SOURCE = "AI Voice Agent";
 export declare const SYSTEM_REVIEWER_ID = "system";
+/** Opaque JSON blob caps. Generous on purpose: a real agent definition carries its whole tool set
+ *  and prompt, and a truncated one is unusable. 25 MB is the body-parser limit above both. */
+export declare const AI_DOCUMENT_DEFINITION_MAX_LENGTH = 2000000;
+export declare const AI_DOCUMENT_CARD_MAX_LENGTH = 2000;
+/**
+ * ai_documents fields that are legal ONLY when `kind === 'agent'`; sending any of them on a
+ * document of any other kind is a 400 (the relationship constraint in schema.ts).
+ *
+ * Shared with the API so the endpoint and the schema constraint can never disagree about the set.
+ */
+export declare const AI_DOCUMENT_GOVERNANCE_FIELDS: readonly ["runAsUserId", "approverUserIds", "maxCredits", "autopilotEnabled", "scheduleCron"];
+/**
+ * Page size for ai_document_versions reads.
+ *
+ * Far below the platform's 100/1000 because each record carries a `definition` of up to
+ * AI_DOCUMENT_DEFINITION_MAX_LENGTH characters. At the platform default one page would be ~200 MB of
+ * JSON assembled in a single worker, and at the platform maximum ~2 GB — an out-of-memory stall
+ * rather than a slow query. 20 bounds the worst case at ~40 MB (and a realistic ~100 KB definition
+ * at ~2 MB), the same order as the 25 MB body-parser limit. Longer histories page with `lastId`.
+ *
+ * It is applied at all THREE entry points that decide a page size, because the obvious one is not
+ * the only one: the `limit` parameter (validated against the model's readManyLimit), `ids` on
+ * readMany (whose length becomes the limit, and is NOT validated against it), and the
+ * `/bulk-read` endpoint (same). Capping only `limit` would leave the other two returning up to
+ * 1,000 records, which is the exact scenario above.
+ */
+export declare const AI_DOCUMENT_VERSIONS_PAGE_LIMIT = 20;
+/**
+ * Models whose readMany page size is capped BELOW the platform's defaults, because one record is
+ * large enough that an ordinary page is a memory problem rather than a slow query.
+ *
+ * Shared deliberately, by all three places that decide a page size: api/v1/api.ts passes it to
+ * createDefaultEndpoints as the readManyLimit an explicit `limit` is validated against,
+ * database.ts's default_page_limit applies it to a caller that sends no limit at all, and the
+ * React list hook clamps every request it builds to it — the mount fetch, `loadMore`, and the id batches behind
+ * `findById({ batch: true })`. A client that asks for more is refused with a 400, not truncated, so
+ * the two sides cannot be allowed to drift: a hook sending the platform default of 500 against a
+ * model capped at 20 does not return 20 records, it returns nothing at all.
+ */
+export declare const MODEL_READ_MANY_LIMITS: Partial<Record<ModelName, number>>;
+/** The one `kind` the server itself branches on. Every other slug is opaque to the backend. */
+export declare const AI_DOCUMENT_AGENT_KIND = "agent";
 //# sourceMappingURL=constants.d.ts.map

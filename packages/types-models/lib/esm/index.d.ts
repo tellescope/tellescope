@@ -2209,6 +2209,9 @@ export interface FormField extends FormField_readonly, FormField_required, FormF
     htmlDescription?: string;
     headerText?: string;
     options?: FormFieldOptions;
+    settings?: {
+        [key: string]: string | number | boolean | string[];
+    };
     intakeField?: string | null;
     flowchartUI?: FlowchartUI;
     isInGroup?: boolean;
@@ -6393,8 +6396,75 @@ export interface InboxThread extends InboxThread_readonly, InboxThread_required,
     scheduledMessageIds?: string[];
     isDraftOnlyThread?: boolean;
 }
+/**
+ * ai_documents / ai_document_versions — version-pinned AI Apps (and, later, Agents), PRIVATE BY
+ * DEFAULT: the creator and admins see a document. Sharing is opt-in and read-only — to the whole
+ * organization (`visibleToAllUsers`) or to named users (`sharedWithUserIds`); only the creator or an
+ * admin can change a document, its sharing, or save a version onto it. A version is readable iff its
+ * head is.
+ *
+ * Split into a MUTABLE HEAD (`ai_documents`) and an IMMUTABLE BODY (`ai_document_versions`) rather
+ * than an inline `versions: []` array: a single `definition` routinely exceeds 100 KB, so an array
+ * of them walks straight into Mongo's 16 MB per-document cap. The head carries the metadata a list
+ * view needs (title, card, which version is current); the body carries the payload.
+ *
+ * `kind` is a free slug, not an enum, so the front end can introduce a new kind without a backend
+ * deploy. The server branches on exactly one value — `'agent'` — which is what gates the governance
+ * fields below.
+ */
+export type AIDocumentKind = 'app' | 'agent' | string;
+export interface AIDocument_readonly extends ClientRecord {
+    currentVersion: number;
+    currentVersionId?: string;
+}
+export interface AIDocument_required {
+    kind: AIDocumentKind;
+    title: string;
+}
+export interface AIDocument_updatesDisabled {
+    kind: AIDocumentKind;
+}
+export interface AIDocument extends AIDocument_readonly, AIDocument_required, AIDocument_updatesDisabled {
+    description?: string;
+    /** Opaque JSON string (<= 2,000 chars) the front end renders as a list/launcher card. Never parsed
+     *  by the server — see `jsonStringValidator`. */
+    card?: string;
+    archivedAt?: Date | '';
+    tags?: string[];
+    /** true = every staff user in the organization can read the head and its versions */
+    visibleToAllUsers?: boolean;
+    /** named users who can read the head and its versions */
+    sharedWithUserIds?: string[];
+    /** The user a background/autopilot run acts as. Admin-only to set, since it is an impersonation grant. */
+    runAsUserId?: string;
+    approverUserIds?: string[];
+    maxCredits?: number;
+    autopilotEnabled?: boolean;
+    scheduleCron?: string;
+}
+export interface AIDocumentVersion_readonly extends ClientRecord {
+}
+export interface AIDocumentVersion_required {
+    documentId: string;
+    version: number;
+    /** Opaque JSON string (<= 2,000,000 chars). The server never parses it: the front end owns the
+     *  shape, and a typed object would break on dotted `namespace.tool` keys, which Mongo `$set`
+     *  reads as paths. */
+    definition: string;
+}
+export interface AIDocumentVersion_updatesDisabled {
+}
+export interface AIDocumentVersion extends AIDocumentVersion_readonly, AIDocumentVersion_required, AIDocumentVersion_updatesDisabled {
+    title?: string;
+    description?: string;
+    card?: string;
+    allowedTools?: string[];
+    autopilotTools?: string[];
+}
 export type ModelForName_required = {
     inbox_threads: InboxThread_required;
+    ai_documents: AIDocument_required;
+    ai_document_versions: AIDocumentVersion_required;
     ai_conversations: AIConversation_required;
     waitlists: Waitlist_required;
     agent_records: AgentRecord_required;
@@ -6490,6 +6560,8 @@ export type ModelForName_required = {
 export type ClientModel_required = ModelForName_required[keyof ModelForName_required];
 export interface ModelForName_readonly {
     inbox_threads: InboxThread_readonly;
+    ai_documents: AIDocument_readonly;
+    ai_document_versions: AIDocumentVersion_readonly;
     ai_conversations: AIConversation_readonly;
     waitlists: Waitlist_readonly;
     agent_records: AgentRecord_readonly;
@@ -6585,6 +6657,8 @@ export interface ModelForName_readonly {
 export type ClientModel_readonly = ModelForName_readonly[keyof ModelForName_readonly];
 export interface ModelForName_updatesDisabled {
     inbox_threads: InboxThread_updatesDisabled;
+    ai_documents: AIDocument_updatesDisabled;
+    ai_document_versions: AIDocumentVersion_updatesDisabled;
     ai_conversations: AIConversation_updatesDisabled;
     waitlists: Waitlist_updatesDisabled;
     agent_records: AgentRecord_updatesDisabled;
@@ -6680,6 +6754,8 @@ export interface ModelForName_updatesDisabled {
 export type ClientModel_updatesDisabled = ModelForName_updatesDisabled[keyof ModelForName_updatesDisabled];
 export interface ModelForName extends ModelForName_required, ModelForName_readonly {
     inbox_threads: InboxThread;
+    ai_documents: AIDocument;
+    ai_document_versions: AIDocumentVersion;
     ai_conversations: AIConversation;
     waitlists: Waitlist;
     agent_records: AgentRecord;

@@ -30,7 +30,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 import { TIMEZONES, USA_STATE_TO_TIMEZONE } from "@tellescope/types-models";
-import { ADMIN_ROLE, ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME, CANVAS_TITLE, ENDUSER_FIELDS_WITH_NESTED_PATHS_DISPLAY_NAME, get_inverse_relationship_type, HEALTHIE_TITLE, MM_DD_YYYY_REGEX, READONLY_ENDUSER_FIELDS_TO_DISPLAY_NAME } from "@tellescope/constants";
+import { ADMIN_ROLE, ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME, CANVAS_TITLE, INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, ENDUSER_FIELDS_WITH_NESTED_PATHS_DISPLAY_NAME, get_inverse_relationship_type, HEALTHIE_TITLE, MM_DD_YYYY_REGEX, READONLY_ENDUSER_FIELDS_TO_DISPLAY_NAME } from "@tellescope/constants";
 import sanitizeHtml from 'sanitize-html';
 import { DateTime } from "luxon";
 import { ObjectId } from "./ObjectId/objectid";
@@ -2513,6 +2513,57 @@ export var weighted_round_robin = function (_a) {
     //   // return { selected: user.id }
     // }
     return { selected: undefined };
+};
+// The "Relationship to Policy Owner" list an Insurance question offers, and the relationship that is
+// in effect before the patient touches the selector (CU-1dfjxwuyxmg).
+//
+// Shared on purpose. FOUR places need the same answer and used to hard-code 'Self' in three of them:
+//   - the selector's options and displayed value, and the gate revealing Policy Owner Details
+//     (InsuranceInput, react/components/src/Forms/inputs.tsx)
+//   - the relationship stamped onto every write the Insurance input emits
+//     (forms.tsx and forms.v2.tsx, which wrap onChange with `relationship: v?.relationship || ...`)
+//   - the validation deciding whether the Policy Owner fields are required
+//     (validateBasicField, react/components/src/Forms/hooks.tsx)
+// If they disagree, the screen shows Spouse while the submitted answer says Self and the required
+// owner details are never enforced. One derived default keeps all four honest.
+//
+// `settings.insuranceRelationships` restricts the list. It is a DISPLAY rule only: a submitted
+// relationship is still validated against the full enum, so a stale tab or an API writer can still
+// send an excluded value. An absent key, an empty list, a non-list, or a list whose every entry is
+// unknown all fall back to the full list — never to an empty one, which would make a required
+// question unanswerable.
+//
+// On a Canvas question the configured list is intersected with the Canvas subset, so every value the
+// patient can pick keeps an INSURANCE_RELATIONSHIPS_CANVAS_MAPPING entry.
+//
+// Ordering and default:
+//   - a configured list renders in the order the admin entered it and defaults to its FIRST entry,
+//     so an admin who puts Spouse first gets Spouse (and Policy Owner Details open immediately).
+//   - a field with no usable configured list keeps the long-standing alphabetical sort and defaults
+//     to 'Self' — NOT to the first rendered option, which would be 'Cadaver Donor' and would change
+//     the default on every Insurance question that exists today.
+//
+// Note that INSURANCE_RELATIONSHIPS and INSURANCE_RELATIONSHIPS_ALPHABETICAL are the SAME array
+// object and .sort() mutates, so the fallback sorts a copy.
+export var insurance_relationships_for_field = function (field) {
+    var _a, _b, _d;
+    var allowed = ((((_a = field === null || field === void 0 ? void 0 : field.options) === null || _a === void 0 ? void 0 : _a.billingProvider) === CANVAS_TITLE || ((_b = field === null || field === void 0 ? void 0 : field.options) === null || _b === void 0 ? void 0 : _b.dataSource) === CANVAS_TITLE)
+        ? INSURANCE_RELATIONSHIPS_CANVAS
+        : INSURANCE_RELATIONSHIPS);
+    var configured = (_d = field === null || field === void 0 ? void 0 : field.settings) === null || _d === void 0 ? void 0 : _d.insuranceRelationships;
+    var selected = Array.from(new Set((Array.isArray(configured) ? configured : [])
+        .filter(function (r) { return allowed.includes(r); })));
+    if (selected.length > 0) {
+        return { options: selected, defaultRelationship: selected[0] };
+    }
+    var options = __spreadArray([], allowed, true).sort(function (x, y) { return x.localeCompare(y); });
+    // `includes` rather than a bare 'Self': the default has to be one of the options, or the MUI
+    // Select renders blank. Self is in both lists today, so this changes nothing — it only keeps the
+    // invariant if INSURANCE_RELATIONSHIPS_CANVAS_MAPPING ever loses its Self entry.
+    return {
+        options: options,
+        defaultRelationship: options.includes('Self') ? 'Self' : options[0],
+    };
 };
 export var validate_insurance_for_eligibility = function (enduser) {
     var _a, _b, _d;

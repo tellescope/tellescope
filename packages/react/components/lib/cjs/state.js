@@ -79,9 +79,9 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.useGroupMMSConversations = exports.useEngagementEvents = exports.useCalendarEvents = exports.useVitalConfigurations = exports.useEnduserEncounters = exports.useFlowchartNotes = exports.useFormGroups = exports.useWebhookLogs = exports.useOrganizationPayments = exports.useIntegrationLogs = exports.useEnduserOrders = exports.useEnduserMedications = exports.useEnduserProblems = exports.useDiagnosisCodes = exports.useAllergyCodes = exports.usePortalBrandings = exports.useMessageTemplateSnippets = exports.useFaxLogs = exports.useSuggestedContacts = exports.useAgentRecords = exports.useAIConversations = exports.useEnduserEligibilityResults = exports.useUserAndEnduserDisplayInfo = exports.useChatRoomDisplayInfo = exports.useListStateHook = exports.useSyncContext = exports.WithDataSync = exports.useDataSync____internal = exports.lastDataSync = exports.lastActiveForSync = exports.FAST_SYNC_INTERVAL = exports.MEDIUM_SYNC_INTERAVL = exports.DEFAULT_SYNC_INTERVAL_IN_MS = exports.INACTIVE_SYNC_INTERVAL_IN_MS = exports.ExtendedEnduserProvider = exports.EnduserProvider = exports.ExtendedUserProvider = exports.UserProvider = exports.useResetState = exports.sharedConfig = exports.createSliceForList = exports.remove_elements_in_array = exports.replace_elements_in_array = exports.update_elements_in_array = exports.add_elements_to_array = exports.toLoadedData = exports.WithFetchContext = exports.createTellescopeSelector = exports.TellescopeStoreContext = exports.resetStateAction = void 0;
-exports.useOrganization = exports.useOrganizations = exports.usePhoneCalls = exports.useEmailSyncDenials = exports.useTableViews = exports.useSuperbillProviders = exports.useSuperbills = exports.useTicketThreadComments = exports.useTicketThreads = exports.useRoleBasedAccessPermissions = exports.useCalendarEventRSVPs = exports.useCommentLikes = exports.usePostLikes = exports.usePostComments = exports.useForumPosts = exports.useForums = exports.useManagedContentRecordAssignments = exports.useManagedContentRecords = exports.useEnduserObservations = exports.useUserDisplayInfo = exports.useFormResponses = exports.useFormFields = exports.useForms = exports.useTemplates = exports.useAvailabilityBlocks = exports.useNotes = exports.useAutomationSteps = exports.useUsers = exports.useJourneys = exports.useFiles = exports.useMeetings = exports.useTickets = exports.useTimeTracks = exports.useEndusers = exports.useChats = exports.useChatRooms = exports.useEnduserCustomTypes = exports.useAnalyticsFrames = exports.useUserLogs = exports.useNotifications = exports.useSmsMessages = exports.useEmails = exports.useAutomatedActions = exports.useAutomationTriggers = exports.usePhoneTrees = exports.useConfigurations = exports.useTicketTemplates = exports.useTicketQueues = exports.useCallHoldQueues = exports.useEnduserProfileViews = void 0;
-exports.useWaitlists = exports.useCalendarEventsForUser = exports.usePrescriptionRoutes = exports.useBlockedPhones = exports.usePurchaseCredits = exports.usePurchases = exports.useProducts = exports.useDatabaseRecords = exports.useDatabases = exports.useAppointmentLocations = exports.useBackgroundErrors = exports.useEnduserViews = exports.useAppointmentBookingPages = exports.useCalendarEventTemplates = exports.useEnduserTasks = exports.useCarePlans = exports.usePortalCustomizations = exports.useRedactedIntegrations = exports.useIntegrations = void 0;
+exports.useEnduserEncounters = exports.useFlowchartNotes = exports.useFormGroups = exports.useWebhookLogs = exports.useOrganizationPayments = exports.useIntegrationLogs = exports.useEnduserOrders = exports.useEnduserMedications = exports.useEnduserProblems = exports.useDiagnosisCodes = exports.useAllergyCodes = exports.usePortalBrandings = exports.useMessageTemplateSnippets = exports.useFaxLogs = exports.useSuggestedContacts = exports.useAgentRecords = exports.useAIDocumentVersions = exports.useAIDocuments = exports.useAIConversations = exports.useEnduserEligibilityResults = exports.useUserAndEnduserDisplayInfo = exports.useChatRoomDisplayInfo = exports.useListStateHook = exports.bulkReadBatchSizeForModel = exports.readLimitForModel = exports.useSyncContext = exports.WithDataSync = exports.useDataSync____internal = exports.lastDataSync = exports.lastActiveForSync = exports.FAST_SYNC_INTERVAL = exports.MEDIUM_SYNC_INTERAVL = exports.DEFAULT_SYNC_INTERVAL_IN_MS = exports.INACTIVE_SYNC_INTERVAL_IN_MS = exports.ExtendedEnduserProvider = exports.EnduserProvider = exports.ExtendedUserProvider = exports.UserProvider = exports.useResetState = exports.sharedConfig = exports.createSliceForList = exports.remove_elements_in_array = exports.replace_elements_in_array = exports.update_elements_in_array = exports.add_elements_to_array = exports.toLoadedData = exports.WithFetchContext = exports.createTellescopeSelector = exports.TellescopeStoreContext = exports.resetStateAction = void 0;
+exports.useTableViews = exports.useSuperbillProviders = exports.useSuperbills = exports.useTicketThreadComments = exports.useTicketThreads = exports.useRoleBasedAccessPermissions = exports.useCalendarEventRSVPs = exports.useCommentLikes = exports.usePostLikes = exports.usePostComments = exports.useForumPosts = exports.useForums = exports.useManagedContentRecordAssignments = exports.useManagedContentRecords = exports.useEnduserObservations = exports.useUserDisplayInfo = exports.useFormResponses = exports.useFormFields = exports.useForms = exports.useTemplates = exports.useAvailabilityBlocks = exports.useNotes = exports.useAutomationSteps = exports.useUsers = exports.useJourneys = exports.useFiles = exports.useMeetings = exports.useTickets = exports.useTimeTracks = exports.useEndusers = exports.useChats = exports.useChatRooms = exports.useEnduserCustomTypes = exports.useAnalyticsFrames = exports.useUserLogs = exports.useNotifications = exports.useSmsMessages = exports.useEmails = exports.useAutomatedActions = exports.useAutomationTriggers = exports.usePhoneTrees = exports.useConfigurations = exports.useTicketTemplates = exports.useTicketQueues = exports.useCallHoldQueues = exports.useEnduserProfileViews = exports.useGroupMMSConversations = exports.useEngagementEvents = exports.useCalendarEvents = exports.useVitalConfigurations = void 0;
+exports.useWaitlists = exports.useCalendarEventsForUser = exports.usePrescriptionRoutes = exports.useBlockedPhones = exports.usePurchaseCredits = exports.usePurchases = exports.useProducts = exports.useDatabaseRecords = exports.useDatabases = exports.useAppointmentLocations = exports.useBackgroundErrors = exports.useEnduserViews = exports.useAppointmentBookingPages = exports.useCalendarEventTemplates = exports.useEnduserTasks = exports.useCarePlans = exports.usePortalCustomizations = exports.useRedactedIntegrations = exports.useIntegrations = exports.useOrganization = exports.useOrganizations = exports.usePhoneCalls = exports.useEmailSyncDenials = void 0;
 var jsx_runtime_1 = require("react/jsx-runtime");
 var react_1 = __importStar(require("react"));
 var react_redux_1 = require("react-redux");
@@ -90,6 +90,7 @@ var types_utilities_1 = require("@tellescope/types-utilities");
 var index_1 = require("./index");
 var loading_1 = require("./loading");
 var utilities_1 = require("@tellescope/utilities");
+var constants_1 = require("@tellescope/constants");
 var RESET_CACHE_TYPE = "cache/reset";
 exports.resetStateAction = (0, toolkit_1.createAction)(RESET_CACHE_TYPE);
 exports.TellescopeStoreContext = react_1.default.createContext(null);
@@ -316,12 +317,16 @@ var enduserEligibilityResultsSlice = (0, exports.createSliceForList)('enduser_el
 var agentRecordsSlice = (0, exports.createSliceForList)('agent_records');
 var waitlistsSlice = (0, exports.createSliceForList)('waitlists');
 var aiConversationsSlice = (0, exports.createSliceForList)('ai_conversations');
+var aiDocumentsSlice = (0, exports.createSliceForList)('ai_documents');
+var aiDocumentVersionsSlice = (0, exports.createSliceForList)('ai_document_versions');
 var roleBasedAccessPermissionsSlice = (0, exports.createSliceForList)('role_based_access_permissions');
 var calendarEventRSVPsSlice = (0, exports.createSliceForList)('calendar_event_rsvps');
 var userLogsSlice = (0, exports.createSliceForList)('user_logs');
 exports.sharedConfig = {
     reducer: {
         ai_conversations: aiConversationsSlice.reducer,
+        ai_documents: aiDocumentsSlice.reducer,
+        ai_document_versions: aiDocumentVersionsSlice.reducer,
         agent_records: agentRecordsSlice.reducer,
         enduser_eligibility_results: enduserEligibilityResultsSlice.reducer,
         integration_logs: integrationLogsSlice.reducer,
@@ -599,6 +604,28 @@ exports.useSyncContext = useSyncContext;
 var DEFAULT_FETCH_LIMIT = 500;
 var BULK_READ_DEFAULT_LIMIT = 1000; // 1000 is max
 var DONE_LOADING_TOKEN = 'doneLoading';
+/**
+ * A handful of models cap readMany well below the platform defaults because one record is large
+ * (an ai_document_versions `definition` is up to 2 MB) — MODEL_READ_MANY_LIMITS, shared with the
+ * server, which is what enforces it.
+ *
+ * Every request this hook builds goes through one of the two helpers below, because the API
+ * REFUSES an over-limit read with a 400 rather than truncating it. Sending the default 500 at a
+ * model capped at 20 does not return 20 records, it returns none — and in the batch path a
+ * rejection marks every id in the batch `recordNotFound`, which is sticky for the session, so the
+ * records read as deleted rather than as an error. Both helpers are a no-op (`Math.min(x, Infinity)`)
+ * for every model not in the map, which today is all of them but one.
+ */
+var readLimitForModel = function (modelName, requested) {
+    var _a;
+    return Math.min(requested || DEFAULT_FETCH_LIMIT, (_a = constants_1.MODEL_READ_MANY_LIMITS[modelName]) !== null && _a !== void 0 ? _a : Infinity);
+};
+exports.readLimitForModel = readLimitForModel;
+var bulkReadBatchSizeForModel = function (modelName) {
+    var _a;
+    return Math.min(BULK_READ_DEFAULT_LIMIT, (_a = constants_1.MODEL_READ_MANY_LIMITS[modelName]) !== null && _a !== void 0 ? _a : Infinity);
+};
+exports.bulkReadBatchSizeForModel = bulkReadBatchSizeForModel;
 var useListStateHook = function (modelName, state, session, slice, apiCalls, options) {
     var _a, _b, _c, _d;
     var _e = (_a = (0, exports.useSyncContext)()) !== null && _a !== void 0 ? _a : {}, setHandler = _e.setHandler, popDeleted = _e.popDeleted, popLoaded = _e.popLoaded, removeHandler = _e.removeHandler;
@@ -793,12 +820,13 @@ var useListStateHook = function (modelName, state, session, slice, apiCalls, opt
                 return; // already fetching
             if (batchRef.current.ids.length === 0)
                 return;
-            // can only load max of 1000, ensure other ids are included in nextBatch
-            if (batchRef.current.ids.length > BULK_READ_DEFAULT_LIMIT) {
-                (_a = batchRef.current.nextBatch).unshift.apply(_a, batchRef.current.ids.slice(BULK_READ_DEFAULT_LIMIT));
+            // can only load max of 1000 (less for a capped model), ensure other ids are included in nextBatch
+            var batchSize = (0, exports.bulkReadBatchSizeForModel)(modelName);
+            if (batchRef.current.ids.length > batchSize) {
+                (_a = batchRef.current.nextBatch).unshift.apply(_a, batchRef.current.ids.slice(batchSize));
             }
             batchRef.current.fetching = true;
-            var currentBatchIds = batchRef.current.ids.slice(0, BULK_READ_DEFAULT_LIMIT);
+            var currentBatchIds = batchRef.current.ids.slice(0, batchSize);
             // Filter out IDs that are already loaded to prevent unnecessary fetching
             var idsToFetch = currentBatchIds.filter(function (id) {
                 var alreadyLoaded = state.status === types_utilities_1.LoadingStatus.Loaded &&
@@ -932,7 +960,7 @@ var useListStateHook = function (modelName, state, session, slice, apiCalls, opt
         if (didFetch(fetchKey, force, options === null || options === void 0 ? void 0 : options.refetchInMS))
             return;
         setFetched(fetchKey, true);
-        var limit = (options === null || options === void 0 ? void 0 : options.limit) || DEFAULT_FETCH_LIMIT;
+        var limit = (0, exports.readLimitForModel)(modelName, options === null || options === void 0 ? void 0 : options.limit);
         (0, exports.toLoadedData)(function () { return loadQuery({ mdbFilter: mdbFilter, filter: loadFilter, limit: limit, sort: sort, sortBy: sortBy }); }, { valueOnError: mdbFilter ? [] : undefined }).then(function (es) {
             var _a, _b;
             if (es.status === types_utilities_1.LoadingStatus.Loaded) {
@@ -993,8 +1021,8 @@ var useListStateHook = function (modelName, state, session, slice, apiCalls, opt
     }, [didFetch, modelName, options === null || options === void 0 ? void 0 : options.loadFilter, options === null || options === void 0 ? void 0 : options.mdbFilter, options === null || options === void 0 ? void 0 : options.sort, options === null || options === void 0 ? void 0 : options.sortBy]);
     var loadMore = (0, react_1.useCallback)(function (loadOptions) { return __awaiter(void 0, void 0, void 0, function () {
         var sort, sortBy, _filter, filter, _mdbFilter, mdbFilter, mdbFilterIsActive, filterKey, lastId, key, limit;
-        var _a, _b, _c, _d, _e, _f;
-        return __generator(this, function (_g) {
+        var _a, _b, _c, _d, _e;
+        return __generator(this, function (_f) {
             sort = options === null || options === void 0 ? void 0 : options.sort;
             sortBy = options === null || options === void 0 ? void 0 : options.sortBy;
             _filter = (_a = loadOptions === null || loadOptions === void 0 ? void 0 : loadOptions.filter) !== null && _a !== void 0 ? _a : options === null || options === void 0 ? void 0 : options.loadFilter;
@@ -1016,7 +1044,7 @@ var useListStateHook = function (modelName, state, session, slice, apiCalls, opt
             key = (_d = loadOptions === null || loadOptions === void 0 ? void 0 : loadOptions.key) !== null && _d !== void 0 ? _d : 'id';
             if (key !== 'id')
                 console.warn("Unrecognized key provided");
-            limit = (_f = (_e = loadOptions === null || loadOptions === void 0 ? void 0 : loadOptions.limit) !== null && _e !== void 0 ? _e : options === null || options === void 0 ? void 0 : options.limit) !== null && _f !== void 0 ? _f : DEFAULT_FETCH_LIMIT;
+            limit = (0, exports.readLimitForModel)(modelName, (_e = loadOptions === null || loadOptions === void 0 ? void 0 : loadOptions.limit) !== null && _e !== void 0 ? _e : options === null || options === void 0 ? void 0 : options.limit);
             return [2 /*return*/, (0, exports.toLoadedData)(function () { return loadQuery({
                     // lastId: !options?.filter ? oldestRecord?.id?.toString() : undefined,  // don't provide a lastId when there's a filter, filter could include that on its own
                     lastId: lastId,
@@ -1220,6 +1248,42 @@ var useAIConversations = function (options) {
     }, __assign({}, options));
 };
 exports.useAIConversations = useAIConversations;
+var useAIDocuments = function (options) {
+    if (options === void 0) { options = {}; }
+    var session = (0, index_1.useSession)();
+    // No deleteOne: ai_documents has no delete action at any access level (archive with archivedAt).
+    return (0, exports.useListStateHook)('ai_documents', useTypedSelector(function (s) { return s.ai_documents; }), session, aiDocumentsSlice, {
+        loadQuery: session.api.ai_documents.getSome,
+        findOne: session.api.ai_documents.getOne,
+        findByIds: session.api.ai_documents.getByIds,
+        addOne: session.api.ai_documents.createOne,
+        addSome: session.api.ai_documents.createSome,
+        updateOne: session.api.ai_documents.updateOne,
+    }, __assign({}, options));
+};
+exports.useAIDocuments = useAIDocuments;
+var useAIDocumentVersions = function (options) {
+    if (options === void 0) { options = {}; }
+    var session = (0, index_1.useSession)();
+    // Read-only by design: versions are written only by ai-documents/save-version.
+    //
+    // Both reads are capped at AI_DOCUMENT_VERSIONS_PAGE_LIMIT (20) records, loadQuery and findByIds
+    // alike, because one version can carry a 2 MB definition. Nothing is needed here to honour that:
+    // the cap lives in MODEL_READ_MANY_LIMITS and useListStateHook clamps the mount fetch, loadMore
+    // and the findById id batches to it — see readLimitForModel / bulkReadBatchSizeForModel. Passing
+    // `limit` through `options` would NOT have been enough, since it does not reach the batch path.
+    // A consumer loading a longer history pages with loadMore; asking the API for more than the cap
+    // is a 400, not a truncated result.
+    //
+    // Below 'All' read the API also refuses an UNFILTERED list (400): pass
+    // `mdbFilter: { documentId }` to list one document's versions, or read versions by id.
+    return (0, exports.useListStateHook)('ai_document_versions', useTypedSelector(function (s) { return s.ai_document_versions; }), session, aiDocumentVersionsSlice, {
+        loadQuery: session.api.ai_document_versions.getSome,
+        findOne: session.api.ai_document_versions.getOne,
+        findByIds: session.api.ai_document_versions.getByIds,
+    }, __assign({}, options));
+};
+exports.useAIDocumentVersions = useAIDocumentVersions;
 var useAgentRecords = function (options) {
     if (options === void 0) { options = {}; }
     var session = (0, index_1.useSession)();

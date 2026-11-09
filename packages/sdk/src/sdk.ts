@@ -231,6 +231,8 @@ const loadDefaultQueries = (s: Session): { [K in keyof ClientModelForName] : API
   enduser_eligibility_results: defaultQueries(s, 'enduser_eligibility_results'),
   waitlists: defaultQueries(s, 'waitlists'),
   ai_conversations: defaultQueries(s, 'ai_conversations'),
+  ai_documents: defaultQueries(s, 'ai_documents'),
+  ai_document_versions: defaultQueries(s, 'ai_document_versions'),
   inbox_threads: defaultQueries(s, 'inbox_threads'),
 })
 
@@ -965,6 +967,13 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
       Promise<extractFields<CustomActions['automated_actions']['process']['returns']>>
     ),
   },
+  ai_documents: {
+    // The only writer of ai_document_versions. Rejects with 409 when another save advanced the
+    // head's version first; the caller should re-read the document and retry.
+    save_version: (args: extractFields<CustomActions['ai_documents']['save_version']['parameters']>) => (
+      Promise<extractFields<CustomActions['ai_documents']['save_version']['returns']>>
+    ),
+  },
 }
 
 // session info that's currently required/used on front-end but not part of base user model
@@ -1279,6 +1288,8 @@ export class Session extends SessionManager {
     queries.ai_conversations.agent_message = args => this._POST(`/v1${schema.ai_conversations.customActions.agent_message.path}`, args)
 
     queries.automated_actions.process = args => this._POST(`/v1${schema.automated_actions.customActions.process.path}`, args)
+
+    queries.ai_documents.save_version = args => this._POST(`/v1${schema.ai_documents.customActions.save_version.path}`, args)
 
     this.api = queries
   }

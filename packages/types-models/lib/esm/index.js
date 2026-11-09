@@ -89,6 +89,8 @@ export var DIAGNOSIS_TYPE_MAPPING = {
 };
 export var modelNameChecker = {
     inbox_threads: true,
+    ai_documents: true,
+    ai_document_versions: true,
     ai_conversations: true,
     waitlists: true,
     agent_records: true,

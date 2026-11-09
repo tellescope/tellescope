@@ -2,7 +2,7 @@ import {
   Operation,
 } from "@tellescope/types-utilities"
 import {
-  AccessAction, AccessForResource, AccessPermissions, AccessType, Enduser, EnduserRelationship, FormFieldType, InsuranceRelationship, TellescopeGender,
+  AccessAction, AccessForResource, AccessPermissions, AccessType, AIDocument, Enduser, EnduserRelationship, FormFieldType, InsuranceRelationship, ModelName, TellescopeGender,
 } from "@tellescope/types-models"
 
 export type EnduserField = keyof Pick<Enduser, 'email' | 'phone' | 'landline' | 'fname' | 'lname' | 'dateOfBirth' | 'height' | 'weight'>
@@ -311,6 +311,21 @@ export const READ_ONLY_DEFAULT: AccessForResource = {
 }
 
 export const PROVIDER_PERMISSIONS: AccessPermissions = {
+  // Apps and agent definitions are PRIVATE BY DEFAULT: any provider may create one, and reads the
+  // ones they created plus any shared with them (visibleToAllUsers / sharedWithUserIds — the schema's
+  // access constraints). read must stay Default: at All, buildQueryObject skips every access
+  // constraint and the whole organization would see every document. Only the creator (or an admin)
+  // may update. There is no delete at any level — conversations cite documents for audit, so
+  // retirement is `archivedAt`.
+  ai_documents: {
+    create: ALL_ACCESS,
+    read:   DEFAULT_ACCESS,
+    update: DEFAULT_ACCESS,
+    delete: NO_ACCESS,
+  },
+  // Versions are written only by ai_documents.save_version, never through the generic endpoints.
+  // Default, not All, for the same reason: a version is readable iff its document is.
+  ai_document_versions: READ_ONLY_DEFAULT,
   inbox_threads: ASSIGNED_AND_DEFAULT_ACCESS,
   ai_conversations: ASSIGNED_AND_DEFAULT_ACCESS,
   waitlists: READ_ONLY_ALL,
@@ -488,6 +503,8 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
 }
 
 export const ADMIN_PERMISSIONS: AccessPermissions = {
+  ai_documents: FULL_ACCESS,
+  ai_document_versions: FULL_ACCESS,
   inbox_threads: FULL_ACCESS,
   ai_conversations: FULL_ACCESS,
   waitlists: FULL_ACCESS,
@@ -1388,3 +1405,60 @@ export const VOICE_AGENT_FORM_RESPONSE_SOURCE = "AI Voice Agent" // form_respons
 // vital configuration range instead of by a human. Not a valid ObjectId, so it cannot collide with
 // a real user id — callers rendering reviewedBy must special-case it rather than looking up a user.
 export const SYSTEM_REVIEWER_ID = 'system'
+
+/* ============================== ai_documents / ai_document_versions ============================== */
+
+/** Opaque JSON blob caps. Generous on purpose: a real agent definition carries its whole tool set
+ *  and prompt, and a truncated one is unusable. 25 MB is the body-parser limit above both. */
+export const AI_DOCUMENT_DEFINITION_MAX_LENGTH = 2000000
+export const AI_DOCUMENT_CARD_MAX_LENGTH = 2000
+
+/**
+ * ai_documents fields that are legal ONLY when `kind === 'agent'`; sending any of them on a
+ * document of any other kind is a 400 (the relationship constraint in schema.ts).
+ *
+ * Shared with the API so the endpoint and the schema constraint can never disagree about the set.
+ */
+export const AI_DOCUMENT_GOVERNANCE_FIELDS = [
+  'runAsUserId',
+  'approverUserIds',
+  'maxCredits',
+  'autopilotEnabled',
+  'scheduleCron',
+] as const satisfies readonly (keyof AIDocument)[]
+
+/**
+ * Page size for ai_document_versions reads.
+ *
+ * Far below the platform's 100/1000 because each record carries a `definition` of up to
+ * AI_DOCUMENT_DEFINITION_MAX_LENGTH characters. At the platform default one page would be ~200 MB of
+ * JSON assembled in a single worker, and at the platform maximum ~2 GB — an out-of-memory stall
+ * rather than a slow query. 20 bounds the worst case at ~40 MB (and a realistic ~100 KB definition
+ * at ~2 MB), the same order as the 25 MB body-parser limit. Longer histories page with `lastId`.
+ *
+ * It is applied at all THREE entry points that decide a page size, because the obvious one is not
+ * the only one: the `limit` parameter (validated against the model's readManyLimit), `ids` on
+ * readMany (whose length becomes the limit, and is NOT validated against it), and the
+ * `/bulk-read` endpoint (same). Capping only `limit` would leave the other two returning up to
+ * 1,000 records, which is the exact scenario above.
+ */
+export const AI_DOCUMENT_VERSIONS_PAGE_LIMIT = 20
+
+/**
+ * Models whose readMany page size is capped BELOW the platform's defaults, because one record is
+ * large enough that an ordinary page is a memory problem rather than a slow query.
+ *
+ * Shared deliberately, by all three places that decide a page size: api/v1/api.ts passes it to
+ * createDefaultEndpoints as the readManyLimit an explicit `limit` is validated against,
+ * database.ts's default_page_limit applies it to a caller that sends no limit at all, and the
+ * React list hook clamps every request it builds to it — the mount fetch, `loadMore`, and the id batches behind
+ * `findById({ batch: true })`. A client that asks for more is refused with a 400, not truncated, so
+ * the two sides cannot be allowed to drift: a hook sending the platform default of 500 against a
+ * model capped at 20 does not return 20 records, it returns nothing at all.
+ */
+export const MODEL_READ_MANY_LIMITS: Partial<Record<ModelName, number>> = {
+  ai_document_versions: AI_DOCUMENT_VERSIONS_PAGE_LIMIT,
+}
+
+/** The one `kind` the server itself branches on. Every other slug is opaque to the backend. */
+export const AI_DOCUMENT_AGENT_KIND = 'agent'

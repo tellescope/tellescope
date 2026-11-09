@@ -3,8 +3,8 @@ import axios from "axios"
 import { Autocomplete, Box, Button, Checkbox, Chip, CircularProgress, Collapse, Divider, FormControl, FormControlLabel, FormLabel, Grid, IconButton as MuiIconButton, InputLabel, MenuItem, Paper, Radio, RadioGroup, Select, SxProps, TextField, TextFieldProps, Typography } from "@mui/material"
 import { FormInputProps } from "./types"
 import { useDropzone } from "react-dropzone"
-import { CANVAS_TITLE, BRIDGE_TITLE, CANDID_TITLE, STEDI_TITLE, EMOTII_TITLE, INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants"
-import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, downloadFile, emit_gtm_event, first_letter_capitalized, form_response_value_to_string, format_stripe_subscription_interval, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, object_is_empty, replace_enduser_template_values, responses_satisfy_conditions, truncate_string, update_local_storage, user_display_name } from "@tellescope/utilities"
+import { CANVAS_TITLE, BRIDGE_TITLE, CANDID_TITLE, STEDI_TITLE, EMOTII_TITLE, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants"
+import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, insurance_relationships_for_field, downloadFile, emit_gtm_event, first_letter_capitalized, form_response_value_to_string, format_stripe_subscription_interval, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, object_is_empty, replace_enduser_template_values, responses_satisfy_conditions, truncate_string, update_local_storage, user_display_name } from "@tellescope/utilities"
 import { Address, DatabaseSelectResponse, Enduser, EnduserRelationship, FormResponseAnswerFileValue, FormResponseValue, InsuranceRelationship, MedicationResponse, MultipleChoiceOptions, FormFieldOptionDetails, Pharmacy, TellescopeGender, TIMEZONES_USA } from "@tellescope/types-models"
 import { VALID_STATES, emailValidator, phoneValidator } from "@tellescope/validation"
 import Slider from '@mui/material/Slider';
@@ -813,6 +813,31 @@ export const InsuranceInput = ({ field, onDatabaseSelect, value, onChange, form,
     (addressQuestion?.answer?.type === 'Address' ? addressQuestion?.answer?.value?.state : undefined) || enduser?.state
   ), [enduser?.state, addressQuestion])
 
+  // The relationships this question offers, and the relationship in effect before the patient picks.
+  //
+  // Derived in @tellescope/utilities so the three places that must agree — this selector (its
+  // options, its displayed value, and the gate revealing Policy Owner Details below), the
+  // `relationship: v?.relationship || ...` stamped onto every write by forms.tsx / forms.v2.tsx, and
+  // validateBasicField in hooks.tsx — all read ONE default. When they disagreed, a list that excludes
+  // Self displayed Spouse while the stored answer said Self and the required owner details were
+  // never enforced.
+  const { options: configuredOptions, defaultRelationship } = useMemo(
+    () => insurance_relationships_for_field(field),
+    [field.options?.billingProvider, field.options?.dataSource, field.settings]
+  )
+  const selectedRelationship = value?.relationship || defaultRelationship
+
+  // An already-answered relationship is always offered, even when the configured list no longer
+  // contains it — which happens whenever an admin narrows the list after a patient saved a partial
+  // response. The answer is deliberately kept (a display rule must not rewrite a submitted value),
+  // and a MUI Select whose value is absent from its options renders BLANK, so without this the
+  // patient sees an empty required field and cannot tell what they had chosen.
+  const relationshipOptions = useMemo(() => (
+    configuredOptions.includes(selectedRelationship)
+      ? configuredOptions
+      : [...configuredOptions, selectedRelationship]
+  ), [configuredOptions, selectedRelationship])
+
   const payerInputProps = { field, form, value, onChange, onDatabaseSelect, inputProps }
 
   return (
@@ -869,22 +894,15 @@ export const InsuranceInput = ({ field, onDatabaseSelect, value, onChange, form,
       <Grid item xs={12}>
         <StringSelector size="small" label={form_display_text_for_language(form, "Relationship to Policy Owner")}
           inputProps={inputProps}
-          options={
-            (
-              (field.options?.billingProvider === CANVAS_TITLE || field.options?.dataSource === CANVAS_TITLE )
-                ? INSURANCE_RELATIONSHIPS_CANVAS
-                : INSURANCE_RELATIONSHIPS
-            )
-            .sort((x, y) => x.localeCompare(y))
-          }
-          value={value?.relationship || 'Self'}
+          options={relationshipOptions}
+          value={selectedRelationship}
           onChange={relationship =>
-            onChange({ ...value, relationship: relationship as InsuranceRelationship || 'Self' }, field.id)
+            onChange({ ...value, relationship: relationship as InsuranceRelationship || defaultRelationship }, field.id)
           }
         />
       </Grid>
 
-      {(value?.relationship || 'Self') !== 'Self' &&
+      {selectedRelationship !== 'Self' &&
       <>
         <Grid item xs={12}>
           <Typography sx={{ fontWeight: 'bold' }}>{form_display_text_for_language(form, "Policy Owner Details")}</Typography>

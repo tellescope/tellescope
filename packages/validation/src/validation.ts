@@ -1201,6 +1201,76 @@ export const SMSMessageValidator: ValidatorDefinition<string> = {
   getType: getTypeString,
 }
 
+/**
+ * An opaque JSON string: stored verbatim, parsed only to check it is well-formed.
+ *
+ * Used for the ai_documents `card` and ai_document_versions `definition` blobs. The front end owns
+ * the shape; storing the STRING rather than a typed object is deliberate, because a definition's
+ * object keys are tool identifiers like `namespace.tool`, and Mongo reads a dot inside a `$set` key
+ * as a path separator.
+ *
+ * Three things here are load-bearing:
+ *
+ *  1. `isObject` stays FALSE. build_validator's `isObject: true` branch JSON.parses the value and
+ *     REPLACES it with the parsed object, so the field would reach Mongo as an object — exactly
+ *     what this validator exists to avoid. The parse-check below is done by hand instead, the same
+ *     way agentSystemValidator does it.
+ *  2. `maxLength` is passed through explicitly. The option is `maxLength` (not `maxChars`) and
+ *     defaults to DEFAULT_MAX_LENGTH (50,000), so a real definition would 400 without it.
+ *  3. The length check happens HERE, before build_validator's generic one, because that one
+ *     interpolates the entire value into its error message — a 2 MB definition would come back as
+ *     a 2 MB error body and be written to the logs.
+ */
+export const jsonStringValidator = (
+  { maxLength, label='value' }: { maxLength: number, label?: string }
+): ValidatorDefinition<string> => ({
+  validate: (o={}) => build_validator(
+    (value: any) => {
+      if (typeof value !== 'string') throw new Error(`${label} must be a JSON string`)
+      // length first: never interpolate the value itself into an error
+      if (value.length > maxLength) {
+        throw new Error(`${label} exceeds the ${maxLength} character limit (received ${value.length})`)
+      }
+
+      let parsed: any
+      try {
+        parsed = JSON.parse(value)
+      } catch (err) {
+        throw new Error(`${label} must be a JSON string, but it is not valid JSON`)
+      }
+      // is_object is true for arrays and false for null, so both are screened explicitly
+      if (!is_object(parsed) || Array.isArray(parsed)) {
+        throw new Error(`${label} must be a JSON string encoding an object`)
+      }
+
+      return value // the parse is a check, not a transform — the original string is what is stored
+    },
+    { ...o, isObject: false, listOf: false, maxLength },
+  ),
+  getExample: () => '{"format":"tellescope-ai-app","version":1}',
+  getType: getTypeString,
+})
+
+/** `^[a-z][a-z0-9-]{0,49}$` — a free slug, NOT an enum, so the front end can introduce a new kind
+ *  of ai_document without a backend deploy. The server branches on exactly one value, 'agent'. */
+export const AI_DOCUMENT_KIND_REGEX = /^[a-z][a-z0-9-]{0,49}$/
+export const aiDocumentKindValidator: ValidatorDefinition<string> = {
+  validate: (o={}) => build_validator(
+    (value: any) => {
+      if (typeof value !== 'string') throw new Error('kind must be a string')
+      if (!AI_DOCUMENT_KIND_REGEX.test(value)) {
+        throw new Error(
+          "kind must be a lowercase slug of 1-50 characters matching ^[a-z][a-z0-9-]{0,49}$ (e.g. 'app', 'agent')"
+        )
+      }
+      return value
+    },
+    { ...o, listOf: false, maxLength: 50 },
+  ),
+  getExample: () => 'app',
+  getType: getTypeString,
+}
+
 export const listValidator = <T>(b: ValidatorDefinition<T>, _o?: ValidatorOptions | ValidatorOptionsForList): ValidatorDefinition<T[]> => ({
   validate: o => build_validator(b.validate(o as any), { ..._o, ...o, listOf: true }),
   getExample: () => [b.getExample()],
@@ -4633,6 +4703,76 @@ export const userPortalSettingsValidator = indexableValidator(
 // User.portalSettings, but redacted from endusers (see the users block in schema.ts).
 export const userPreferencesValidator = userPortalSettingsValidator
 
+// A list branch that rejects the WHOLE value when any element is not a string, before
+// build_validator's list handling gets to hide the problem. That filter is
+// `values.filter(a => !!a || (a === 0 && isNumber))`, which silently DROPS falsey elements: without
+// this guard `[0]` stored `[]` and `['a', 0, 'b']` stored `['a', 'b']`.
+// (An empty-string element is still dropped by the same filter — `['a', '']` stores `['a']` — which
+// is what every other list validator in this file does and is harmless for a settings list.)
+const strictStringListValidator = (elementValidator: ValidatorDefinition<string>): ValidatorDefinition<string[]> => ({
+  validate: ((o: any={}) => { // any: EscapeBuilder is an overloaded signature, so the options union can't be forwarded
+    const escape = listValidatorOptionalOrEmptyOk(elementValidator).validate(o) as EscapeFunction<string[]>
+
+    return (value: JSONType) => {
+      if (!Array.isArray(value)) throw new Error("Expecting a list of strings")
+      if (value.some(v => typeof v !== 'string')) throw new Error("Expecting a list of strings")
+      return escape(value)
+    }
+  }) as EscapeBuilder<string[]>,
+  getExample: () => [elementValidator.getExample()],
+  getType: () => [elementValidator.getExample()],
+})
+
+// numberValidator coerces with Number(), so as the last branch of an orValidator it claims whatever
+// no earlier branch wanted and invents a value for it: `Number([1])` is 1, `Number(['x'.repeat(251)])`
+// is NaN but `Number(['0'.repeat(251)])` is 0. Requiring an actual number keeps the coercion from
+// rescuing a value that every other branch rejected. Numeric strings are unaffected: the string
+// branch runs first and stores them as strings.
+const strictNumberValidator: ValidatorDefinition<number> = {
+  ...numberValidator,
+  validate: ((o: any={}) => { // any: EscapeBuilder is an overloaded signature, so the options union can't be forwarded
+    const escape = numberValidator.validate(o) as EscapeFunction<number>
+
+    return (value: JSONType) => {
+      if (typeof value !== 'number') throw new Error("Expecting a number")
+      return escape(value)
+    }
+  }) as EscapeBuilder<number>,
+}
+
+// FormField.settings: open, string-keyed bag of per-field settings. Key-generic by design — no
+// per-key rules — so a form frontend can add keys without a schema release. Same shape as
+// userPortalSettingsValidator, widened to numbers and string lists.
+//
+// Two things here are load-bearing, and dropping either rejects legitimate values as 'missing value':
+//   - `isOptional` on the orValidator, so the outer build_validator lets `false`, `0` and `''`
+//     through to the branches instead of failing them as missing.
+//   - an empty-ok list validator, so `[]` is accepted rather than "list is empty".
+//
+// A branch that throws falls through to the next one, so every branch has to reject what it is not
+// rather than coerce it, or it claims values meant for nobody. escapeString throws on non-strings;
+// the two strict* validators above are why the list and number branches now do the same.
+//
+// booleanValidator is the one exception, inherited from userPortalSettingsValidator: it coerces the
+// STRINGS 'true' and 'false', which is why branch ORDER is load-bearing and boolean must stay ahead
+// of string. Those two words are therefore the only values that do not read back as their own type.
+// Harmless for every key here; worth knowing before adding a key whose string values could be
+// either word.
+export const formFieldSettingsValidator = indexableValidator(
+  stringValidator250,
+  orValidator({
+    boolean: booleanValidator,
+    string: stringValidator250,
+    // stringValidator250 per element, deliberately, so the 250-char cap is the same whether a value
+    // arrives as a string or as one element of a list. The off-the-shelf
+    // listOfStringsValidatorOptionalOrEmptyOk validates elements with the plain stringValidator
+    // (1000 chars), which would make the cap depend on the shape rather than the value — and this
+    // document is served to every enduser through info_for_access_code.
+    stringList: strictStringListValidator(stringValidator250),
+    number: strictNumberValidator,
+  }, { isOptional: true }),
+)
+
 export const FHIRObservationCategoryValidator = exactMatchValidator<ObservationCategory>(['vital-signs', 'laboratory'])
 
 const _FHIR_OBSERVATION_STATUS_CODES: { [K in ObservationStatusCode]: any } = {
@@ -6667,6 +6807,8 @@ export const accessPermissionsValidator = objectValidator<AccessPermissions>({
   waitlists: accessPermissionValidator,
   ai_conversations: accessPermissionValidator,
   inbox_threads: accessPermissionValidator,
+  ai_documents: accessPermissionValidator,
+  ai_document_versions: accessPermissionValidator,
 
   // deprecated but for backwards compatibility
   apiKeys: accessPermissionValidator,
@@ -6765,6 +6907,8 @@ export const organizationLimitsValidator = objectValidator<OrganizationLimits>({
   agent_records: numberValidatorOptional,
   waitlists: numberValidatorOptional,
   inbox_threads: numberValidatorOptional,
+  ai_documents: numberValidatorOptional,
+  ai_document_versions: numberValidatorOptional,
 }, { emptyOk: true })
 
 const _LOGIN_FLOW_RESULTS = {

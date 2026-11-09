@@ -50,8 +50,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.calculate_days_between_dates_from_enduser = exports.resolve_date_value = exports.calculate_days_between_dates = exports.parse_date_string = exports.yyyy_mm_dd_padded = exports.mm_dd_yyyy = exports.yyyy_mm_dd_numeric = exports.yyyy_mm_dd = exports.formatted_date_hh_mm = exports.get_add_to_gcal_link = exports.formatted_date = exports.get_time_values = exports.MONTHS = exports.MONTHS_FULL = exports.sorted_records = exports.wait = exports.findFirstUnansweredField = exports.throwFunction = exports.ensure_https_url = exports.to_absolute_url = exports.build_portal_link_string = exports.build_content_link_string = exports.build_shared_file_link_string = exports.build_file_link_string = exports.build_form_group_link_string = exports.build_form_link_string = exports.build_link_string = exports.getTemplatedData = exports.parse_link_template = exports.map_object = exports.format_stripe_subscription_interval = exports.truncate_string = exports.defined_fields = exports.user_is_active = exports.user_display_name = exports.objects_equivalent = exports.to_object_id = exports.url_safe_path = exports.is_whitespace = exports.matching_fields = exports.is_object = exports.filter_object = exports.is_defined = exports.is_truthy = exports.object_is_empty = exports.first_letter_lowercase = exports.first_letter_capitalized = exports.user_is_locked_out = exports.user_is_admin = exports.ObjectId = void 0;
 exports.evaluate_conditional_logic_for_enduser_fields = exports.UPCOMING_EVENT_COUNT_KEY = exports.get_enduser_field_value_for_key = exports.age_for_dob_mmddyyyy = exports.replace_keys_and_values_in_object = exports.get_conditional_logic_values = exports.evaluate_conditional_logic_for_medication_title = exports.title_matches_partials = exports.evaluate_string_field_comparison = exports.evaluate_conditional_logic = exports.shuffle_array_in_place = exports.plaintext_for_managed_content_record = exports.sanitize_html = exports.timezone_for_enduser = exports.safeJSONParseTemplate = exports.safeJSONParse = exports.payment_cost_to_string = exports.read_local_storage = exports.update_local_storage = exports.is_organization_owner = exports.form_response_value_to_string = exports.is_table_input_response = exports.user_has_record_access = exports.is_suborganization = exports.matches_organization = exports.getDefaultPortalURL = exports.getPublicFileURL = exports.getOrgnizationFaviconURL = exports.getOrgnizationLogoURL = exports.getBuiltInPublicFileName = exports.getApiURL = exports.getEnvironment = exports.setLocalPortalURL = exports.setLocalApiURL = exports.isLocalDevOrigin = exports.TEST_API_URL = exports.STAGING_API_URL = exports.PROD_API_URL = exports.query_string_for_object = exports.sanitize_user_html_with_iframes = exports.DEFAULT_IFRAME_SANDBOX = exports.sanitize_user_html = exports.sanitize_html_for_cms = exports.sanitize_html_with_links = exports.remove_image_tags = exports.remove_style_tags = exports.remove_script_tags = exports.time_for_calendar_event = exports.fullMonth_day_year = exports.calculate_date_difference_for_set_fields = void 0;
-exports.replace_calendar_event_template_values = exports.replace_purchase_template_values = exports.replace_tag_template_values_for_enduser = exports.append_current_utm_params = exports.get_utm_params = exports.TRACKED_URL_PARAMS = exports.is_out_of_office = exports.color_for_classification = exports.classification_for_vital = exports.SMS_UNSUBSCRIBE_KEYWORDS = exports.satisfies_vital_comparison = exports.field_can_autosubmit = exports.field_can_autoadvance = exports.decodeJWT = exports.validate_organization_for_develop_health = exports.validate_user_for_develop_health = exports.validate_enduser_for_develop_health = exports.vitl_gender = exports.vitl_date_of_birth = exports.vitl_zipcode = exports.five_digit_zipcode = exports.validate_enduser_for_vitl = exports.validate_enduser_for_script_sure = exports.validate_enduser_for_dose_spot = exports.validate_enduser_for_smart_meter = exports.validate_enduser_for_gogo = exports.json_error_string = exports.validate_enduser_for_candid = exports.validate_provider_for_candid = exports.validate_organization_for_candid = exports.validate_insurance_for_eligibility = exports.weighted_round_robin = exports.responses_satisfy_conditions = exports.calculate_bmi_from_responses = exports.calculate_bmi = exports.FORM_LOGIC_URL_PARAMETER = exports.FORM_LOGIC_CALCULATED_FIELDS = exports.calculate_form_scoring = exports.batch_array = exports.capture_is_supported = exports.get_next_reminder_timestamp = exports.mfa_is_enabled = exports.decode_email_for_display = exports.URIDecodeEmail = exports.get_recent_outbound_communication_date = exports.get_recent_engagement_date = exports.MM_DD_YYYY_to_YYYY_MM_DD = exports.YYYY_MM_DD_to_MM_DD_YYYY = exports.getLocalTimezone = exports.string_matches_key_or_value = void 0;
-exports.constructT2BaseURL = exports.formatDuration = exports.calculateTimeTrackDuration = exports.validate_custom_field_references = exports.slot_violates_calendar_event_limits = exports.find_conflicting_upcoming_event = exports.BOOKING_RESOLVED_ATTENDEE_STATUSES = exports.replace_form_response_template_values = exports.resolve_integration_id = exports.replace_snippet_template_values = exports.get_snippet_keys = exports.emit_gtm_event = exports.get_care_team_primary = exports.is_checkbox_custom_field_value = exports.enrich_doxy_url = exports.to_human_readable_phone_number = exports.get_canvas_id = exports.should_show_unsubmitted_form_response_for_interval = exports.enduser_insurance_string = exports.enduser_address_string = exports.is_timezone = exports.downloadFile = exports.get_prepopulated_responses = exports.INVALID_PREPOPULATION_TYPES = exports.add_value_for_dotted_key = exports.value_for_dotted_key = exports.get_flattened_fields = exports.skip_due_date_as_needed = exports.is_full_iso_string_heuristic = exports.display_time_for_seconds = exports.replace_enduser_template_values = exports.replace_secret_values = exports.get_secret_names = exports.replace_sms_template_values = exports.replace_form_field_template_values = exports.replace_order_template_values = exports.replace_medication_template_values = void 0;
+exports.replace_purchase_template_values = exports.replace_tag_template_values_for_enduser = exports.append_current_utm_params = exports.get_utm_params = exports.TRACKED_URL_PARAMS = exports.is_out_of_office = exports.color_for_classification = exports.classification_for_vital = exports.SMS_UNSUBSCRIBE_KEYWORDS = exports.satisfies_vital_comparison = exports.field_can_autosubmit = exports.field_can_autoadvance = exports.decodeJWT = exports.validate_organization_for_develop_health = exports.validate_user_for_develop_health = exports.validate_enduser_for_develop_health = exports.vitl_gender = exports.vitl_date_of_birth = exports.vitl_zipcode = exports.five_digit_zipcode = exports.validate_enduser_for_vitl = exports.validate_enduser_for_script_sure = exports.validate_enduser_for_dose_spot = exports.validate_enduser_for_smart_meter = exports.validate_enduser_for_gogo = exports.json_error_string = exports.validate_enduser_for_candid = exports.validate_provider_for_candid = exports.validate_organization_for_candid = exports.validate_insurance_for_eligibility = exports.insurance_relationships_for_field = exports.weighted_round_robin = exports.responses_satisfy_conditions = exports.calculate_bmi_from_responses = exports.calculate_bmi = exports.FORM_LOGIC_URL_PARAMETER = exports.FORM_LOGIC_CALCULATED_FIELDS = exports.calculate_form_scoring = exports.batch_array = exports.capture_is_supported = exports.get_next_reminder_timestamp = exports.mfa_is_enabled = exports.decode_email_for_display = exports.URIDecodeEmail = exports.get_recent_outbound_communication_date = exports.get_recent_engagement_date = exports.MM_DD_YYYY_to_YYYY_MM_DD = exports.YYYY_MM_DD_to_MM_DD_YYYY = exports.getLocalTimezone = exports.string_matches_key_or_value = void 0;
+exports.constructT2BaseURL = exports.formatDuration = exports.calculateTimeTrackDuration = exports.validate_custom_field_references = exports.slot_violates_calendar_event_limits = exports.find_conflicting_upcoming_event = exports.BOOKING_RESOLVED_ATTENDEE_STATUSES = exports.replace_form_response_template_values = exports.resolve_integration_id = exports.replace_snippet_template_values = exports.get_snippet_keys = exports.emit_gtm_event = exports.get_care_team_primary = exports.is_checkbox_custom_field_value = exports.enrich_doxy_url = exports.to_human_readable_phone_number = exports.get_canvas_id = exports.should_show_unsubmitted_form_response_for_interval = exports.enduser_insurance_string = exports.enduser_address_string = exports.is_timezone = exports.downloadFile = exports.get_prepopulated_responses = exports.INVALID_PREPOPULATION_TYPES = exports.add_value_for_dotted_key = exports.value_for_dotted_key = exports.get_flattened_fields = exports.skip_due_date_as_needed = exports.is_full_iso_string_heuristic = exports.display_time_for_seconds = exports.replace_enduser_template_values = exports.replace_secret_values = exports.get_secret_names = exports.replace_sms_template_values = exports.replace_form_field_template_values = exports.replace_order_template_values = exports.replace_medication_template_values = exports.replace_calendar_event_template_values = void 0;
 var types_models_1 = require("@tellescope/types-models");
 var constants_1 = require("@tellescope/constants");
 var sanitize_html_1 = __importDefault(require("sanitize-html"));
@@ -2646,6 +2646,58 @@ var weighted_round_robin = function (_a) {
     return { selected: undefined };
 };
 exports.weighted_round_robin = weighted_round_robin;
+// The "Relationship to Policy Owner" list an Insurance question offers, and the relationship that is
+// in effect before the patient touches the selector (CU-1dfjxwuyxmg).
+//
+// Shared on purpose. FOUR places need the same answer and used to hard-code 'Self' in three of them:
+//   - the selector's options and displayed value, and the gate revealing Policy Owner Details
+//     (InsuranceInput, react/components/src/Forms/inputs.tsx)
+//   - the relationship stamped onto every write the Insurance input emits
+//     (forms.tsx and forms.v2.tsx, which wrap onChange with `relationship: v?.relationship || ...`)
+//   - the validation deciding whether the Policy Owner fields are required
+//     (validateBasicField, react/components/src/Forms/hooks.tsx)
+// If they disagree, the screen shows Spouse while the submitted answer says Self and the required
+// owner details are never enforced. One derived default keeps all four honest.
+//
+// `settings.insuranceRelationships` restricts the list. It is a DISPLAY rule only: a submitted
+// relationship is still validated against the full enum, so a stale tab or an API writer can still
+// send an excluded value. An absent key, an empty list, a non-list, or a list whose every entry is
+// unknown all fall back to the full list — never to an empty one, which would make a required
+// question unanswerable.
+//
+// On a Canvas question the configured list is intersected with the Canvas subset, so every value the
+// patient can pick keeps an INSURANCE_RELATIONSHIPS_CANVAS_MAPPING entry.
+//
+// Ordering and default:
+//   - a configured list renders in the order the admin entered it and defaults to its FIRST entry,
+//     so an admin who puts Spouse first gets Spouse (and Policy Owner Details open immediately).
+//   - a field with no usable configured list keeps the long-standing alphabetical sort and defaults
+//     to 'Self' — NOT to the first rendered option, which would be 'Cadaver Donor' and would change
+//     the default on every Insurance question that exists today.
+//
+// Note that INSURANCE_RELATIONSHIPS and INSURANCE_RELATIONSHIPS_ALPHABETICAL are the SAME array
+// object and .sort() mutates, so the fallback sorts a copy.
+var insurance_relationships_for_field = function (field) {
+    var _a, _b, _d;
+    var allowed = ((((_a = field === null || field === void 0 ? void 0 : field.options) === null || _a === void 0 ? void 0 : _a.billingProvider) === constants_1.CANVAS_TITLE || ((_b = field === null || field === void 0 ? void 0 : field.options) === null || _b === void 0 ? void 0 : _b.dataSource) === constants_1.CANVAS_TITLE)
+        ? constants_1.INSURANCE_RELATIONSHIPS_CANVAS
+        : constants_1.INSURANCE_RELATIONSHIPS);
+    var configured = (_d = field === null || field === void 0 ? void 0 : field.settings) === null || _d === void 0 ? void 0 : _d.insuranceRelationships;
+    var selected = Array.from(new Set((Array.isArray(configured) ? configured : [])
+        .filter(function (r) { return allowed.includes(r); })));
+    if (selected.length > 0) {
+        return { options: selected, defaultRelationship: selected[0] };
+    }
+    var options = __spreadArray([], allowed, true).sort(function (x, y) { return x.localeCompare(y); });
+    // `includes` rather than a bare 'Self': the default has to be one of the options, or the MUI
+    // Select renders blank. Self is in both lists today, so this changes nothing — it only keeps the
+    // invariant if INSURANCE_RELATIONSHIPS_CANVAS_MAPPING ever loses its Self entry.
+    return {
+        options: options,
+        defaultRelationship: options.includes('Self') ? 'Self' : options[0],
+    };
+};
+exports.insurance_relationships_for_field = insurance_relationships_for_field;
 var validate_insurance_for_eligibility = function (enduser) {
     var _a, _b, _d;
     if (!enduser.insurance) {

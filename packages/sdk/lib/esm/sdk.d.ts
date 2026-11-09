@@ -64,6 +64,14 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
         id: string;
         createdAt: Date;
     };
+    ai_documents: import("@tellescope/types-models").AIDocument & {
+        id: string;
+        createdAt: Date;
+    };
+    ai_document_versions: import("@tellescope/types-models").AIDocumentVersion & {
+        id: string;
+        createdAt: Date;
+    };
     ai_conversations: import("@tellescope/types-models").AIConversation & {
         id: string;
         createdAt: Date;
@@ -430,6 +438,14 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
     };
 }[N], reload: (argument: string | ReadFilter<{
     inbox_threads: import("@tellescope/types-models").InboxThread & {
+        id: string;
+        createdAt: Date;
+    };
+    ai_documents: import("@tellescope/types-models").AIDocument & {
+        id: string;
+        createdAt: Date;
+    };
+    ai_document_versions: import("@tellescope/types-models").AIDocumentVersion & {
         id: string;
         createdAt: Date;
     };
@@ -802,6 +818,14 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
         id: string;
         createdAt: Date;
     };
+    ai_documents: import("@tellescope/types-models").AIDocument & {
+        id: string;
+        createdAt: Date;
+    };
+    ai_document_versions: import("@tellescope/types-models").AIDocumentVersion & {
+        id: string;
+        createdAt: Date;
+    };
     ai_conversations: import("@tellescope/types-models").AIConversation & {
         id: string;
         createdAt: Date;
@@ -1168,6 +1192,14 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
     };
 }[N]> | undefined) => Promise<{
     inbox_threads: import("@tellescope/types-models").InboxThread & {
+        id: string;
+        createdAt: Date;
+    };
+    ai_documents: import("@tellescope/types-models").AIDocument & {
+        id: string;
+        createdAt: Date;
+    };
+    ai_document_versions: import("@tellescope/types-models").AIDocumentVersion & {
         id: string;
         createdAt: Date;
     };
@@ -1540,6 +1572,14 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
         id: string;
         createdAt: Date;
     };
+    ai_documents: import("@tellescope/types-models").AIDocument & {
+        id: string;
+        createdAt: Date;
+    };
+    ai_document_versions: import("@tellescope/types-models").AIDocumentVersion & {
+        id: string;
+        createdAt: Date;
+    };
     ai_conversations: import("@tellescope/types-models").AIConversation & {
         id: string;
         createdAt: Date;
@@ -1906,6 +1946,14 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
     };
 }[N]) => void) => Promise<{
     inbox_threads: import("@tellescope/types-models").InboxThread & {
+        id: string;
+        createdAt: Date;
+    };
+    ai_documents: import("@tellescope/types-models").AIDocument & {
+        id: string;
+        createdAt: Date;
+    };
+    ai_document_versions: import("@tellescope/types-models").AIDocumentVersion & {
         id: string;
         createdAt: Date;
     };
@@ -2279,6 +2327,14 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         id: string;
         createdAt: Date;
     };
+    ai_documents: import("@tellescope/types-models").AIDocument & {
+        id: string;
+        createdAt: Date;
+    };
+    ai_document_versions: import("@tellescope/types-models").AIDocumentVersion & {
+        id: string;
+        createdAt: Date;
+    };
     ai_conversations: import("@tellescope/types-models").AIConversation & {
         id: string;
         createdAt: Date;
@@ -2645,6 +2701,14 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
     };
 }[N], CreateFields<N, {
     inbox_threads: import("@tellescope/types-models").InboxThread & {
+        id: string;
+        createdAt: Date;
+    };
+    ai_documents: import("@tellescope/types-models").AIDocument & {
+        id: string;
+        createdAt: Date;
+    };
+    ai_document_versions: import("@tellescope/types-models").AIDocumentVersion & {
         id: string;
         createdAt: Date;
     };
@@ -3017,6 +3081,14 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         id: string;
         createdAt: Date;
     };
+    ai_documents: import("@tellescope/types-models").AIDocument & {
+        id: string;
+        createdAt: Date;
+    };
+    ai_document_versions: import("@tellescope/types-models").AIDocumentVersion & {
+        id: string;
+        createdAt: Date;
+    };
     ai_conversations: import("@tellescope/types-models").AIConversation & {
         id: string;
         createdAt: Date;
@@ -3386,6 +3458,14 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         id: string;
         createdAt: Date;
     };
+    ai_documents: import("@tellescope/types-models").AIDocument_readonly & {
+        id: string;
+        createdAt: Date;
+    };
+    ai_document_versions: import("@tellescope/types-models").AIDocumentVersion_readonly & {
+        id: string;
+        createdAt: Date;
+    };
     ai_conversations: import("@tellescope/types-models").AIConversation_readonly & {
         id: string;
         createdAt: Date;
@@ -3752,6 +3832,14 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
     };
 }[N] | keyof {
     inbox_threads: import("@tellescope/types-models").InboxThread_updatesDisabled & {
+        id: string;
+        createdAt: Date;
+    };
+    ai_documents: import("@tellescope/types-models").AIDocument_updatesDisabled & {
+        id: string;
+        createdAt: Date;
+    };
+    ai_document_versions: import("@tellescope/types-models").AIDocumentVersion_updatesDisabled & {
         id: string;
         createdAt: Date;
     };
@@ -4473,6 +4561,9 @@ type Queries = {
     automated_actions: {
         process: (args: extractFields<CustomActions['automated_actions']['process']['parameters']>) => (Promise<extractFields<CustomActions['automated_actions']['process']['returns']>>);
     };
+    ai_documents: {
+        save_version: (args: extractFields<CustomActions['ai_documents']['save_version']['parameters']>) => (Promise<extractFields<CustomActions['ai_documents']['save_version']['returns']>>);
+    };
 };
 type UserInfo = User & {
     type: 'user';
@@ -4576,6 +4667,8 @@ export declare class Session extends SessionManager {
         allowedPaths?: string[] | undefined;
         users?: number | undefined;
         inbox_threads?: number | undefined;
+        ai_documents?: number | undefined;
+        ai_document_versions?: number | undefined;
         ai_conversations?: number | undefined;
         waitlists?: number | undefined;
         agent_records?: number | undefined;
@@ -4742,6 +4835,8 @@ export declare class Session extends SessionManager {
         allowedPaths?: string[] | undefined;
         users?: number | undefined;
         inbox_threads?: number | undefined;
+        ai_documents?: number | undefined;
+        ai_document_versions?: number | undefined;
         ai_conversations?: number | undefined;
         waitlists?: number | undefined;
         agent_records?: number | undefined;

@@ -2359,6 +2359,13 @@ export interface FormField extends FormField_readonly, FormField_required, FormF
   htmlDescription?: string,
   headerText  ?: string,
   options     ?: FormFieldOptions,
+  // Open, string-keyed bag of per-field settings, validated generically with no per-key rules, so a
+  // form frontend can add its own keys without a schema, SDK or webapp release. `options` stays
+  // closed and typed; put anything the backend reads there instead.
+  // First key: `insuranceRelationships` — the subset of INSURANCE_RELATIONSHIPS an Insurance
+  // question offers for "Relationship to Policy Owner". Display only: a submitted relationship is
+  // still validated against the full enum, so an excluded value can still arrive.
+  settings    ?: { [key: string]: string | number | boolean | string[] },
   intakeField ?: string | null,
   flowchartUI?: FlowchartUI,
   isInGroup?: boolean,
@@ -6447,8 +6454,96 @@ export interface InboxThread extends InboxThread_readonly, InboxThread_required,
   isDraftOnlyThread?: boolean, // Marker for threads created with only draft/scheduled messages, no sent messages yet
 }
 
+/**
+ * ai_documents / ai_document_versions — version-pinned AI Apps (and, later, Agents), PRIVATE BY
+ * DEFAULT: the creator and admins see a document. Sharing is opt-in and read-only — to the whole
+ * organization (`visibleToAllUsers`) or to named users (`sharedWithUserIds`); only the creator or an
+ * admin can change a document, its sharing, or save a version onto it. A version is readable iff its
+ * head is.
+ *
+ * Split into a MUTABLE HEAD (`ai_documents`) and an IMMUTABLE BODY (`ai_document_versions`) rather
+ * than an inline `versions: []` array: a single `definition` routinely exceeds 100 KB, so an array
+ * of them walks straight into Mongo's 16 MB per-document cap. The head carries the metadata a list
+ * view needs (title, card, which version is current); the body carries the payload.
+ *
+ * `kind` is a free slug, not an enum, so the front end can introduce a new kind without a backend
+ * deploy. The server branches on exactly one value — `'agent'` — which is what gates the governance
+ * fields below.
+ */
+export type AIDocumentKind = 'app' | 'agent' | string // free slug: ^[a-z][a-z0-9-]{0,49}$
+export interface AIDocument_readonly extends ClientRecord {
+  // Only ai_documents.save_version moves these. They are schema `readonly`, so a generic
+  // create/update silently drops them rather than letting a caller re-point the head.
+  // A PUBLISHED pointer, not a counter: 0 until the first version is saved, and these two always
+  // describe the same version, because save_version writes them in one update once that version
+  // exists. That is what makes `currentVersion` safe to read as the body's revision and send back
+  // as `expectedVersion`. They can LAG — a save whose version row landed but whose publish did not
+  // leaves the head on the previous version until the next save heals it — but never lead.
+  currentVersion: number,
+  currentVersionId?: string,
+}
+export interface AIDocument_required {
+  kind: AIDocumentKind,
+  title: string,
+}
+export interface AIDocument_updatesDisabled {
+  // A document's kind decides which governance fields are legal on it, so letting it change would
+  // let an 'app' become an 'agent' (or the reverse) and strand fields that were validated under the
+  // old value. Create a new document instead.
+  kind: AIDocumentKind,
+}
+export interface AIDocument extends AIDocument_readonly, AIDocument_required, AIDocument_updatesDisabled {
+  description?: string,
+  /** Opaque JSON string (<= 2,000 chars) the front end renders as a list/launcher card. Never parsed
+   *  by the server — see `jsonStringValidator`. */
+  card?: string,
+  archivedAt?: Date | '', // soft delete; there is no delete action, since conversations cite documents for audit
+  tags?: string[],
+
+  // ---- sharing: valid on every kind; read access only, never copied onto versions ----
+  /** true = every staff user in the organization can read the head and its versions */
+  visibleToAllUsers?: boolean,
+  /** named users who can read the head and its versions */
+  sharedWithUserIds?: string[],
+
+  // ---- governance: legal ONLY when kind === 'agent'; a 400 otherwise ----
+  /** The user a background/autopilot run acts as. Admin-only to set, since it is an impersonation grant. */
+  runAsUserId?: string,
+  approverUserIds?: string[],
+  maxCredits?: number,
+  autopilotEnabled?: boolean,
+  scheduleCron?: string,
+}
+
+export interface AIDocumentVersion_readonly extends ClientRecord {}
+export interface AIDocumentVersion_required {
+  documentId: string,
+  // 1-based and contiguous; assigned by save_version, never by a caller. The unique index on
+  // (businessId, documentId, version) is what guarantees no two rows share a number, and no row is
+  // ever deleted or renumbered, so this is a complete history.
+  version: number,
+  /** Opaque JSON string (<= 2,000,000 chars). The server never parses it: the front end owns the
+   *  shape, and a typed object would break on dotted `namespace.tool` keys, which Mongo `$set`
+   *  reads as paths. */
+  definition: string,
+}
+export interface AIDocumentVersion_updatesDisabled {}
+export interface AIDocumentVersion extends AIDocumentVersion_readonly, AIDocumentVersion_required, AIDocumentVersion_updatesDisabled {
+  // Copied from the head at save time so a pinned version renders without its head — a conversation
+  // cites a version id for audit, and the head's title/card may have moved on since.
+  title?: string,
+  description?: string,
+  card?: string,
+  // Written by the client, read by nothing on the server today. Here now so the P4 background-run
+  // tool policy does not need a second schema round.
+  allowedTools?: string[],
+  autopilotTools?: string[],
+}
+
 export type ModelForName_required = {
   inbox_threads: InboxThread_required,
+  ai_documents: AIDocument_required,
+  ai_document_versions: AIDocumentVersion_required,
   ai_conversations: AIConversation_required,
   waitlists: Waitlist_required,
   agent_records: AgentRecord_required,
@@ -6545,6 +6640,8 @@ export type ClientModel_required = ModelForName_required[keyof ModelForName_requ
 
 export interface ModelForName_readonly {
   inbox_threads: InboxThread_readonly,
+  ai_documents: AIDocument_readonly,
+  ai_document_versions: AIDocumentVersion_readonly,
   ai_conversations: AIConversation_readonly,
   waitlists: Waitlist_readonly,
   agent_records: AgentRecord_readonly,
@@ -6641,6 +6738,8 @@ export type ClientModel_readonly = ModelForName_readonly[keyof ModelForName_read
 
 export interface ModelForName_updatesDisabled {
   inbox_threads: InboxThread_updatesDisabled,
+  ai_documents: AIDocument_updatesDisabled,
+  ai_document_versions: AIDocumentVersion_updatesDisabled,
   ai_conversations: AIConversation_updatesDisabled,
   waitlists: Waitlist_updatesDisabled,
   agent_records: AgentRecord_updatesDisabled,
@@ -6737,6 +6836,8 @@ export type ClientModel_updatesDisabled = ModelForName_updatesDisabled[keyof Mod
 
 export interface ModelForName extends ModelForName_required, ModelForName_readonly { 
   inbox_threads: InboxThread,
+  ai_documents: AIDocument,
+  ai_document_versions: AIDocumentVersion,
   ai_conversations: AIConversation,
   waitlists: Waitlist,
   agent_records: AgentRecord,
@@ -6843,6 +6944,8 @@ export type UserActivityStatus = 'Active' | 'Away' | 'Unavailable'
 
 export const modelNameChecker: { [K in ModelName] : true } = {
   inbox_threads: true,
+  ai_documents: true,
+  ai_document_versions: true,
   ai_conversations: true,
   waitlists: true,
   agent_records: true,

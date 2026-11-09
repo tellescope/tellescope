@@ -246,6 +246,9 @@ export declare const useTellescopeForm: ({ dontAutoadvance, isPublicForm, form, 
             fullZIP?: boolean | undefined;
             headerText?: string | undefined;
             options?: import("@tellescope/types-models").FormFieldOptions | undefined;
+            settings?: {
+                [key: string]: string | number | boolean | string[];
+            } | undefined;
             intakeField?: string | null | undefined;
             flowchartUI?: import("@tellescope/types-models").FlowchartUI | undefined;
             isInGroup?: boolean | undefined;
@@ -311,6 +314,9 @@ export declare const useTellescopeForm: ({ dontAutoadvance, isPublicForm, form, 
             fullZIP?: boolean | undefined;
             headerText?: string | undefined;
             options?: import("@tellescope/types-models").FormFieldOptions | undefined;
+            settings?: {
+                [key: string]: string | number | boolean | string[];
+            } | undefined;
             intakeField?: string | null | undefined;
             flowchartUI?: import("@tellescope/types-models").FlowchartUI | undefined;
             isInGroup?: boolean | undefined;

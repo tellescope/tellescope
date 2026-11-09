@@ -92,6 +92,8 @@ exports.DIAGNOSIS_TYPE_MAPPING = {
 };
 exports.modelNameChecker = {
     inbox_threads: true,
+    ai_documents: true,
+    ai_document_versions: true,
     ai_conversations: true,
     waitlists: true,
     agent_records: true,

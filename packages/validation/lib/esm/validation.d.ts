@@ -207,6 +207,34 @@ export declare const stringValidator25000OptionalEmptyOkay: ValidatorDefinition<
 export declare const stringValidator30000RichTextHTML: ValidatorDefinition<string>;
 export declare const stringValidator25000EmptyOkay: ValidatorDefinition<string>;
 export declare const SMSMessageValidator: ValidatorDefinition<string>;
+/**
+ * An opaque JSON string: stored verbatim, parsed only to check it is well-formed.
+ *
+ * Used for the ai_documents `card` and ai_document_versions `definition` blobs. The front end owns
+ * the shape; storing the STRING rather than a typed object is deliberate, because a definition's
+ * object keys are tool identifiers like `namespace.tool`, and Mongo reads a dot inside a `$set` key
+ * as a path separator.
+ *
+ * Three things here are load-bearing:
+ *
+ *  1. `isObject` stays FALSE. build_validator's `isObject: true` branch JSON.parses the value and
+ *     REPLACES it with the parsed object, so the field would reach Mongo as an object — exactly
+ *     what this validator exists to avoid. The parse-check below is done by hand instead, the same
+ *     way agentSystemValidator does it.
+ *  2. `maxLength` is passed through explicitly. The option is `maxLength` (not `maxChars`) and
+ *     defaults to DEFAULT_MAX_LENGTH (50,000), so a real definition would 400 without it.
+ *  3. The length check happens HERE, before build_validator's generic one, because that one
+ *     interpolates the entire value into its error message — a 2 MB definition would come back as
+ *     a 2 MB error body and be written to the logs.
+ */
+export declare const jsonStringValidator: ({ maxLength, label }: {
+    maxLength: number;
+    label?: string | undefined;
+}) => ValidatorDefinition<string>;
+/** `^[a-z][a-z0-9-]{0,49}$` — a free slug, NOT an enum, so the front end can introduce a new kind
+ *  of ai_document without a backend deploy. The server branches on exactly one value, 'agent'. */
+export declare const AI_DOCUMENT_KIND_REGEX: RegExp;
+export declare const aiDocumentKindValidator: ValidatorDefinition<string>;
 export declare const listValidator: <T>(b: ValidatorDefinition<T>, _o?: ValidatorOptions | ValidatorOptionsForList) => ValidatorDefinition<T[]>;
 export declare const listValidatorEmptyOk: <T>(b: ValidatorDefinition<T>, o?: ValidatorOptions) => ValidatorDefinition<T[]>;
 export declare const listValidatorOptionalOrEmptyOk: <T>(b: ValidatorDefinition<T>, o?: ValidatorOptions) => ValidatorDefinition<T[]>;
@@ -493,6 +521,8 @@ export declare const WebhookSubscriptionValidator: ValidatorDefinition<{
     journeys: CUDSubscription;
     files: CUDSubscription;
     inbox_threads: CUDSubscription;
+    ai_documents: CUDSubscription;
+    ai_document_versions: CUDSubscription;
     ai_conversations: CUDSubscription;
     waitlists: CUDSubscription;
     agent_records: CUDSubscription;
@@ -1092,6 +1122,9 @@ export declare const userPortalSettingsValidator: ValidatorDefinition<{
 }>;
 export declare const userPreferencesValidator: ValidatorDefinition<{
     [index: string]: string | boolean;
+}>;
+export declare const formFieldSettingsValidator: ValidatorDefinition<{
+    [index: string]: string | number | boolean | string[];
 }>;
 export declare const FHIRObservationCategoryValidator: ValidatorDefinition<ObservationCategory>;
 export declare const FHIR_OBSERVATION_STATUS_CODES: ObservationStatusCode[];
@@ -2153,7 +2186,17 @@ export declare const analyticsQueryValidator: ValidatorDefinition<{
             qualifier: ListQueryQualifier;
             userIds: string[];
         } | undefined;
-        born?: DateRange | undefined;
+        born?: DateRange | undefined; /**
+         * The blocking error for a list-item mutation action, or '' when it is saveable.
+         *
+         * Shared by the API (as an automation_triggers constraint) and by the trigger editor, so the two
+         * reject the same actions with the same wording. It exists as a separate check because the field and
+         * its sub-fields validate TOGETHER: `objectValidator` sees one key at a time and cannot tell whether
+         * `status` is a sub-field `field` actually has.
+         *
+         * Keeping unrecognized keys out here is also what keeps `$`-prefixed and dotted keys out of the Mongo
+         * paths that handle_actions_for_triggers_inner builds from them.
+         */
         tags?: ListOfStringsWithQualifier | undefined;
         entityTypes?: string[] | undefined;
     } | undefined;
@@ -2427,7 +2470,17 @@ export declare const analyticsQueriesValidatorOptional: ValidatorDefinition<({
             qualifier: ListQueryQualifier;
             userIds: string[];
         } | undefined;
-        born?: DateRange | undefined;
+        born?: DateRange | undefined; /**
+         * The blocking error for a list-item mutation action, or '' when it is saveable.
+         *
+         * Shared by the API (as an automation_triggers constraint) and by the trigger editor, so the two
+         * reject the same actions with the same wording. It exists as a separate check because the field and
+         * its sub-fields validate TOGETHER: `objectValidator` sees one key at a time and cannot tell whether
+         * `status` is a sub-field `field` actually has.
+         *
+         * Keeping unrecognized keys out here is also what keeps `$`-prefixed and dotted keys out of the Mongo
+         * paths that handle_actions_for_triggers_inner builds from them.
+         */
         tags?: ListOfStringsWithQualifier | undefined;
         entityTypes?: string[] | undefined;
     } | undefined;

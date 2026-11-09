@@ -3,7 +3,7 @@ import { ErrorInfo, Indexable, Operation, JSONType, CRUD, HTTPMethod, UserIdenti
 import * as Utilities from "@tellescope/utilities";
 import type { Filter } from "mongodb";
 import { EnduserSession, ChatRoom, UserSession, MeetingStatus, WebhookSubscriptionsType, Attendee, FormResponseValue, MeetingInfo, OrganizationTheme, WithLinkOpenTrackingIds, CommunicationsChannel, AppointmentTerm, JourneyContext, AnalyticsQuery, AnalyticsQueryResult, AnalyticsAggregationRequest, DateRange, BaseAvailabilityBlock, IndexUpdate, Timezone, UserCallRoutingBehavior, ExternalChatGPTMessage, StripeCheckoutInfo, StripeCountryCode, JourneyStatistics, JourneyStatisticsMetric, FormStatistics, CustomFields, TicketsReport, EndusersReportQueries, EndusersReport, Report, FormResponsesReportQueries, PhoneCallsReportQueries, ListOfStringsWithQualifier, GoGoMedsPet, InsuranceType, SmartMeterOrderLineItem, PhoneCallsReport, AthenaSubscription, TellescopeGender, LabeledField, HealthieSendChatAutomationAction, TwilioQueue, SendWebhookAutomationAction, FormResponseProcedureCode, FormResponseDiagnosisCode, DevelopHealthRunBenefitVerificationBaseArguments, WeeklyAvailability, CanvasCreateNoteAutomationAction, CanvasCoding, InboxThread, AIDecisionAutomationAction, AgentMessageInput, AgentReply, AgentTextBlock, AgentToolChoice, AgentToolInput, LinkedAccount, MFAMethod, APIKeyScope, UserOutOfOffice, StripeCheckoutItem } from "@tellescope/types-models";
-import { AppointmentBookingPage as AppointmentBookingPageClient, UserDisplayInfo, Enduser, Journey, FormResponse, FormField, Form, Meeting, Email, File, CalendarEvent, Organization, User as UserClient, EnduserObservation as EnduserObservationClient, AppointmentLocation, CalendarEventTemplate, Product, ManagedContentRecord, DatabaseRecord as DatabaseRecordClient, Ticket, GroupMMSConversation, EnduserOrder, EnduserEncounter, Purchase, Integration, TicketQueue, SMSMessage, EnduserEligibilityResult, Waitlist, PhoneCall, TicketThreadComment, ChatRoom as ChatRoomClient, AIConversation } from "@tellescope/types-client";
+import { AppointmentBookingPage as AppointmentBookingPageClient, UserDisplayInfo, Enduser, Journey, FormResponse, FormField, Form, Meeting, Email, File, CalendarEvent, Organization, User as UserClient, EnduserObservation as EnduserObservationClient, AppointmentLocation, CalendarEventTemplate, Product, ManagedContentRecord, DatabaseRecord as DatabaseRecordClient, Ticket, GroupMMSConversation, EnduserOrder, EnduserEncounter, Purchase, Integration, TicketQueue, SMSMessage, EnduserEligibilityResult, Waitlist, PhoneCall, TicketThreadComment, ChatRoom as ChatRoomClient, AIConversation, AIDocument, AIDocumentVersion } from "@tellescope/types-client";
 import { ValidatorDefinition, LoginFlowResult, IntegrationsTitleType } from "@tellescope/validation";
 import { MDIFileType } from "@tellescope/constants";
 export declare const get_next_reminder_timestamp_for_ticket: ({ dueDateInMS, reminders, closedAt }: Pick<Ticket, 'dueDateInMS' | 'reminders' | 'closedAt'>) => number;
@@ -77,6 +77,27 @@ export type ModelFieldInfo<T, R> = {
     initializer?: Initializer<Partial<T>, R>;
     dependencies?: Dependency<Partial<T>>[];
     redactions?: RedactionReason[];
+    /**
+     * The field is READABLE but may never appear in a caller-supplied `mdbFilter` / `filter`; both are
+     * rejected with a 400 (api/utilities/filter-security.ts).
+     *
+     * For large opaque blobs — an ai_document_versions `definition` is up to 2 MB of JSON the server
+     * never parses — where a `$regex` over it is an unindexed collection scan across the whole tenant
+     * for content no list view ever needs to filter on.
+     *
+     * This is a COST control, not a confidentiality one: the field is readable by anyone who can read
+     * the record, so refusing a predicate on it discloses nothing that a plain read would not. That is
+     * also why it is deliberately NOT `redactions: ['all']`, which would close filtering but strip the
+     * field from every read — and reading the definition back is the entire point of the model.
+     *
+     * Scope: the generic read / readMany paths — the `filter` and `mdbFilter` walks AND `search`,
+     * which ORs a case-insensitive `$regex` across every field and would otherwise be the same scan
+     * under another name. `analytics_frames.custom_aggregation` is NOT covered: it consults
+     * `session.fieldRedactions` and not this flag, so a `$match` on an unfilterable field is still
+     * accepted there. Left that way on purpose — an aggregation endpoint is a scan tool by
+     * construction, and nothing is disclosed that an ordinary read does not already give up.
+     */
+    unfilterable?: boolean;
 };
 export type ModelFields<T> = {
     [K in keyof T]: ModelFieldInfo<T, T[K]>;
@@ -1908,6 +1929,38 @@ export type CustomActions = {
         }, {
             conversationId: string;
             reply: AgentReply;
+        }>;
+    };
+    ai_documents: {
+        /**
+         * The ONLY writer of ai_document_versions, and the only thing that may move a head's
+         * currentVersion / currentVersionId.
+         *
+         * With no `documentId` it creates the head too, so the front end's "Save" is one call whether
+         * or not the app already exists.
+         *
+         * `expectedVersion` is the stale-version token. Send back the `currentVersion` you read off the
+         * document, and the save is refused with a 409 — nothing written — if any version has been
+         * saved since. The head's `currentVersion` and `currentVersionId` always describe the same
+         * version, so the number you read always names the body you read.
+         *
+         * OMITTING it is a deliberate "append on top of whatever is current": such a save is never
+         * refused for being stale. It can still answer 409 if it loses a race for the same version
+         * number outright, which the server retries a few times before giving up.
+         */
+        save_version: CustomAction<{
+            documentId?: string;
+            kind?: string;
+            title?: string;
+            description?: string;
+            card?: string;
+            definition: string;
+            allowedTools?: string[];
+            autopilotTools?: string[];
+            expectedVersion?: number;
+        }, {
+            document: AIDocument;
+            version: AIDocumentVersion;
         }>;
     };
     inbox_threads: {
